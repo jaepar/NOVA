@@ -1,0 +1,121 @@
+# ------------------------------
+# Global / OS
+# ------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Desktop.ini
+
+# ------------------------------
+# IDE / Editor
+# ------------------------------
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# ------------------------------
+# Secrets / Local config
+# ------------------------------
+.env
+.env.*
+!.env.example
+application-local.yaml
+application-local.yml
+*.local.yaml
+*.local.yml
+
+# ------------------------------
+# Logs
+# ------------------------------
+*.log
+logs/
+
+# ------------------------------
+# Frontend (Node/React/Vite/Next)
+# ------------------------------
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.react-compiler/
+frontend/.npm/
+frontend/.pnpm-store/
+frontend/.pnp.cjs
+frontend/.pnp.loader.mjs
+frontend/.yarn/cache/
+frontend/.yarn/unplugged/
+frontend/.yarn/build-state.yml
+frontend/.yarn/install-state.gz
+frontend/.eslintcache
+frontend/.stylelintcache
+frontend/.prettiercache
+frontend/coverage/
+frontend/coverage.json
+frontend/.jest-cache/
+frontend/.vitest/
+frontend/.turbo/
+frontend/.parcel-cache/
+frontend/.cache/
+frontend/.swc/
+frontend/storybook-static/
+frontend/*.tsbuildinfo
+
+# ------------------------------
+# Backend (Spring Boot / Gradle)
+# ------------------------------
+backend/.gradle/
+backend/build/
+backend/out/
+backend/bin/
+backend/.settings/
+backend/.classpath
+backend/.project
+
+# ------------------------------
+# AI Server (Python / FastAPI)
+# ------------------------------
+ai-server/.venv/
+ai-server/venv/
+ai-server/__pycache__/
+ai-server/.pytest_cache/
+ai-server/.mypy_cache/
+ai-server/.ruff_cache/
+ai-server/.coverage
+ai-server/htmlcov/
+
+# If this repo uses ./ai instead of ./ai-server, keep both safe.
+ai/.venv/
+ai/venv/
+ai/__pycache__/
+ai/.pytest_cache/
+ai/.mypy_cache/
+ai/.ruff_cache/
+ai/.coverage
+ai/htmlcov/
+
+# ------------------------------
+# Core Banking Gateway (generic build outputs)
+# ------------------------------
+core-banking-gateway/build/
+core-banking-gateway/dist/
+core-banking-gateway/out/
+core-banking-gateway/target/
+
+# If this repo uses ./coreBanking instead of ./core-banking-gateway.
+coreBanking/build/
+coreBanking/dist/
+coreBanking/out/
+coreBanking/target/
+
+# ------------------------------
+# Optional tools
+# ------------------------------
+.claude/

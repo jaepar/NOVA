@@ -1,133 +1,143 @@
-# NOVA
+# Backend: NOVA
 
-외국인 대상 비대면 금융/생활 밀착 서비스.
-핵심 목표: 비대면 신원 인증 기반 임시 제한 계좌 개설, 최소 금융 기능, 생활 서비스 연계를 통해 외국인들의 외국인등록증 발급 전 금융 공백 해소.
+Spring Boot 기반 REST API 서버. 외국인 대상 인증/금융/생활 도메인 핵심 규칙을 담당한다.
 
-## Repository Structure
+## Behavioral Guidelines
 
-```mermaid
-flowchart TD
-    Root["NOVA"]
-    Root --> FE["frontend<br/>Web/Mobile UI"]
-    Root --> BE["backend<br/>Spring Boot API"]
-    Root --> AI["ai-server<br/>FastAPI Hospital Reservation Chatbot Server"]
-    Root --> CB["core-banking-gateway<br/>On-Prem Core Banking Bridge"]
-```
-
-Sub-project relations:
-
-```mermaid
-flowchart LR
-    FE["Frontend"] -->|"HTTPS REST"| BE["Backend API"]
-    BE -->|"HTTP API"| AI["AI Server (FastAPI)"]
-    BE -->|"Secure tunnel / private link"| CBG["Core Banking Gateway"]
-    CBG -->|"Internal protocol"| CBS["Core Banking Server"]
-    CBS --> CBD[("Core Banking DB")]
-
-    BE --> RDS[("Amazon RDS MySQL")]
-    BE --> Redis[("ElastiCache Redis")]
-    AI --> S3[("Amazon S3")]
-```
-
-## Deploy Diagram
+속도보다 정확성을 우선한다. 단순 작업도 아래 원칙을 기본으로 적용한다.
 
 ```mermaid
 flowchart TD
-    Dev["Developer"] -->|"Git push"| Repo["GitHub"]
-    Repo --> GA["GitHub Actions"]
+  start["작업 요청 확인"] --> think["1. 코딩 전에 생각하기"]
+  think --> simple["2. 단순함 우선"]
+  simple --> surgical["3. 외과적 변경"]
+  surgical --> goal["4. 목표 기반 실행"]
+  goal --> verify["검증 후 완료"]
 
-    User["User"] --> DNS["Route 53"]
-    DNS --> ALB["ALB"]
-
-    GA --> FEDeploy["Frontend Deploy"]
-    FEDeploy --> FEHost["Vercel or Static Hosting"]
-
-    GA --> BEDeploy["Backend Deploy"]
-    BEDeploy --> BEBlue["Backend Blue"]
-    BEDeploy --> BEGreen["Backend Green"]
-
-    GA --> AIDeploy["AI Deploy (Single)"]
-    AIDeploy --> AISingle["AI Server"]
-
-    ALB --> BEBlue
-    ALB --> BEGreen
-
-    BEBlue --> RDSPrimary[("RDS Primary")]
-    BEGreen --> RDSPrimary
-    RDSPrimary --> RDSStandby[("RDS Standby")]
-
-    BEBlue --> Redis["ElastiCache Redis"]
-    BEGreen --> Redis
-
-    BEBlue --> Tunnel["Tunneling"]
-    BEGreen --> Tunnel
-    Tunnel --> CBGW["On-Prem Core Banking Gateway"]
+  think --> assumptions["가정 명시\n불확실하면 질문\n해석이 여러 개면 드러내기"]
+  simple --> minimum["요청 해결 최소 코드\n추측성 기능 금지\n불필요한 추상화 금지"]
+  surgical --> scoped["필요한 파일/라인만 수정\n기존 스타일 유지\n무관 정리 금지"]
+  goal --> criteria["성공 기준 정의\n테스트/빌드/재현 확인\n통과할 때까지 반복"]
 ```
 
-## Operations Diagram
+### 1. Think Before Coding
+- 불확실한 요구를 임의로 확정하지 않는다.
+- 가정을 명시하고, 모호하면 질문한다.
+- 더 단순한 대안이 있으면 먼저 제안한다.
 
-```mermaid
-flowchart TD
-    User["User"] --> FE["Frontend"]
-    FE --> API["Backend API"]
+### 2. Simplicity First
+- 요청 해결에 필요한 최소 구현만 반영한다.
+- 요청 없는 확장성/옵션/추상화는 추가하지 않는다.
+- 실제 요구되지 않은 예외 시나리오를 과도하게 구현하지 않는다.
 
-    API --> Auth["KYC/Account Validation"]
-    API --> Wallet["Wallet / Transfer / History"]
-    API --> NonFin["Job / Hospital"]
+### 3. Surgical Changes
+- 변경은 요청과 직접 관련된 파일/라인으로 제한한다.
+- 기존 코드 스타일을 따른다.
+- 무관한 리팩터링/포맷팅/주석정리는 금지한다.
 
-    Auth --> AIServer["AI Server\nOCR + Liveness + Face Match"]
-    NonFin --> AIChat["AI Hospital Reservation Agent\n(FastAPI Chatbot)"]
-    AIChat --> HospitalApi["Hospital Reservation API Orchestration"]
-    AIServer --> S3["S3 Object Storage"]
+### 4. Goal-Driven Execution
+1. 목표와 DoD 확정 -> 검증: 목표가 테스트 가능한지 확인
+2. 최소 변경 구현 -> 검증: 타깃 테스트 실패/성공 확인
+3. 회귀 검증 -> 검증: `compileJava`/`test` 결과 확인
 
-    API --> Redis["Redis Cache"]
-    API --> DB["RDS MySQL"]
+## Mandatory Work Intake
 
-    API --> Tunnel["Private Tunnel"]
-    Tunnel --> CBG["Core Banking Gateway"]
-    CBG --> CBS["Core Banking Server"]
-    CBS --> CBD[("Core Banking DB")]
+코드 작업 시작 시 아래를 먼저 고정한다.
 
-    CBG --> Gov[("Government/Verification DB")]
-    CBG --> FDS["FDS Server"]
-```
+- Goal: 한 줄 목표
+- DoD: 완료 조건
+- Module: 대상 모듈/도메인
+- Target Test: `bash ./gradlew test --tests ...`
+- Allowed: 수정 허용 범위
+- Forbidden: 수정 금지 범위
+- Checkpoints: 설계 확인 -> RED 실패 확인 -> GREEN 통과 확인
 
-## Monorepo Golden Rules
+기본 정책(별도 지시 없을 때):
+- 수정 가능: 작업 대상 도메인 + 직접 연관 테스트 + 직접 연관 문서
+- 수정 금지: 무관 도메인, 인프라/배포 설정, 광범위 리네이밍
+- 리네이밍: 명시적 승인 없으면 금지
 
-### Immutable
-- 모든 금융 거래는 백엔드 도메인 서비스에서만 처리한다. 프론트/AI 서버(FastAPI 챗봇 포함)에서 금액 확정 로직을 수행하지 않는다.
-- 계좌 개설/송금/해외송금은 인증 상태(KYC, 신분증, liveness) 검증 없이 진행할 수 없다.
-- 원장성 데이터(거래내역, 잔액, 계좌상태)는 Core Banking 응답과 백엔드 상태가 불일치하면 실패 처리한다.
-- 비밀정보(API 키, 인증서, 터널링 자격증명, DB 계정)는 코드/로그에 남기지 않는다.
+## TDD Workflow
 
-### Do
-- 계약 우선: FE-BE, BE-AI(FastAPI), BE-CoreBanking 간 API 스펙을 먼저 고정하고 구현한다.
-- 장애 격리: Core Banking 연동 실패 시 재시도 정책과 보상 흐름을 명시한다.
-- 감사 추적: 인증/이체/계좌개설 단계는 모두 추적 가능한 이벤트 로그를 남긴다.
-- 다국어 UX를 고려해 메시지 키 기반 응답을 우선한다.
+모든 코드 변경은 RED -> GREEN -> REFACTOR 순서를 따른다.
 
-### Don't
-- Core Banking 연동 모듈에서 임의 비즈니스 규칙을 추가하지 않는다.
-- 인증 우회 플래그(예: `skipKyc=true`)를 운영 경로에 추가하지 않는다.
-- 거래 성공 전에 잔액 UI를 낙관적으로 확정하지 않는다.
+- RED: 실패하는 테스트를 먼저 추가/수정하고 실패를 확인한다.
+- GREEN: 테스트를 통과시키는 최소 구현만 적용한다.
+- REFACTOR: 동작 유지 상태에서 중복 제거/가독성 개선을 수행한다.
 
-## Operational Commands
+실패 테스트 증거 없이 구현부터 시작하지 않는다.
 
-- Backend build: `bash ./backend/gradlew -p ./backend clean build`
-- Backend run: `bash ./backend/gradlew -p ./backend bootRun`
-- Backend test: `bash ./backend/gradlew -p ./backend test`
-- AI server run (FastAPI): `cd ai-server && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
-- Frontend run: `cd frontend && <project-specific run command>`
-- Integration check: `backend` 기동 후 `frontend`에서 인증/지갑/이체 핵심 시나리오를 수동 점검
+## Fixed Verification Commands
 
-## Agent Routing
+- 타깃 테스트: `bash ./gradlew test --tests <target>`
+- 전체 테스트: `bash ./gradlew test`
+- 컴파일 점검: `bash ./gradlew compileJava`
 
-- 백엔드 도메인/엔티티/트랜잭션 수정: `backend` 규칙 파일 우선 적용.
-- UI/UX/상태관리 수정: `frontend` 규칙 파일 우선 적용.
-- 병원 예약 챗봇/에이전트 로직(FastAPI) 수정: `ai-server` 규칙 파일 우선 적용.
-- 코어뱅킹 인터페이스/터널링/프로토콜 수정: `core-banking-gateway` 규칙 파일 우선 적용.
+문서 전용 변경으로 테스트 타깃이 없으면, 수정 파일 목록과 근거 문서를 보고한다.
 
-## Maintenance Policy
+## Fixed Response Format
 
-- 이 문서와 실제 코드/인프라가 달라지면, 기능 변경 PR에 `AGENT.md` 또는 하위 규칙 파일 동시 업데이트를 포함한다.
-- 하위 모듈 규칙과 충돌 시, 더 하위 디렉토리의 규칙을 우선 적용한다.
+최종 보고는 아래 순서를 유지한다.
+
+1. 변경 요약 3줄
+2. RED / GREEN / REFACTOR 요약
+3. 파일 목록
+4. 리스크
+5. 다음 액션
+
+## Document Priority
+
+충돌 시 아래 우선순위를 따른다.
+
+1. 가장 가까운 경로의 `AGENTS.md`
+2. 루트 `AGENTS.md`
+3. 변경 성격별 상세 문서
+4. 실제 코드
+
+변경 성격별 상세 문서 우선순위:
+- API 경로/요청/응답/권한 충돌: `docs/rest_api.md`
+- 엔티티/테이블/enum/관계 충돌: `docs/erd.md`
+- 패키지 위치/도메인 책임 충돌: `docs/package.md`
+
+문서와 코드가 충돌하면 문서 기준으로 정렬하고, 결과를 작업 보고에 명시한다.
+
+## Root-Level Architecture Rules (Backend)
+
+- API prefix는 `/{도메인 이름}`를 기본으로 한다.
+- 공통 응답은 `global/response` 래퍼 규칙을 유지한다.
+- 비즈니스 예외는 `global/exception` 계층을 사용한다.
+- 컨트롤러에서 엔티티 직접 반환 금지, DTO 변환 필수.
+- 금융 거래 확정 로직은 서비스 계층에서만 처리한다.
+- AI(FastAPI) 챗봇은 병원 예약 보조/오케스트레이션 역할이며 금융 원장 상태를 확정하지 않는다.
+
+## Logging Policy
+
+- 로깅 프레임워크: SLF4J 기반 (`@Slf4j`) 사용.
+- `System.out/err`, `printStackTrace` 사용 금지.
+- 비밀번호, 토큰, 계좌번호 전체, 주민/여권 원문 등 민감정보 로깅 금지.
+- 외부 연동(AI/CoreBanking)은 진입/종료/실패 3지점 로그를 남긴다.
+- 예외를 catch 했으면 최소 WARN 이상으로 원인과 식별자를 기록한다.
+
+권장 레벨:
+- ERROR: 거래 실패, 외부 연동 실패, 복구 불가 예외
+- WARN: 재시도/폴백, 비정상 입력/검증 실패
+- INFO: 주요 상태 전환(인증, 계좌개설, 이체, 예약)
+- DEBUG: 개발/트러블슈팅 상세 정보
+
+## Docs Sync Rule
+
+다음 변경 시 관련 문서를 같이 갱신한다.
+
+- API 경로/요청/응답/권한
+- 엔티티/테이블/인덱스/제약/enum
+- 모듈 구조/도메인 책임
+- 운영 환경변수
+- 외부 연동 방식
+
+## What Not To Do
+
+- 컨트롤러에 비즈니스 로직 작성 금지
+- 엔티티를 응답으로 직접 반환 금지
+- 무관한 패키지 대규모 리네이밍 금지
+- 인증 우회 플래그를 운영 코드에 추가 금지
+- 하위 규칙 없는 상태에서 임의로 아키텍처 경계를 변경 금지
