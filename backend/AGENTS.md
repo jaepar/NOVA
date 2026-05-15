@@ -27,6 +27,7 @@ flowchart TD
 
 ### 2. Simplicity First
 - 요청 해결에 필요한 최소 구현만 반영한다.
+- 최소 구현을 반영하기 전에 생성/수정할 코드와 변경 범위, 적용 이유를 먼저 설명하고 합의된 범위 안에서만 반영한다.
 - 요청 없는 확장성/옵션/추상화는 추가하지 않는다.
 - 실제 요구되지 않은 예외 시나리오를 과도하게 구현하지 않는다.
 
@@ -101,6 +102,12 @@ flowchart TD
 
 문서와 코드가 충돌하면 문서 기준으로 정렬하고, 결과를 작업 보고에 명시한다.
 
+### Reference Docs
+
+- API 경로/요청/응답/권한: `docs/rest_api.md`
+- 엔티티/테이블/enum/관계: `docs/erd.md`
+- 패키지 위치/도메인 책임: `docs/package.md`
+
 ## Root-Level Architecture Rules (Backend)
 
 - API prefix는 `/{도메인 이름}`를 기본으로 한다.
@@ -108,11 +115,13 @@ flowchart TD
 - 비즈니스 예외는 `global/exception` 계층을 사용한다.
 - 컨트롤러에서 엔티티 직접 반환 금지, DTO 변환 필수.
 - 금융 거래 확정 로직은 서비스 계층에서만 처리한다.
-- AI(FastAPI) 챗봇은 병원 예약 보조/오케스트레이션 역할이며 금융 원장 상태를 확정하지 않는다.
+- 금융 원장 상태와 비금융 상태 모두 AI(FastAPI) 및 클라우드 애플리케이션 계층에서 직접 수정하지 않는다.
+- 금융 원장 상태 변경은 클라우드 banking 도메인에서 온프레미스 Core Banking Gateway/Server로 요청을 전달한 뒤, 온프레미스 Core Banking에서만 최종 반영한다.
 
 ## Logging Policy
 
 - 로깅 프레임워크: SLF4J 기반 (`@Slf4j`) 사용.
+- 로그 저장은 Logback 롤링 파일 정책을 기본으로 적용한다(파일 크기/일자 기준 순환 및 보관 주기 설정).
 - `System.out/err`, `printStackTrace` 사용 금지.
 - 비밀번호, 토큰, 계좌번호 전체, 주민/여권 원문 등 민감정보 로깅 금지.
 - 외부 연동(AI/CoreBanking)은 진입/종료/실패 3지점 로그를 남긴다.
