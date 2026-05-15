@@ -1,7 +1,6 @@
 # ERD
 
-현재 NOVA 백엔드 ERD 기준 문서.
-실제 구현 시 테이블/컬럼명은 영문 `snake_case`를 사용하고, 초안의 표기 불일치(약어, 오탈자, 혼합 표기)는 의미에 맞게 정규화한다.
+현재 NOVA 백엔드의 JPA 엔티티(`backend/src/main/java/.../domain/**/entity`) 기준 ERD 문서.
 
 ## Diagram
 
@@ -9,13 +8,13 @@
 erDiagram
   USER {
     BIGINT user_id PK
-    VARCHAR name
-    VARCHAR birth
-    VARCHAR gender
-    VARCHAR email
-    VARCHAR password
+    VARCHAR_100 name
+    VARCHAR_10 birth
+    ENUM gender "MALE | FEMALE"
+    VARCHAR_100 email "UNIQUE"
+    VARCHAR_255 password
     BOOLEAN has_license
-    VARCHAR license_certificate
+    VARCHAR_255 license_certificate
     BOOLEAN has_certificate
     BOOLEAN has_delete
     TIMESTAMP issued_time
@@ -25,7 +24,7 @@ erDiagram
 
   ACCOUNT_REF {
     BIGINT account_ref_id PK
-    BIGINT user_id FK "user.user_id"
+    BIGINT user_id FK
     BIGINT customer_id
     BIGINT account_id
     BOOLEAN has_account
@@ -35,8 +34,8 @@ erDiagram
 
   WALLET {
     BIGINT wallet_id PK
-    BIGINT user_id FK "user.user_id"
-    BIGINT user_account_id FK "account_ref.account_ref_id"
+    BIGINT user_id FK
+    BIGINT user_account_id FK
     INT balance
     TIMESTAMP created_at
     TIMESTAMP updated_at
@@ -44,9 +43,9 @@ erDiagram
 
   WALLET_TRANSACTION {
     BIGINT wallet_transaction_id PK
-    BIGINT wallet_id FK "wallet.wallet_id"
-    VARCHAR transaction_flow "IN | OUT"
-    VARCHAR counterparty
+    BIGINT wallet_id FK
+    ENUM transaction_flow "DEPOSIT | WITHDRAWAL"
+    VARCHAR_100 counterparty
     INT amount
     TIMESTAMP created_at
     TIMESTAMP updated_at
@@ -54,22 +53,22 @@ erDiagram
 
   JOB {
     BIGINT job_id PK
-    VARCHAR company
-    VARCHAR region
-    VARCHAR opening_title
-    VARCHAR job_category
-    VARCHAR experience
-    VARCHAR salary
-    VARCHAR deadline_type
-    VARCHAR recruit_count
-    VARCHAR preferred
-    VARCHAR age
-    VARCHAR gender
-    VARCHAR job_role
-    VARCHAR work_period
-    VARCHAR employment_type
-    VARCHAR benefits
-    VARCHAR address
+    VARCHAR_100 company
+    VARCHAR_100 region
+    VARCHAR_100 opening_title
+    VARCHAR_50 job_category
+    VARCHAR_50 experience
+    VARCHAR_50 salary
+    VARCHAR_50 deadline_type
+    VARCHAR_50 recruit_count
+    VARCHAR_100 preferred
+    VARCHAR_50 age
+    VARCHAR_50 gender
+    VARCHAR_50 job_role
+    VARCHAR_50 work_period
+    VARCHAR_50 employment_type
+    VARCHAR_100 benefits
+    VARCHAR_255 address
     TEXT introduce
     TIMESTAMP created_at
     TIMESTAMP updated_at
@@ -77,89 +76,91 @@ erDiagram
 
   APPLICATION {
     BIGINT application_id PK
-    BIGINT user_id FK "user.user_id"
-    BIGINT job_id FK "job.job_id"
-    VARCHAR status "APPLIED | PASSED | REJECTED"
+    BIGINT user_id FK
+    BIGINT job_id FK
+    ENUM status "PASSED | FAILED | READ | UNREAD"
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
 
   RESUME {
     BIGINT resume_id PK
-    BIGINT user_id FK "user.user_id"
-    VARCHAR name
-    VARCHAR url
+    BIGINT user_id FK
+    BIGINT application_id FK
+    VARCHAR_100 name
+    VARCHAR_255 url
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
 
   HOSPITAL {
     BIGINT hospital_id PK
-    VARCHAR name
-    VARCHAR type
-    VARCHAR doctor_name
-    VARCHAR address
-    VARCHAR open_time
-    VARCHAR close_time
-    VARCHAR break_time
-    VARCHAR day_off
+    VARCHAR_100 name
+    ENUM type "INTERNAL_MEDICINE | ORTHOPEDICS | DENTAL | OTHER"
+    VARCHAR_50 doctor_name
+    VARCHAR_255 address
+    VARCHAR_100 open_time
+    VARCHAR_100 close_time
+    VARCHAR_100 break_time
+    VARCHAR_100 day_off
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
 
   RESERVATION {
     BIGINT reservation_id PK
-    BIGINT user_id FK "user.user_id"
-    BIGINT hospital_id FK "hospital.hospital_id"
-    VARCHAR rsv_date
+    BIGINT user_id FK
+    BIGINT hospital_id FK
+    VARCHAR_100 rsv_date
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
 
   CS {
     BIGINT cs_id PK
-    BIGINT user_id FK "user.user_id"
-    VARCHAR cs_type
-    BOOLEAN has_completed
+    BIGINT user_id FK
+    ENUM cs_type "PRODUCT_SUBSCRIPTION | ACCOUNT_MAINTENANCE"
+    BOOLEAN cs_status
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
 
-  USER ||--o{ ACCOUNT_REF : "owns"
-  USER ||--o{ WALLET : "has"
-  USER ||--o{ APPLICATION : "applies"
-  USER ||--o{ RESUME : "uploads"
-  USER ||--o{ RESERVATION : "reserves"
-  USER ||--o{ CS : "requests"
+  USER ||--o{ ACCOUNT_REF : owns
+  USER ||--o{ WALLET : has
+  USER ||--o{ APPLICATION : applies
+  USER ||--o{ RESUME : uploads
+  USER ||--o{ RESERVATION : reserves
+  USER ||--o{ CS : requests
 
-  ACCOUNT_REF ||--o{ WALLET : "linked by"
-  WALLET ||--o{ WALLET_TRANSACTION : "records"
+  ACCOUNT_REF ||--o{ WALLET : linked_by
+  WALLET ||--o{ WALLET_TRANSACTION : records
 
-  JOB ||--o{ APPLICATION : "receives"
-  HOSPITAL ||--o{ RESERVATION : "receives"
+  JOB ||--o{ APPLICATION : receives
+  APPLICATION ||--o{ RESUME : has
+  HOSPITAL ||--o{ RESERVATION : receives
 ```
 
 ## Modeling Rules
 
-- `user`는 현재 도메인의 루트 소유자이며, 금융/비금융 데이터는 `user_id`를 기준으로 연결한다.
+- 모든 엔티티는 `BaseEntity`를 상속하며 `created_at`, `updated_at`을 가진다.
 - `wallet.user_account_id`는 `account_ref.account_ref_id`를 참조한다.
-- `wallet_transaction`은 지갑 단위 입출금 이력을 관리하며, 거래 방향은 `transaction_flow` enum으로 구분한다.
-- `application`은 사용자-채용공고 관계의 상태 이력을 가진다.
-- `reservation`은 사용자-병원 예약 관계를 나타내며, 예약 가능 여부 판단 로직은 서비스 계층에서 관리한다.
-- `cs`는 사용자 상담 요청 이력이며, `has_completed`로 완료 여부를 표현한다.
+- `resume.application_id`는 `application.application_id`를 참조한다.
+- `application.status`는 문자열 enum으로 저장한다.
+- `cs.cs_status`는 코드상 `boolean`이며 의미상 `PENDING(false)`, `COMPLETED(true)`로 사용한다.
 
 ## Enum Values
 
 | Field | Values |
 |---|---|
 | `user.gender` | `MALE`, `FEMALE` |
-| `wallet_transaction.transaction_flow` | `IN`, `OUT` |
-| `application.status` | `APPLIED`, `PASSED`, `REJECTED` |
+| `wallet_transaction.transaction_flow` | `DEPOSIT`, `WITHDRAWAL` |
+| `application.status` | `PASSED`, `FAILED`, `READ`, `UNREAD` |
 | `hospital.type` | `INTERNAL_MEDICINE`, `ORTHOPEDICS`, `DENTAL`, `OTHER` |
-| `cs.cs_type` | `INQUIRY`, `COMPLAINT`, `SUGGESTION`, `OTHER` |
+| `cs.cs_type` | `PRODUCT_SUBSCRIPTION`, `ACCOUNT_MAINTENANCE` |
+| `cs.cs_status` | `PENDING(false)`, `COMPLETED(true)` |
 
 ## Notes
 
-- `rsv_date`, `open_time`, `close_time`, `break_time`, `day_off`는 현재 문자열 기반으로 관리한다.
-- 시간/요일 정규화가 필요해지면 별도 스키마 마이그레이션으로 `DATE/TIME` 분리 전략을 적용한다.
-- 인증서/민감정보(`license_certificate` 등)는 저장 시 암호화/마스킹 정책을 별도로 적용한다.
+- Hospital 도메인(`hospital`, `reservation`)의 `reservation.rsv_date`, `hospital.open_time`, `hospital.close_time`, `hospital.break_time`, `hospital.day_off`는 현재 문자열 기반으로 저장한다.
+- `job.gender`는 현재 enum이 아닌 문자열 컬럼이다.
+- 인증서/민감정보(`license_certificate` 등)는 저장 시 암호화/마스킹 정책을 적용한다.
