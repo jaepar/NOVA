@@ -114,6 +114,7 @@ flowchart TD
 - 공통 응답은 `global/response` 래퍼 규칙을 유지한다.
 - 비즈니스 예외는 `global/exception` 계층을 사용한다.
 - 컨트롤러에서 엔티티 직접 반환 금지, DTO 변환 필수.
+- 삭제는 DELETE 메서드 대신 POST 기반 soft delete(`has_delete=true`)로 처리한다.
 - 금융 거래 확정 로직은 서비스 계층에서만 처리한다.
 - 금융 원장 상태와 비금융 상태 모두 AI(FastAPI) 및 클라우드 애플리케이션 계층에서 직접 수정하지 않는다.
 - 금융 원장 상태 변경은 클라우드 banking 도메인에서 온프레미스 Core Banking Gateway/Server로 요청을 전달한 뒤, 온프레미스 Core Banking에서만 최종 반영한다.
