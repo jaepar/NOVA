@@ -11,12 +11,12 @@ flowchart TD
   root --> global["global"]
 
   domain --> auth["auth<br/>세션 인증, 로그인/로그아웃, 인증 유틸"]
-  domain --> user["user<br/>사용자 회원 정보, 프로필"]
-  domain --> banking["banking<br/>외부 계좌 연동 참조(account_ref)"]
+  domain --> user["user<br/>사용자 회원 정보, 프로필, 포트폴리오 관리, 여권, nfc, liveness face 검증 수행"]
+  domain --> banking["banking<br/>외부 계좌 연동 참조(account_ref), coreBanking 서버로의 요청 수행"]
   domain --> wallet["wallet<br/>서비스 월렛, 거래내역"]
-  domain --> job["job<br/>채용공고, 지원내역, 이력서"]
-  domain --> hospital["hospital<br/>병원 정보, 예약"]
-  domain --> cs["cs<br/>상담 요청/처리"]
+  domain --> job["job<br/>채용공고, 지원내역, 지원하기"]
+  domain --> hospital["hospital<br/>병원 정보, 예약, AI Agent 구축(챗봇)"]
+  domain --> cs["cs<br/>화상 상담 요청/처리(실시간 번역 STT)"]
 
   global --> config["config<br/>공통 설정(Security, JPA, CORS, OpenAPI)"]
   global --> exception["exception<br/>공통 예외, 에러 코드, 전역 핸들러"]
@@ -68,7 +68,6 @@ flowchart TD
 - 컨트롤러는 오케스트레이션만 수행하고 비즈니스 규칙은 서비스에 둔다.
 - 도메인 간 참조가 필요할 때는 서비스 계층에서 검증 후 접근한다.
 - 응답 형태 분기는 엔티티가 아닌 DTO 계층에서 처리한다.
-- API 권한(`PUBLIC`, `USER`, `ADMIN`)은 `docs/rest_api.md`를 기준으로 맞춘다.
 
 ## Coding Rules
 
