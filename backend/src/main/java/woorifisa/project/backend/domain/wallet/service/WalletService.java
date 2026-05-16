@@ -1,10 +1,9 @@
-package woorifisa.project.backend.domain.banking.service;
+package woorifisa.project.backend.domain.wallet.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class BankingService {
-
+public class WalletService {
 }
