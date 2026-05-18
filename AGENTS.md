@@ -115,6 +115,7 @@ flowchart TD
 - 원장성 데이터(거래내역, 잔액, 계좌상태)는 Core Banking 응답과 백엔드 상태가 불일치하면 실패 처리한다.
 - 비밀정보(API 키, 인증서, 터널링 자격증명, DB 계정)는 코드/로그에 남기지 않는다.
 - 액세스/보안 관련 키 값은 노출되지 않도록 저장소에 평문으로 커밋되지 않도록 하며, 환경변로 처리한다.
+- `government-db`는 별도 Spring Boot 애플리케이션 모듈이 아닌 온프레미스 인프라 데이터 소스로 취급하며, `backend` 서버가 AWS Transit Gateway를 통해 온프레미스 gateway를 경유해 접근하도록 한다.
 
 ### Do
 - 계약 우선: FE-BE, BE-AI(FastAPI), BE-CoreBanking 간 API 스펙을 먼저 고정하고 구현한다.
