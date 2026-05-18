@@ -13,11 +13,42 @@ erDiagram
     ENUM gender "MALE | FEMALE"
     VARCHAR_100 email "UNIQUE"
     VARCHAR_255 password
-    BOOLEAN has_license
-    VARCHAR_255 license_certificate
+    BOOLEAN has_residence_card
     BOOLEAN has_certificate
     BOOLEAN has_delete
     TIMESTAMP issued_time
+    TIMESTAMP created_at
+    TIMESTAMP updated_at
+  }
+
+  RESIDENCE_CARD {
+    BIGINT residence_card_id PK
+    BIGINT user_id FK
+    VARCHAR_100 registration_num
+    VARCHAR_100 country
+    VARCHAR_100 status
+    VARCHAR_100 issue_date
+    VARCHAR_100 expiration_date
+    TIMESTAMP created_at
+    TIMESTAMP updated_at
+  }
+
+  DOCUMENT {
+    BIGINT document_id PK
+    BIGINT user_id FK
+    ENUM document_type "ALIEN_REGISTRATION_SUPPORTING_DOCUMENT | RESIDENCE_VERIFICATION_DOCUMENT"
+    TEXT file_url
+    ENUM status "PENDING | APPROVED | REJECTED"
+    TEXT missing
+    TIMESTAMP created_at
+    TIMESTAMP updated_at
+  }
+
+  NOTIFICATION {
+    BIGINT notification_id PK
+    BIGINT user_id FK
+    ENUM type "SUPPLEMENT_DOCUMENT | RESIDENCE_CARD_PERIOD"
+    TEXT content
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
@@ -28,6 +59,10 @@ erDiagram
     BIGINT customer_id
     BIGINT account_id
     BOOLEAN has_account
+    VARCHAR_100 account_name
+    VARCHAR_100 account_number
+    INT balance
+    BOOLEAN has_limit
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
@@ -125,6 +160,9 @@ erDiagram
     TIMESTAMP updated_at
   }
 
+  USER ||--o{ RESIDENCE_CARD : owns
+  USER ||--o{ DOCUMENT : submits
+  USER ||--o{ NOTIFICATION : receives
   USER ||--o{ ACCOUNT_REF : owns
   USER ||--o{ WALLET : has
   USER ||--o{ APPLICATION : applies
@@ -145,7 +183,7 @@ erDiagram
 - 모든 엔티티는 `BaseEntity`를 상속하며 `created_at`, `updated_at`을 가진다.
 - `wallet.user_account_id`는 `account_ref.account_ref_id`를 참조한다.
 - `resume.application_id`는 `application.application_id`를 참조한다.
-- `application.status`는 문자열 enum으로 저장한다.
+- `application.status`, `document.document_type`, `document.status`, `notification.type`은 문자열 enum으로 저장한다.
 - `cs.cs_status`는 코드상 `boolean`이며 의미상 `PENDING(false)`, `COMPLETED(true)`로 사용한다.
 
 ## Enum Values
@@ -157,10 +195,13 @@ erDiagram
 | `application.status` | `PASSED`, `FAILED`, `READ`, `UNREAD` |
 | `hospital.type` | `INTERNAL_MEDICINE`, `ORTHOPEDICS`, `DENTAL`, `OTHER` |
 | `cs.cs_type` | `PRODUCT_SUBSCRIPTION`, `ACCOUNT_MAINTENANCE` |
+| `document.document_type` | `ALIEN_REGISTRATION_SUPPORTING_DOCUMENT`, `RESIDENCE_VERIFICATION_DOCUMENT` |
+| `document.status` | `PENDING`, `APPROVED`, `REJECTED` |
+| `notification.type` | `SUPPLEMENT_DOCUMENT`, `RESIDENCE_CARD_PERIOD` |
 | `cs.cs_status` | `PENDING(false)`, `COMPLETED(true)` |
 
 ## Notes
 
 - Hospital 도메인(`hospital`, `reservation`)의 `reservation.rsv_date`, `hospital.open_time`, `hospital.close_time`, `hospital.break_time`, `hospital.day_off`는 현재 문자열 기반으로 저장한다.
+- Residence Card 관련 필드(`registration_num`, `issue_date`, `expiration_date`)도 현재 문자열 기반으로 저장한다.
 - `job.gender`는 현재 enum이 아닌 문자열 컬럼이다.
-- 인증서/민감정보(`license_certificate` 등)는 저장 시 암호화/마스킹 정책을 적용한다.
