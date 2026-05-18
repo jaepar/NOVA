@@ -46,11 +46,8 @@ public class User extends BaseEntity {
     @Column(length = 255, nullable = false)
     private String password;
 
-    @Column(name = "has_license", nullable = false)
-    private Boolean hasLicense;
-
-    @Column(name = "license_certificate", length = 255)
-    private String licenseCertificate;
+    @Column(name = "has_residence_card", nullable = false)
+    private Boolean hasResidenceCard;
 
     @Column(name = "has_certificate", nullable = false)
     private Boolean hasCertificate;

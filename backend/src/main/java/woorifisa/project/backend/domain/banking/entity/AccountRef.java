@@ -40,4 +40,16 @@ public class AccountRef extends BaseEntity {
 
     @Column(name = "has_account", nullable = false)
     private Boolean hasAccount;
+
+    @Column(name = "account_name", length = 100)
+    private String accountName;
+
+    @Column(name = "account_number", length = 100)
+    private String accountNumber;
+
+    @Column
+    private Integer balance;
+
+    @Column(name = "has_limit", nullable = false)
+    private Boolean hasLimit;
 }
