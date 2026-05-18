@@ -11,58 +11,71 @@ flowchart TD
     Root --> FE["frontend<br/>Web/Mobile UI"]
     Root --> BE["backend<br/>Spring Boot API"]
     Root --> AI["ai-server<br/>FastAPI"]
-    Root --> CB["core-banking-gateway<br/>On-Prem Core Banking Bridge"]
+    Root --> CB["On-Premise-Server<br/>Core Banking Server<br/>FDS Server<br/>Goverment DB"]
 ```
 
 Sub-project relations:
 
 ```mermaid
 flowchart LR
-    FE["Frontend"] -->|"HTTPS REST"| BE["Backend API"]
+    FE["Frontend (Vercel)"] -->|"HTTPS REST"| BE["Backend API"]
     BE -->|"HTTP API"| AI["AI Server (FastAPI)"]
-    BE -->|"Secure tunnel / private link"| CBG["Core Banking Gateway"]
-    CBG -->|"Internal protocol"| CBS["Core Banking Server"]
-    CBS --> CBD[("Core Banking DB")]
+    BE -->|"Private routing via Transit Gateway"| CBG["On-Prem Core Banking Gateway"]
+    CBG -->|"Internal protocol"| CBS["On-Prem Core Banking Server"]
+    CBS --> CBD[("On-Prem Core Banking DB")]
 
     BE --> RDS[("Amazon RDS MySQL")]
-    BE --> Redis[("ElastiCache Redis")]
+    BE --> Redis[("ElastiCache Redis (Primary/Replica)")]
     BE --> S3[("Amazon S3")]
+    CBG --> Gov[("Government DB (On-Prem)")]
+    CBS --> FDS["FDS Server (On-Prem)"]
 ```
 
 ## Deploy Diagram
 
 ```mermaid
 flowchart TD
-    Dev["Developer"] -->|"Git push"| Repo["GitHub"]
-    Repo --> GA["GitHub Actions"]
-    GA --> Bastion["Bastion Host"]
+    Dev["Developer"] --> Bastion["EC2 Bastion Host (Public Subnet)"]
 
-    User["User"] --> DNS["Route 53"]
-    DNS --> ALB["ALB"]
+    User["User"] --> Vercel["Vercel"]
+    Vercel --> DNS["Amazon Route 53"]
+    DNS --> WAF["AWS WAF"]
+    WAF --> ALB["ALB"]
 
-    GA --> FEDeploy["Frontend Deploy"]
-    FEDeploy --> FEHost["Vercel"]
+    ALB --> BEAZ1["Backend Server (AZ1 / Private App Subnet)"]
+    ALB --> BEAZ2["Backend Server (AZ2 / Private App Subnet)"]
+    ALB --> AIAZ1["AI Server (AZ1 / Private App Subnet)"]
+    ALB --> AIAZ2["AI Server (AZ2 / Private App Subnet)"]
 
-    Bastion --> BEDeploy["Backend Deploy"]
-    BEDeploy --> BEBlue["Backend Blue"]
-    BEDeploy --> BEGreen["Backend Green"]
+    Bastion --> BEAZ1
+    Bastion --> BEAZ2
+    Bastion --> AIAZ1
+    Bastion --> AIAZ2
 
-    Bastion --> AIDeploy["AI Deploy (Single)"]
-    AIDeploy --> AISingle["AI Server"]
+    BEAZ1 --> RDSProxy["RDS Proxy"]
+    BEAZ2 --> RDSProxy
+    RDSProxy --> RDSPrimary[("Amazon RDS (Primary)")]
+    RDSProxy --> RDSStandby[("Amazon RDS (Standby / Multi-AZ Failover)")]
 
-    ALB --> BEBlue
-    ALB --> BEGreen
+    BEAZ1 --> RedisPrimary[("ElastiCache for Redis Primary")]
+    BEAZ2 --> RedisPrimary
+    RedisPrimary --> RedisReplica[("ElastiCache for Redis Replica")]
 
-    BEBlue --> RDSPrimary[("RDS Primary")]
-    BEGreen --> RDSPrimary
-    RDSPrimary --> RDSStandby[("RDS Standby")]
+    BEAZ1 --> TGW["AWS Transit Gateway"]
+    BEAZ2 --> TGW
+    AIAZ1 --> TGW
+    AIAZ2 --> TGW
 
-    BEBlue --> Redis["ElastiCache Redis"]
-    BEGreen --> Redis
+    TGW --> OnPremGW["On-Prem Core Banking Gateway"]
+    OnPremGW --> OnPremCBS["On-Prem Core Banking Server"]
+    OnPremCBS --> OnPremDB[("On-Prem Core Banking DB")]
+    OnPremGW --> GovDB[("Government DB (On-Prem)")]
+    OnPremCBS --> FDS["FDS Server (On-Prem)"]
 
-    BEBlue --> Tunnel["Tunneling"]
-    BEGreen --> Tunnel
-    Tunnel --> CBGW["On-Prem Core Banking Gateway"]
+    BEAZ1 --> S3["Amazon S3"]
+    BEAZ2 --> S3
+    AIAZ1 --> S3
+    AIAZ2 --> S3
 ```
 
 ## Operations Diagram
@@ -85,7 +98,7 @@ flowchart TD
     API --> DB["RDS MySQL"]
 
     API --> Tunnel["Private Tunnel"]
-    Tunnel --> CBG["Core Banking Gateway"]
+    Tunnel --> CBG["On-Premise Gateway"]
     CBG --> CBS["Core Banking Server"]
     CBS --> CBD[("Core Banking DB")]
 
