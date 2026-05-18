@@ -11,11 +11,11 @@ flowchart TD
   root --> global["global"]
 
   domain --> auth["auth<br/>세션 인증, 로그인/로그아웃, 인증 유틸"]
-  domain --> user["user<br/>사용자 회원 정보, 프로필, 포트폴리오 관리, 여권, nfc, liveness face 검증 수행"]
-  domain --> banking["banking<br/>외부 계좌 연동 참조(account_ref), coreBanking 서버로의 요청 수행"]
+  domain --> user["user<br/>회원 정보, 인증/증빙, 외국인등록증, 알림/보완서류 조회"]
+  domain --> banking["banking<br/>계좌개설/이체/거래조회/메모수정, coreBanking 연계"]
   domain --> wallet["wallet<br/>서비스 월렛, 거래내역"]
   domain --> job["job<br/>채용공고, 지원내역, 지원하기"]
-  domain --> hospital["hospital<br/>병원 정보, 예약, AI Agent 구축(챗봇)"]
+  domain --> hospital["hospital<br/>병원 정보, 예약, 에이전트 호출 연계"]
   domain --> cs["cs<br/>화상 상담 요청/처리(실시간 번역 STT)"]
 
   global --> config["config<br/>공통 설정(Security, JPA, CORS, OpenAPI)"]
@@ -37,9 +37,9 @@ flowchart TD
 | Domain | Responsibility |
 |---|---|
 | `auth` | 세션 인증, 로그인/로그아웃, 인증 보조(이메일/비밀번호 재설정 등) |
-| `user` | 사용자 계정, 프로필, 인증서/증빙 상태(`has_license`, `has_certificate`) |
-| `banking` | 사용자 외부 계좌 연동 참조(`account_ref`) |
-| `wallet` | 월렛 생성/잔액/거래내역/거래 흐름(`IN`, `OUT`) |
+| `user` | 사용자 계정/프로필, 인증서 발급, 증빙서류(`document`), 외국인등록증(`residence_card`), 알림(`notification`) |
+| `banking` | 계좌 개설/비밀번호 검증/이체/거래내역/메모/홈조회, Cloud↔On-Prem 브릿지 |
+| `wallet` | 월렛 충전/차감/거래내역, 거래 흐름(`DEPOSIT`, `WITHDRAWAL`) |
 | `job` | 구인공고, 지원 상태(`application`), 이력서(`resume`) |
 | `hospital` | 병원 메타 정보, 예약 생성/조회 |
 | `cs` | 상담 요청/유형/완료 상태 관리 |
@@ -48,6 +48,7 @@ flowchart TD
 ## Placement Rules
 
 - `account_ref`는 `banking` 도메인에 둔다.
+- `document`, `notification`, `residence_card`는 `user` 도메인에 둔다.
 - `wallet`, `wallet_transaction`은 `wallet` 도메인에 둔다.
 - `application`, `resume`은 `job` 도메인에 둔다.
 - `reservation`은 `hospital` 도메인에 둔다.
@@ -58,16 +59,18 @@ flowchart TD
 ## Service Boundaries
 
 - 계좌 연동 핵심 로직은 `banking` 서비스에 둔다.
+- Cloud Banking API는 온프레미스 Core Banking 연동 전/후 검증과 오케스트레이션을 담당한다.
 - 월렛 잔액 변경과 거래 확정은 `wallet` 서비스에서만 처리한다.
 - 병원 예약 확정 저장은 `hospital` 서비스에서 처리한다.
 - FastAPI AI 서버는 병원 예약 추천/챗봇 보조 역할만 수행하며, 최종 예약 상태를 확정하지 않는다.
-- 사용자 상태/자격증빙 상태의 원천 데이터는 `user` 도메인이 관리한다.
+- 사용자 상태/자격증빙/보완서류/알림의 원천 데이터는 `user` 도메인이 관리한다.
 
 ## Cross-Domain Rules
 
 - 컨트롤러는 오케스트레이션만 수행하고 비즈니스 규칙은 서비스에 둔다.
 - 도메인 간 참조가 필요할 때는 서비스 계층에서 검증 후 접근한다.
 - 응답 형태 분기는 엔티티가 아닌 DTO 계층에서 처리한다.
+- 삭제 API는 `DELETE` 대신 `POST` 기반 soft delete(`has_delete=true`) 정책을 따른다.
 
 ## Coding Rules
 

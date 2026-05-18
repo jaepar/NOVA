@@ -39,9 +39,10 @@
 
 | API ID | Status | Reason |
 |---|---|---|
-| `AUTH-004` | 구현 예정 | Face ID/생체 로그인 플로우 상세 정책 미확정 |
-| `WALLET-004` | 장기 보류 | 외부 은행 실계좌 이체 연동 범위 확정 필요 |
-| `HOSPITAL-005` | 구현 예정 | 챗봇 추천 기반 자동 예약 제안 UX 확정 필요 |
+| `HOSPITAL-005` | 구현 예정 | 에이전트 호출 API 경로/입출력 계약 미확정 |
+| `BANK-014` | 구현 예정 | 해외 송금(Cloud) 프로세스 상세 정책 미확정 |
+| `BANK-015` | 구현 예정 | 해외 송금(On-Prem) 프로세스 상세 정책 미확정 |
+| `BANK-016` | 구현 예정 | 해외 송금 이상거래 탐지(On-Prem) 정책/룰셋 미확정 |
 
 ## API Catalog
 
@@ -60,6 +61,8 @@
 | `USER-008` | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
 | `USER-009` | 거소확인 서류 제출 | POST | `/users/verifications/documents` | O | USER | |
 | `USER-010` | 인증서 발급 | POST | `/users/verifications` | O | USER | |
+| `USER-011` | 알림 조회 | GET | `/users/notifications` | O | USER | |
+| `USER-012` | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
 | `WALLET-001` | 월렛 계좌내역 조회 | GET | `/wallet/transactions` | O | USER | |
 | `WALLET-002` | 월렛 충전 | POST | `/wallet/charges` | O | USER | |
 | `WALLET-003` | 월렛 계좌 금액 차감(On-Prem) | POST | `/wallet/charges/debit` | O | USER | |
@@ -71,6 +74,7 @@
 | `HOSPITAL-002` | 예약 내역 확인 | GET | `/{user_id}/reservations` | O | USER | |
 | `HOSPITAL-003` | 예약 취소 & 변경 | PATCH | `/reservations/{reservation_id}` | O | USER | action enum=`CANCEL`,`CHANGE` |
 | `HOSPITAL-004` | 병원 목록 확인 | GET | `/` | O | USER | day off는 일요일 고정 |
+| `HOSPITAL-005` | 에이전트 호출 | TBD | `TBD` | O | USER | API 경로/계약 미정 |
 | `CS-001` | 화상 상담 신청 | POST | `/consultations` | O | USER | |
 | `CS-002` | 대기 고객 목록 조회 | GET | `/consultations?status=WAITING` | X | PUBLIC | |
 | `CS-003` | 화상 상담 상태 변경 | PATCH | `/consultations/{cs_id}/status` | X | PUBLIC | 상담 내역 저장 여부 논의 |
@@ -90,6 +94,7 @@
 | `BANK-013` | 홈 계좌 정보 조회(On-Prem) | GET | `/core-banking/home` | O | USER | |
 | `BANK-014` | 해외 송금(Cloud) | TBD | `TBD` | O | USER | 프로세스 정의 중 (추후 작성) |
 | `BANK-015` | 해외 송금(On-Prem) | TBD | `TBD` | O | USER | 프로세스 정의 중 (추후 작성) |
+| `BANK-016` | 해외 송금 이상거래 탐지(On-Prem) | TBD | `TBD` | O | USER | 탐지 룰/요청 포맷 추후 확정 |
 
 ## Naming and Contract Notes
 
