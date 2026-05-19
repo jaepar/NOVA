@@ -1,0 +1,1 @@
+export { WalletTerms } from "./WalletTerms";
