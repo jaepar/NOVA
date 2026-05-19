@@ -44,3 +44,5 @@ public class WalletTransaction extends BaseEntity {
     @Column(name = "amount", nullable = false)
     private Integer amount;
 }
+
+
