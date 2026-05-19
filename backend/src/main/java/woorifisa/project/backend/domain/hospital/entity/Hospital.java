@@ -28,17 +28,17 @@ public class Hospital extends BaseEntity {
     @Column(name = "hospital_id")
     private Long hospitalId;
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "type", nullable = false)
     private DepartmentType type;
 
     @Column(name = "doctor_name", length = 50)
     private String doctorName;
 
-    @Column(length = 255)
+    @Column(name = "address", length = 255)
     private String address;
 
     @Column(name = "open_time", length = 100)

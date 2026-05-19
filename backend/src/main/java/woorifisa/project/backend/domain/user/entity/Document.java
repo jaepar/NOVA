@@ -43,9 +43,9 @@ public class Document extends BaseEntity {
     private String fileUrl;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private DocumentStatus status;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "missing", columnDefinition = "TEXT")
     private String missing;
 }

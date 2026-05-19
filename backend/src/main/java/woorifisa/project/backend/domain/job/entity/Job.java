@@ -25,10 +25,10 @@ public class Job extends BaseEntity {
     @Column(name = "job_id")
     private Long jobId;
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "company", length = 100, nullable = false)
     private String company;
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "region", length = 100, nullable = false)
     private String region;
 
     @Column(name = "opening_title", length = 100, nullable = false)
@@ -37,10 +37,10 @@ public class Job extends BaseEntity {
     @Column(name = "job_category", length = 50)
     private String jobCategory;
 
-    @Column(length = 50)
+    @Column(name = "experience", length = 50)
     private String experience;
 
-    @Column(length = 50)
+    @Column(name = "salary", length = 50)
     private String salary;
 
     @Column(name = "deadline_type", length = 50)
@@ -49,13 +49,13 @@ public class Job extends BaseEntity {
     @Column(name = "recruit_count", length = 50)
     private String recruitCount;
 
-    @Column(length = 100)
+    @Column(name = "preferred", length = 100)
     private String preferred;
 
-    @Column(length = 50)
+    @Column(name = "age", length = 50)
     private String age;
 
-    @Column(length = 50)
+    @Column(name = "gender", length = 50)
     private String gender;
 
     @Column(name = "job_role", length = 50)
@@ -67,12 +67,12 @@ public class Job extends BaseEntity {
     @Column(name = "employment_type", length = 50)
     private String employmentType;
 
-    @Column(length = 100)
+    @Column(name = "benefits", length = 100)
     private String benefits;
 
-    @Column(length = 255)
+    @Column(name = "address", length = 255)
     private String address;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "introduce", columnDefinition = "TEXT")
     private String introduce;
 }

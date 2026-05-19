@@ -47,7 +47,7 @@ public class AccountRef extends BaseEntity {
     @Column(name = "account_number", length = 100)
     private String accountNumber;
 
-    @Column
+    @Column(name = "balance")
     private Integer balance;
 
     @Column(name = "has_limit", nullable = false)
