@@ -1,5 +1,6 @@
 import { Home, Send, TrendingUp, User } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { AppButton } from '../design-system/AppButton';
 
 interface NavItem {
   id: string;
@@ -32,7 +33,8 @@ export function BottomNav() {
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <button
+              <AppButton
+                variant="unstyled"
                 key={item.id}
                 onClick={() => navigate(item.path)}
                 className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all ${
@@ -41,7 +43,7 @@ export function BottomNav() {
               >
                 {item.icon}
                 <span className="text-xs">{item.label}</span>
-              </button>
+              </AppButton>
             );
           })}
         </div>

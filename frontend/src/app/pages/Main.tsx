@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { BottomNav } from "../components/layout/BottomNav";
 import { SideMenu } from "../components/layout/SideMenu";
+import { AppButton } from "../components/design-system/AppButton";
 import { Btn_1Col } from "../components/design-system/Btn_1Col";
 
 export function Main() {
@@ -79,14 +80,21 @@ export function Main() {
   return (
     <div className="h-full bg-background w-full pb-32 overflow-y-auto">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background pt-5 w-full">
-        <div className="flex items-center justify-between px-5 h-14">
+      <header
+        className="fixed top-0 left-0 right-0 z-50 bg-background w-full"
+        style={{ paddingTop: 'var(--app-header-top-padding)' }}
+      >
+        <div
+          className="flex items-center justify-between px-5"
+          style={{ height: 'var(--app-header-height)' }}
+        >
         <div className="flex items-center gap-4">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600"></div>
           <h1 className="text-lg"><span className="text-blue-600">NOVA</span></h1>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <AppButton
+            variant="unstyled"
             onClick={() => navigate('/notifications')}
             className="p-2 hover:bg-secondary rounded-lg transition-colors relative"
           >
@@ -94,19 +102,20 @@ export function Main() {
             {hasUnreadNotifications && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
             )}
-          </button>
-          <button
+          </AppButton>
+          <AppButton
+            variant="unstyled"
             onClick={() => setIsMenuOpen(true)}
             className="p-2 hover:bg-secondary rounded-lg transition-colors"
           >
             <Menu className="w-6 h-6" />
-          </button>
+          </AppButton>
         </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="px-5 space-y-3 pt-19">
+      <main className="px-5 space-y-3" style={{ paddingTop: 'var(--app-content-offset)' }}>
         {/* Action Buttons / Account Card */}
         <section>
           {!isLoggedIn ? (
@@ -153,9 +162,9 @@ export function Main() {
                     </p>
                   </div>
                 </div>
-                <button className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+                <AppButton variant="unstyled" className="p-1 hover:bg-white/10 rounded-lg transition-colors">
                   <MoreVertical className="w-5 h-5" />
-                </button>
+                </AppButton>
               </div>
 
               {/* Balance */}
@@ -196,7 +205,8 @@ export function Main() {
           <h3>생활</h3>
           <div className="grid grid-cols-4 max-[389px]:grid-cols-1 gap-4">
             {services.map((service, index) => (
-              <button
+              <AppButton
+                variant="unstyled"
                 key={index}
                 className="flex flex-col items-center gap-2 hover:bg-secondary rounded-xl transition-colors max-[389px]:bg-secondary max-[389px]:p-4"
               >
@@ -206,7 +216,7 @@ export function Main() {
                 <span className="text-center w-full text-[12px]">
                   {service.label}
                 </span>
-              </button>
+              </AppButton>
             ))}
           </div>
         </section>

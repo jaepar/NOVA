@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from "../components/layout/MobileLayout";
+import { AppButton } from "../components/design-system/AppButton";
 import { Btn_1Col } from "../components/design-system/Btn_1Col";
 import { CommonInputGroup } from "../components/design-system/CommonInputGroup";
 import { languages } from "../data/languages";
@@ -55,7 +56,8 @@ export function Language() {
             </div>
           ) : (
             filteredLanguages.map((language) => (
-          <button
+          <AppButton
+            variant="unstyled"
             key={language.id}
             onClick={() => setSelectedLanguage(language.id)}
             className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between ${
@@ -73,7 +75,7 @@ export function Language() {
             {selectedLanguage === language.id && (
               <Check className="w-5 h-5 text-primary flex-shrink-0" />
             )}
-          </button>
+          </AppButton>
             ))
           )}
         </div>

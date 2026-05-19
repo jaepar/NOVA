@@ -1,5 +1,6 @@
 import { ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AppButton } from '../design-system/AppButton';
 
 interface FixedHeaderProps {
   title: string;
@@ -20,15 +21,22 @@ export function FixedHeader({ title, onBack, showBackButton = true, rightContent
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background pt-5 w-full">
-      <div className="flex items-center justify-between px-5 h-14">
+    <header
+      className="fixed top-0 left-0 right-0 z-50 bg-background w-full"
+      style={{ paddingTop: 'var(--app-header-top-padding)' }}
+    >
+      <div
+        className="flex items-center justify-between px-5"
+        style={{ height: 'var(--app-header-height)' }}
+      >
         {showBackButton && (
-          <button
+          <AppButton
+            variant="unstyled"
             onClick={handleBack}
             className="p-2 -ml-2 hover:bg-secondary rounded-lg transition-colors"
           >
             <ChevronLeft className="w-6 h-6" />
-          </button>
+          </AppButton>
         )}
         {!showBackButton && <div className="w-10" />}
 

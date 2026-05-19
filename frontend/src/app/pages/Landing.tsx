@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Btn_1Col } from "../components/design-system/Btn_1Col";
+import { AppButton } from "../components/design-system/AppButton";
 import { MobileLayout } from "../components/layout/MobileLayout";
 
 export function Landing() {
@@ -9,12 +10,13 @@ export function Landing() {
     <div className="h-full bg-background w-full relative">
       {/* Language Button - Top Right */}
       <div className="absolute top-4 right-5 z-50">
-        <button
+        <AppButton
+          variant="unstyled"
           onClick={() => navigate("/language")}
           className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Language
-        </button>
+        </AppButton>
       </div>
 
       <MobileLayout

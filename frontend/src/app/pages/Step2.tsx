@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from '../components/layout/MobileLayout';
+import { AppButton } from '../components/design-system/AppButton';
 import { Btn_2Col } from '../components/design-system/Btn_2Col';
 import { Check } from 'lucide-react';
 
@@ -37,7 +38,8 @@ export function Step2() {
 
         <div className="space-y-3">
           {options.map((option) => (
-            <button
+            <AppButton
+              variant="unstyled"
               key={option.id}
               onClick={() => setSelected(option.id)}
               className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
@@ -57,7 +59,7 @@ export function Step2() {
                   <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 )}
               </div>
-            </button>
+            </AppButton>
           ))}
         </div>
 

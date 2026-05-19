@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MobileLayout } from '../components/layout/MobileLayout';
+import { AppButton } from '../components/design-system/AppButton';
 import { FilterBottomSheet } from '../components/design-system/FilterBottomSheet';
 import { Filter, ChevronRight } from 'lucide-react';
 
@@ -26,12 +27,13 @@ export function TransactionHistory() {
       <MobileLayout
         title="거래내역 조회"
         headerRightContent={
-          <button
+          <AppButton
+            variant="unstyled"
             onClick={() => setIsFilterOpen(true)}
             className="p-2 hover:bg-secondary rounded-lg transition-colors"
           >
             <Filter className="w-5 h-5" />
-          </button>
+          </AppButton>
         }
       >
         <div className="space-y-6 ">
@@ -63,7 +65,8 @@ export function TransactionHistory() {
           {/* Transaction List */}
           <section className="space-y-3">
             {transactions.map((transaction) => (
-              <button
+              <AppButton
+                variant="unstyled"
                 key={transaction.id}
                 className="w-full p-4 bg-background border border-border rounded-xl hover:bg-secondary transition-colors text-left"
               >
@@ -86,7 +89,7 @@ export function TransactionHistory() {
                   </div>
                   <ChevronRight className="w-5 h-5 text-muted-foreground" />
                 </div>
-              </button>
+              </AppButton>
             ))}
           </section>
         </div>

@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
-import { BottomSheet } from "../layout/BottomSheet";
+import { useEffect, useState } from "react";
 import { Delete } from "lucide-react";
+import { BottomSheet } from "../layout/BottomSheet";
+import { AppButton } from "./AppButton";
 
 interface PinInputBottomSheetProps {
   isOpen: boolean;
@@ -20,9 +21,7 @@ export function PinInputBottomSheet({
   const [pin, setPin] = useState("");
 
   useEffect(() => {
-    if (isOpen) {
-      setPin("");
-    }
+    if (isOpen) setPin("");
   }, [isOpen]);
 
   useEffect(() => {
@@ -33,17 +32,12 @@ export function PinInputBottomSheet({
 
   const handleNumberClick = (num: number) => {
     if (pin.length < pinLength) {
-      setPin(pin + num);
+      setPin((prev) => prev + num);
     }
   };
 
-  const handleDelete = () => {
-    setPin(pin.slice(0, -1));
-  };
-
-  const handleClear = () => {
-    setPin("");
-  };
+  const handleDelete = () => setPin((prev) => prev.slice(0, -1));
+  const handleClear = () => setPin("");
 
   const numbers = [
     [1, 2, 3],
@@ -60,7 +54,6 @@ export function PinInputBottomSheet({
       disableScroll={true}
     >
       <div className="space-y-6 overflow-hidden">
-        {/* Pin Dots */}
         <div className="flex justify-center gap-3 py-4">
           {Array.from({ length: pinLength }).map((_, index) => (
             <div
@@ -74,45 +67,44 @@ export function PinInputBottomSheet({
           ))}
         </div>
 
-        {/* Number Pad */}
         <div className="space-y-3">
           {numbers.map((row, rowIndex) => (
-            <div
-              key={rowIndex}
-              className="grid grid-cols-3 gap-3"
-            >
+            <div key={rowIndex} className="grid grid-cols-3 gap-3">
               {row.map((num) => (
-                <button
+                <AppButton
+                  variant="unstyled"
                   key={num}
                   onClick={() => handleNumberClick(num)}
                   className="h-16 flex items-center justify-center rounded-xl bg-secondary hover:bg-secondary/80 transition-colors active:scale-95"
                 >
                   <span className="text-2xl">{num}</span>
-                </button>
+                </AppButton>
               ))}
             </div>
           ))}
 
-          {/* Bottom Row: Clear, 0, Delete */}
           <div className="grid grid-cols-3 gap-3">
-            <button
+            <AppButton
+              variant="unstyled"
               onClick={handleClear}
               className="h-16 flex items-center justify-center rounded-xl bg-secondary hover:bg-secondary/80 transition-colors active:scale-95"
             >
               <span className="text-sm">전체삭제</span>
-            </button>
-            <button
+            </AppButton>
+            <AppButton
+              variant="unstyled"
               onClick={() => handleNumberClick(0)}
               className="h-16 flex items-center justify-center rounded-xl bg-secondary hover:bg-secondary/80 transition-colors active:scale-95"
             >
               <span className="text-2xl">0</span>
-            </button>
-            <button
+            </AppButton>
+            <AppButton
+              variant="unstyled"
               onClick={handleDelete}
               className="h-16 flex items-center justify-center rounded-xl bg-secondary hover:bg-secondary/80 transition-colors active:scale-95"
             >
               <Delete className="w-6 h-6" />
-            </button>
+            </AppButton>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { spacing } from './tokens';
+import { AppButton } from './AppButton';
 
 interface Btn2ColProps {
   leftLabel: string;
@@ -25,18 +25,20 @@ export function Btn_2Col({
 
   return (
     <div className="flex gap-4 w-full">
-      <button
+      <AppButton
         onClick={onLeftClick}
+        variant="unstyled"
         className={`flex-1 py-4 px-6 rounded-xl transition-all ${variants[leftVariant]}`}
       >
         {leftLabel}
-      </button>
-      <button
+      </AppButton>
+      <AppButton
         onClick={onRightClick}
+        variant="unstyled"
         className={`flex-1 py-4 px-6 rounded-xl transition-all ${variants[rightVariant]}`}
       >
         {rightLabel}
-      </button>
+      </AppButton>
     </div>
   );
 }

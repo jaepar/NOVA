@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { AppButton } from '../design-system/AppButton';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -11,7 +12,15 @@ interface BottomSheetProps {
   disableScroll?: boolean;
 }
 
-export function BottomSheet({ isOpen, onClose, title, children, bottomAction, height, disableScroll = false }: BottomSheetProps) {
+export function BottomSheet({
+  isOpen,
+  onClose,
+  title,
+  children,
+  bottomAction,
+  height,
+  disableScroll = false,
+}: BottomSheetProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -19,7 +28,6 @@ export function BottomSheet({ isOpen, onClose, title, children, bottomAction, he
       setIsVisible(true);
       document.body.style.overflow = 'hidden';
     } else {
-      // Delay hiding to allow slide-down animation
       const timer = setTimeout(() => {
         setIsVisible(false);
       }, 300);
@@ -38,7 +46,6 @@ export function BottomSheet({ isOpen, onClose, title, children, bottomAction, he
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0'
@@ -46,7 +53,6 @@ export function BottomSheet({ isOpen, onClose, title, children, bottomAction, he
         onClick={onClose}
       />
 
-      {/* Bottom Sheet Template */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-[70] bg-background rounded-t-3xl w-full transition-transform duration-300 ease-out flex flex-col ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
@@ -56,29 +62,26 @@ export function BottomSheet({ isOpen, onClose, title, children, bottomAction, he
           maxHeight: '80vh',
         }}
       >
-        {/* Handle Bar */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-border rounded-full"></div>
         </div>
 
-        {/* Header - Always Visible */}
         <div className="flex items-center justify-between px-5 py-3">
           <h3>{title}</h3>
-          <button
+          <AppButton
+            variant="unstyled"
             onClick={onClose}
             className="p-2 hover:bg-secondary rounded-lg transition-colors"
             aria-label="닫기"
           >
             <X className="w-5 h-5" />
-          </button>
+          </AppButton>
         </div>
 
-        {/* Content Area */}
         <div className={`flex-1 px-5 py-6 ${disableScroll ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {children}
         </div>
 
-        {/* Bottom Action Area - Fixed at bottom */}
         {bottomAction && (
           <div className="px-5 pb-5">
             <div

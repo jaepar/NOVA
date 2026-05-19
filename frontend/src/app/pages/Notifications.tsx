@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCircle, AlertCircle, Info, Gift } from 'lucide-react';
 import { MobileLayout } from '../components/layout/MobileLayout';
 import { X } from 'lucide-react';
+import { AppButton } from '../components/design-system/AppButton';
 
 interface Notification {
   id: string;
@@ -88,12 +89,13 @@ export function Notifications() {
       title="알림"
       showBackButton={false}
       headerRightContent={
-        <button
+        <AppButton
+          variant="unstyled"
           onClick={() => navigate('/main')}
           className="p-2 -mr-2 hover:bg-secondary rounded-lg transition-colors"
         >
           <X className="w-6 h-6" />
-        </button>
+        </AppButton>
       }
     >
       <div className="space-y-4 pb-8">
@@ -118,7 +120,8 @@ export function Notifications() {
             </div>
           ) : (
             notifications.map((notification) => (
-              <button
+              <AppButton
+                variant="unstyled"
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification.id)}
                 className={`w-full text-left p-4 rounded-xl transition-colors ${
@@ -150,7 +153,7 @@ export function Notifications() {
                     </p>
                   </div>
                 </div>
-              </button>
+              </AppButton>
             ))
           )}
         </div>

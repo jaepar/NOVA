@@ -1,4 +1,5 @@
 import { BottomSheet } from '../layout/BottomSheet';
+import { AppButton } from './AppButton';
 import { Btn_1Col } from './Btn_1Col';
 
 interface FilterOption {
@@ -46,7 +47,8 @@ export function FilterBottomSheet({
             <h4>{section.title}</h4>
             <div className="flex flex-wrap gap-2">
               {section.options.map((option) => (
-                <button
+                <AppButton
+                  variant="unstyled"
                   key={option.value}
                   onClick={() => section.onSelect(option.value)}
                   className={`px-4 py-2 rounded-xl transition-all ${
@@ -56,7 +58,7 @@ export function FilterBottomSheet({
                   }`}
                 >
                   {option.label}
-                </button>
+                </AppButton>
               ))}
             </div>
           </div>

@@ -28,7 +28,10 @@ export function MobileLayout({
         rightContent={headerRightContent}
       />
 
-      <main className="flex-1 pt-19 pb-32 px-5 w-full overflow-y-auto">
+      <main
+        className="flex-1 pb-32 px-5 w-full overflow-y-auto"
+        style={{ paddingTop: 'var(--app-content-offset)' }}
+      >
         {children}
       </main>
 

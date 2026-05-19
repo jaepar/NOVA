@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from "../components/layout/MobileLayout";
+import { AppButton } from "../components/design-system/AppButton";
 import { Btn_1Col } from "../components/design-system/Btn_1Col";
 
 export function Home() {
@@ -37,7 +38,8 @@ export function Home() {
           </div>
 
           <div className="space-y-3">
-            <button
+            <AppButton
+              variant="unstyled"
               onClick={() => navigate("/design-system")}
               className="w-full p-4 bg-primary text-primary-foreground hover:bg-blue-700 rounded-xl transition-all"
             >
@@ -45,9 +47,10 @@ export function Home() {
                 <span>Design System</span>
                 <span>→</span>
               </div>
-            </button>
+            </AppButton>
 
-            <button
+            <AppButton
+              variant="unstyled"
               onClick={() => navigate("/main")}
               className="w-full p-4 bg-accent hover:bg-secondary rounded-xl transition-colors border border-border"
             >
@@ -55,9 +58,10 @@ export function Home() {
                 <span>Main Page</span>
                 <span className="text-primary">→</span>
               </div>
-            </button>
+            </AppButton>
 
-            <button
+            <AppButton
+              variant="unstyled"
               onClick={() => navigate("/language")}
               className="w-full p-4 bg-accent hover:bg-secondary rounded-xl transition-colors border border-border"
             >
@@ -65,9 +69,10 @@ export function Home() {
                 <span>Language Selection</span>
                 <span className="text-primary">→</span>
               </div>
-            </button>
+            </AppButton>
 
-            <button
+            <AppButton
+              variant="unstyled"
               onClick={() => navigate("/landing")}
               className="w-full p-4 bg-accent hover:bg-secondary rounded-xl transition-colors border border-border"
             >
@@ -75,9 +80,10 @@ export function Home() {
                 <span>Landing Page</span>
                 <span className="text-primary">→</span>
               </div>
-            </button>
+            </AppButton>
 
-            <button
+            <AppButton
+              variant="unstyled"
               onClick={() => navigate("/transaction-history")}
               className="w-full p-4 bg-accent hover:bg-secondary rounded-xl transition-colors border border-border"
             >
@@ -85,13 +91,14 @@ export function Home() {
                 <span>Bottom Sheet Demo</span>
                 <span className="text-primary">→</span>
               </div>
-            </button>
+            </AppButton>
           </div>
 
           <div className="bg-secondary p-4 rounded-2xl mt-6">
             <h3 className="mb-3">Common Pages</h3>
             <div className="space-y-2">
-              <button
+              <AppButton
+                variant="unstyled"
                 onClick={() => navigate("/one-button-template")}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
@@ -99,9 +106,10 @@ export function Home() {
                   <span className="text-sm">One Button Template</span>
                   <span className="text-primary text-sm">→</span>
                 </div>
-              </button>
+              </AppButton>
 
-              <button
+              <AppButton
+                variant="unstyled"
                 onClick={() => navigate("/two-button-template")}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
@@ -109,9 +117,10 @@ export function Home() {
                   <span className="text-sm">Two Button Template</span>
                   <span className="text-primary text-sm">→</span>
                 </div>
-              </button>
+              </AppButton>
 
-              <button
+              <AppButton
+                variant="unstyled"
                 onClick={() => navigate("/loading")}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
@@ -119,9 +128,10 @@ export function Home() {
                   <span className="text-sm">Loading Page Demo</span>
                   <span className="text-primary text-sm">→</span>
                 </div>
-              </button>
+              </AppButton>
 
-              <button
+              <AppButton
+                variant="unstyled"
                 onClick={() => navigate("/failed")}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
@@ -129,9 +139,10 @@ export function Home() {
                   <span className="text-sm">Failed Page Demo</span>
                   <span className="text-primary text-sm">→</span>
                 </div>
-              </button>
+              </AppButton>
 
-              <button
+              <AppButton
+                variant="unstyled"
                 onClick={() => navigate("/success")}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
@@ -139,9 +150,10 @@ export function Home() {
                   <span className="text-sm">Success Page Demo</span>
                   <span className="text-primary text-sm">→</span>
                 </div>
-              </button>
+              </AppButton>
 
-              <button
+              <AppButton
+                variant="unstyled"
                 onClick={() => navigate("/close-button-template")}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
@@ -149,7 +161,7 @@ export function Home() {
                   <span className="text-sm">Close Button Template</span>
                   <span className="text-primary text-sm">→</span>
                 </div>
-              </button>
+              </AppButton>
             </div>
           </div>
         </div>

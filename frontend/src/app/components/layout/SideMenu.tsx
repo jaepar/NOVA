@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X, User, Settings, HelpCircle, LogOut, LogIn } from 'lucide-react';
+import { AppButton } from '../design-system/AppButton';
 
 interface SideMenuProps {
   isOpen: boolean;
@@ -54,19 +55,21 @@ export function SideMenu({ isOpen, onClose, isLoggedIn = false, onLogout, onLogi
           {/* Header */}
           <div className="flex items-center justify-between p-5 border-b border-border">
             <h2>메뉴</h2>
-            <button
+            <AppButton
+              variant="unstyled"
               onClick={onClose}
               className="p-2 hover:bg-secondary rounded-lg transition-colors"
             >
               <X className="w-6 h-6" />
-            </button>
+            </AppButton>
           </div>
 
           {/* Menu Items */}
           <div className="flex-1 p-4">
             <div className="space-y-2">
               {menuItems.map((item, index) => (
-                <button
+                <AppButton
+                  variant="unstyled"
                   key={index}
                   onClick={() => {
                     item.onClick();
@@ -76,7 +79,7 @@ export function SideMenu({ isOpen, onClose, isLoggedIn = false, onLogout, onLogi
                 >
                   {item.icon}
                   <span>{item.label}</span>
-                </button>
+                </AppButton>
               ))}
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { spacing } from './tokens';
+import { AppButton } from './AppButton';
 
 interface Btn1ColProps {
   children: React.ReactNode;
@@ -20,12 +20,13 @@ export function Btn_1Col({
   };
 
   return (
-    <button
+    <AppButton
       onClick={onClick}
       disabled={disabled}
+      variant="unstyled"
       className={`w-full py-4 px-6 rounded-xl transition-all ${variants[variant]} disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {children}
-    </button>
+    </AppButton>
   );
 }
