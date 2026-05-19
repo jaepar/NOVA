@@ -29,11 +29,9 @@
 |---|---|
 | `PUBLIC` | 비로그인 호출 가능 |
 | `USER` | 사용자 세션 필요 |
-| `ADMIN` | 운영/관리자 세션 필요 |
 
 권한 공통 규칙:
 - `USER` API는 현재 세션 `userId` 기준으로 본인 데이터만 조회/변경한다.
-- 타 사용자 데이터 접근은 관리자 API로 분리한다.
 
 ## Hold Policy
 
@@ -51,18 +49,18 @@
 | `AUTH-001`     | 회원가입 | POST | `/auth/signup` | X | PUBLIC | |
 | `AUTH-002`     | 로그인 | POST | `/auth/login` | X | PUBLIC | |
 | `AUTH-003`     | 로그아웃 | POST | `/auth/logout` | O | USER | |
-| `USER-001`     | 이메일 인증번호 발송 | POST | `/users/email-verifications` | X | PUBLIC | |
-| `USER-002`     | 이메일 인증번호 확인 | POST | `/users/email-verifications/confirm` | X | PUBLIC | |
-| `USER-003`     | 회원 정보 조회 | GET | `/users` | O | USER | |
-| `USER-004`     | 회원 정보 수정 | PATCH | `/users` | O | USER | |
-| `USER-005`     | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |
-| `USER-006`     | 외국인등록증 신청서 제출 | POST | `/users/alien-registration` | O | USER | |
-| `USER-007`     | 여권 인증 | POST | `/users/verifications/passports` | O | USER | |
-| `USER-008`     | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
-| `USER-009`     | 거소확인 서류 제출 | POST | `/users/verifications/documents` | O | USER | |
-| `USER-010`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
-| `USER-011`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
-| `USER-012`     | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
+| `AUTH-004`     | 이메일 인증번호 발송 | POST | `/users/email-verifications` | X | PUBLIC | |
+| `AUTH-005`     | 이메일 인증번호 확인 | POST | `/users/email-verifications/confirm` | X | PUBLIC | |
+| `USER-001`     | 회원 정보 조회 | GET | `/users` | O | USER | |
+| `USER-002`     | 회원 정보 수정 | PATCH | `/users` | O | USER | |
+| `USER-003`     | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |
+| `USER-004`     | 외국인등록증 신청서 제출 | POST | `/users/alien-registration` | O | USER | |
+| `USER-005`     | 여권 인증 | POST | `/users/verifications/passports` | O | USER | |
+| `USER-006`     | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
+| `USER-007`     | 거소확인 서류 제출 | POST | `/users/verifications/documents` | O | USER | |
+| `USER-008`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
+| `USER-009`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
+| `USER-010`     | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
 | `WALLET-001`   | 월렛 계좌내역 조회 | GET | `/wallet/transactions` | O | USER | |
 | `WALLET-002`   | 월렛 충전 | POST | `/wallet/charges` | O | USER | |
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST | `/wallet/charges/debit` | O | USER | |
