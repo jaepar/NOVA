@@ -1,0 +1,19 @@
+/**
+ * API 통합 Export
+ *
+ * 사용 예시:
+ * import { apiClient } from '@/api';
+ *
+ * const response = await apiClient.get('/your-endpoint');
+ */
+
+export { default as apiClient } from './client';
+export * from './types';
+
+/**
+ * 엔드포인트별 API 함수를 작성한 후 여기에 export 추가
+ *
+ * 예시:
+ * export { authApi } from './endpoints/auth';
+ * export { accountApi } from './endpoints/account';
+ */

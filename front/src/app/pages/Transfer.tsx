@@ -1,0 +1,19 @@
+import { MobileLayout } from '../components/layout/MobileLayout';
+import { BottomNav } from '../components/layout/BottomNav';
+
+export function Transfer() {
+  return (
+    <>
+      <MobileLayout title="송금" showBackButton={false}>
+        <div className="flex items-center justify-center pt-24 w-full">
+          <div className="text-center space-y-4">
+            <div className="text-6xl">💸</div>
+            <h2>송금 페이지</h2>
+            <p className="text-muted-foreground">준비 중입니다</p>
+          </div>
+        </div>
+      </MobileLayout>
+      <BottomNav />
+    </>
+  );
+}
