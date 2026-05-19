@@ -36,9 +36,9 @@ public class Resume extends BaseEntity {
     @JoinColumn(name = "application_id", nullable = false)
     private Application application;
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;
 
-    @Column(length = 255, nullable = false)
+    @Column(name = "url", length = 255, nullable = false)
     private String url;
 }

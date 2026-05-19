@@ -34,10 +34,10 @@ public class ResidenceCard extends BaseEntity {
     @Column(name = "registration_num", length = 100)
     private String registrationNum;
 
-    @Column(length = 100)
+    @Column(name = "country", length = 100)
     private String country;
 
-    @Column(length = 100)
+    @Column(name = "status", length = 100)
     private String status;
 
     @Column(name = "issue_date", length = 100)

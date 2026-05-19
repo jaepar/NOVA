@@ -38,9 +38,11 @@ public class WalletTransaction extends BaseEntity {
     @Column(name = "transaction_flow", nullable = false)
     private TransactionFlow transactionFlow;
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "counterparty", length = 100, nullable = false)
     private String counterparty;
 
-    @Column(nullable = false)
+    @Column(name = "amount", nullable = false)
     private Integer amount;
 }
+
+

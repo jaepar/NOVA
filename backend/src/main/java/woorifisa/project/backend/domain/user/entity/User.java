@@ -30,20 +30,20 @@ public class User extends BaseEntity {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;
 
-    @Column(length = 10, nullable = false)
+    @Column(name = "birth", length = 10, nullable = false)
     private String birth;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "gender", nullable = false)
     private Gender gender;
 
-    @Column(length = 100, nullable = false, unique = true)
+    @Column(name = "email", length = 100, nullable = false, unique = true)
     private String email;
 
-    @Column(length = 255, nullable = false)
+    @Column(name = "password", length = 255, nullable = false)
     private String password;
 
     @Column(name = "has_residence_card", nullable = false)

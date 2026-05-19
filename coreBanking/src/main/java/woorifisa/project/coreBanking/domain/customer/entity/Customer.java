@@ -29,24 +29,24 @@ public class Customer extends BaseEntity {
     @Column(name = "customer_id")
     private Long customerId;
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "email", length = 100, nullable = false)
     private String email;
 
-    @Column(length = 100)
+    @Column(name = "address", length = 100)
     private String address;
 
-    @Column(length = 50)
+    @Column(name = "job", length = 50)
     private String job;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "purpose", nullable = false)
     private CustomerPurpose purpose;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "source", nullable = false)
     private FundSource source;
 
     @Column(name = "has_foreign_tax", nullable = false)

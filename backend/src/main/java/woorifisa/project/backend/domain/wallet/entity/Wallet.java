@@ -37,6 +37,6 @@ public class Wallet extends BaseEntity {
     @JoinColumn(name = "user_account_id", nullable = false)
     private AccountRef userAccount;
 
-    @Column(nullable = false)
+    @Column(name = "balance", nullable = false)
     private Integer balance;
 }

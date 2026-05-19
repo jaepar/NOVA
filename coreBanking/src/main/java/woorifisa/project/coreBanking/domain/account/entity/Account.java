@@ -49,10 +49,10 @@ public class Account extends BaseEntity {
     @Column(name = "account_name", length = 100, nullable = false)
     private String accountName;
 
-    @Column(nullable = false)
+    @Column(name = "balance", nullable = false)
     private Integer balance;
 
-    @Column(length = 100, nullable = false)
+    @Column(name = "password", length = 100, nullable = false)
     private String password;
 
     @Column(name = "daily_transfer_limit", nullable = false)
