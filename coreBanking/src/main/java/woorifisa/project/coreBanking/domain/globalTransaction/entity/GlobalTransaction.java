@@ -51,7 +51,7 @@ public class GlobalTransaction extends BaseEntity {
     private String targetCountry;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "currency", nullable = false)
     private CurrencyCode currency;
 
     @Column(name = "remit_amount", length = 100)
@@ -116,6 +116,6 @@ public class GlobalTransaction extends BaseEntity {
     private String remitReason;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private GlobalTransactionStatus status;
 }

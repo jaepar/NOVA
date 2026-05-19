@@ -47,10 +47,10 @@ public class AccountTransaction extends BaseEntity {
     @Column(name = "counter_party", length = 100)
     private String counterParty;
 
-    @Column(nullable = false)
+    @Column(name = "amount", nullable = false)
     private Integer amount;
 
-    @Column(length = 100)
+    @Column(name = "memo", length = 100)
     private String memo;
 
     @Column(name = "transfer_request_id", length = 100)
