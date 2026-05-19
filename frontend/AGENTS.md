@@ -17,6 +17,10 @@
 3. `frontend/guidelines/LAYOUT_GUIDELINES.md`
 4. 기존 페이지 구현
 
+## 2.1) Codex 실행 정책
+- 본 저장소는 별도 브리지 파일을 사용하지 않는다.
+- Codex 작업 시 규칙 소스는 `AGENTS.md`와 `guidelines/*.md`만 사용한다.
+
 ## 3) 프레임 규격 (필수)
 - 기준 프레임: `390 x 844`
 - 프레임 기준 요소: `#root`
