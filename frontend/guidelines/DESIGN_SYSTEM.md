@@ -1,25 +1,25 @@
-# Design System Guidelines
+# 디자인 시스템 가이드
 
-## 1) Scope
-This guide defines shared UI rules for NOVA frontend pages and components.
+## 1) 범위
+이 문서는 NOVA 프론트엔드의 공통 UI 규칙을 정의한다.
 
-Primary references:
+상위 참조:
 - `frontend/AGENTS.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
 
-## 2) Core Tokens
-- Base frame: `390 x 844`
-- Horizontal page padding baseline: `px-5` (20px)
-- Primary color: `#6366F1`
-- Text color: `#1F2937`
-- Secondary text: `#6B7280`
+## 2) 핵심 토큰
+- 기준 프레임: `390 x 844`
+- 좌우 기본 패딩: `px-5` (20px)
+- Primary: `#6366F1`
+- 본문 텍스트: `#1F2937`
+- 보조 텍스트: `#6B7280`
 - Border: `#E5E7EB`
-- Background: `#FFFFFF`
+- 배경: `#FFFFFF`
 
-## 3) Typography
-- Primary font: `Inter`
-- Secondary font: `Urbanist`
-- Scale (theme variables):
+## 3) 타이포그래피
+- 기본 폰트: `Inter`
+- 보조 폰트: `Urbanist`
+- 크기 스케일:
   - `--text-2xl`: 24px
   - `--text-xl`: 20px
   - `--text-lg`: 18px
@@ -27,40 +27,40 @@ Primary references:
   - `--text-sm`: 14px
   - `--text-xs`: 12px
 
-## 4) Button System (Required)
-- All interactive buttons must use shared design-system button components.
-- Use:
-  - `AppButton` for generic button interaction wrapper
-  - `Btn_1Col` for full-width primary/secondary/outline CTA
-  - `Btn_2Col` for dual CTA layouts
-- Page-level direct `<button>` usage is not allowed.
-- Text, state, and action differences should be controlled via props.
+## 4) 버튼 시스템 (필수)
+- 모든 상호작용 버튼은 공통 버튼 컴포넌트를 사용한다.
+- 사용 컴포넌트:
+  - `AppButton`: 범용 버튼 래퍼
+  - `Btn_1Col`: 전체 폭 CTA
+  - `Btn_2Col`: 2열 CTA
+- 페이지에서 직접 `<button>` 스타일링으로 대체하지 않는다.
+- 텍스트/상태/동작은 props로 제어한다.
 
-## 5) Input System
-- Prefer shared inputs such as `CommonInputGroup`.
-- Avoid ad-hoc input styling when a design-system component exists.
+## 5) 입력 시스템
+- `CommonInputGroup` 등 공통 입력 컴포넌트를 우선 사용한다.
+- 공통 컴포넌트가 존재하면 임의 입력 스타일을 추가하지 않는다.
 
-## 6) Layout Components
-- `FixedHeader`: top fixed header
-- `MobileLayout`: default page scaffold
-- `FloatingBottom`: fixed bottom CTA container
-- `BottomNav`: fixed bottom navigation
-- `BottomSheet`: shared bottom sheet interaction
+## 6) 공통 레이아웃 컴포넌트
+- `FixedHeader`
+- `MobileLayout`
+- `FloatingBottom`
+- `BottomNav`
+- `BottomSheet`
 
-## 7) Interaction Principles
-- Keep hover/active behavior consistent with existing component variants.
-- Do not introduce one-off visual behavior that conflicts with shared components.
-- Maintain consistent spacing rhythm across pages.
+## 7) 상호작용 원칙
+- hover/active 동작은 기존 variant 규칙과 일치시킨다.
+- 공통 컴포넌트 규칙과 충돌하는 페이지별 예외 스타일을 만들지 않는다.
+- 페이지 간 간격 리듬을 유지한다.
 
-## 8) Compliance Checklist
-- [ ] Uses shared layout scaffold/components
-- [ ] Uses shared button components only
-- [ ] Uses shared input components where applicable
-- [ ] Keeps frame and spacing standards intact
-- [ ] No page-specific style exceptions without explicit reason
+## 8) 준수 체크리스트
+- [ ] 공통 레이아웃 스캐폴드 사용
+- [ ] 공통 버튼 컴포넌트 사용
+- [ ] 공통 입력 컴포넌트 우선 사용
+- [ ] 프레임/간격 규칙 유지
+- [ ] 명시적 사유 없는 예외 스타일 없음
 
-## 9) Sync Policy
-When design rules change, update together:
+## 9) 동기화 정책
+디자인 규칙 변경 시 아래 문서를 함께 갱신한다.
 - `frontend/AGENTS.md`
 - `frontend/guidelines/DESIGN_SYSTEM.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`

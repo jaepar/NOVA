@@ -1,258 +1,167 @@
-# API 사용 가이드
+# API 사용 가이드 (`src/api`)
+
+이 폴더는 프론트엔드 API 연동의 공통 기반을 제공합니다.
+
+우선 규칙 문서:
+- `src/api/AGENTS.md`
 
 ## 개요
 
-이 폴더에는 공통 Axios 클라이언트 설정과 타입 정의가 포함되어 있습니다.
-API 엔드포인트 함수는 팀원들이 백엔드 개발에 맞춰 작성하면 됩니다.
+현재 구현된 파일:
+- `client.ts`: Axios 인스턴스 및 인터셉터
+- `types.ts`: 공통 응답 타입
+- `index.ts`: API 레이어 export 진입점
 
-## 폴더 구조
+팀원들이 도메인별 API 모듈을 빠르게 확장할 수 있도록 구성되어 있습니다.
 
-```
+## 현재 폴더 구조
+
+```text
 src/api/
-├── client.ts              # ✅ Axios 인스턴스 설정 (완료)
-├── types.ts               # ✅ 공통 응답 타입 (완료)
-├── index.ts               # ✅ Export 통합 (완료)
-├── README.md              # 이 문서
-└── endpoints/             # ⚠️ 팀원들이 작성할 API 함수들
-    └── (빈 폴더)
+├── AGENTS.md
+├── client.ts
+├── types.ts
+├── index.ts
+└── README.md
 ```
 
-## 이미 구현된 기능
+## 이미 구현된 내용
 
-### 1. Axios Client (`client.ts`)
+### 1) 공통 Axios 클라이언트 (`client.ts`)
 
-**Request Interceptor:**
-- 자동으로 `Authorization: Bearer {token}` 헤더 추가
-- 개발 환경에서 요청 로깅
+- `VITE_API_BASE_URL` 기반 Base URL 설정 (로컬 안전용 fallback 포함)
+- 기본 timeout: `10000ms`
+- 기본 헤더: `Content-Type: application/json`
 
-**Response Interceptor:**
-- 401 (인증 실패): 자동 로그아웃 및 토큰 삭제
-- 403, 404, 500 등: 에러 로깅
-- 개발 환경에서 응답 로깅
+요청 인터셉터:
+- localStorage의 `accessToken` 조회
+- 토큰 존재 시 `Authorization: Bearer <token>` 자동 주입
+- 개발 환경에서 요청 로그 출력
 
-**토큰 관리:**
-- localStorage에 `accessToken`, `refreshToken` 자동 저장
-- 모든 요청에 자동으로 토큰 포함
+응답 인터셉터:
+- 개발 환경에서 응답 로그 출력
+- `401`, `403`, `404`, `500` 상태 코드 중앙 처리
+- `401` 발생 시 `accessToken` 제거
 
-### 2. 공통 타입 (`types.ts`)
+### 2) 공통 API 타입 (`types.ts`)
 
-- `ApiResponse<T>`: 기본 API 응답 형식
-- `PaginatedResponse<T>`: 페이지네이션 응답 형식
-- `ApiError`: 에러 응답 형식
+- `ApiResponse<T>`: 기본 envelope (`success`, `data`, `message?`)
+- `PaginatedResponse<T>`: 페이지네이션 envelope (`pagination` 포함)
+- `ApiError`: 에러 envelope (`success: false`, `error`)
+
+### 3) 공용 Export 진입점 (`index.ts`)
+
+- 현재 제공:
+  - `apiClient`
+  - `types.ts`의 공통 타입들
 
 ## 환경 변수 설정
 
-`.env` 파일을 생성하고 백엔드 API URL을 설정하세요:
+`.env` 파일에 아래를 설정하세요.
 
 ```env
 VITE_API_BASE_URL=https://your-api-url.com
-VITE_ENV=development
 ```
 
-## 기본 사용법
+참고:
+- 개발 로그 분기는 `import.meta.env.DEV`를 사용합니다.
+- 별도 커스텀 환경변수 없이 동작합니다.
 
-### 1. 직접 apiClient 사용
+## 기본 사용 예시
 
-```tsx
-import { apiClient, ApiResponse } from '@/api';
-
-// GET 요청
-const response = await apiClient.get<ApiResponse<User>>('/users/me');
-const user = response.data.data;
-
-// POST 요청
-const response = await apiClient.post<ApiResponse<Account>>('/accounts', {
-  accountName: 'My Account',
-  currency: 'KRW'
-});
-```
-
-### 2. 컴포넌트에서 사용 예시
-
-```tsx
-import { useEffect, useState } from 'react';
+```ts
 import { apiClient, ApiResponse } from '@/api';
 
 interface User {
   id: string;
   name: string;
-  email: string;
 }
 
-function UserProfile() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await apiClient.get<ApiResponse<User>>('/users/me');
-        setUser(response.data.data);
-      } catch (err) {
-        setError('Failed to load user');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!user) return null;
-
-  return <div>Welcome, {user.name}!</div>;
-}
+const res = await apiClient.get<ApiResponse<User>>('/users/me');
+const user = res.data.data;
 ```
 
-### 3. 에러 처리
+## 엔드포인트 모듈 작성 패턴 (권장)
 
-```tsx
-import { AxiosError } from 'axios';
-import { apiClient, ApiError } from '@/api';
+백엔드 계약이 준비되면 `src/api/endpoints/` 아래에 도메인별 모듈을 추가합니다.
 
-try {
-  await apiClient.post('/auth/login', { email, password });
-} catch (error) {
-  if (error instanceof AxiosError) {
-    const apiError = error.response?.data as ApiError;
-    console.error('API Error:', apiError?.error?.message || 'Unknown error');
-  }
-}
-```
+예시:
 
-## API 엔드포인트 함수 작성 가이드
-
-백엔드 API가 준비되면 아래 패턴으로 엔드포인트 함수를 작성하세요.
-
-### 1. 엔드포인트 파일 생성
-
-`src/api/endpoints/auth.ts` 예시:
-
-```tsx
+```ts
+// src/api/endpoints/auth.ts
 import apiClient from '../client';
-import { ApiResponse } from '../types';
+import type { ApiResponse } from '../types';
 
-// 타입 정의
 interface LoginRequest {
   email: string;
   password: string;
 }
 
+interface UserDto {
+  id: string;
+  name: string;
+  email: string;
+}
+
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  user: UserDto;
 }
 
-// API 함수 객체
 export const authApi = {
-  // 로그인
-  login: async (data: LoginRequest): Promise<LoginResponse> => {
-    const response = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', data);
-    
-    // 토큰 저장
-    if (response.data.data.accessToken) {
-      localStorage.setItem('accessToken', response.data.data.accessToken);
-      localStorage.setItem('refreshToken', response.data.data.refreshToken);
-    }
-    
-    return response.data.data;
-  },
+  login: async (payload: LoginRequest): Promise<LoginResponse> => {
+    const res = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', payload);
 
-  // 로그아웃
-  logout: async (): Promise<void> => {
-    await apiClient.post('/auth/logout');
-    
-    // 토큰 삭제
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-  },
+    // 팀 정책 확정 시 토큰 저장
+    const { accessToken, refreshToken } = res.data.data;
+    if (accessToken) localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
 
-  // 현재 사용자 조회
-  getCurrentUser: async () => {
-    const response = await apiClient.get<ApiResponse<User>>('/auth/me');
-    return response.data.data;
+    return res.data.data;
   },
 };
 ```
 
-### 2. Export 추가
+작성 후 `src/api/index.ts`에 export를 추가하세요.
 
-`src/api/index.ts`에 추가:
-
-```tsx
+```ts
 export { authApi } from './endpoints/auth';
 ```
 
-### 3. 컴포넌트에서 사용
+## 확장 권장 구조
 
-```tsx
-import { authApi } from '@/api';
-
-// 로그인
-await authApi.login({ email, password });
-
-// 현재 사용자 조회
-const user = await authApi.getCurrentUser();
-```
-
-## 권장 폴더 구조
-
-```
+```text
 src/api/
+├── AGENTS.md
 ├── client.ts
 ├── types.ts
 ├── index.ts
-├── README.md
-└── endpoints/
-    ├── auth.ts           # 인증 관련
-    ├── account.ts        # 계좌 관리
-    ├── transaction.ts    # 거래 내역
-    ├── notification.ts   # 알림
-    └── exchange.ts       # 환율 정보
-```
-
-또는 타입을 분리하려면:
-
-```
-src/api/
-├── client.ts
-├── types/
-│   ├── common.ts         # 공통 타입
-│   ├── user.ts           # 사용자 타입
-│   ├── account.ts        # 계좌 타입
-│   └── transaction.ts    # 거래 타입
 ├── endpoints/
 │   ├── auth.ts
 │   ├── account.ts
-│   └── ...
-└── index.ts
+│   ├── transaction.ts
+│   ├── notification.ts
+│   └── exchange.ts
+└── types/
+    ├── auth.ts
+    ├── account.ts
+    ├── transaction.ts
+    └── common.ts
 ```
 
-## 체크리스트
+## 팀 체크리스트
 
-API 개발 시 확인 사항:
+- [ ] `VITE_API_BASE_URL`이 올바르게 설정되었는가
+- [ ] 새 API는 반드시 `apiClient`를 사용하는가 (raw axios 금지)
+- [ ] 요청/응답 DTO 타입이 명시되었는가
+- [ ] 새 모듈 export를 `src/api/index.ts`에 추가했는가
+- [ ] 4xx/5xx 에러 경로를 호출부에서 처리했는가
+- [ ] 민감 정보 로그가 운영 경로에 남지 않는가
 
-- [ ] `.env` 파일에 `VITE_API_BASE_URL` 설정
-- [ ] 백엔드 API 응답 형식에 맞춰 `types.ts` 수정
-- [ ] 엔드포인트별로 `endpoints/` 폴더에 파일 생성
-- [ ] 작성한 API 함수를 `index.ts`에 export
-- [ ] 모든 API 호출에 try-catch 에러 처리
-- [ ] 토큰이 필요한 API는 로그인 후 호출
-- [ ] TypeScript 타입 정의로 타입 안전성 확보
+## 금융 도메인 가드레일
 
-## 주의사항
-
-1. **Base URL**: 반드시 `.env` 파일 설정 필요
-2. **토큰 보안**: localStorage 사용 중 (프로덕션 환경에서는 보안 검토 필요)
-3. **에러 처리**: 모든 API 호출에 try-catch 사용 권장
-4. **401 처리**: client.ts에서 자동 로그아웃 처리됨
-5. **CORS**: 백엔드에서 CORS 설정 확인 필요
+- 프론트 API 모듈에서 금액 확정 로직을 수행하지 않습니다.
+- 프론트 API 모듈에서 원장/상태 확정 로직을 수행하지 않습니다.
+- 원장성 데이터의 최종 진실 원천은 백엔드/코어뱅킹 응답입니다.
+- 계약 불일치가 발생하면 안전하게 실패하고 명시적 오류를 반환합니다.

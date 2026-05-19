@@ -1,61 +1,58 @@
-# Frontend AGENTS Guide (NOVA)
+# 프론트엔드 AGENTS 가이드 (NOVA)
 
-This file defines the operating rules for all work under `frontend/`.
+이 문서는 `frontend/` 작업 시 따르는 공통 규칙입니다.
 
-Reference docs:
+참조 문서:
 - `guidelines/DESIGN_SYSTEM.md`
 - `guidelines/LAYOUT_GUIDELINES.md`
 
-## 1) Goal
-- Keep a consistent mobile-app-like UI on web.
-- Apply one shared layout standard to all pages.
-- Prefer design tokens and shared components over one-off styles.
+## 1) 목표
+- 웹에서도 모바일 앱 같은 일관된 UI/UX를 유지한다.
+- 모든 페이지에 공통 레이아웃 규격을 적용한다.
+- 임의 스타일보다 디자인 토큰/공통 컴포넌트를 우선 사용한다.
 
-## 2) Priority
+## 2) 문서 우선순위
 1. `frontend/AGENTS.md`
 2. `frontend/guidelines/DESIGN_SYSTEM.md`
 3. `frontend/guidelines/LAYOUT_GUIDELINES.md`
-4. Existing page implementation details
+4. 기존 페이지 구현
 
-If rules conflict, follow this file first.
+## 3) 프레임 규격 (필수)
+- 기준 프레임: `390 x 844`
+- 프레임 기준 요소: `#root`
+- 화면이 작아지면 비율 유지 축소
+- 화면이 커져도 `390x844` 이상 확장 금지
+- 프레임 외부 영역은 별도 배경으로 구분 유지
 
-## 3) Frame Standard (Required)
-- App frame base size: `390 x 844`.
-- The root app frame is controlled by `#root`.
-- On smaller viewports, keep aspect ratio and scale down.
-- On larger viewports, do not scale above `390x844`.
-- Keep non-app side area visually separated from the app frame.
+## 4) 레이아웃 규칙 (필수)
+- 모든 페이지는 `MobileLayout`을 기본 스캐폴드로 사용
+- 상단 네비게이션은 `FixedHeader` 사용
+- 하단 고정 액션은 `FloatingBottom` 또는 `BottomNav` 사용
+- 초기 렌더 시 본문은 헤더 아래에서 시작해야 함
+- 페이지 간 본문 시작 오프셋은 동일해야 함
+- 스크롤 중 본문이 고정 헤더 뒤로 지나가는 동작은 정상 동작으로 간주
+- 페이지별 `max-w-[390px] mx-auto` 중복 선언 금지
 
-## 4) Layout Rules (Required)
-- All pages must use `MobileLayout` as the required page scaffold.
-- Use `FixedHeader` for top navigation.
-- Use `FloatingBottom` or `BottomNav` for bottom fixed actions.
-- Initial render content must start below fixed header without overlap.
-- All pages must use the same content start offset under header.
-- During scroll, content moving behind the fixed header is expected behavior.
-- Do not add page-level duplicate width constraints like `max-w-[390px] mx-auto`.
-- Width/height/centering/scaling must be managed at root frame level.
+## 5) 컴포넌트 규칙
+- 상호작용 버튼은 공통 버튼 컴포넌트 사용 (`AppButton`, `Btn_1Col`, `Btn_2Col`)
+- 입력 블록은 `CommonInputGroup` 등 공통 입력 컴포넌트 우선
+- 임시/일회성 스타일 남발 금지
 
-## 5) Component Rules
-- For primary actions, prefer `Btn_1Col` and `Btn_2Col`.
-- For input blocks, prefer shared components like `CommonInputGroup`.
-- Prefer design-system tokens over ad-hoc inline styles.
+## 6) 검증 체크리스트
+- [ ] `390x844` 프레임 규칙 유지
+- [ ] 작은 화면에서 비율 유지 축소 동작 확인
+- [ ] 헤더/본문/하단 고정 영역 겹침 없음
+- [ ] 공통 레이아웃 컴포넌트 일관 사용
+- [ ] 페이지별 프레임 중복 규칙 없음
 
-## 6) Verification Checklist
-- [ ] `390x844` frame behavior is preserved
-- [ ] Scale-down behavior works on smaller screens
-- [ ] Header/content/bottom fixed areas do not overlap
-- [ ] Shared layout components are used consistently
-- [ ] No duplicate per-page frame constraints were added
+## 7) 파일 책임 범위
+- 프레임/스케일: `src/main.tsx`, `src/styles/theme.css`
+- 공통 레이아웃: `src/app/components/layout/*`
+- 페이지 구현: `src/app/pages/*`
+- 디자인 시스템: `src/app/components/design-system/*`
 
-## 7) File Ownership Guide
-- Root frame and scaling: `src/main.tsx`, `src/styles/theme.css`
-- Shared layout: `src/app/components/layout/*`
-- Page implementation: `src/app/pages/*`
-- Design system: `src/app/components/design-system/*`
-
-## 8) Doc Sync Policy
-When frame or layout standards change, update all three together:
+## 8) 동기화 정책
+레이아웃/디자인 규칙 변경 시 아래 문서를 함께 갱신한다.
 - `frontend/AGENTS.md`
 - `frontend/guidelines/DESIGN_SYSTEM.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
