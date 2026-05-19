@@ -119,3 +119,4 @@ coreBanking/target/
 # Optional tools
 # ------------------------------
 .claude/
+.codex/
