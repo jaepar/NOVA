@@ -6,7 +6,7 @@ export function Landing() {
   const navigate = useNavigate();
 
   return (
-    <div className="h-full bg-background w-full max-w-[390px] mx-auto relative">
+    <div className="h-full bg-background w-full relative">
       {/* Language Button - Top Right */}
       <div className="absolute top-4 right-5 z-50">
         <button

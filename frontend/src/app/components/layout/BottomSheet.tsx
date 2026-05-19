@@ -48,7 +48,7 @@ export function BottomSheet({ isOpen, onClose, title, children, bottomAction, he
 
       {/* Bottom Sheet Template */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-[70] bg-background rounded-t-3xl w-full max-w-[390px] mx-auto transition-transform duration-300 ease-out flex flex-col ${
+        className={`fixed bottom-0 left-0 right-0 z-[70] bg-background rounded-t-3xl w-full transition-transform duration-300 ease-out flex flex-col ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{

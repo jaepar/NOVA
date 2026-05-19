@@ -20,7 +20,7 @@ export function BottomNav() {
   const location = useLocation();
 
   return (
-    <div className="fixed bottom-5 left-0 right-0 z-40 w-full max-w-[390px] mx-auto px-5">
+    <div className="fixed bottom-5 left-0 right-0 z-40 w-full px-5">
       <div
         className="bg-background/95 backdrop-blur-[20px] px-2 py-3 rounded-2xl shadow-lg border border-border/50 w-full"
         style={{

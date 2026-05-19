@@ -32,7 +32,7 @@ export function Success({
   };
 
   return (
-    <div className="h-screen w-full max-w-[390px] mx-auto bg-background flex flex-col overflow-hidden">
+    <div className="h-full w-full bg-background flex flex-col overflow-hidden">
       <FixedHeader title={headerTitle} />
 
       <div className="flex-1 flex flex-col items-center justify-center px-6">

@@ -1,6 +1,10 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --app-width: 390px;
+  --app-height: 844px;
+  --app-scale: 1;
+  --viewport-background: #eef2f7;
   --font-size: 16px;
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --text-2xl: 24px;
@@ -132,29 +136,35 @@
   }
 
   html {
-    height: 100vh;
+    height: 100%;
     overflow: hidden;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-family: var(--font-family);
     width: 100%;
-    max-width: 390px;
-    height: 100vh;
-    max-height: 844px;
-    margin: 0 auto;
+    min-height: 100dvh;
+    margin: 0;
     overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--viewport-background);
     position: relative;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   #root {
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
+    width: var(--app-width);
+    height: var(--app-height);
+    overflow: hidden;
+    position: relative;
+    transform: scale(var(--app-scale));
+    transform-origin: center center;
+    background: var(--background);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.14);
   }
 
   /* 스크롤바 숨김 처리 */

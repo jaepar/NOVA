@@ -20,7 +20,7 @@ export function MobileLayout({
   headerRightContent
 }: MobileLayoutProps) {
   return (
-    <div className="h-full w-full max-w-[390px] mx-auto bg-background flex flex-col overflow-hidden">
+    <div className="h-full w-full bg-background flex flex-col overflow-hidden">
       <FixedHeader
         title={title}
         showBackButton={showBackButton}

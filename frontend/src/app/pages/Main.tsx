@@ -77,9 +77,9 @@ export function Main() {
   ];
 
   return (
-    <div className="h-full bg-background w-full max-w-[390px] mx-auto pb-32 overflow-y-auto">
+    <div className="h-full bg-background w-full pb-32 overflow-y-auto">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background pt-5 w-full max-w-[390px] mx-auto">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background pt-5 w-full">
         <div className="flex items-center justify-between px-5 h-14">
         <div className="flex items-center gap-4">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600"></div>
