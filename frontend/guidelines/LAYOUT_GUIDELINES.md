@@ -19,7 +19,7 @@
   - `body` centers the frame and provides viewport background color for side areas.
 
 ## 3) Layout Composition Rules
-- Default page scaffold: `MobileLayout`
+- Required page scaffold for every page: `MobileLayout`
 - Top area: `FixedHeader`
 - Bottom fixed actions: `FloatingBottom` or `BottomNav`
 - Header sizing and offset are centralized CSS variables:

@@ -15,6 +15,7 @@ import { BottomNav } from "../components/layout/BottomNav";
 import { SideMenu } from "../components/layout/SideMenu";
 import { AppButton } from "../components/design-system/AppButton";
 import { Btn_1Col } from "../components/design-system/Btn_1Col";
+import { MobileLayout } from "../components/layout/MobileLayout";
 
 export function Main() {
   const navigate = useNavigate();
@@ -78,44 +79,39 @@ export function Main() {
   ];
 
   return (
-    <div className="h-full bg-background w-full pb-32 overflow-y-auto">
-      {/* Header */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50 bg-background w-full"
-        style={{ paddingTop: 'var(--app-header-top-padding)' }}
+    <div className="h-full bg-background w-full">
+      <MobileLayout
+        title=""
+        showBackButton={false}
+        headerLeftContent={
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600"></div>
+            <span className="text-lg text-blue-600">NOVA</span>
+          </div>
+        }
+        headerRightContent={
+          <div className="flex items-center gap-2">
+            <AppButton
+              variant="unstyled"
+              onClick={() => navigate('/notifications')}
+              className="p-2 hover:bg-secondary rounded-lg transition-colors relative"
+            >
+              <Bell className="w-6 h-6" />
+              {hasUnreadNotifications && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
+            </AppButton>
+            <AppButton
+              variant="unstyled"
+              onClick={() => setIsMenuOpen(true)}
+              className="p-2 hover:bg-secondary rounded-lg transition-colors"
+            >
+              <Menu className="w-6 h-6" />
+            </AppButton>
+          </div>
+        }
       >
-        <div
-          className="flex items-center justify-between px-5"
-          style={{ height: 'var(--app-header-height)' }}
-        >
-        <div className="flex items-center gap-4">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600"></div>
-          <h1 className="text-lg"><span className="text-blue-600">NOVA</span></h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <AppButton
-            variant="unstyled"
-            onClick={() => navigate('/notifications')}
-            className="p-2 hover:bg-secondary rounded-lg transition-colors relative"
-          >
-            <Bell className="w-6 h-6" />
-            {hasUnreadNotifications && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-            )}
-          </AppButton>
-          <AppButton
-            variant="unstyled"
-            onClick={() => setIsMenuOpen(true)}
-            className="p-2 hover:bg-secondary rounded-lg transition-colors"
-          >
-            <Menu className="w-6 h-6" />
-          </AppButton>
-        </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="px-5 space-y-3" style={{ paddingTop: 'var(--app-content-offset)' }}>
+        <div className="space-y-3">
         {/* Action Buttons / Account Card */}
         <section>
           {!isLoggedIn ? (
@@ -239,7 +235,8 @@ export function Main() {
             ))}
           </div>
         </section>
-      </main>
+        </div>
+      </MobileLayout>
 
       {/* Bottom Navigation */}
       <BottomNav />

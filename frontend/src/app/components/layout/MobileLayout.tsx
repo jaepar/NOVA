@@ -8,6 +8,7 @@ interface MobileLayoutProps {
   bottomContent?: ReactNode;
   showBackButton?: boolean;
   onBack?: () => void;
+  headerLeftContent?: ReactNode;
   headerRightContent?: ReactNode;
 }
 
@@ -17,6 +18,7 @@ export function MobileLayout({
   bottomContent,
   showBackButton = true,
   onBack,
+  headerLeftContent,
   headerRightContent
 }: MobileLayoutProps) {
   return (
@@ -25,6 +27,7 @@ export function MobileLayout({
         title={title}
         showBackButton={showBackButton}
         onBack={onBack}
+        leftContent={headerLeftContent}
         rightContent={headerRightContent}
       />
 

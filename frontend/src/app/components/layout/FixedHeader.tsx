@@ -6,10 +6,11 @@ interface FixedHeaderProps {
   title: string;
   onBack?: () => void;
   showBackButton?: boolean;
+  leftContent?: React.ReactNode;
   rightContent?: React.ReactNode;
 }
 
-export function FixedHeader({ title, onBack, showBackButton = true, rightContent }: FixedHeaderProps) {
+export function FixedHeader({ title, onBack, showBackButton = true, leftContent, rightContent }: FixedHeaderProps) {
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -38,7 +39,9 @@ export function FixedHeader({ title, onBack, showBackButton = true, rightContent
             <ChevronLeft className="w-6 h-6" />
           </AppButton>
         )}
-        {!showBackButton && <div className="w-10" />}
+        {!showBackButton && (
+          leftContent ? <div className="w-10 flex justify-start">{leftContent}</div> : <div className="w-10" />
+        )}
 
         <h1 className="flex-1 text-center font-medium">{title}</h1>
 

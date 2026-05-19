@@ -27,7 +27,7 @@ If rules conflict, follow this file first.
 - Keep non-app side area visually separated from the app frame.
 
 ## 4) Layout Rules (Required)
-- New pages should use `MobileLayout` by default.
+- All pages must use `MobileLayout` as the required page scaffold.
 - Use `FixedHeader` for top navigation.
 - Use `FloatingBottom` or `BottomNav` for bottom fixed actions.
 - Initial render content must start below fixed header without overlap.
