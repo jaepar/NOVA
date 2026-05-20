@@ -20,7 +20,7 @@ import { OneButtonTemplate } from "./pages/common/OneButtonTemplate";
 import { TwoButtonTemplate } from "./pages/common/TwoButtonTemplate";
 import { CloseButtonTemplate } from "./pages/common/CloseButtonTemplate";
 import { Notifications } from "./pages/Notifications";
-import { WalletTerms } from "./pages/wallet";
+import { WalletHome, WalletTerms } from "./pages/wallet";
 
 export const router = createBrowserRouter([
   {
@@ -70,6 +70,10 @@ export const router = createBrowserRouter([
   {
     path: "/wallet/terms",
     Component: WalletTerms,
+  },
+  {
+    path: "/wallet/home",
+    Component: WalletHome,
   },
   {
     path: "/step-1",

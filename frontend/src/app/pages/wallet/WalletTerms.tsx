@@ -52,7 +52,7 @@ export function WalletTerms() {
         </Btn_1Col>
       }
     >
-      <section className="pt-12">
+      <section className="pt-12 pl-3 pr-5">
         <h2 className="text-[28px] font-semibold leading-10 text-foreground">
           약관 동의
         </h2>
