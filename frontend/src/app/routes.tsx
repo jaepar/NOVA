@@ -21,6 +21,7 @@ import { LivenessGuide } from "./pages/certificate/Step09-LivenessGuide";
 import { LivenessTermsAgreement } from "./pages/certificate/Step10-LivenessTermsAgreement";
 import { Step10TermDetail } from "./pages/certificate/Step10-TermDetail";
 import { LivenessCameraCapture } from "./pages/certificate/Step11-LivenessCameraCapture";
+import { VerificationCompleted } from "./pages/certificate/Step12-VerificationCompleted";
 import { TransactionHistory } from "./pages/TransactionHistory";
 import { DesignSystem } from "./pages/DesignSystem";
 import { Success } from "./pages/common/Success";
@@ -131,6 +132,10 @@ export const router = createBrowserRouter([
   {
     path: "/certificate/step-11",
     Component: LivenessCameraCapture,
+  },
+  {
+    path: "/certificate/step-12",
+    Component: VerificationCompleted,
   },
   {
     path: "/consent-template",

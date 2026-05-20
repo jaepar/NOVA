@@ -84,7 +84,7 @@ export function LivenessCameraCapture() {
       </div>
 
       <div className="px-5 pb-8">
-        <Btn_1Col onClick={() => navigate("/success")}>동의하고 촬영하기</Btn_1Col>
+        <Btn_1Col onClick={() => navigate("/certificate/step-12")}>동의하고 촬영하기</Btn_1Col>
       </div>
     </div>
   );
