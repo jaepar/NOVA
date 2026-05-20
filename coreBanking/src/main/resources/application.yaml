@@ -2,7 +2,7 @@ spring:
   application:
     name: coreBanking
   profiles:
-    active: dev
+    active: local
 
   servlet:
     multipart:
