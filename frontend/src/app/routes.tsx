@@ -7,7 +7,9 @@ import { Login } from "./pages/Login";
 import { Transfer } from "./pages/Transfer";
 import { Exchange } from "./pages/Exchange";
 import { MyPage } from "./pages/MyPage";
-import { Step1 } from "./pages/Step1";
+import { Step1 } from "./pages/certificate/Step1";
+import { Step1TermDetail } from "./pages/certificate/Step1TermDetail";
+import { CategoryConsentCarousel } from "./pages/certificate/CategoryConsentCarousel";
 import { Step2 } from "./pages/Step2";
 import { Step3 } from "./pages/Step3";
 import { TransactionHistory } from "./pages/TransactionHistory";
@@ -63,15 +65,23 @@ export const router = createBrowserRouter([
     Component: Notifications,
   },
   {
-    path: "/step-1",
+    path: "/certificate/step-1",
     Component: Step1,
   },
   {
-    path: "/step-2",
+    path: "/certificate/step-1/terms/:termId",
+    Component: Step1TermDetail,
+  },
+  {
+    path: "/certificate/step-1/categories/:categoryId/consent",
+    Component: CategoryConsentCarousel,
+  },
+  {
+    path: "/certificate/step-2",
     Component: Step2,
   },
   {
-    path: "/step-3",
+    path: "/certificate/step-3",
     Component: Step3,
   },
   {

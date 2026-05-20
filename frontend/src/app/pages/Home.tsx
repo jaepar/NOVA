@@ -11,7 +11,7 @@ export function Home() {
       title="Welcome"
       showBackButton={false}
       bottomContent={
-        <Btn_1Col onClick={() => navigate("/step-1")}>
+        <Btn_1Col onClick={() => navigate("/certificate/step-1")}>
           Get Started
         </Btn_1Col>
       }

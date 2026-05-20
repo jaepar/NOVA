@@ -24,7 +24,7 @@ export function Step2() {
           leftLabel="Back"
           rightLabel="Continue"
           onLeftClick={() => navigate(-1)}
-          onRightClick={() => navigate('/step-3')}
+          onRightClick={() => navigate('/certificate/step-3')}
         />
       }
     >
