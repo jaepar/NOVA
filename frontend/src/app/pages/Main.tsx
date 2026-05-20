@@ -48,6 +48,7 @@ export function Main() {
       icon: <Wallet className="w-8 h-8" />,
       label: "월렛",
       color: "text-blue-500",
+      path: "/wallet",
     },
   ];
 
@@ -201,6 +202,11 @@ export function Main() {
               <AppButton
                 variant="unstyled"
                 key={index}
+                onClick={() => {
+                  if (service.path) {
+                    navigate(service.path);
+                  }
+                }}
                 className="flex flex-col items-center gap-2 hover:bg-secondary rounded-xl transition-colors max-[389px]:bg-secondary max-[389px]:p-4"
               >
                 <div className={service.color}>
