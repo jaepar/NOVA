@@ -12,6 +12,7 @@ import { Step1TermDetail } from "./pages/certificate/Step1TermDetail";
 import { CategoryConsentCarousel } from "./pages/certificate/CategoryConsentCarousel";
 import { Step2 } from "./pages/certificate/Step2";
 import { Step3 } from "./pages/certificate/Step3";
+import { PassportCaptureGuide } from "./pages/certificate/PassportCaptureGuide";
 import { TransactionHistory } from "./pages/TransactionHistory";
 import { DesignSystem } from "./pages/DesignSystem";
 import { Success } from "./pages/common/Success";
@@ -86,6 +87,10 @@ export const router = createBrowserRouter([
   {
     path: "/certificate/step-3",
     Component: Step3,
+  },
+  {
+    path: "/certificate/passport-guide",
+    Component: PassportCaptureGuide,
   },
   {
     path: "/consent-template",
