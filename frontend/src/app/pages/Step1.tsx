@@ -1,13 +1,15 @@
-import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from '../components/layout/MobileLayout';
 import { CommonInputGroup } from '../components/design-system/CommonInputGroup';
 import { Btn_1Col } from '../components/design-system/Btn_1Col';
+import { useStep1PageStore } from '../stores/pageStores';
 
 export function Step1() {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const name = useStep1PageStore((state) => state.name);
+  const email = useStep1PageStore((state) => state.email);
+  const setName = useStep1PageStore((state) => state.setName);
+  const setEmail = useStep1PageStore((state) => state.setEmail);
 
   const handleNext = () => {
     navigate('/step-2');

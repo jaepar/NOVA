@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Menu,
@@ -16,20 +15,18 @@ import { SideMenu } from "../components/layout/SideMenu";
 import { AppButton } from "../components/design-system/AppButton";
 import { Btn_1Col } from "../components/design-system/Btn_1Col";
 import { MobileLayout } from "../components/layout/MobileLayout";
+import { useMainPageStore } from "../stores/pageStores";
 
 export function Main() {
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // TODO: 실제 구현 시 상태 관리 시스템으로 교체
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [hasAccount, setHasAccount] = useState(false);
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true); // TODO: API 연결 시 실제 데이터로 교체
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setHasAccount(false);
-  };
+  const isMenuOpen = useMainPageStore((state) => state.isMenuOpen);
+  const isLoggedIn = useMainPageStore((state) => state.isLoggedIn);
+  const hasAccount = useMainPageStore((state) => state.hasAccount);
+  const hasUnreadNotifications = useMainPageStore((state) => state.hasUnreadNotifications);
+  const setMenuOpen = useMainPageStore((state) => state.setMenuOpen);
+  const setLoggedIn = useMainPageStore((state) => state.setLoggedIn);
+  const setHasAccount = useMainPageStore((state) => state.setHasAccount);
+  const logout = useMainPageStore((state) => state.logout);
 
   const services = [
     {
@@ -103,7 +100,7 @@ export function Main() {
             </AppButton>
             <AppButton
               variant="unstyled"
-              onClick={() => setIsMenuOpen(true)}
+              onClick={() => setMenuOpen(true)}
               className="p-2 hover:bg-secondary rounded-lg transition-colors"
             >
               <Menu className="w-6 h-6" />
@@ -121,7 +118,7 @@ export function Main() {
                 
               </div>
               <div className="space-y-3">
-                <Btn_1Col onClick={() => setIsLoggedIn(true)}>
+                <Btn_1Col onClick={() => setLoggedIn(true)}>
                   로그인
                 </Btn_1Col>
                 <Btn_1Col variant="outline" onClick={() => navigate("/signup")}>
@@ -244,10 +241,10 @@ export function Main() {
       {/* Side Menu */}
       <SideMenu
         isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
+        onClose={() => setMenuOpen(false)}
         isLoggedIn={isLoggedIn}
-        onLogout={handleLogout}
-        onLogin={() => setIsLoggedIn(true)}
+        onLogout={logout}
+        onLogin={() => setLoggedIn(true)}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { MobileLayout } from "../components/layout/MobileLayout";
 import { BottomSheet } from "../components/layout/BottomSheet";
 import { CommonInputGroup } from "../components/design-system/CommonInputGroup";
@@ -8,14 +7,21 @@ import { FilterBottomSheet } from "../components/design-system/FilterBottomSheet
 import { PinInputBottomSheet } from "../components/design-system/PinInputBottomSheet";
 import { Spinner } from "../components/design-system/Spinner";
 import { spacing, typography, layout, header, bottomSheet, scrollbar } from "../components/design-system/tokens";
+import { useDesignSystemPageStore } from "../stores/pageStores";
 
 export function DesignSystem() {
-  const [inputValue, setInputValue] = useState("");
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-  const [isPinSheetOpen, setIsPinSheetOpen] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState("all");
-  const [selectedType, setSelectedType] = useState("all");
+  const inputValue = useDesignSystemPageStore((state) => state.inputValue);
+  const isBottomSheetOpen = useDesignSystemPageStore((state) => state.isBottomSheetOpen);
+  const isFilterSheetOpen = useDesignSystemPageStore((state) => state.isFilterSheetOpen);
+  const isPinSheetOpen = useDesignSystemPageStore((state) => state.isPinSheetOpen);
+  const selectedPeriod = useDesignSystemPageStore((state) => state.selectedPeriod);
+  const selectedType = useDesignSystemPageStore((state) => state.selectedType);
+  const setInputValue = useDesignSystemPageStore((state) => state.setInputValue);
+  const setBottomSheetOpen = useDesignSystemPageStore((state) => state.setBottomSheetOpen);
+  const setFilterSheetOpen = useDesignSystemPageStore((state) => state.setFilterSheetOpen);
+  const setPinSheetOpen = useDesignSystemPageStore((state) => state.setPinSheetOpen);
+  const setSelectedPeriod = useDesignSystemPageStore((state) => state.setSelectedPeriod);
+  const setSelectedType = useDesignSystemPageStore((state) => state.setSelectedType);
 
   return (
     <>
@@ -105,27 +111,27 @@ export function DesignSystem() {
               <p>- Header padding: {bottomSheet.headerPadding}</p>
               <p>- Content padding: {bottomSheet.contentPadding}</p>
             </div>
-            <Btn_1Col onClick={() => setIsBottomSheetOpen(true)}>Open Basic Bottom Sheet</Btn_1Col>
-            <Btn_1Col onClick={() => setIsFilterSheetOpen(true)}>Open Filter Bottom Sheet</Btn_1Col>
-            <Btn_1Col onClick={() => setIsPinSheetOpen(true)}>Open PIN Bottom Sheet</Btn_1Col>
+            <Btn_1Col onClick={() => setBottomSheetOpen(true)}>Open Basic Bottom Sheet</Btn_1Col>
+            <Btn_1Col onClick={() => setFilterSheetOpen(true)}>Open Filter Bottom Sheet</Btn_1Col>
+            <Btn_1Col onClick={() => setPinSheetOpen(true)}>Open PIN Bottom Sheet</Btn_1Col>
           </section>
         </div>
       </MobileLayout>
 
       <BottomSheet
         isOpen={isBottomSheetOpen}
-        onClose={() => setIsBottomSheetOpen(false)}
+        onClose={() => setBottomSheetOpen(false)}
         title="Bottom Sheet Demo"
       >
         <div className="space-y-4">
           <p className="text-muted-foreground">Shared BottomSheet template demo.</p>
-          <Btn_1Col onClick={() => setIsBottomSheetOpen(false)}>Close</Btn_1Col>
+          <Btn_1Col onClick={() => setBottomSheetOpen(false)}>Close</Btn_1Col>
         </div>
       </BottomSheet>
 
       <FilterBottomSheet
         isOpen={isFilterSheetOpen}
-        onClose={() => setIsFilterSheetOpen(false)}
+        onClose={() => setFilterSheetOpen(false)}
         sections={[
           {
             title: "Period",
@@ -151,14 +157,14 @@ export function DesignSystem() {
             onSelect: setSelectedType,
           },
         ]}
-        onApply={() => setIsFilterSheetOpen(false)}
+        onApply={() => setFilterSheetOpen(false)}
       />
 
       <PinInputBottomSheet
         isOpen={isPinSheetOpen}
-        onClose={() => setIsPinSheetOpen(false)}
+        onClose={() => setPinSheetOpen(false)}
         onComplete={() => {
-          setTimeout(() => setIsPinSheetOpen(false), 300);
+          setTimeout(() => setPinSheetOpen(false), 300);
         }}
       />
     </>

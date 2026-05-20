@@ -1,9 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { create } from 'zustand';
 
 type TimeOfDay = 'morning' | 'sunset' | 'night';
 
+const useTimeBasedSkyStore = create<{
+  timeOfDay: TimeOfDay;
+  setTimeOfDay: (next: TimeOfDay) => void;
+}>((set) => ({
+  timeOfDay: 'morning',
+  setTimeOfDay: (next) => set({ timeOfDay: next }),
+}));
+
 export function TimeBasedSky() {
-  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('morning');
+  const timeOfDay = useTimeBasedSkyStore((state) => state.timeOfDay);
+  const setTimeOfDay = useTimeBasedSkyStore((state) => state.setTimeOfDay);
 
   useEffect(() => {
     const updateTimeOfDay = () => {

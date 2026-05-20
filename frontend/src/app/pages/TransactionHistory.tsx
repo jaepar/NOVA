@@ -1,13 +1,16 @@
-import { useState } from 'react';
 import { MobileLayout } from '../components/layout/MobileLayout';
 import { AppButton } from '../components/design-system/AppButton';
 import { FilterBottomSheet } from '../components/design-system/FilterBottomSheet';
 import { Filter, ChevronRight } from 'lucide-react';
+import { useTransactionHistoryPageStore } from '../stores/pageStores';
 
 export function TransactionHistory() {
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState('전체');
-  const [selectedType, setSelectedType] = useState('전체');
+  const isFilterOpen = useTransactionHistoryPageStore((state) => state.isFilterOpen);
+  const selectedPeriod = useTransactionHistoryPageStore((state) => state.selectedPeriod);
+  const selectedType = useTransactionHistoryPageStore((state) => state.selectedType);
+  const setFilterOpen = useTransactionHistoryPageStore((state) => state.setFilterOpen);
+  const setSelectedPeriod = useTransactionHistoryPageStore((state) => state.setSelectedPeriod);
+  const setSelectedType = useTransactionHistoryPageStore((state) => state.setSelectedType);
 
   const transactions = [
     { id: 1, type: '입금', amount: '+500,000원', date: '2026.05.14', description: '급여 입금' },
@@ -18,7 +21,7 @@ export function TransactionHistory() {
   ];
 
   const handleApplyFilter = () => {
-    setIsFilterOpen(false);
+    setFilterOpen(false);
     // 필터 적용 로직
   };
 
@@ -27,9 +30,9 @@ export function TransactionHistory() {
       <MobileLayout
         title="거래내역 조회"
         headerRightContent={
-          <AppButton
-            variant="unstyled"
-            onClick={() => setIsFilterOpen(true)}
+            <AppButton
+              variant="unstyled"
+              onClick={() => setFilterOpen(true)}
             className="p-2 hover:bg-secondary rounded-lg transition-colors"
           >
             <Filter className="w-5 h-5" />
@@ -98,7 +101,7 @@ export function TransactionHistory() {
       {/* Filter Bottom Sheet */}
       <FilterBottomSheet
         isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
+        onClose={() => setFilterOpen(false)}
         sections={[
           {
             title: '조회 기간',

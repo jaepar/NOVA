@@ -42,6 +42,11 @@
 - 입력 블록은 `CommonInputGroup` 등 공통 입력 컴포넌트 우선
 - 임시/일회성 스타일 남발 금지
 
+## 5.2) 상태 관리 규칙
+- 프론트엔드에서 상태 관리가 필요한 경우 `zustand`를 표준으로 사용한다.
+- 다중 페이지/다중 컴포넌트에서 공유되는 상태는 `zustand store`로 관리한다.
+- 임의 전역 객체/직접 `sessionStorage` 접근으로 상태를 분산 관리하지 않는다.
+
 ## 5.1) 약관 동의 페이지 규격 (필수)
 - 인증서 약관 동의 화면은 `src/app/domains/certificate-consent/` 규격을 사용한다.
 - 약관 데이터는 `ConsentDefinition` 스키마를 사용한다.

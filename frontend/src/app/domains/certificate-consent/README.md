@@ -11,7 +11,7 @@
 ## 2) 필수 파일
 
 - `spec.ts`: 약관 정의 타입 및 조회 유틸
-- `storage.ts`: 동의/아코디언/캐러셀 상태 저장 API
+- `storage.ts`: Zustand 기반 동의/아코디언/캐러셀 상태 저장 API
 - `definition.sample.ts`: 실제 약관 정의 교체용 샘플
 
 ## 3) 규격 필드
@@ -41,7 +41,7 @@
 - 아코디언 상태: `getOpenCategoryIds`, `setOpenCategoryIds`
 - 캐러셀 위치: `getCategoryCursor`, `setCategoryCursor`
 
-`window.sessionStorage` 직접 접근 금지. `storage.ts` 함수만 사용.
+`window.sessionStorage` 직접 접근 금지. `storage.ts`의 Zustand API만 사용.
 
 ## 6) 작업 절차
 

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CloseButtonTemplate } from "../common/CloseButtonTemplate";
@@ -6,11 +6,13 @@ import { AppButton } from "../../components/design-system/AppButton";
 import { certificateConsentDefinitionSample } from "../../domains/certificate-consent/definition.sample";
 import { findCategory } from "../../domains/certificate-consent/spec";
 import { markTermsAgreed } from "../../domains/certificate-consent/storage";
+import { useConsentCarouselTemplateStore } from "../../stores/pageStores";
 
 export function ConsentCategoryCarouselTemplate() {
   const navigate = useNavigate();
   const { categoryId } = useParams();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentIndex = useConsentCarouselTemplateStore((state) => state.currentIndex);
+  const setCurrentIndex = useConsentCarouselTemplateStore((state) => state.setCurrentIndex);
   const dragStartX = useRef<number | null>(null);
 
   const category = useMemo(
