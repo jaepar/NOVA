@@ -43,7 +43,7 @@ export function FixedHeader({ title, onBack, showBackButton = true, leftContent,
           leftContent ? <div className="w-10 flex justify-start">{leftContent}</div> : <div className="w-10" />
         )}
 
-        <h1 className="flex-1 text-center text-[20px]">{title}</h1>
+        <h1 className="flex-1 text-center font-medium">{title}</h1>
 
         {rightContent ? (
           <div className="w-10 flex justify-end">{rightContent}</div>
