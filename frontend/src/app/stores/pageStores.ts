@@ -90,6 +90,41 @@ export const useDesignSystemPageStore = create<DesignSystemPageState>((set) => (
   setSelectedType: (selectedType) => set({ selectedType }),
 }));
 
+interface Step3DocumentItem {
+  id: "registration-application" | "residence-proof";
+  title: string;
+  file: File | null;
+  error: string | null;
+}
+
+interface Step3PageState {
+  documents: Step3DocumentItem[];
+  setDocumentFile: (id: Step3DocumentItem["id"], file: File | null) => void;
+  setDocumentError: (id: Step3DocumentItem["id"], error: string | null) => void;
+  reset: () => void;
+}
+
+const initialStep3Documents: Step3DocumentItem[] = [
+  { id: "registration-application", title: "외국인등록증 신청 서류", file: null, error: null },
+  { id: "residence-proof", title: "거소확인 증빙 서류", file: null, error: null },
+];
+
+export const useStep3PageStore = create<Step3PageState>((set) => ({
+  documents: initialStep3Documents,
+  setDocumentFile: (id, file) =>
+    set((state) => ({
+      documents: state.documents.map((item) => (item.id === id ? { ...item, file, error: null } : item)),
+    })),
+  setDocumentError: (id, error) =>
+    set((state) => ({
+      documents: state.documents.map((item) => (item.id === id ? { ...item, error } : item)),
+    })),
+  reset: () =>
+    set({
+      documents: initialStep3Documents,
+    }),
+}));
+
 interface ConsentCarouselTemplateState {
   currentIndex: number;
   setCurrentIndex: (index: number | ((prev: number) => number)) => void;
