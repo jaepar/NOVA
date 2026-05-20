@@ -34,12 +34,16 @@
 - 단건 상세 페이지 하단 버튼 텍스트는 항상 `동의하기`를 사용한다.
 - 캐러셀 페이지 버튼(큰 카테고리 체크 아이콘으로 진입하는 다건 상세 슬라이드 페이지의 하단 고정 버튼) 텍스트는 항상 `모두 동의하기`를 사용한다.
 - 카테고리 전체 동의 캐러셀은 진입 시 항상 첫 상세(1번)부터 시작한다.
+- 약관 메인 페이지(`/consent-template`)를 외부에서 새로 진입하면 상태를 초기화한다.
+- 상세/캐러셀 페이지에서 메인으로 복귀할 때(뒤로가기 포함)는 내부 이동으로 간주하고 상태를 유지한다.
+- 내부 이동 여부는 라우트 상태 플래그(`preserveConsentState`)로 판단한다.
 
 ## 5) 상태 저장 규칙
 
 - 동의 상태: `getAgreedTermIds`, `setAgreedTermIds`, `markTermAgreed`, `markTermsAgreed`, `unmarkTermAgreed`
 - 아코디언 상태: `getOpenCategoryIds`, `setOpenCategoryIds`
 - 캐러셀 위치: `getCategoryCursor`, `setCategoryCursor`
+- 초기화: `resetConsentStorage`
 
 `window.sessionStorage` 직접 접근 금지. `storage.ts`의 Zustand API만 사용.
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle2, ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
@@ -9,12 +9,16 @@ import { getRequiredTermIds } from "../../domains/certificate-consent/spec";
 import {
   getAgreedTermIds,
   getOpenCategoryIds,
+  resetConsentStorage,
   setAgreedTermIds,
   setOpenCategoryIds,
 } from "../../domains/certificate-consent/storage";
+import { useConsentCarouselTemplateStore } from "../../stores/pageStores";
 
 export function ConsentTemplate() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const resetCarouselState = useConsentCarouselTemplateStore((state) => state.reset);
   const definition = certificateConsentDefinitionSample;
   const [openCategoryIds, setOpenCategoryIdsState] = useState<string[]>(() => {
     const saved = getOpenCategoryIds();
@@ -25,6 +29,19 @@ export function ConsentTemplate() {
 
   const requiredIds = useMemo(() => getRequiredTermIds(definition), [definition]);
   const isRequiredComplete = requiredIds.every((id) => checkedTermIds.has(id));
+
+  useEffect(() => {
+    const shouldPreserve = Boolean((location.state as { preserveConsentState?: boolean } | null)?.preserveConsentState);
+    if (shouldPreserve) return;
+
+    resetConsentStorage();
+    resetCarouselState();
+    const initialOpenCategoryIds = definition.categories
+      .filter((category) => category.required)
+      .map((category) => category.id);
+    setOpenCategoryIdsState(initialOpenCategoryIds);
+    setCheckedTermIds(new Set());
+  }, [definition.categories, location.state, resetCarouselState]);
 
   useEffect(() => {
     setOpenCategoryIds(openCategoryIds);
@@ -54,7 +71,7 @@ export function ConsentTemplate() {
       return;
     }
 
-    navigate(`/consent-template/categories/${categoryId}/consent`);
+    navigate(`/consent-template/categories/${categoryId}/consent`, { state: { preserveConsentState: true } });
   };
 
   const handleTermCheckClick = (termId: string) => {
@@ -67,7 +84,7 @@ export function ConsentTemplate() {
       });
       return;
     }
-    navigate(`/consent-template/terms/${termId}`);
+    navigate(`/consent-template/terms/${termId}`, { state: { preserveConsentState: true } });
   };
 
   return (
@@ -131,13 +148,17 @@ export function ConsentTemplate() {
                         </AppButton>
                         <AppButton
                           variant="unstyled"
-                          onClick={() => navigate(`/consent-template/terms/${term.id}`)}
+                          onClick={() => navigate(`/consent-template/terms/${term.id}`, { state: { preserveConsentState: true } })}
                           className="min-w-0 flex-1 text-left"
                         >
                           <p className="text-sm">{term.title}</p>
                           <p className="text-xs text-muted-foreground">{term.summary}</p>
                         </AppButton>
-                        <AppButton variant="unstyled" onClick={() => navigate(`/consent-template/terms/${term.id}`)} className="p-1">
+                        <AppButton
+                          variant="unstyled"
+                          onClick={() => navigate(`/consent-template/terms/${term.id}`, { state: { preserveConsentState: true } })}
+                          className="p-1"
+                        >
                           <ChevronRight className="w-4 h-4 text-muted-foreground" />
                         </AppButton>
                       </div>

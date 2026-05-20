@@ -21,7 +21,10 @@ export function ConsentDetailTemplate() {
 
   if (!term) {
     return (
-      <CloseButtonTemplate headerTitle="약관/동의서 상세" closePath="/consent-template">
+      <CloseButtonTemplate
+        headerTitle="약관/동의서 상세"
+        onClose={() => navigate("/consent-template", { state: { preserveConsentState: true } })}
+      >
         <div className="pt-10 text-center">약관을 찾을 수 없습니다.</div>
       </CloseButtonTemplate>
     );
@@ -30,12 +33,12 @@ export function ConsentDetailTemplate() {
   return (
     <CloseButtonTemplate
       headerTitle="약관/동의서 상세"
-      closePath="/consent-template"
+      onClose={() => navigate("/consent-template", { state: { preserveConsentState: true } })}
       showBottomButton
       buttonText={categoryTermCount === 1 ? "동의하기" : isAgreed ? "확인" : "동의하기"}
       onButtonClick={() => {
         if (termId && !isAgreed) markTermAgreed(termId);
-        navigate("/consent-template");
+        navigate("/consent-template", { state: { preserveConsentState: true } });
       }}
     >
       <div className="space-y-4">

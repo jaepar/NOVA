@@ -22,7 +22,10 @@ export function ConsentCategoryCarouselTemplate() {
 
   if (!category) {
     return (
-      <CloseButtonTemplate headerTitle="약관/동의서 상세" closePath="/consent-template">
+      <CloseButtonTemplate
+        headerTitle="약관/동의서 상세"
+        onClose={() => navigate("/consent-template", { state: { preserveConsentState: true } })}
+      >
         <div className="pt-10 text-center">카테고리를 찾을 수 없습니다.</div>
       </CloseButtonTemplate>
     );
@@ -39,6 +42,7 @@ export function ConsentCategoryCarouselTemplate() {
   const onDown = (event: React.PointerEvent<HTMLDivElement>) => {
     dragStartX.current = event.clientX;
   };
+
   const onUp = (event: React.PointerEvent<HTMLDivElement>) => {
     if (dragStartX.current === null) return;
     const diff = event.clientX - dragStartX.current;
@@ -51,12 +55,12 @@ export function ConsentCategoryCarouselTemplate() {
   return (
     <CloseButtonTemplate
       headerTitle="약관/동의서 상세"
-      closePath="/consent-template"
+      onClose={() => navigate("/consent-template", { state: { preserveConsentState: true } })}
       showBottomButton
       buttonText={total > 1 ? "모두 동의하기" : "동의하기"}
       onButtonClick={() => {
         markTermsAgreed(category.terms.map((term) => term.id));
-        navigate("/consent-template");
+        navigate("/consent-template", { state: { preserveConsentState: true } });
       }}
     >
       <div className="space-y-4 select-none" onPointerDown={onDown} onPointerUp={onUp}>

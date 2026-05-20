@@ -88,10 +88,16 @@ export const useDesignSystemPageStore = create<DesignSystemPageState>((set) => (
 
 interface ConsentCarouselTemplateState {
   currentIndex: number;
-  setCurrentIndex: (index: number) => void;
+  setCurrentIndex: (index: number | ((prev: number) => number)) => void;
+  reset: () => void;
 }
 
 export const useConsentCarouselTemplateStore = create<ConsentCarouselTemplateState>((set) => ({
   currentIndex: 0,
-  setCurrentIndex: (currentIndex) => set({ currentIndex }),
+  setCurrentIndex: (currentIndex) =>
+    set((state) => ({
+      currentIndex:
+        typeof currentIndex === "function" ? Math.max(0, currentIndex(state.currentIndex)) : Math.max(0, currentIndex),
+    })),
+  reset: () => set({ currentIndex: 0 }),
 }));

@@ -8,6 +8,7 @@ interface ConsentStorageState {
   setAgreedTermIds: (termIds: string[]) => void;
   setOpenCategoryIds: (categoryIds: string[]) => void;
   setCategoryCursor: (categoryId: string, index: number) => void;
+  reset: () => void;
 }
 
 export const useConsentStorageStore = create<ConsentStorageState>()(
@@ -25,6 +26,12 @@ export const useConsentStorageStore = create<ConsentStorageState>()(
             [categoryId]: Math.max(0, Math.floor(index)),
           },
         })),
+      reset: () =>
+        set({
+          agreedTermIds: [],
+          openCategoryIds: [],
+          categoryCursor: {},
+        }),
     }),
     {
       name: "certificate-consent-storage",
@@ -75,4 +82,8 @@ export function getCategoryCursor(categoryId: string) {
 
 export function setCategoryCursor(categoryId: string, index: number) {
   useConsentStorageStore.getState().setCategoryCursor(categoryId, index);
+}
+
+export function resetConsentStorage() {
+  useConsentStorageStore.getState().reset();
 }
