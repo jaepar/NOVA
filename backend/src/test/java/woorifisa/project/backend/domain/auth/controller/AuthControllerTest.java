@@ -1,10 +1,11 @@
 package woorifisa.project.backend.domain.auth.controller;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
-import woorifisa.project.backend.domain.auth.dto.response.SignupResponse;
 import woorifisa.project.backend.domain.auth.service.AuthService;
 import woorifisa.project.backend.domain.user.entity.enums.Gender;
+import woorifisa.project.backend.global.response.BaseResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -16,6 +17,7 @@ class AuthControllerTest {
     private final AuthController authController = new AuthController(authService);
 
     @Test
+    @DisplayName("회원가입 성공 시 30100 성공 응답을 반환한다")
     void signupReturnsSignupSuccessStatus() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
@@ -26,11 +28,12 @@ class AuthControllerTest {
                 Gender.MALE
         );
 
-        SignupResponse response = authController.signup(request);
+        BaseResponse<Void> response = authController.signup(request);
 
         verify(authService).signup(request);
-        assertThat(response.success()).isTrue();
-        assertThat(response.code()).isEqualTo(20100);
-        assertThat(response.message()).isEqualTo(SignupResponse.signupSuccess().message());
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo(30100);
+        assertThat(response.getMessage()).isEqualTo("회원가입이 완료되었습니다.");
+        assertThat(response.getData()).isNull();
     }
 }

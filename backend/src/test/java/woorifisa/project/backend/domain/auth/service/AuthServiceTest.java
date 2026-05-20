@@ -1,6 +1,7 @@
 package woorifisa.project.backend.domain.auth.service;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +41,7 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("정상 회원가입 시 비밀번호를 암호화하고 사용자를 저장한다")
     void signupEncryptsPasswordAndSavesUser() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
@@ -72,6 +74,7 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("비밀번호와 비밀번호 확인이 일치하지 않으면 회원가입에 실패한다")
     void signupFailsWhenPasswordConfirmDoesNotMatch() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
@@ -91,6 +94,7 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("비밀번호 형식이 올바르지 않으면 회원가입에 실패한다")
     void signupFailsWhenPasswordFormatIsInvalid() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
@@ -110,6 +114,7 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("이미 가입된 이메일이면 회원가입에 실패한다")
     void signupFailsWhenEmailAlreadyExists() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
