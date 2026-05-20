@@ -138,6 +138,18 @@ export const router = createBrowserRouter([
     Component: VerificationCompleted,
   },
   {
+    path: "/certificate/step-13",
+    element: (
+      <Success
+        headerTitle="비대면 실명확인"
+        title="인증서 발급 신청이 완료 되었어요"
+        description={"인증서 발급까지는 평균 3시간~5시간이 소요됩니다.\n발급이 완료되면 알림으로 안내해 드릴게요."}
+        buttonText="확인"
+        redirectPath="/main"
+      />
+    ),
+  },
+  {
     path: "/consent-template",
     Component: ConsentTemplate,
   },
