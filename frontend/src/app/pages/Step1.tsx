@@ -52,11 +52,10 @@ export function Step1() {
 
         <div className="bg-accent p-4 rounded-xl">
           <p className="text-sm text-muted-foreground">
-            💡 Your information is securely stored and never shared with third parties.
+            Your information is securely stored and never shared with third parties.
           </p>
         </div>
 
-        {/* Scroll test content */}
         <div className="space-y-4 ">
           <h3>Why we need this</h3>
           <div className="space-y-3 text-muted-foreground">

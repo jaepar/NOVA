@@ -19,6 +19,9 @@ import { NotFound } from "./pages/common/NotFound";
 import { OneButtonTemplate } from "./pages/common/OneButtonTemplate";
 import { TwoButtonTemplate } from "./pages/common/TwoButtonTemplate";
 import { CloseButtonTemplate } from "./pages/common/CloseButtonTemplate";
+import { ConsentTemplate } from "./pages/common/ConsentTemplate";
+import { ConsentDetailTemplate } from "./pages/common/ConsentDetailTemplate";
+import { ConsentCategoryCarouselTemplate } from "./pages/common/ConsentCategoryCarouselTemplate";
 import { Notifications } from "./pages/Notifications";
 
 export const router = createBrowserRouter([
@@ -73,6 +76,18 @@ export const router = createBrowserRouter([
   {
     path: "/step-3",
     Component: Step3,
+  },
+  {
+    path: "/consent-template",
+    Component: ConsentTemplate,
+  },
+  {
+    path: "/consent-template/terms/:termId",
+    Component: ConsentDetailTemplate,
+  },
+  {
+    path: "/consent-template/categories/:categoryId/consent",
+    Component: ConsentCategoryCarouselTemplate,
   },
   {
     path: "/transaction-history",
