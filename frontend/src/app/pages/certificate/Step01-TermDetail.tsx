@@ -15,7 +15,7 @@ export function Step1TermDetail() {
     return (
       <CloseButtonTemplate
         headerTitle="약관/동의서 상세"
-        onClose={() => navigate("/certificate/step-1", { state: { preserveConsentState: true } })}
+        onClose={() => navigate("/certificate/step-01", { state: { preserveConsentState: true } })}
       >
         <div className="space-y-3 text-center pt-10">
           <h2 className="text-xl font-semibold">약관을 찾을 수 없어요.</h2>
@@ -28,12 +28,12 @@ export function Step1TermDetail() {
   return (
     <CloseButtonTemplate
       headerTitle="약관/동의서 상세"
-      onClose={() => navigate("/certificate/step-1", { state: { preserveConsentState: true } })}
+      onClose={() => navigate("/certificate/step-01", { state: { preserveConsentState: true } })}
       showBottomButton
       buttonText="동의하기"
       onButtonClick={() => {
         if (termId) markTermAgreed(termId);
-        navigate("/certificate/step-1", { state: { preserveConsentState: true } });
+        navigate("/certificate/step-01", { state: { preserveConsentState: true } });
       }}
     >
       <div className="space-y-6 pb-4">

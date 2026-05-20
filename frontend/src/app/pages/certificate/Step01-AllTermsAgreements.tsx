@@ -7,7 +7,7 @@ import { certificateConsentDefinitionSample } from "../../domains/certificate-co
 import { findCategory } from "../../domains/certificate-consent/spec";
 import { getCategoryCursor, markTermsAgreed, setCategoryCursor } from "../../domains/certificate-consent/storage";
 
-export function CategoryConsentCarousel() {
+export function AllTermsAgreements() {
   const navigate = useNavigate();
   const { categoryId } = useParams();
   const dragStartX = useRef<number | null>(null);
@@ -34,7 +34,7 @@ export function CategoryConsentCarousel() {
     return (
       <CloseButtonTemplate
         headerTitle="약관/동의서 상세"
-        onClose={() => navigate("/certificate/step-1", { state: { preserveConsentState: true } })}
+        onClose={() => navigate("/certificate/step-01", { state: { preserveConsentState: true } })}
       >
         <div className="space-y-3 text-center pt-10">
           <h2 className="text-xl font-semibold">약관 카테고리를 찾을 수 없어요.</h2>
@@ -68,12 +68,12 @@ export function CategoryConsentCarousel() {
   return (
     <CloseButtonTemplate
       headerTitle="약관/동의서 상세"
-      onClose={() => navigate("/certificate/step-1", { state: { preserveConsentState: true } })}
+      onClose={() => navigate("/certificate/step-01", { state: { preserveConsentState: true } })}
       showBottomButton
       buttonText={total > 1 ? "모두 동의하기" : "동의하기"}
       onButtonClick={() => {
         markTermsAgreed(category.terms.map((term) => term.id));
-        navigate("/certificate/step-1", { state: { preserveConsentState: true } });
+        navigate("/certificate/step-01", { state: { preserveConsentState: true } });
       }}
     >
       <div className="space-y-6 pb-4 select-none relative" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>

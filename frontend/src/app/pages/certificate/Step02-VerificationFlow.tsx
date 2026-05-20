@@ -15,7 +15,7 @@ export function Step2() {
   return (
     <MobileLayout
       title="비대면 실명확인"
-      bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-3")}>다음</Btn_1Col>}
+      bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-03")}>다음</Btn_1Col>}
     >
       <div className="space-y-6 pb-2">
         <section className="pt-2">

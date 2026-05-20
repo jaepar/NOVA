@@ -68,7 +68,7 @@ export function Step1() {
     }
 
     setCategoryCursor(categoryId, 0);
-    navigate(`/certificate/step-1/categories/${categoryId}/consent`, { state: { preserveConsentState: true } });
+    navigate(`/certificate/step-01/categories/${categoryId}/consent`, { state: { preserveConsentState: true } });
   };
 
   const handleTermCheckClick = (termId: string) => {
@@ -81,14 +81,14 @@ export function Step1() {
       });
       return;
     }
-    navigate(`/certificate/step-1/terms/${termId}`, { state: { preserveConsentState: true } });
+    navigate(`/certificate/step-01/terms/${termId}`, { state: { preserveConsentState: true } });
   };
 
   return (
     <MobileLayout
       title="시작하기"
       bottomContent={
-        <Btn_1Col onClick={() => navigate("/certificate/step-2")} disabled={!isAllRequiredChecked}>
+        <Btn_1Col onClick={() => navigate("/certificate/step-02")} disabled={!isAllRequiredChecked}>
           동의하고 계속하기
         </Btn_1Col>
       }
@@ -145,7 +145,7 @@ export function Step1() {
                           </AppButton>
                           <AppButton
                             variant="unstyled"
-                            onClick={() => navigate(`/certificate/step-1/terms/${term.id}`, { state: { preserveConsentState: true } })}
+                            onClick={() => navigate(`/certificate/step-01/terms/${term.id}`, { state: { preserveConsentState: true } })}
                             className="text-sm text-left"
                           >
                             {term.title}
@@ -153,7 +153,7 @@ export function Step1() {
                         </div>
                         <AppButton
                           variant="unstyled"
-                          onClick={() => navigate(`/certificate/step-1/terms/${term.id}`, { state: { preserveConsentState: true } })}
+                          onClick={() => navigate(`/certificate/step-01/terms/${term.id}`, { state: { preserveConsentState: true } })}
                           className="p-1"
                         >
                           <ChevronRight className="w-4 h-4 text-muted-foreground" />

@@ -7,12 +7,12 @@ import { Login } from "./pages/Login";
 import { Transfer } from "./pages/Transfer";
 import { Exchange } from "./pages/Exchange";
 import { MyPage } from "./pages/MyPage";
-import { Step1 } from "./pages/certificate/Step1";
-import { Step1TermDetail } from "./pages/certificate/Step1TermDetail";
-import { CategoryConsentCarousel } from "./pages/certificate/CategoryConsentCarousel";
-import { Step2 } from "./pages/certificate/Step2";
-import { Step3 } from "./pages/certificate/Step3";
-import { PassportCaptureGuide } from "./pages/certificate/PassportCaptureGuide";
+import { Step1 } from "./pages/certificate/Step01-TermsAgreement";
+import { Step1TermDetail } from "./pages/certificate/Step01-TermDetail";
+import { AllTermsAgreements } from "./pages/certificate/Step01-AllTermsAgreements";
+import { Step2 } from "./pages/certificate/Step02-VerificationFlow";
+import { Step3 } from "./pages/certificate/Step03-DocumentUpload";
+import { PassportCaptureGuide } from "./pages/certificate/Step04-PassportCaptureGuide";
 import { TransactionHistory } from "./pages/TransactionHistory";
 import { DesignSystem } from "./pages/DesignSystem";
 import { Success } from "./pages/common/Success";
@@ -69,27 +69,27 @@ export const router = createBrowserRouter([
     Component: Notifications,
   },
   {
-    path: "/certificate/step-1",
+    path: "/certificate/step-01",
     Component: Step1,
   },
   {
-    path: "/certificate/step-1/terms/:termId",
+    path: "/certificate/step-01/terms/:termId",
     Component: Step1TermDetail,
   },
   {
-    path: "/certificate/step-1/categories/:categoryId/consent",
-    Component: CategoryConsentCarousel,
+    path: "/certificate/step-01/categories/:categoryId/consent",
+    Component: AllTermsAgreements,
   },
   {
-    path: "/certificate/step-2",
+    path: "/certificate/step-02",
     Component: Step2,
   },
   {
-    path: "/certificate/step-3",
+    path: "/certificate/step-03",
     Component: Step3,
   },
   {
-    path: "/certificate/passport-guide",
+    path: "/certificate/step-04",
     Component: PassportCaptureGuide,
   },
   {

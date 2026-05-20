@@ -206,7 +206,7 @@ export function Main() {
             onLeftClick={() => setCertificateSheetOpen(false)}
             onRightClick={() => {
               setCertificateSheetOpen(false);
-              navigate("/certificate/step-1");
+              navigate("/certificate/step-01");
             }}
           />
         </div>
