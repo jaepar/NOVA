@@ -1,21 +1,22 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CloseButtonTemplate } from "../common/CloseButtonTemplate";
-import { findTermById, getAgreedTermIds, markTermAgreed } from "../../data/terms";
+import { certificateConsentDefinitionSample } from "../../domains/certificate-consent/definition.sample";
+import { findTerm } from "../../domains/certificate-consent/spec";
+import { markTermAgreed } from "../../domains/certificate-consent/storage";
 
 export function Step1TermDetail() {
   const navigate = useNavigate();
   const { termId } = useParams();
 
-  const term = useMemo(() => (termId ? findTermById(termId) : null), [termId]);
-  const isAgreed = useMemo(() => {
-    if (!termId) return false;
-    return getAgreedTermIds().has(termId);
-  }, [termId]);
+  const term = useMemo(() => (termId ? findTerm(certificateConsentDefinitionSample, termId) : null), [termId]);
 
   if (!term) {
     return (
-      <CloseButtonTemplate headerTitle="약관/동의서 상세" closePath="/certificate/step-1">
+      <CloseButtonTemplate
+        headerTitle="약관/동의서 상세"
+        onClose={() => navigate("/certificate/step-1", { state: { preserveConsentState: true } })}
+      >
         <div className="space-y-3 text-center pt-10">
           <h2 className="text-xl font-semibold">약관을 찾을 수 없어요.</h2>
           <p className="text-muted-foreground">다시 선택해 주세요.</p>
@@ -27,18 +28,12 @@ export function Step1TermDetail() {
   return (
     <CloseButtonTemplate
       headerTitle="약관/동의서 상세"
-      closePath="/certificate/step-1"
+      onClose={() => navigate("/certificate/step-1", { state: { preserveConsentState: true } })}
       showBottomButton
-      buttonText={isAgreed ? "확인" : "동의하기"}
+      buttonText="동의하기"
       onButtonClick={() => {
-        if (!termId) {
-          navigate("/certificate/step-1");
-          return;
-        }
-        if (!isAgreed) {
-          markTermAgreed(termId);
-        }
-        navigate("/certificate/step-1");
+        if (termId) markTermAgreed(termId);
+        navigate("/certificate/step-1", { state: { preserveConsentState: true } });
       }}
     >
       <div className="space-y-6 pb-4">

@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Delete } from "lucide-react";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
 import { BottomSheet } from "../layout/BottomSheet";
 import { AppButton } from "./AppButton";
 
@@ -18,7 +20,16 @@ export function PinInputBottomSheet({
   pinLength = 4,
   onComplete,
 }: PinInputBottomSheetProps) {
-  const [pin, setPin] = useState("");
+  const pinStore = useMemo(
+    () =>
+      createStore<{ pin: string; setPin: (next: string) => void }>((set) => ({
+        pin: "",
+        setPin: (next) => set({ pin: next }),
+      })),
+    [],
+  );
+  const pin = useStore(pinStore, (state) => state.pin);
+  const setPin = useStore(pinStore, (state) => state.setPin);
 
   useEffect(() => {
     if (isOpen) setPin("");
@@ -32,11 +43,11 @@ export function PinInputBottomSheet({
 
   const handleNumberClick = (num: number) => {
     if (pin.length < pinLength) {
-      setPin((prev) => prev + num);
+      setPin(pin + num);
     }
   };
 
-  const handleDelete = () => setPin((prev) => prev.slice(0, -1));
+  const handleDelete = () => setPin(pin.slice(0, -1));
   const handleClear = () => setPin("");
 
   const numbers = [

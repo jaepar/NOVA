@@ -5,6 +5,8 @@ import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
 
 import { cn } from "./utils";
 import { Button } from "./button";
@@ -58,8 +60,25 @@ function Carousel({
     },
     plugins,
   );
-  const [canScrollPrev, setCanScrollPrev] = React.useState(false);
-  const [canScrollNext, setCanScrollNext] = React.useState(false);
+  const scrollStateStore = React.useMemo(
+    () =>
+      createStore<{
+        canScrollPrev: boolean;
+        canScrollNext: boolean;
+        setCanScrollPrev: (next: boolean) => void;
+        setCanScrollNext: (next: boolean) => void;
+      }>((set) => ({
+        canScrollPrev: false,
+        canScrollNext: false,
+        setCanScrollPrev: (next) => set({ canScrollPrev: next }),
+        setCanScrollNext: (next) => set({ canScrollNext: next }),
+      })),
+    [],
+  );
+  const canScrollPrev = useStore(scrollStateStore, (state) => state.canScrollPrev);
+  const canScrollNext = useStore(scrollStateStore, (state) => state.canScrollNext);
+  const setCanScrollPrev = useStore(scrollStateStore, (state) => state.setCanScrollPrev);
+  const setCanScrollNext = useStore(scrollStateStore, (state) => state.setCanScrollNext);
 
   const onSelect = React.useCallback((api: CarouselApi) => {
     if (!api) return;

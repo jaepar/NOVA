@@ -99,6 +99,17 @@ export function Home() {
             <div className="space-y-2">
               <AppButton
                 variant="unstyled"
+                onClick={() => navigate("/consent-template")}
+                className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Consent Template</span>
+                  <span className="text-primary text-sm">→</span>
+                </div>
+              </AppButton>
+
+              <AppButton
+                variant="unstyled"
                 onClick={() => navigate("/one-button-template")}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >

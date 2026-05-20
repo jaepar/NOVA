@@ -108,3 +108,17 @@ API 계층 작업 전 문서 확인:
 - `frontend/AGENTS.md`
 - `frontend/guidelines/DESIGN_SYSTEM.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
+
+## 9. 약관 동의 규격
+
+인증서 약관 동의 페이지는 아래 규격을 사용합니다.
+
+- `src/app/domains/certificate-consent/spec.ts`
+- `src/app/domains/certificate-consent/storage.ts`
+- `src/app/domains/certificate-consent/README.md`
+
+팀 규칙:
+
+- 약관 데이터는 `ConsentDefinition` 스키마로 정의
+- 약관 텍스트를 페이지 컴포넌트에 직접 하드코딩하지 않음
+- 동의/아코디언/캐러셀 상태는 `storage.ts` API만 사용

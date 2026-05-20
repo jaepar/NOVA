@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useStore } from 'zustand';
+import { createStore } from 'zustand/vanilla';
 import { X } from 'lucide-react';
 import { AppButton } from '../design-system/AppButton';
 
@@ -21,7 +23,16 @@ export function BottomSheet({
   height,
   disableScroll = false,
 }: BottomSheetProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const visibilityStore = useMemo(
+    () =>
+      createStore<{ isVisible: boolean; setIsVisible: (next: boolean) => void }>((set) => ({
+        isVisible: false,
+        setIsVisible: (next) => set({ isVisible: next }),
+      })),
+    [],
+  );
+  const isVisible = useStore(visibilityStore, (state) => state.isVisible);
+  const setIsVisible = useStore(visibilityStore, (state) => state.setIsVisible);
 
   useEffect(() => {
     if (isOpen) {

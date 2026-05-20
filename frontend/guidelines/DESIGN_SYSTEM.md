@@ -64,3 +64,8 @@
 - `frontend/AGENTS.md`
 - `frontend/guidelines/DESIGN_SYSTEM.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
+
+## 10) 약관 동의 UI 규칙
+- 약관 동의 페이지의 하단 액션은 공통 하단 고정 버튼(`Btn_1Col`)을 사용한다.
+- 큰 카테고리/세부 항목의 체크/이동 인터랙션은 `frontend/src/app/domains/certificate-consent/README.md` 규격을 따른다.
+- 세부 약관 상세의 헤더 타이틀은 `약관/동의서 상세`로 통일한다.
