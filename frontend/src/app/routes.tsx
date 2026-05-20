@@ -14,6 +14,9 @@ import { Step2 } from "./pages/certificate/Step02-VerificationFlow";
 import { Step3 } from "./pages/certificate/Step03-DocumentUpload";
 import { PassportCaptureGuide } from "./pages/certificate/Step04-PassportCaptureGuide";
 import { PassportCameraCapture } from "./pages/certificate/Step05-PassportCameraCapture";
+import { NfcGuide } from "./pages/certificate/Step06-NfcGuide";
+import { NfcOcrLoading } from "./pages/certificate/Step07-NfcOcrLoading";
+import { NfcCompareFailed } from "./pages/certificate/Step08-NfcCompareFailed";
 import { TransactionHistory } from "./pages/TransactionHistory";
 import { DesignSystem } from "./pages/DesignSystem";
 import { Success } from "./pages/common/Success";
@@ -96,6 +99,18 @@ export const router = createBrowserRouter([
   {
     path: "/certificate/step-05",
     Component: PassportCameraCapture,
+  },
+  {
+    path: "/certificate/step-06",
+    Component: NfcGuide,
+  },
+  {
+    path: "/certificate/step-07",
+    Component: NfcOcrLoading,
+  },
+  {
+    path: "/certificate/step-08",
+    Component: NfcCompareFailed,
   },
   {
     path: "/consent-template",

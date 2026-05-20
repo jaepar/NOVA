@@ -122,7 +122,7 @@ export function PassportCameraCapture() {
               setCapturedImage(null);
               setMode("live");
             }}
-            onRightClick={() => navigate("/success")}
+            onRightClick={() => navigate("/certificate/step-06")}
           />
         }
       >
