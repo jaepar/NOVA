@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/design-system/AppButton";
@@ -8,6 +8,9 @@ import { WalletAmountChip } from "./components/WalletAmountChip";
 
 const quickAmounts = [10000, 30000, 50000];
 const walletBalance = 3220000;
+const chargeLimitAmount = 10000000;
+const inputLimitAmount = 999999999;
+const chargeLimitMessage = "1회 충전 금액은 10,000,000원까지만 가능합니다.";
 
 type ChargeFeedback = {
   type: "error";
@@ -29,12 +32,16 @@ export function WalletCharge() {
   const [feedback, setFeedback] = useState<ChargeFeedback | null>(null);
   const [success, setSuccess] = useState<ChargeSuccess | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const amountMirrorRef = useRef<HTMLSpanElement>(null);
+  const [amountInputWidth, setAmountInputWidth] = useState(0);
 
   const numericAmount = Number(amount || 0);
   const formattedAmount = useMemo(
     () => numericAmount.toLocaleString("ko-KR"),
     [numericAmount],
   );
+  const amountInputValue = numericAmount <= 0 ? amount : formattedAmount;
+  const isChargeLimitExceeded = numericAmount > chargeLimitAmount;
   const balanceAfterCharge = success ? walletBalance + success.amount : 0;
   const formattedBalanceAfterCharge = balanceAfterCharge.toLocaleString("ko-KR");
   const chargedAtText =
@@ -51,21 +58,57 @@ export function WalletCharge() {
       .replace(".", ".")
       .trim() ?? "";
 
-  const handleQuickAmount = (nextAmount: number) => {
-    setFeedback(null);
+  useLayoutEffect(() => {
+    if (numericAmount <= 0) {
+      setAmountInputWidth(0);
+      return;
+    }
+
+    setAmountInputWidth(amountMirrorRef.current?.offsetWidth ?? 0);
+  }, [amountInputValue, numericAmount]);
+
+  const updateAmount = (nextAmount: string) => {
     setSuccess(null);
-    setAmount(String(numericAmount + nextAmount));
+    setAmount(nextAmount);
+
+    if (Number(nextAmount || 0) > chargeLimitAmount) {
+      setFeedback({
+        type: "error",
+        message: chargeLimitMessage,
+      });
+      return;
+    }
+
+    setFeedback(null);
+  };
+
+  const handleQuickAmount = (nextAmount: number) => {
+    const nextTotalAmount = numericAmount + nextAmount;
+
+    if (nextTotalAmount > inputLimitAmount) {
+      return;
+    }
+
+    updateAmount(String(nextTotalAmount));
   };
 
   const handleInputChange = (value: string) => {
-    setFeedback(null);
-    setSuccess(null);
-    setAmount(onlyDigits(value));
+    const nextAmount = onlyDigits(value);
+
+    if (Number(nextAmount || 0) > inputLimitAmount) {
+      return;
+    }
+
+    updateAmount(nextAmount);
   };
 
   const requestCharge = async () => {
     if (numericAmount <= 0) {
       throw new Error("충전 금액을 입력해주세요.");
+    }
+
+    if (numericAmount > chargeLimitAmount) {
+      throw new Error(chargeLimitMessage);
     }
 
     // TODO: 백엔드 충전 API 연결 시 이 함수 내부를 실제 요청으로 교체합니다.
@@ -120,7 +163,11 @@ export function WalletCharge() {
             <AppButton
               type="button"
               variant="unstyled"
-              disabled={numericAmount <= 0 || isSubmitting}
+              disabled={
+                numericAmount <= 0 ||
+                isChargeLimitExceeded ||
+                isSubmitting
+              }
               onClick={handleConfirm}
               className="h-[56px] w-full rounded-lg bg-black text-[17px] font-semibold text-white transition-colors disabled:opacity-40"
             >
@@ -136,18 +183,40 @@ export function WalletCharge() {
             </h2>
 
             <div className="mt-7 border-b border-[#8d8d8d] pb-3">
-              {numericAmount > 0 ? (
-                <div className="flex items-center justify-between gap-3">
-                  <label className="sr-only" htmlFor="wallet-charge-amount">
-                    충전 금액
-                  </label>
+              <div className="flex items-center justify-between gap-3">
+                <label className="sr-only" htmlFor="wallet-charge-amount">
+                  충전 금액
+                </label>
+                <div className="relative flex min-w-0 flex-1 items-baseline gap-0">
+                  <span
+                    ref={amountMirrorRef}
+                    aria-hidden="true"
+                    className="pointer-events-none invisible absolute whitespace-pre text-[28px] font-semibold leading-9"
+                  >
+                    {amountInputValue || "0"}
+                  </span>
                   <input
                     id="wallet-charge-amount"
                     inputMode="numeric"
-                    value={`${formattedAmount}원`}
+                    value={amountInputValue}
                     onChange={(event) => handleInputChange(event.target.value)}
-                    className="min-w-0 flex-1 bg-transparent text-[28px] font-semibold leading-9 text-[#111111] outline-none"
+                    placeholder="충전할 금액을 입력해주세요."
+                    style={
+                      numericAmount > 0
+                        ? { width: `${amountInputWidth}px` }
+                        : undefined
+                    }
+                    className={`min-w-0 bg-transparent font-semibold leading-9 text-[#111111] outline-none placeholder:font-normal placeholder:text-[#999999] ${
+                      numericAmount > 0 ? "flex-none text-[28px]" : "flex-1 text-[19px]"
+                    }`}
                   />
+                  {numericAmount > 0 && (
+                    <span className="shrink-0 text-[23px] font-semibold leading-none text-[#111111]">
+                      원
+                    </span>
+                  )}
+                </div>
+                {numericAmount > 0 && (
                   <AppButton
                     type="button"
                     variant="unstyled"
@@ -157,16 +226,8 @@ export function WalletCharge() {
                   >
                     <X className="h-4 w-4" />
                   </AppButton>
-                </div>
-              ) : (
-                <input
-                  inputMode="numeric"
-                  value={amount}
-                  onChange={(event) => handleInputChange(event.target.value)}
-                  placeholder="충전할 금액을 입력해주세요."
-                  className="w-full bg-transparent text-[19px] leading-9 text-[#111111] outline-none placeholder:text-[#999999]"
-                />
-              )}
+                )}
+              </div>
             </div>
 
             <div className="mt-8 flex gap-3">
