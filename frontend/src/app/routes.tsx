@@ -13,6 +13,7 @@ import { AllTermsAgreements } from "./pages/certificate/Step01-AllTermsAgreement
 import { Step2 } from "./pages/certificate/Step02-VerificationFlow";
 import { Step3 } from "./pages/certificate/Step03-DocumentUpload";
 import { PassportCaptureGuide } from "./pages/certificate/Step04-PassportCaptureGuide";
+import { PassportCameraCapture } from "./pages/certificate/Step05-PassportCameraCapture";
 import { TransactionHistory } from "./pages/TransactionHistory";
 import { DesignSystem } from "./pages/DesignSystem";
 import { Success } from "./pages/common/Success";
@@ -91,6 +92,10 @@ export const router = createBrowserRouter([
   {
     path: "/certificate/step-04",
     Component: PassportCaptureGuide,
+  },
+  {
+    path: "/certificate/step-05",
+    Component: PassportCameraCapture,
   },
   {
     path: "/consent-template",

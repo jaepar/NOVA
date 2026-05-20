@@ -16,7 +16,7 @@ export function PassportCaptureGuide() {
   return (
     <MobileLayout
       title="비대면 실명확인"
-      bottomContent={<Btn_1Col onClick={() => navigate("/success")}>여권 촬영 시작하기</Btn_1Col>}
+      bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-05")}>여권 촬영 시작하기</Btn_1Col>}
     >
       <div className="space-y-5 pb-2">
         <section className="space-y-2">

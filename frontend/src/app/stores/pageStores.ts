@@ -125,6 +125,31 @@ export const useStep3PageStore = create<Step3PageState>((set) => ({
     }),
 }));
 
+interface Step5PassportCaptureState {
+  mode: "live" | "review";
+  capturedImage: string | null;
+  cameraError: string | null;
+  setMode: (mode: "live" | "review") => void;
+  setCapturedImage: (capturedImage: string | null) => void;
+  setCameraError: (cameraError: string | null) => void;
+  reset: () => void;
+}
+
+export const useStep5PassportCaptureStore = create<Step5PassportCaptureState>((set) => ({
+  mode: "live",
+  capturedImage: null,
+  cameraError: null,
+  setMode: (mode) => set({ mode }),
+  setCapturedImage: (capturedImage) => set({ capturedImage }),
+  setCameraError: (cameraError) => set({ cameraError }),
+  reset: () =>
+    set({
+      mode: "live",
+      capturedImage: null,
+      cameraError: null,
+    }),
+}));
+
 interface ConsentCarouselTemplateState {
   currentIndex: number;
   setCurrentIndex: (index: number | ((prev: number) => number)) => void;
