@@ -150,6 +150,26 @@ export const useStep5PassportCaptureStore = create<Step5PassportCaptureState>((s
     }),
 }));
 
+interface Step10TermsPageState {
+  checkedTermIds: string[];
+  openCategoryIds: string[];
+  setCheckedTermIds: (ids: string[]) => void;
+  setOpenCategoryIds: (ids: string[]) => void;
+  reset: () => void;
+}
+
+export const useStep10TermsPageStore = create<Step10TermsPageState>((set) => ({
+  checkedTermIds: [],
+  openCategoryIds: ["required-service"],
+  setCheckedTermIds: (checkedTermIds) => set({ checkedTermIds }),
+  setOpenCategoryIds: (openCategoryIds) => set({ openCategoryIds }),
+  reset: () =>
+    set({
+      checkedTermIds: [],
+      openCategoryIds: ["required-service"],
+    }),
+}));
+
 interface ConsentCarouselTemplateState {
   currentIndex: number;
   setCurrentIndex: (index: number | ((prev: number) => number)) => void;

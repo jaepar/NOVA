@@ -17,7 +17,7 @@ export function NfcOcrLoading() {
   return (
     <MobileLayout
       title="비대면 실명확인"
-      bottomContent={<Btn_1Col onClick={() => navigate("/success")}>임시: 다음 페이지 이동</Btn_1Col>}
+      bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-09")}>임시: 다음 페이지 이동</Btn_1Col>}
     >
       <div className="flex h-full flex-col items-center justify-center px-6 pb-16">
         <div className="flex flex-col items-center gap-6 text-center">

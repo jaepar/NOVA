@@ -17,6 +17,10 @@ import { PassportCameraCapture } from "./pages/certificate/Step05-PassportCamera
 import { NfcGuide } from "./pages/certificate/Step06-NfcGuide";
 import { NfcOcrLoading } from "./pages/certificate/Step07-NfcOcrLoading";
 import { NfcCompareFailed } from "./pages/certificate/Step08-NfcCompareFailed";
+import { LivenessGuide } from "./pages/certificate/Step09-LivenessGuide";
+import { LivenessTermsAgreement } from "./pages/certificate/Step10-LivenessTermsAgreement";
+import { Step10TermDetail } from "./pages/certificate/Step10-TermDetail";
+import { LivenessCameraCapture } from "./pages/certificate/Step11-LivenessCameraCapture";
 import { TransactionHistory } from "./pages/TransactionHistory";
 import { DesignSystem } from "./pages/DesignSystem";
 import { Success } from "./pages/common/Success";
@@ -111,6 +115,22 @@ export const router = createBrowserRouter([
   {
     path: "/certificate/step-08",
     Component: NfcCompareFailed,
+  },
+  {
+    path: "/certificate/step-09",
+    Component: LivenessGuide,
+  },
+  {
+    path: "/certificate/step-10",
+    Component: LivenessTermsAgreement,
+  },
+  {
+    path: "/certificate/step-10/terms/:termId",
+    Component: Step10TermDetail,
+  },
+  {
+    path: "/certificate/step-11",
+    Component: LivenessCameraCapture,
   },
   {
     path: "/consent-template",
