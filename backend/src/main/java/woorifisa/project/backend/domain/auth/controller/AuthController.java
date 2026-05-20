@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
-import woorifisa.project.backend.domain.auth.dto.response.SignupResponse;
 import woorifisa.project.backend.domain.auth.service.AuthService;
+import woorifisa.project.backend.global.response.BaseResponse;
+
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.SIGNUP_SUCCESS;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,8 +20,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public SignupResponse signup(@Valid @RequestBody SignupRequest request) {
+    public BaseResponse<Void> signup(@Valid @RequestBody SignupRequest request) {
         authService.signup(request);
-        return SignupResponse.signupSuccess();
+        return BaseResponse.ok(SIGNUP_SUCCESS);
     }
 }
