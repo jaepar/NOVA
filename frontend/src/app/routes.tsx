@@ -10,7 +10,7 @@ import { MyPage } from "./pages/MyPage";
 import { Step1 } from "./pages/certificate/Step1";
 import { Step1TermDetail } from "./pages/certificate/Step1TermDetail";
 import { CategoryConsentCarousel } from "./pages/certificate/CategoryConsentCarousel";
-import { Step2 } from "./pages/Step2";
+import { Step2 } from "./pages/certificate/Step2";
 import { Step3 } from "./pages/Step3";
 import { TransactionHistory } from "./pages/TransactionHistory";
 import { DesignSystem } from "./pages/DesignSystem";

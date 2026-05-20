@@ -96,7 +96,7 @@ export function Step1() {
       <div className="space-y-4 pb-2">
         <section className="space-y-2">
           <h2 className="text-2xl font-semibold leading-tight">
-            서비스 가입을 위해
+            인증서 발급을 위해
             <br />
             약관에 동의해 주세요
           </h2>

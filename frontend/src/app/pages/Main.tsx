@@ -202,7 +202,7 @@ export function Main() {
 
           <Btn_2Col
             leftLabel="나중에 하기"
-            rightLabel="신원 인증 시작하기"
+            rightLabel="인증서 발급하기"
             onLeftClick={() => setCertificateSheetOpen(false)}
             onRightClick={() => {
               setCertificateSheetOpen(false);
