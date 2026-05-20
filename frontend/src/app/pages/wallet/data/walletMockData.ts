@@ -7,6 +7,8 @@ export type WalletTransaction = {
   amount: number;
 };
 
+export type WalletTransactionFilter = "all" | "charge" | "use";
+
 export const walletBalance = 3220000;
 
 export const walletTransactions: WalletTransaction[] = [
@@ -59,3 +61,9 @@ export const walletTransactions: WalletTransaction[] = [
     amount: -15000,
   },
 ];
+
+export const walletTransactionFilterLabels: Record<WalletTransactionFilter, string> = {
+  all: "전체",
+  charge: "충전",
+  use: "사용",
+};
