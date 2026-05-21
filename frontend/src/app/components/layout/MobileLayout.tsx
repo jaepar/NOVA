@@ -8,6 +8,7 @@ interface MobileLayoutProps {
   title: string;
   children: ReactNode;
   bottomContent?: ReactNode;
+  bottomBackgroundColor?: string;
   headerBackgroundColor?: string;
   headerTextColor?: string;
   headerType?: 'back' | 'close' | 'none';
@@ -25,6 +26,7 @@ export function MobileLayout({
   title,
   children,
   bottomContent,
+  bottomBackgroundColor = '#ffffff',
   headerBackgroundColor = '#ffffff',
   headerTextColor = '#000000',
   headerType = 'back',
@@ -85,7 +87,7 @@ export function MobileLayout({
       </main>
 
       {bottomContent && (
-        <FloatingBottom>
+        <FloatingBottom backgroundColor={bottomBackgroundColor}>
           {bottomContent}
         </FloatingBottom>
       )}

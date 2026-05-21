@@ -108,31 +108,36 @@
 - `frontend/guidelines/DESIGN_SYSTEM.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
 
-## 9) Header Implementation Input Contract (Required)
+## 9) 헤더 구현 입력 계약 (필수)
 
-When implementing or changing page headers, collect required values from the request before coding.
+페이지 헤더를 구현/수정할 때는 코딩 전에 요청에서 필요한 값을 먼저 수집한다.
 
-Required confirmation items:
-- Header type: `back` / `close` / `none`
-- Header title text
-- Navigation policy:
-  - For `back`: `onBack` custom logic vs `backPath`
-  - For `close`: `onClose` custom logic vs `closePath`
-- Color tokens or explicit values:
+사전 확인 필수 항목:
+- 헤더 타입: `back` / `close` / `none`
+- 헤더 타이틀 텍스트
+- 이동 정책:
+  - `back` 헤더: 커스텀 로직(`onBack`) 사용 여부 또는 `backPath`
+  - `close` 헤더: 커스텀 로직(`onClose`) 사용 여부 또는 `closePath`
+- 색상 토큰 또는 명시값:
   - `headerBackgroundColor`
   - `headerTextColor`
+- 하단 액션 영역 사용 여부:
+  - `bottomContent` 필요 여부
+  - `bottomBackgroundColor` (플로팅 하단 사용 시)
 
-If any of the above are missing and cannot be inferred safely, ask the user first and then implement.
+위 항목이 누락되어 안전하게 추론할 수 없으면, 반드시 사용자에게 먼저 확인한 뒤 구현한다.
 
-### Default fallback values
+### 기본 기본값
 - `headerType`: `back`
 - `headerBackgroundColor`: `#ffffff`
 - `headerTextColor`: `#000000`
-- Back action fallback: `navigate(-1)`
-- Close action fallback: `/`
+- `bottomBackgroundColor`: `#ffffff`
+- 뒤로가기 기본 동작: `navigate(-1)`
+- 닫기 기본 동작: `/`
 
-### PR/Review checklist addendum
-- [ ] Header type is explicitly chosen per page intent
-- [ ] Navigation destination (`backPath`/`closePath`) matches flow spec
-- [ ] Header color values are confirmed or defaulted
-- [ ] No page-level ad-hoc header button duplicated when common header supports it
+### PR/리뷰 체크리스트 추가 항목
+- [ ] 페이지 의도에 맞게 헤더 타입을 명시적으로 선택했는가
+- [ ] 이동 목적지(`backPath`/`closePath`)가 플로우 스펙과 일치하는가
+- [ ] 헤더 색상 값이 확인되었거나 기본값으로 고정되었는가
+- [ ] 플로팅 하단 사용 시 `bottomBackgroundColor`가 확인되었거나 기본값으로 고정되었는가
+- [ ] 공통 헤더로 처리 가능한 버튼을 페이지별 임시 버튼으로 중복 구현하지 않았는가

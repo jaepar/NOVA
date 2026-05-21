@@ -127,16 +127,16 @@ API 계층 작업 전 문서 확인:
 - 약관 텍스트를 페이지 컴포넌트에 직접 하드코딩하지 않음
 - 동의/아코디언/캐러셀 상태는 `storage.ts` API만 사용
 
-## 10. Header Component Usage
+## 10. 헤더/하단 액션 컴포넌트 사용 가이드
 
-Use `MobileLayout` as the single entrypoint for page headers.
+페이지 헤더와 하단 고정 액션은 `MobileLayout`을 단일 진입점으로 사용한다.
 
-### 10.1 Header Types
-- `headerType="back"`: back button header (`FixedHeader`)
-- `headerType="close"`: close button header (`CloseFixedHeader`)
-- `headerType="none"`: title-only header with no side buttons (`TitleOnlyFixedHeader`)
+### 10.1 헤더 타입
+- `headerType="back"`: 뒤로가기 버튼 헤더 (`FixedHeader`)
+- `headerType="close"`: 닫기 버튼 헤더 (`CloseFixedHeader`)
+- `headerType="none"`: 좌우 버튼 없는 타이틀 헤더 (`TitleOnlyFixedHeader`)
 
-### 10.2 MobileLayout Header Props
+### 10.2 MobileLayout 헤더/하단 옵션
 - `title: string` (required)
 - `headerType?: 'back' | 'close' | 'none'` (default: `back`)
 - `onBack?: () => void`
@@ -145,17 +145,20 @@ Use `MobileLayout` as the single entrypoint for page headers.
 - `closePath?: string`
 - `headerBackgroundColor?: string` (default: `#ffffff`)
 - `headerTextColor?: string` (default: `#000000`)
+- `bottomContent?: ReactNode`
+- `bottomBackgroundColor?: string` (default: `#ffffff`)
 
-Navigation priority:
-- Back header click: `onBack` -> `backPath` -> browser history back (`navigate(-1)`)
-- Close header click: `onClose` -> `closePath` -> `/`
+동작 우선순위:
+- 뒤로가기 클릭: `onBack` -> `backPath` -> 브라우저 히스토리 뒤로가기 (`navigate(-1)`)
+- 닫기 클릭: `onClose` -> `closePath` -> `/`
 
-### 10.3 Recommended Page-Level Pattern
-- Step pages: `headerType="back"` + `backPath`
-- Modal-like flow pages: `headerType="close"` + `closePath`
-- Entry/welcome pages: `headerType="none"`
+### 10.3 페이지 유형별 권장 패턴
+- 단계형 페이지: `headerType="back"` + `backPath`
+- 모달 성격의 흐름 페이지: `headerType="close"` + `closePath`
+- 진입/웰컴 페이지: `headerType="none"`
+- 하단 CTA 고정 페이지: `bottomContent` + 필요 시 `bottomBackgroundColor`
 
-### 10.4 Example
+### 10.4 예시
 ```tsx
 <MobileLayout
   title="Step 2"
@@ -163,6 +166,8 @@ Navigation priority:
   backPath="/step-1"
   headerBackgroundColor="#ffffff"
   headerTextColor="#000000"
+  bottomContent={<Btn_1Col>다음</Btn_1Col>}
+  bottomBackgroundColor="#ffffff"
 >
   ...
 </MobileLayout>
