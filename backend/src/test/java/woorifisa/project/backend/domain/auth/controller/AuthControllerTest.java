@@ -17,7 +17,7 @@ class AuthControllerTest {
     private final AuthController authController = new AuthController(authService);
 
     @Test
-    @DisplayName("회원가입 성공 시 30100 성공 응답을 반환한다")
+    @DisplayName("회원가입 성공 시 공통 성공 응답을 반환한다")
     void signupReturnsSignupSuccessStatus() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
@@ -32,8 +32,8 @@ class AuthControllerTest {
 
         verify(authService).signup(request);
         assertThat(response.getSuccess()).isTrue();
-        assertThat(response.getCode()).isEqualTo(30100);
-        assertThat(response.getMessage()).isEqualTo("회원가입이 완료되었습니다.");
+        assertThat(response.getCode()).isEqualTo(20000);
+        assertThat(response.getMessage()).isEqualTo("요청에 성공했습니다.");
         assertThat(response.getData()).isNull();
     }
 }

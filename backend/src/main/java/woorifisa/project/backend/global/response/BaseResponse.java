@@ -18,13 +18,6 @@ public class BaseResponse<T> implements ResponseStatus {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final T data;
 
-    public BaseResponse(ResponseStatus status, T data) {
-        this.success = true;
-        this.code = status.getCode();
-        this.message = status.getMessage();
-        this.data = data;
-    }
-
     public BaseResponse(T data) {
         this.success = true;
         this.code = SUCCESS.getCode();
@@ -34,10 +27,6 @@ public class BaseResponse<T> implements ResponseStatus {
 
     public static <T> BaseResponse<T> ok(T data) {
         return new BaseResponse<>(data);
-    }
-
-    public static <T> BaseResponse<T> ok(ResponseStatus status) {
-        return new BaseResponse<>(status, null);
     }
 
     @Override

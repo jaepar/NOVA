@@ -10,8 +10,6 @@ import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
 import woorifisa.project.backend.domain.auth.service.AuthService;
 import woorifisa.project.backend.global.response.BaseResponse;
 
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.SIGNUP_SUCCESS;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -22,6 +20,6 @@ public class AuthController {
     @PostMapping("/signup")
     public BaseResponse<Void> signup(@Valid @RequestBody SignupRequest request) {
         authService.signup(request);
-        return BaseResponse.ok(SIGNUP_SUCCESS);
+        return BaseResponse.ok(null);
     }
 }
