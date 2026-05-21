@@ -45,8 +45,8 @@ class AuthServiceTest {
     void signupEncryptsPasswordAndSavesUser() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
-                "Password123",
-                "Password123",
+                "Password123!",
+                "Password123!",
                 "string",
                 "020215",
                 Gender.MALE
@@ -78,8 +78,8 @@ class AuthServiceTest {
     void signupFailsWhenPasswordConfirmDoesNotMatch() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
-                "Password123",
-                "Password124",
+                "Password123!",
+                "Password124!",
                 "string",
                 "020215",
                 Gender.MALE
@@ -98,8 +98,8 @@ class AuthServiceTest {
     void signupFailsWhenPasswordFormatIsInvalid() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
-                "password",
-                "password",
+                "Password123",
+                "Password123",
                 "string",
                 "020215",
                 Gender.MALE
@@ -114,12 +114,19 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("비밀번호 형식 오류 메시지를 정책과 일치하게 반환한다")
+    void invalidPasswordFormatMessageMatchesPolicy() {
+        assertThat(INVALID_PASSWORD_FORMAT.getMessage())
+                .isEqualTo("비밀번호는 영문+숫자+특수문자를 포함한 8~16자여야 합니다.");
+    }
+
+    @Test
     @DisplayName("이미 가입된 이메일이면 회원가입에 실패한다")
     void signupFailsWhenEmailAlreadyExists() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
-                "Password123",
-                "Password123",
+                "Password123!",
+                "Password123!",
                 "string",
                 "020215",
                 Gender.MALE
