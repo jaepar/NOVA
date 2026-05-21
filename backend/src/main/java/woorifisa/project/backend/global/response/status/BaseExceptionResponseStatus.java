@@ -13,7 +13,7 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     /*
      * auth : 300
      */
-    INVALID_PASSWORD_FORMAT(30002, "비밀번호 형식이 올바르지 않습니다."),
+    INVALID_PASSWORD_FORMAT(30002, "비밀번호는 영문+숫자+특수문자를 포함한 8~16자여야 합니다."),
     PASSWORD_CONFIRM_NOT_MATCHED(30003, "비밀번호와 비밀번호 확인이 일치하지 않습니다."),
     DUPLICATE_EMAIL(30004, "이미 가입된 이메일입니다.");
 
