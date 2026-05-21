@@ -47,6 +47,10 @@ public class WalletService {
             return failure(NOT_FOUND_CODE, ACCOUNT_NOT_FOUND_MESSAGE);
         }
 
+        if (accountTransactionRepository.existsByExternalRequestId(request.walletChargeRequestId())) {
+            return success();
+        }
+
         Integer chargeAmount = request.chargeAmount().intValue();
         try {
             account.debit(chargeAmount);

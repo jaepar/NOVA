@@ -70,6 +70,27 @@ class WalletServiceTest {
     }
 
     @Test
+    void debitWalletChargeRechecksExternalRequestIdAfterAccountLockBeforeDebit() {
+        DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
+        Account account = Account.builder()
+                .accountId(2001L)
+                .balance(30000)
+                .build();
+
+        when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001"))
+                .thenReturn(false)
+                .thenReturn(true);
+        when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.of(account));
+
+        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+
+        assertThat(response.success()).isTrue();
+        assertThat(response.code()).isEqualTo(20000);
+        assertThat(account.getBalance()).isEqualTo(30000);
+        verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
+    }
+
+    @Test
     void debitWalletChargeFailsWhenAccountDoesNotExist() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
 
