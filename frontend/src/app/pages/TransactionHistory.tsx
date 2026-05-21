@@ -29,6 +29,7 @@ export function TransactionHistory() {
     <>
       <MobileLayout
         title="거래내역 조회"
+        headerType="back"
         headerRightContent={
             <AppButton
               variant="unstyled"

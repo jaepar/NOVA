@@ -30,7 +30,10 @@
 
 ## 4) 레이아웃 규칙 (필수)
 - 모든 페이지는 `MobileLayout`을 기본 스캐폴드로 사용
-- 상단 네비게이션은 `FixedHeader` 사용
+- 상단 네비게이션은 `MobileLayout`의 `headerType`으로 관리한다.
+  - `headerType="back"`: 뒤로가기 헤더(`FixedHeader`)
+  - `headerType="close"`: 닫기 헤더(`CloseFixedHeader`)
+  - `headerType="none"`: 버튼 없는 타이틀 헤더(`TitleOnlyFixedHeader`)
 - 하단 고정 액션은 `FloatingBottom` 또는 `BottomNav` 사용
 - 초기 렌더 시 본문은 헤더 아래에서 시작해야 함
 - 페이지 간 본문 시작 오프셋은 동일해야 함
@@ -104,3 +107,32 @@
 - `frontend/AGENTS.md`
 - `frontend/guidelines/DESIGN_SYSTEM.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
+
+## 9) Header Implementation Input Contract (Required)
+
+When implementing or changing page headers, collect required values from the request before coding.
+
+Required confirmation items:
+- Header type: `back` / `close` / `none`
+- Header title text
+- Navigation policy:
+  - For `back`: `onBack` custom logic vs `backPath`
+  - For `close`: `onClose` custom logic vs `closePath`
+- Color tokens or explicit values:
+  - `headerBackgroundColor`
+  - `headerTextColor`
+
+If any of the above are missing and cannot be inferred safely, ask the user first and then implement.
+
+### Default fallback values
+- `headerType`: `back`
+- `headerBackgroundColor`: `#ffffff`
+- `headerTextColor`: `#000000`
+- Back action fallback: `navigate(-1)`
+- Close action fallback: `/`
+
+### PR/Review checklist addendum
+- [ ] Header type is explicitly chosen per page intent
+- [ ] Navigation destination (`backPath`/`closePath`) matches flow spec
+- [ ] Header color values are confirmed or defaulted
+- [ ] No page-level ad-hoc header button duplicated when common header supports it

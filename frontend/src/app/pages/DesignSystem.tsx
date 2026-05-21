@@ -25,7 +25,7 @@ export function DesignSystem() {
 
   return (
     <>
-      <MobileLayout title="Design System" showBackButton={false}>
+      <MobileLayout title="Design System" headerType="close">
         <div className="space-y-8 pb-8">
           <section className="space-y-4">
             <h2>Typography</h2>
@@ -170,3 +170,4 @@ export function DesignSystem() {
     </>
   );
 }
+

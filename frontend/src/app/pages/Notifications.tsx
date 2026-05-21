@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCircle, AlertCircle, Info, Gift } from 'lucide-react';
 import { MobileLayout } from '../components/layout/MobileLayout';
-import { X } from 'lucide-react';
 import { AppButton } from '../components/design-system/AppButton';
 
 interface Notification {
@@ -15,7 +13,6 @@ interface Notification {
 }
 
 export function Notifications() {
-  const navigate = useNavigate();
 
   // TODO: 실제 구현 시 API에서 가져올 데이터
   const [notifications, setNotifications] = useState<Notification[]>([
@@ -87,16 +84,8 @@ export function Notifications() {
   return (
     <MobileLayout
       title="알림"
-      showBackButton={false}
-      headerRightContent={
-        <AppButton
-          variant="unstyled"
-          onClick={() => navigate('/main')}
-          className="p-2 -mr-2 hover:bg-secondary rounded-lg transition-colors"
-        >
-          <X className="w-6 h-6" />
-        </AppButton>
-      }
+      headerType="close"
+      closePath="/main"
     >
       <div className="space-y-4 pb-8">
         {/* Header Info */}

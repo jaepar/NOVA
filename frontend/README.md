@@ -70,7 +70,11 @@ pnpm build
 ### 5.2 레이아웃
 
 - 모든 페이지는 `MobileLayout`을 기본 스캐폴드로 사용
-- 상단은 `FixedHeader`, 하단 고정 영역은 `FloatingBottom` 또는 `BottomNav` 사용
+- 상단 헤더는 `MobileLayout`의 `headerType`으로 선택한다.
+  - `back`: 뒤로가기 헤더 (`FixedHeader`)
+  - `close`: 닫기 헤더 (`CloseFixedHeader`)
+  - `none`: 버튼 없는 타이틀 헤더 (`TitleOnlyFixedHeader`)
+- 하단 고정 영역은 `FloatingBottom` 또는 `BottomNav` 사용
 - 초기 렌더 시 본문 시작점은 헤더 아래 동일 오프셋 규칙 유지
 - 페이지별로 `max-w-[390px]`, `mx-auto`를 중복 선언하지 않음
 
@@ -122,3 +126,44 @@ API 계층 작업 전 문서 확인:
 - 약관 데이터는 `ConsentDefinition` 스키마로 정의
 - 약관 텍스트를 페이지 컴포넌트에 직접 하드코딩하지 않음
 - 동의/아코디언/캐러셀 상태는 `storage.ts` API만 사용
+
+## 10. Header Component Usage
+
+Use `MobileLayout` as the single entrypoint for page headers.
+
+### 10.1 Header Types
+- `headerType="back"`: back button header (`FixedHeader`)
+- `headerType="close"`: close button header (`CloseFixedHeader`)
+- `headerType="none"`: title-only header with no side buttons (`TitleOnlyFixedHeader`)
+
+### 10.2 MobileLayout Header Props
+- `title: string` (required)
+- `headerType?: 'back' | 'close' | 'none'` (default: `back`)
+- `onBack?: () => void`
+- `backPath?: string`
+- `onClose?: () => void`
+- `closePath?: string`
+- `headerBackgroundColor?: string` (default: `#ffffff`)
+- `headerTextColor?: string` (default: `#000000`)
+
+Navigation priority:
+- Back header click: `onBack` -> `backPath` -> browser history back (`navigate(-1)`)
+- Close header click: `onClose` -> `closePath` -> `/`
+
+### 10.3 Recommended Page-Level Pattern
+- Step pages: `headerType="back"` + `backPath`
+- Modal-like flow pages: `headerType="close"` + `closePath`
+- Entry/welcome pages: `headerType="none"`
+
+### 10.4 Example
+```tsx
+<MobileLayout
+  title="Step 2"
+  headerType="back"
+  backPath="/step-1"
+  headerBackgroundColor="#ffffff"
+  headerTextColor="#000000"
+>
+  ...
+</MobileLayout>
+```

@@ -42,10 +42,18 @@
 
 ## 6) 공통 레이아웃 컴포넌트
 - `FixedHeader`
+- `CloseFixedHeader`
+- `TitleOnlyFixedHeader`
 - `MobileLayout`
 - `FloatingBottom`
 - `BottomNav`
 - `BottomSheet`
+
+### Header Selection Rule
+- 페이지에서는 헤더 컴포넌트를 직접 조합하기보다 `MobileLayout`의 `headerType`을 우선 사용한다.
+- `headerType="back"`: 뒤로가기 아이콘 헤더
+- `headerType="close"`: 닫기 아이콘 헤더
+- `headerType="none"`: 아이콘 없는 타이틀 헤더
 
 ## 7) 상호작용 원칙
 - hover/active 동작은 기존 variant 규칙과 일치시킨다.

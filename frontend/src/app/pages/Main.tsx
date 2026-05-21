@@ -80,6 +80,7 @@ export function Main() {
     <div className="h-full bg-background w-full">
       <MobileLayout
         title=""
+        headerType="back"
         showBackButton={false}
         headerLeftContent={
           <div className="flex items-center gap-3">

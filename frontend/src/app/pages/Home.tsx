@@ -9,7 +9,7 @@ export function Home() {
   return (
     <MobileLayout
       title="Welcome"
-      showBackButton={false}
+      headerType="none"
       bottomContent={
         <Btn_1Col onClick={() => navigate("/step-1")}>
           Get Started

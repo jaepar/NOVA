@@ -20,7 +20,10 @@
 
 ## 3) 레이아웃 구성 규칙
 - 모든 페이지는 `MobileLayout`을 사용한다.
-- 상단 영역은 `FixedHeader`를 사용한다.
+- 상단 영역은 `MobileLayout`의 `headerType` 규칙으로 사용한다.
+  - `headerType="back"`: 뒤로가기 헤더 (`FixedHeader`)
+  - `headerType="close"`: 닫기 헤더 (`CloseFixedHeader`)
+  - `headerType="none"`: 버튼 없는 타이틀 헤더 (`TitleOnlyFixedHeader`)
 - 하단 고정 액션은 `FloatingBottom` 또는 `BottomNav`를 사용한다.
 - 헤더/콘텐츠 오프셋은 CSS 변수로 단일 관리한다.
   - `--app-header-top-padding: 20px`
