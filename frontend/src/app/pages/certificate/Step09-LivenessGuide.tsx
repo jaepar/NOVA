@@ -9,6 +9,7 @@ export function LivenessGuide() {
   return (
     <MobileLayout
       title="비대면 실명확인"
+      backPath="/certificate/step-08"
       bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-10")}>동의하고 촬영하기</Btn_1Col>}
     >
       <div className="space-y-5 pb-2">

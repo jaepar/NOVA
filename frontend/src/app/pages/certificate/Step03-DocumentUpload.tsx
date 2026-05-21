@@ -6,7 +6,7 @@ import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
 import { useStep3PageStore } from "../../stores/pageStores";
 
-export function Step3() {
+export function Step03DocumentUpload() {
   const navigate = useNavigate();
   const documents = useStep3PageStore((state) => state.documents);
   const setDocumentFile = useStep3PageStore((state) => state.setDocumentFile);
@@ -33,6 +33,7 @@ export function Step3() {
   return (
     <MobileLayout
       title="비대면 실명확인"
+      backPath="/certificate/step-02"
       bottomContent={
         <Btn_1Col disabled={!isAllAttached} onClick={() => navigate("/certificate/step-04")}>
           다음으로

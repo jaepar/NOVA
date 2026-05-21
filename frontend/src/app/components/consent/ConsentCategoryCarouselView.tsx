@@ -9,12 +9,18 @@ import { markTermsAgreed, setCategoryCursor, useConsentStorageStore } from "../.
 interface ConsentCategoryCarouselViewProps {
   definition: ConsentDefinition;
   categoryId?: string;
+  basePath?: string;
+  preserveStateKey?: string;
+  resetCarouselCursorKey?: string;
   showSelectionControls?: boolean;
 }
 
 export function ConsentCategoryCarouselView({
   definition,
   categoryId,
+  basePath = "/consent-template",
+  preserveStateKey = "preserveConsentState",
+  resetCarouselCursorKey = "resetCategoryCursor",
   showSelectionControls = true,
 }: ConsentCategoryCarouselViewProps) {
   const navigate = useNavigate();
@@ -23,32 +29,33 @@ export function ConsentCategoryCarouselView({
   const didApplyInitialReset = useRef(false);
 
   const category = useMemo(() => (categoryId ? findCategory(definition, categoryId) : null), [categoryId, definition]);
-  const state = location.state as { resetCategoryCursor?: boolean } | null;
+  const state = location.state as Record<string, boolean> | null;
 
   useEffect(() => {
     if (!category) return;
-    if (state?.resetCategoryCursor && !didApplyInitialReset.current) {
+    if (state?.[resetCarouselCursorKey] && !didApplyInitialReset.current) {
       setCategoryCursor(category.id, 0);
       didApplyInitialReset.current = true;
     }
-  }, [category, state?.resetCategoryCursor]);
+  }, [category, resetCarouselCursorKey, state]);
 
   if (!category) {
     return (
       <CloseButtonTemplate
         headerTitle="약관/동의서 상세"
-        onClose={() => navigate("/consent-template", { state: { preserveConsentState: true } })}
+        onClose={() => navigate(basePath, { state: { [preserveStateKey]: true } })}
       >
         <div className="pt-10 text-center">카테고리를 찾을 수 없습니다.</div>
       </CloseButtonTemplate>
     );
   }
 
-  const cursor = useConsentStorageStore((state) => {
-    const value = state.categoryCursor[category.id];
+  const cursor = useConsentStorageStore((store) => {
+    const value = store.categoryCursor[category.id];
     if (typeof value !== "number" || value < 0) return 0;
     return Math.floor(value);
   });
+
   const total = category.terms.length;
   const currentIndex = Math.min(total - 1, Math.max(0, cursor));
   const current = category.terms[currentIndex];
@@ -75,13 +82,13 @@ export function ConsentCategoryCarouselView({
   return (
     <CloseButtonTemplate
       headerTitle="약관/동의서 상세"
-      onClose={() => navigate("/consent-template", { state: { preserveConsentState: true } })}
+      onClose={() => navigate(basePath, { state: { [preserveStateKey]: true } })}
       showBottomButton={showSelectionControls}
       buttonText={total > 1 ? "모두 동의하기" : "동의하기"}
       onButtonClick={() => {
         markTermsAgreed(category.terms.map((term) => term.id));
         setCategoryCursor(category.id, 0);
-        navigate("/consent-template", { state: { preserveConsentState: true } });
+        navigate(basePath, { state: { [preserveStateKey]: true } });
       }}
     >
       <div className="space-y-4 select-none" onPointerDown={onDown} onPointerUp={onUp}>

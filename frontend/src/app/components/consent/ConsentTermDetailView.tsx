@@ -7,16 +7,19 @@ import { getAgreedTermIds, markTermAgreed } from "../../domains/certificate-cons
 interface ConsentTermDetailViewProps {
   definition: ConsentDefinition;
   termId?: string;
+  basePath?: string;
+  preserveStateKey?: string;
   showSelectionControls?: boolean;
 }
 
 export function ConsentTermDetailView({
   definition,
   termId,
+  basePath = "/consent-template",
+  preserveStateKey = "preserveConsentState",
   showSelectionControls = true,
 }: ConsentTermDetailViewProps) {
   const navigate = useNavigate();
-
   const term = useMemo(() => (termId ? findTerm(definition, termId) : null), [definition, termId]);
   const isAgreed = termId ? getAgreedTermIds().has(termId) : false;
 
@@ -24,7 +27,7 @@ export function ConsentTermDetailView({
     return (
       <CloseButtonTemplate
         headerTitle="약관/동의서 상세"
-        onClose={() => navigate("/consent-template", { state: { preserveConsentState: true } })}
+        onClose={() => navigate(basePath, { state: { [preserveStateKey]: true } })}
       >
         <div className="pt-10 text-center">약관을 찾을 수 없습니다.</div>
       </CloseButtonTemplate>
@@ -34,12 +37,12 @@ export function ConsentTermDetailView({
   return (
     <CloseButtonTemplate
       headerTitle="약관/동의서 상세"
-      onClose={() => navigate("/consent-template", { state: { preserveConsentState: true } })}
+      onClose={() => navigate(basePath, { state: { [preserveStateKey]: true } })}
       showBottomButton={showSelectionControls}
       buttonText="동의하기"
       onButtonClick={() => {
         if (termId && !isAgreed) markTermAgreed(termId);
-        navigate("/consent-template", { state: { preserveConsentState: true } });
+        navigate(basePath, { state: { [preserveStateKey]: true } });
       }}
     >
       <div className="space-y-4">

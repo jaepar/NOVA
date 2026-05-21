@@ -91,7 +91,7 @@ export function Main() {
               <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
                 <div className="space-y-2">
                   <h3 className="font-semibold text-base">계좌 개설로 더 다양한 서비스를 이용하세요</h3>
-                  <p className="text-sm text-muted-foreground">간편한 계좌 개설로 글로벌 금융 서비스를 시작해 보세요.</p>
+                  <p className="text-sm text-muted-foreground">새로운 금융의 시작 NOAVA</p>
                 </div>
                 <Btn_1Col onClick={() => setCertificateSheetOpen(true)}>계좌 개설하기</Btn_1Col>
               </div>
@@ -201,7 +201,7 @@ export function Main() {
 
           <Btn_2Col
             leftLabel="나중에 하기"
-            rightLabel="신원 인증 시작하기"
+            rightLabel="인증서 발급하기"
             onLeftClick={() => setCertificateSheetOpen(false)}
             onRightClick={() => {
               setCertificateSheetOpen(false);

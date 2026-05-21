@@ -9,12 +9,13 @@ const verificationSteps = [
   { id: 4, title: "얼굴 인증" },
 ];
 
-export function Step2() {
+export function Step02VerificationFlow() {
   const navigate = useNavigate();
 
   return (
     <MobileLayout
       title="비대면 실명확인"
+      backPath="/certificate/step-01"
       bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-03")}>다음</Btn_1Col>}
     >
       <div className="space-y-6 pb-2">

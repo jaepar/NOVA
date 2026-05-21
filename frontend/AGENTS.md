@@ -203,3 +203,9 @@
 - 권장 파일명: `definition.<scenario>.ts`
   - 예: `definition.issue-account.ts`, `definition.wallet.ts`
 - 페이지는 목적에 맞는 정의 파일을 import해서 `definition` props로 주입한다.
+
+## 헤더 뒤로가기 정책 (스텝형 플로우 필수)
+- 스텝형 플로우(예: 인증서 발급)에서는 `navigate(-1)`을 뒤로가기 기본 동작으로 사용하지 않는다.
+- 각 스텝 페이지는 `MobileLayout`의 `backPath`를 명시하고, 현재 스텝 기준 이전 스텝 경로로 이동해야 한다.
+- 히스토리 기반 이동이 필요한 예외 케이스는 `onBack`을 사용하되, 예외 사유를 PR 설명에 반드시 남긴다.
+- 템플릿 기반 페이지(`Failed` 등)도 스텝형 플로우에 포함될 경우 `backPath`를 받아 동일 정책을 따른다.
