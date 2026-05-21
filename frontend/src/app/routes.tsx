@@ -39,162 +39,54 @@ import { Notifications } from "./pages/Notifications";
 import { WalletCharge, WalletHome, WalletPayment, WalletTerms } from "./pages/wallet";
 
 export const router = createBrowserRouter([
-  {
-    path: "/",
-    Component: Home,
-  },
-  {
-    path: "/home",
-    Component: Home,
-  },
-  {
-    path: "/language",
-    Component: Language,
-  },
-  {
-    path: "/landing",
-    Component: Landing,
-  },
-  {
-    path: "/main",
-    Component: Main,
-  },
-  {
-    path: "/login",
-    Component: Login,
-  },
-  {
-    path: "/transfer",
-    Component: Transfer,
-  },
-  {
-    path: "/exchange",
-    Component: Exchange,
-  },
-  {
-    path: "/mypage",
-    Component: MyPage,
-  },
-  {
-    path: "/notifications",
-    Component: Notifications,
-  },
-  {
-    path: "/wallet",
-    Component: WalletTerms,
-  }
-  {
-    path: "/wallet/terms",
-    Component: WalletTerms,
-  },
-  {
-    path: "/wallet/home",
-    Component: WalletHome,
-  },
-  {
-    path: "/wallet/charge",
-    Component: WalletCharge,
-  },
-  {
-    path: "/wallet/payment",
-    Component: WalletPayment,
-  },
-  {
-    path: "/certificate/step-01",
-    Component: Step1,
-  },
-  {
-    path: "/certificate/step-01/terms/:termId",
-    Component: Step1TermDetail,
-  },
-  {
-    path: "/certificate/step-01/categories/:categoryId/consent",
-    Component: AllTermsAgreements,
-  },
-  {
-    path: "/certificate/step-02",
-    Component: Step2,
-  },
-  {
-    path: "/certificate/step-03",
-    Component: Step3,
-  },
-  {
-    path: "/certificate/step-04",
-    Component: PassportCaptureGuide,
-  },
-  {
-    path: "/certificate/step-05",
-    Component: PassportCameraCapture,
-  },
-  {
-    path: "/certificate/step-06",
-    Component: NfcGuide,
-  },
-  {
-    path: "/certificate/step-07",
-    Component: NfcOcrLoading,
-  },
-  {
-    path: "/certificate/step-08",
-    Component: NfcCompareFailed,
-  },
-  {
-    path: "/certificate/step-09",
-    Component: LivenessGuide,
-  },
-  {
-    path: "/certificate/step-10",
-    Component: LivenessTermsAgreement,
-  },
-  {
-    path: "/certificate/step-10/terms/:termId",
-    Component: Step10TermDetail,
-  },
-  {
-    path: "/certificate/step-10/categories/:categoryId/consent",
-    Component: Step10AllTermsAgreements,
-  },
-  {
-    path: "/certificate/step-11",
-    Component: LivenessCameraCapture,
-  },
-  {
-    path: "/certificate/step-12",
-    Component: VerificationCompleted,
-  },
+  { path: "/", Component: Home },
+  { path: "/home", Component: Home },
+  { path: "/language", Component: Language },
+  { path: "/landing", Component: Landing },
+  { path: "/main", Component: Main },
+  { path: "/login", Component: Login },
+  { path: "/transfer", Component: Transfer },
+  { path: "/exchange", Component: Exchange },
+  { path: "/mypage", Component: MyPage },
+  { path: "/notifications", Component: Notifications },
+  { path: "/wallet", Component: WalletTerms },
+  { path: "/wallet/terms", Component: WalletTerms },
+  { path: "/wallet/home", Component: WalletHome },
+  { path: "/wallet/charge", Component: WalletCharge },
+  { path: "/wallet/payment", Component: WalletPayment },
+  { path: "/certificate/step-01", Component: Step1 },
+  { path: "/certificate/step-01/terms/:termId", Component: Step1TermDetail },
+  { path: "/certificate/step-01/categories/:categoryId/consent", Component: AllTermsAgreements },
+  { path: "/certificate/step-02", Component: Step2 },
+  { path: "/certificate/step-03", Component: Step3 },
+  { path: "/certificate/step-04", Component: PassportCaptureGuide },
+  { path: "/certificate/step-05", Component: PassportCameraCapture },
+  { path: "/certificate/step-06", Component: NfcGuide },
+  { path: "/certificate/step-07", Component: NfcOcrLoading },
+  { path: "/certificate/step-08", Component: NfcCompareFailed },
+  { path: "/certificate/step-09", Component: LivenessGuide },
+  { path: "/certificate/step-10", Component: LivenessTermsAgreement },
+  { path: "/certificate/step-10/terms/:termId", Component: Step10TermDetail },
+  { path: "/certificate/step-10/categories/:categoryId/consent", Component: Step10AllTermsAgreements },
+  { path: "/certificate/step-11", Component: LivenessCameraCapture },
+  { path: "/certificate/step-12", Component: VerificationCompleted },
   {
     path: "/certificate/step-13",
     element: (
       <Success
         headerTitle="비대면 실명확인"
-        title="인증서 발급 신청이 완료 되었어요"
+        task="인증서 발급 신청이 완료 되었어요"
         description={"인증서 발급까지는 평균 3시간~5시간이 소요됩니다.\n발급이 완료되면 알림으로 안내해 드릴게요."}
         buttonText="확인"
         redirectPath="/main"
       />
     ),
   },
-  {
-    path: "/consent-template",
-    Component: ConsentTemplate,
-  },
-  {
-    path: "/consent-template/terms/:termId",
-    Component: ConsentDetailTemplate,
-  },
-  {
-    path: "/consent-template/categories/:categoryId/consent",
-    Component: ConsentCategoryCarouselTemplate,
-  },
-  {
-    path: "/transaction-history",
-    Component: TransactionHistory,
-  },
-  {
-    path: "/design-system",
-    Component: DesignSystem,
-  },
+  { path: "/consent-template", Component: ConsentTemplate },
+  { path: "/consent-template/terms/:termId", Component: ConsentDetailTemplate },
+  { path: "/consent-template/categories/:categoryId/consent", Component: ConsentCategoryCarouselTemplate },
+  { path: "/transaction-history", Component: TransactionHistory },
+  { path: "/design-system", Component: DesignSystem },
   {
     path: "/loading",
     element: (
@@ -233,15 +125,12 @@ export const router = createBrowserRouter([
   {
     path: "/one-button-template",
     element: (
-      <OneButtonTemplate
-        headerTitle="Template"
-        buttonText="확인"
-        redirectPath="/"
-      >
+      <OneButtonTemplate headerTitle="Template" buttonText="확인" redirectPath="/">
         <div className="flex flex-col items-center justify-center h-full gap-4">
           <h2 className="text-xl">1열 버튼 템플릿</h2>
           <p className="text-muted-foreground text-center">
-            이 페이지는 재사용 가능한 템플릿입니다.<br />
+            이 페이지는 재사용 가능한 템플릿입니다.
+            <br />
             원하는 컨텐츠를 children으로 전달하세요.
           </p>
         </div>
@@ -261,8 +150,10 @@ export const router = createBrowserRouter([
         <div className="flex flex-col items-center justify-center h-full gap-4">
           <h2 className="text-xl">2열 버튼 템플릿</h2>
           <p className="text-muted-foreground text-center">
-            이 페이지는 재사용 가능한 템플릿입니다.<br />
-            좌측 버튼: 취소, 이전, 재촬영 등<br />
+            이 페이지는 재사용 가능한 템플릿입니다.
+            <br />
+            좌측 버튼: 취소, 이전, 재촬영 등
+            <br />
             우측 버튼: 다음, 확인, 완료 등
           </p>
         </div>
@@ -272,23 +163,19 @@ export const router = createBrowserRouter([
   {
     path: "/close-button-template",
     element: (
-      <CloseButtonTemplate
-        headerTitle="Template"
-        closePath="/"
-      >
+      <CloseButtonTemplate headerTitle="Template" closePath="/">
         <div className="flex flex-col items-center justify-center h-full gap-4">
           <h2 className="text-xl">닫기 버튼 템플릿</h2>
           <p className="text-muted-foreground text-center">
-            이 페이지는 재사용 가능한 템플릿입니다.<br />
-            우측 상단 X 버튼으로 닫을 수 있습니다.<br />
+            이 페이지는 재사용 가능한 템플릿입니다.
+            <br />
+            우측 상단 X 버튼으로 닫을 수 있습니다.
+            <br />
             뒤로가기 버튼은 표시되지 않습니다.
           </p>
         </div>
       </CloseButtonTemplate>
     ),
   },
-  {
-    path: "*",
-    Component: NotFound,
-  },
+  { path: "*", Component: NotFound },
 ]);

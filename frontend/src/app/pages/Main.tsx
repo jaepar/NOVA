@@ -26,15 +26,14 @@ export function Main() {
   const isCertificateSheetOpen = useMainPageStore((state) => state.isCertificateSheetOpen);
   const setMenuOpen = useMainPageStore((state) => state.setMenuOpen);
   const setLoggedIn = useMainPageStore((state) => state.setLoggedIn);
-  const setHasAccount = useMainPageStore((state) => state.setHasAccount);
   const setCertificateSheetOpen = useMainPageStore((state) => state.setCertificateSheetOpen);
   const logout = useMainPageStore((state) => state.logout);
 
-  const services = [
+  const services: Array<{ icon: React.ReactNode; label: string; path?: string }> = [
     { icon: <Headphones className="w-8 h-8" />, label: "화상상담" },
     { icon: <MessageSquare className="w-8 h-8" />, label: "병원예약" },
     { icon: <CreditCard className="w-8 h-8" />, label: "외국인등록증" },
-    { icon: <Wallet className="w-8 h-8" />, label: "월렛" },
+    { icon: <Wallet className="w-8 h-8" />, label: "월렛", path: "/wallet" },
   ];
 
   const exchangeRates = [
@@ -42,10 +41,6 @@ export function Main() {
     { currency: "JPY", rate: "9.82", change: "-0.5%", isPositive: false },
     { currency: "EUR", rate: "1,456.20", change: "+1.8%", isPositive: true },
   ];
-
-  const handleOpenAccount = () => {
-    setCertificateSheetOpen(true);
-  };
 
   return (
     <div className="h-full w-full bg-background">
@@ -96,9 +91,9 @@ export function Main() {
               <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
                 <div className="space-y-2">
                   <h3 className="font-semibold text-base">계좌 개설로 더 다양한 서비스를 이용하세요</h3>
-                  <p className="text-sm text-muted-foreground">간편한 계좌 개설로 금융 서비스를 시작해 보세요.</p>
+                  <p className="text-sm text-muted-foreground">간편한 계좌 개설로 글로벌 금융 서비스를 시작해 보세요.</p>
                 </div>
-                <Btn_1Col onClick={handleOpenAccount}>계좌 개설하기</Btn_1Col>
+                <Btn_1Col onClick={() => setCertificateSheetOpen(true)}>계좌 개설하기</Btn_1Col>
               </div>
             ) : (
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white min-h-[180px] flex flex-col justify-between">
@@ -108,7 +103,7 @@ export function Main() {
                       <div className="w-6 h-6 rounded-full bg-white" />
                     </div>
                     <div>
-                      <span className="font-medium">우리 SUPER주거래 통장</span>
+                      <span className="font-medium">우리 SUPER 주거래 통장</span>
                       <p className="text-xs text-white/80 mt-0.5">우리 1002-959-126226</p>
                     </div>
                   </div>
@@ -130,7 +125,7 @@ export function Main() {
               <div className="bg-blue-600 p-6 h-40 flex flex-col justify-between relative">
                 <div>
                   <h3 className="text-white text-lg font-medium mb-2">구인구직 정보</h3>
-                  <p className="text-white/90 text-sm">글로벌 인재와 함께 더 나은 내일을 만들어 보세요.</p>
+                  <p className="text-white/90 text-sm">글로벌 인재와 함께 더 나은 내일을 만들어보세요!</p>
                 </div>
                 <div className="absolute right-6 bottom-6 flex gap-2">
                   <div className="w-12 h-12 rounded-full bg-white/20" />
@@ -141,31 +136,24 @@ export function Main() {
             </div>
           </section>
 
-        {/* Services Section */}
-        <section className="space-y-4">
-          <h3>생활</h3>
-          <div className="grid grid-cols-4 max-[389px]:grid-cols-1 gap-4">
-            {services.map((service, index) => (
-              <AppButton
-                variant="unstyled"
-                key={index}
-                onClick={() => {
-                  if (service.path) {
-                    navigate(service.path);
-                  }
-                }}
-                className="flex flex-col items-center gap-2 hover:bg-secondary rounded-xl transition-colors max-[389px]:bg-secondary max-[389px]:p-4"
-              >
-                <div className={service.color}>
-                  {service.icon}
-                </div>
-                <span className="text-center w-full text-[12px]">
-                  {service.label}
-                </span>
-              </AppButton>
-            ))}
-          </div>
-        </section>
+          <section className="space-y-4">
+            <h3>생활</h3>
+            <div className="grid grid-cols-4 max-[389px]:grid-cols-1 gap-4">
+              {services.map((service) => (
+                <AppButton
+                  variant="unstyled"
+                  key={service.label}
+                  onClick={() => {
+                    if (service.path) navigate(service.path);
+                  }}
+                  className="flex flex-col items-center gap-2 hover:bg-secondary rounded-xl transition-colors max-[389px]:bg-secondary max-[389px]:p-4"
+                >
+                  <div className="text-blue-500">{service.icon}</div>
+                  <span className="text-center w-full text-xs">{service.label}</span>
+                </AppButton>
+              ))}
+            </div>
+          </section>
 
           <section className="space-y-4">
             <h3>환율 정보</h3>
@@ -213,7 +201,7 @@ export function Main() {
 
           <Btn_2Col
             leftLabel="나중에 하기"
-            rightLabel="인증서 발급하기"
+            rightLabel="신원 인증 시작하기"
             onLeftClick={() => setCertificateSheetOpen(false)}
             onRightClick={() => {
               setCertificateSheetOpen(false);
