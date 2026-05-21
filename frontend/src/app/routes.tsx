@@ -23,6 +23,13 @@ import { LivenessConsentTermDetail } from "./pages/certificate/Step10-TermDetail
 import { LivenessConsentAllTermsAgreements } from "./pages/certificate/Step10-AllTermsAgreements";
 import { LivenessCameraCapture } from "./pages/certificate/Step11-LivenessCameraCapture";
 import { VerificationCompleted } from "./pages/certificate/Step12-VerificationCompleted";
+import { EmailVerification } from "./pages/signup/EmailVerification";
+import { PersonalInfo } from "./pages/signup/PersonalInfo";
+import { Terms } from "./pages/signup/Terms";
+import { ConsentDetail } from "./pages/signup/ConsentDetail";
+import { ConsentCategoryCarousel } from "./pages/signup/ConsentCategoryCarousel";
+import { PasswordSetup } from "./pages/signup/PasswordSetup";
+import { Complete } from "./pages/signup/Complete";
 import { TransactionHistory } from "./pages/TransactionHistory";
 import { DesignSystem } from "./pages/DesignSystem";
 import { Success } from "./pages/common/Success";
@@ -54,6 +61,13 @@ export const router = createBrowserRouter([
   { path: "/wallet/home", Component: WalletHome },
   { path: "/wallet/charge", Component: WalletCharge },
   { path: "/wallet/payment", Component: WalletPayment },
+  { path: "/signup", Component: EmailVerification },
+  { path: "/signup/personal-info", Component: PersonalInfo },
+  { path: "/signup/terms", Component: Terms },
+  { path: "/signup/terms/terms/:termId", Component: ConsentDetail },
+  { path: "/signup/terms/categories/:categoryId/consent", Component: ConsentCategoryCarousel },
+  { path: "/signup/password", Component: PasswordSetup },
+  { path: "/signup/complete", Component: Complete },
   { path: "/certificate/step-01", Component: CertificateIssuanceConsentAgreement },
   { path: "/certificate/step-01/terms/:termId", Component: CertificateIssuanceConsentTermDetail },
   { path: "/certificate/step-01/categories/:categoryId/consent", Component: CertificateIssuanceConsentAllTermsAgreements },
@@ -89,14 +103,7 @@ export const router = createBrowserRouter([
   { path: "/design-system", Component: DesignSystem },
   {
     path: "/loading",
-    element: (
-      <Loading
-        headerTitle="Template"
-        task="Task"
-        description="description(optional)"
-        spinnerSize="lg"
-      />
-    ),
+    element: <Loading headerTitle="Template" task="Task" description="description(optional)" spinnerSize="lg" />,
   },
   {
     path: "/failed",
