@@ -4,7 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 
+import java.util.Optional;
+
 @Repository
 public interface BankingRepository extends JpaRepository<AccountRef, Long> {
 
+    Optional<AccountRef> findByUser_UserIdAndAccountId(Long userId, Long accountId);
 }

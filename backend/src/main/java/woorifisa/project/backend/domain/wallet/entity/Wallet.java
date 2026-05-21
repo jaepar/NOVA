@@ -39,4 +39,9 @@ public class Wallet extends BaseEntity {
 
     @Column(name = "balance", nullable = false)
     private Integer balance;
+
+    // 계좌 차감 성공 확인 이후 월렛 잔액 증가 연산
+    public void charge(Integer amount) {
+        this.balance += amount;
+    }
 }
