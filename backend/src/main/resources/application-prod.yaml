@@ -29,9 +29,9 @@ logging:
     org.hibernate.SQL: warn
 
 app:
+  core-banking:
+    base-url: ${ONPREM_GATEWAY_BASE_URL}
+  government:
+    base-url: ${ONPREM_GATEWAY_BASE_URL}
   ai:
     base-url: ${AI_BASE_URL}
-  core-banking:
-    base-url: ${CORE_BANKING_BASE_URL}
-  government:
-    base-url: ${GOVERNMENT_BASE_URL}

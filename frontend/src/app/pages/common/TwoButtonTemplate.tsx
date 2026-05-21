@@ -5,8 +5,12 @@ import { Btn_2Col } from '../../components/design-system/Btn_2Col';
 
 interface TwoButtonTemplateProps {
   headerTitle: string;
+  headerType?: 'back' | 'close';
   showBackButton?: boolean;
   onBack?: () => void;
+  backPath?: string;
+  onClose?: () => void;
+  closePath?: string;
   headerRightContent?: ReactNode;
   children: ReactNode;
   leftButtonText: string;
@@ -21,8 +25,12 @@ interface TwoButtonTemplateProps {
 
 export function TwoButtonTemplate({
   headerTitle,
+  headerType = 'back',
   showBackButton = true,
   onBack,
+  backPath,
+  onClose,
+  closePath,
   headerRightContent,
   children,
   leftButtonText,
@@ -55,8 +63,12 @@ export function TwoButtonTemplate({
   return (
     <MobileLayout
       title={headerTitle}
+      headerType={headerType}
       showBackButton={showBackButton}
       onBack={onBack}
+      backPath={backPath}
+      onClose={onClose}
+      closePath={closePath}
       headerRightContent={headerRightContent}
       bottomContent={
         <Btn_2Col

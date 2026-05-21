@@ -8,7 +8,7 @@ export function NotFound() {
   return (
     <MobileLayout
       title="Page Not Found"
-      showBackButton={false}
+      headerType="close"
       bottomContent={
         <Btn_1Col onClick={() => navigate('/')}>
           Go Home
@@ -27,3 +27,4 @@ export function NotFound() {
     </MobileLayout>
   );
 }
+

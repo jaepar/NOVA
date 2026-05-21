@@ -51,6 +51,7 @@ export function Main() {
     <div className="h-full w-full bg-background">
       <MobileLayout
         title=""
+        headerType="back"
         showBackButton={false}
         headerLeftContent={
           <div className="flex items-center gap-3">
@@ -140,21 +141,31 @@ export function Main() {
             </div>
           </section>
 
-          <section className="space-y-4">
-            <h3>생활</h3>
-            <div className="grid grid-cols-4 max-[389px]:grid-cols-1 gap-4">
-              {services.map((service) => (
-                <AppButton
-                  variant="unstyled"
-                  key={service.label}
-                  className="flex flex-col items-center gap-2 hover:bg-secondary rounded-xl transition-colors max-[389px]:bg-secondary max-[389px]:p-4"
-                >
-                  <div className="text-blue-500">{service.icon}</div>
-                  <span className="text-center w-full text-xs">{service.label}</span>
-                </AppButton>
-              ))}
-            </div>
-          </section>
+        {/* Services Section */}
+        <section className="space-y-4">
+          <h3>생활</h3>
+          <div className="grid grid-cols-4 max-[389px]:grid-cols-1 gap-4">
+            {services.map((service, index) => (
+              <AppButton
+                variant="unstyled"
+                key={index}
+                onClick={() => {
+                  if (service.path) {
+                    navigate(service.path);
+                  }
+                }}
+                className="flex flex-col items-center gap-2 hover:bg-secondary rounded-xl transition-colors max-[389px]:bg-secondary max-[389px]:p-4"
+              >
+                <div className={service.color}>
+                  {service.icon}
+                </div>
+                <span className="text-center w-full text-[12px]">
+                  {service.label}
+                </span>
+              </AppButton>
+            ))}
+          </div>
+        </section>
 
           <section className="space-y-4">
             <h3>환율 정보</h3>

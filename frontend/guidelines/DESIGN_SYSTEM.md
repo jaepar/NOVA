@@ -42,10 +42,22 @@
 
 ## 6) 공통 레이아웃 컴포넌트
 - `FixedHeader`
+- `CloseFixedHeader`
+- `TitleOnlyFixedHeader`
 - `MobileLayout`
 - `FloatingBottom`
 - `BottomNav`
 - `BottomSheet`
+
+### 헤더 선택 규칙
+- 페이지에서는 헤더 컴포넌트를 직접 조합하기보다 `MobileLayout`의 `headerType`을 우선 사용한다.
+- `headerType="back"`: 뒤로가기 아이콘 헤더
+- `headerType="close"`: 닫기 아이콘 헤더
+- `headerType="none"`: 아이콘 없는 타이틀 헤더
+
+### 하단 액션 규칙
+- 하단 고정 액션은 `MobileLayout`의 `bottomContent`로 구성한다.
+- 하단 배경색은 `bottomBackgroundColor`로 제어하며 기본값은 `#ffffff`이다.
 
 ## 7) 상호작용 원칙
 - hover/active 동작은 기존 variant 규칙과 일치시킨다.
@@ -69,3 +81,33 @@
 - 약관 동의 페이지의 하단 액션은 공통 하단 고정 버튼(`Btn_1Col`)을 사용한다.
 - 큰 카테고리/세부 항목의 체크/이동 인터랙션은 `frontend/src/app/domains/certificate-consent/README.md` 규격을 따른다.
 - 세부 약관 상세의 헤더 타이틀은 `약관/동의서 상세`로 통일한다.
+## 11) 공통 상태 콘텐츠 규칙
+
+- `Loading`, `Success`, `Failed`의 본문 레이아웃은 `CenteredTaskContent`를 공통 사용한다.
+- 공통 본문은 화면 기준 가로/세로 중앙 정렬을 유지한다.
+- `task`, `description` 텍스트 블록 스타일은 세 상태 페이지에서 일관되게 유지한다.
+- `description`은 줄바꿈 문자열(`\n`, `\\n`)을 표현해야 한다.
+
+성공/실패 시각 요소 규칙:
+- `visualImageSrc`가 있으면 이미지 렌더링
+- `visualImageSrc`가 없으면 기본 아이콘 렌더링
+- 이미지 사용 시 `visualImageAlt`를 제공한다.
+
+## 12) 약관 동의 컴포넌트 구조
+
+- 약관 동의 기능은 아래 컴포넌트 조합을 표준으로 사용한다.
+  - `ConsentOverviewAccordion`: 메인 아코디언
+  - `ConsentTermDetailView`: 단건 상세
+  - `ConsentCategoryCarouselView`: 카테고리 단위 캐러셀 상세
+
+- `필수/선택`은 컴포넌트 분기값이 아니라 데이터(`required`)로 처리한다.
+- 캐러셀 여부는 진입 경로로 구분한다.
+  - 주요 체크 진입: 캐러셀 상세
+  - 세부 체크 진입: 단건 상세
+
+- 이전처럼 약관 페이지별로 동일 UI를 반복 구현하는 방식은 사용하지 않는다.
+
+약관 정의 데이터 소스 규칙:
+- 약관 데이터는 정의 파일(`definition.*.ts`)에서 관리하고 컴포넌트에 주입한다.
+- 정의 파일 권장 경로: `src/app/domains/<service-domain>/`
+- 정의 파일 권장 네이밍: `definition.<scenario>.ts`

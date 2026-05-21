@@ -21,7 +21,7 @@ export function Landing() {
 
       <MobileLayout
         title=""
-        showBackButton={false}
+        headerType="close"
         bottomContent={
           <Btn_1Col onClick={() => navigate("/language")}>
             시작하기

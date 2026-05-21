@@ -36,6 +36,7 @@ import { ConsentTemplate } from "./pages/common/ConsentTemplate";
 import { ConsentDetailTemplate } from "./pages/common/ConsentDetailTemplate";
 import { ConsentCategoryCarouselTemplate } from "./pages/common/ConsentCategoryCarouselTemplate";
 import { Notifications } from "./pages/Notifications";
+import { WalletCharge, WalletHome, WalletPayment, WalletTerms } from "./pages/wallet";
 
 export const router = createBrowserRouter([
   {
@@ -77,6 +78,26 @@ export const router = createBrowserRouter([
   {
     path: "/notifications",
     Component: Notifications,
+  },
+  {
+    path: "/wallet",
+    Component: WalletTerms,
+  }
+  {
+    path: "/wallet/terms",
+    Component: WalletTerms,
+  },
+  {
+    path: "/wallet/home",
+    Component: WalletHome,
+  },
+  {
+    path: "/wallet/charge",
+    Component: WalletCharge,
+  },
+  {
+    path: "/wallet/payment",
+    Component: WalletPayment,
   },
   {
     path: "/certificate/step-01",
@@ -179,7 +200,7 @@ export const router = createBrowserRouter([
     element: (
       <Loading
         headerTitle="Template"
-        title="Task"
+        task="Task"
         description="description(optional)"
         spinnerSize="lg"
       />
@@ -190,7 +211,7 @@ export const router = createBrowserRouter([
     element: (
       <Failed
         headerTitle="Template"
-        title="Task"
+        task="Task"
         description="description(optional)"
         buttonText="돌아가기"
         redirectPath="/"
@@ -202,7 +223,7 @@ export const router = createBrowserRouter([
     element: (
       <Success
         headerTitle="Template"
-        title="Task"
+        task="Task"
         description="description(optional)"
         buttonText="확인"
         redirectPath="/main"

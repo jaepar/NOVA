@@ -20,8 +20,13 @@
 
 ## 3) 레이아웃 구성 규칙
 - 모든 페이지는 `MobileLayout`을 사용한다.
-- 상단 영역은 `FixedHeader`를 사용한다.
+- 상단 영역은 `MobileLayout`의 `headerType` 규칙으로 사용한다.
+  - `headerType="back"`: 뒤로가기 헤더 (`FixedHeader`)
+  - `headerType="close"`: 닫기 헤더 (`CloseFixedHeader`)
+  - `headerType="none"`: 버튼 없는 타이틀 헤더 (`TitleOnlyFixedHeader`)
 - 하단 고정 액션은 `FloatingBottom` 또는 `BottomNav`를 사용한다.
+- `MobileLayout`의 `bottomContent`를 사용하면 `FloatingBottom` 규격이 적용된다.
+- 하단 고정 영역 배경색은 `bottomBackgroundColor`로 제어하며 기본값은 `#ffffff`이다.
 - 헤더/콘텐츠 오프셋은 CSS 변수로 단일 관리한다.
   - `--app-header-top-padding: 20px`
   - `--app-header-height: 56px`
@@ -49,3 +54,19 @@
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
 - `frontend/src/main.tsx`
 - `frontend/src/styles/theme.css`
+## 7) 공통 상태 페이지 레이아웃
+
+- `Loading`, `Success`, `Failed`는 `CenteredTaskContent` 기반 중앙 정렬 레이아웃을 사용한다.
+- 상태 페이지 본문에서 개별 `px-*` 패딩을 임의로 추가하지 않는다.
+- 본문 텍스트는 `task`, `description` 파라미터로 주입한다.
+
+## 8) 약관 동의 레이아웃/이동 규칙
+
+- 약관 메인/상세/캐러셀은 공통 컴포넌트 기반으로 구성한다.
+- 신규 진입 시 상태 초기화, 복귀 시 상태 유지 규칙을 따른다.
+- 캐러셀 페이지는 `1/n` 표기와 좌우 이동을 제공한다.
+- 단건 상세 페이지는 캐러셀이 아니며 페이지 수를 표시하지 않는다.
+- 카테고리 캐러셀 재진입 시 시작 페이지는 항상 1페이지다.
+
+폐기:
+- 동일 약관 UI를 페이지 단위로 중복 구현하는 방식은 더 이상 사용하지 않는다.

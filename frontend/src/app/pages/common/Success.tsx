@@ -2,11 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { CenteredTaskContent } from "../../components/design-system/CenteredTaskContent";
 
 interface SuccessProps {
   headerTitle: string;
-  title: string;
+  task: string;
   description?: string;
+  visualImageSrc?: string;
+  visualImageAlt?: string;
   buttonText?: string;
   onButtonClick?: () => void;
   redirectPath?: string;
@@ -14,8 +17,10 @@ interface SuccessProps {
 
 export function Success({
   headerTitle,
-  title,
+  task,
   description,
+  visualImageSrc,
+  visualImageAlt = "성공 이미지",
   buttonText = "확인",
   onButtonClick,
   redirectPath = "/main",
@@ -39,18 +44,19 @@ export function Success({
         </Btn_1Col>
       }
     >
-      <div className="flex h-full flex-col items-center justify-center px-6">
-        <div className="flex flex-col items-center gap-6">
+      <CenteredTaskContent task={task} description={description}>
+        {visualImageSrc ? (
+          <img
+            src={visualImageSrc}
+            alt={visualImageAlt}
+            className="h-24 w-24 object-contain"
+          />
+        ) : (
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-600">
             <Check className="h-14 w-14 stroke-[4] text-white" />
           </div>
-
-          <div className="space-y-2 text-center">
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-            {description && <p className="text-sm text-gray-500">{description}</p>}
-          </div>
-        </div>
-      </div>
+        )}
+      </CenteredTaskContent>
     </MobileLayout>
   );
 }
