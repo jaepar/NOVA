@@ -11,7 +11,7 @@ export function Home() {
       title="Welcome"
       headerType="none"
       bottomContent={
-        <Btn_1Col onClick={() => navigate("/step-1")}>
+        <Btn_1Col onClick={() => navigate("/certificate/step-01")}>
           Get Started
         </Btn_1Col>
       }
