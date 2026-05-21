@@ -17,9 +17,8 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 @RequiredArgsConstructor
 public class AuthService {
 
-    // 비밀번호가 영어+숫자 포함 8~16자인지 확인하는 정규 표현식
-    // 프론트 + 백엔드 이중 검증 목적으로도 사용
-    private static final String PASSWORD_PATTERN = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,16}$";
+    // 비밀번호가 영문+숫자+특수문자를 포함한 8~16자인지 확인한다.
+    private static final String PASSWORD_PATTERN = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,16}$";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
