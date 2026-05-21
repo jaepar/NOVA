@@ -52,4 +52,25 @@ class WalletControllerTest {
         assertThat(request.withdrawAccountId()).isEqualTo(2001L);
         assertThat(request.chargeAmount()).isEqualTo(10000L);
     }
+
+    @Test
+    void returnsServiceFailureResponseBody() throws Exception {
+        when(walletService.debitWalletCharge(any(DebitWalletAccountRequest.class)))
+                .thenReturn(new DebitWalletAccountResponse(false, 40000, "계좌 차감 요청이 올바르지 않습니다."));
+
+        mockMvc.perform(post("/wallet/charges/debit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "walletChargeRequestId": "",
+                                  "customerId": 1001,
+                                  "withdrawAccountId": 2001,
+                                  "chargeAmount": 10000
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(40000))
+                .andExpect(jsonPath("$.message").value("계좌 차감 요청이 올바르지 않습니다."));
+    }
 }

@@ -114,4 +114,61 @@ class WalletServiceTest {
         verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
     }
+
+    @Test
+    void debitWalletChargeFailsWhenRequestAmountExceedsIntegerRange() {
+        DebitWalletAccountRequest request = new DebitWalletAccountRequest(
+                "WCR-20260514-0001",
+                1001L,
+                2001L,
+                (long) Integer.MAX_VALUE + 1
+        );
+
+        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+
+        assertThat(response.success()).isFalse();
+        assertThat(response.code()).isEqualTo(40000);
+        verify(accountTransactionRepository, never()).existsByExternalRequestId(any());
+        verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
+        verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
+    }
+
+    @Test
+    void debitWalletChargeFailsWhenExternalRequestIdIsBlank() {
+        DebitWalletAccountRequest request = new DebitWalletAccountRequest(" ", 1001L, 2001L, 10000L);
+
+        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+
+        assertThat(response.success()).isFalse();
+        assertThat(response.code()).isEqualTo(40000);
+        verify(accountTransactionRepository, never()).existsByExternalRequestId(any());
+        verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
+        verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
+    }
+
+    @Test
+    void debitWalletChargeFailsWhenAccountIdentifiersAreMissing() {
+        DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", null, 2001L, 10000L);
+
+        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+
+        assertThat(response.success()).isFalse();
+        assertThat(response.code()).isEqualTo(40000);
+        verify(accountTransactionRepository, never()).existsByExternalRequestId(any());
+        verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
+        verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
+    }
+
+    @Test
+    void debitWalletChargeFailsWhenWithdrawAccountIdIsMissing() {
+        DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, null, 10000L);
+
+        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+
+        assertThat(response.success()).isFalse();
+        assertThat(response.code()).isEqualTo(40000);
+        verify(accountTransactionRepository, never()).existsByExternalRequestId(any());
+        verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
+        verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
+    }
 }
