@@ -1,10 +1,11 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/design-system/AppButton";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { WalletAccountCard } from "./components/WalletAccountCard";
 import { WalletAmountChip } from "./components/WalletAmountChip";
+import { useWalletStore } from "./stores/walletStore";
 
 const quickAmounts = [10000, 30000, 50000];
 const walletBalance = 3220000;
@@ -12,28 +13,25 @@ const chargeLimitAmount = 10000000;
 const inputLimitAmount = 999999999;
 const chargeLimitMessage = "1회 충전 금액은 10,000,000원까지만 가능합니다.";
 
-type ChargeFeedback = {
-  type: "error";
-  message: string;
-};
-
-type ChargeSuccess = {
-  amount: number;
-  chargedAt: Date;
-};
-
 function onlyDigits(value: string) {
   return value.replace(/\D/g, "");
 }
 
 export function WalletCharge() {
   const navigate = useNavigate();
-  const [amount, setAmount] = useState("");
-  const [feedback, setFeedback] = useState<ChargeFeedback | null>(null);
-  const [success, setSuccess] = useState<ChargeSuccess | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const amountMirrorRef = useRef<HTMLSpanElement>(null);
-  const [amountInputWidth, setAmountInputWidth] = useState(0);
+  const amount = useWalletStore((state) => state.chargeAmount);
+  const feedback = useWalletStore((state) => state.chargeFeedback);
+  const success = useWalletStore((state) => state.chargeSuccess);
+  const isSubmitting = useWalletStore((state) => state.isChargeSubmitting);
+  const amountInputWidth = useWalletStore((state) => state.amountInputWidth);
+  const setAmount = useWalletStore((state) => state.setChargeAmount);
+  const setFeedback = useWalletStore((state) => state.setChargeFeedback);
+  const setSuccess = useWalletStore((state) => state.setChargeSuccess);
+  const setIsSubmitting = useWalletStore((state) => state.setChargeSubmitting);
+  const setAmountInputWidth = useWalletStore((state) => state.setAmountInputWidth);
+  const clearChargeAmount = useWalletStore((state) => state.clearChargeAmount);
+  const resetChargeFlow = useWalletStore((state) => state.resetChargeFlow);
 
   const numericAmount = Number(amount || 0);
   const formattedAmount = useMemo(
@@ -142,6 +140,7 @@ export function WalletCharge() {
   };
 
   const handleSuccessConfirm = () => {
+    resetChargeFlow();
     navigate("/wallet/home");
   };
 
@@ -221,7 +220,7 @@ export function WalletCharge() {
                     type="button"
                     variant="unstyled"
                     aria-label="충전 금액 지우기"
-                    onClick={() => setAmount("")}
+                    onClick={clearChargeAmount}
                     className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#bfc1c8] text-white"
                   >
                     <X className="h-4 w-4" />
