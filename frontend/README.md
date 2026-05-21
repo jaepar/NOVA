@@ -246,3 +246,76 @@ API 계층 작업 전 문서 확인:
   redirectPath="/"
 />
 ```
+
+## 12. 약관 동의 컴포넌트 사용 가이드
+
+약관 동의 기능은 샘플 페이지 내부에서 공통 컴포넌트를 조립해 사용한다.
+
+### 12.1 컴포넌트 목록
+- `ConsentOverviewAccordion`: 메인 약관 아코디언
+- `ConsentTermDetailView`: 세부 약관 단건 상세
+- `ConsentCategoryCarouselView`: 주요 약관 체크 시 진입하는 캐러셀 상세
+
+### 12.2 공통 동작 요약
+- 상태 관리는 `zustand`(`domains/certificate-consent/storage.ts`)를 사용한다.
+- 신규 진입 시 상태 초기화, 복귀 시 상태 유지
+- 상세 헤더 타이틀은 `약관/동의서 상세` 고정
+- 카테고리 캐러셀 재진입 시 시작은 항상 1페이지
+
+### 12.3 파라미터
+
+`ConsentOverviewAccordion`
+- `definition: ConsentDefinition`
+- `preserveState: boolean`
+- `showSelectionControls?: boolean`
+- `onRequiredCompleteChange?: (complete: boolean) => void`
+
+`ConsentTermDetailView`
+- `definition: ConsentDefinition`
+- `termId?: string`
+- `showSelectionControls?: boolean`
+
+`ConsentCategoryCarouselView`
+- `definition: ConsentDefinition`
+- `categoryId?: string`
+- `showSelectionControls?: boolean`
+
+### 12.4 사용 예시
+```tsx
+<ConsentOverviewAccordion
+  definition={certificateConsentDefinitionSample}
+  preserveState={preserveState}
+  onRequiredCompleteChange={setIsRequiredComplete}
+/>
+```
+
+```tsx
+<ConsentTermDetailView
+  definition={certificateConsentDefinitionSample}
+  termId={termId}
+/>
+```
+
+```tsx
+<ConsentCategoryCarouselView
+  definition={certificateConsentDefinitionSample}
+  categoryId={categoryId}
+/>
+```
+
+### 12.5 약관 정의 파일 네이밍/연결 규칙
+- 약관 데이터는 페이지에 직접 작성하지 않고 정의 파일에서 관리한다.
+- 권장 경로: `src/app/domains/<service-domain>/`
+- 권장 파일명: `definition.<scenario>.ts`
+  - 예: `definition.issue-account.ts`
+  - 예: `definition.wallet.ts`
+
+페이지 연결 예시:
+```tsx
+import { issueAccountConsentDefinition } from "../../domains/certificate-consent/definition.issue-account";
+
+<ConsentOverviewAccordion
+  definition={issueAccountConsentDefinition}
+  preserveState={preserveState}
+/>
+```

@@ -92,3 +92,22 @@
 - `visualImageSrc`가 있으면 이미지 렌더링
 - `visualImageSrc`가 없으면 기본 아이콘 렌더링
 - 이미지 사용 시 `visualImageAlt`를 제공한다.
+
+## 12) 약관 동의 컴포넌트 구조
+
+- 약관 동의 기능은 아래 컴포넌트 조합을 표준으로 사용한다.
+  - `ConsentOverviewAccordion`: 메인 아코디언
+  - `ConsentTermDetailView`: 단건 상세
+  - `ConsentCategoryCarouselView`: 카테고리 단위 캐러셀 상세
+
+- `필수/선택`은 컴포넌트 분기값이 아니라 데이터(`required`)로 처리한다.
+- 캐러셀 여부는 진입 경로로 구분한다.
+  - 주요 체크 진입: 캐러셀 상세
+  - 세부 체크 진입: 단건 상세
+
+- 이전처럼 약관 페이지별로 동일 UI를 반복 구현하는 방식은 사용하지 않는다.
+
+약관 정의 데이터 소스 규칙:
+- 약관 데이터는 정의 파일(`definition.*.ts`)에서 관리하고 컴포넌트에 주입한다.
+- 정의 파일 권장 경로: `src/app/domains/<service-domain>/`
+- 정의 파일 권장 네이밍: `definition.<scenario>.ts`

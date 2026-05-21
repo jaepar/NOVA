@@ -163,3 +163,43 @@
 - `task`, `description`
 - 버튼 동작(`onButtonClick` 또는 `redirectPath`)
 - 이미지 대체 여부(`visualImageSrc`, `visualImageAlt`)
+
+## 11) 약관 동의 컴포넌트 규칙 (필수)
+
+현재 약관 동의 기능은 페이지 직접 구현이 아니라 컴포넌트 조립 방식으로 사용한다.
+
+핵심 컴포넌트:
+- `ConsentOverviewAccordion`
+- `ConsentTermDetailView`
+- `ConsentCategoryCarouselView`
+
+상태 관리:
+- 약관 상태는 `zustand`(`domains/certificate-consent/storage.ts`)를 사용한다.
+- 컴포넌트 외부에서 `sessionStorage`를 직접 조작하지 않는다.
+
+진입/복귀 규칙:
+- 뒤로가기 복귀가 아닌 신규 진입 시 상태를 초기화한다.
+- 신규 진입 시 필수 카테고리만 펼친다.
+- 상세/캐러셀에서 메인으로 돌아올 때는 상태를 유지한다.
+
+상세/캐러셀 규칙:
+- 단건 상세(`ConsentTermDetailView`)는 캐러셀이 아니며 페이지 수 표시를 하지 않는다.
+- 카테고리 상세(`ConsentCategoryCarouselView`)는 캐러셀을 수행하고 `1/n` 표시를 한다.
+- 카테고리 캐러셀 재진입 시 시작 지점은 항상 1페이지(인덱스 0)다.
+
+선택 UI 옵션:
+- 페이지에 따라 선택(체크) UI는 있을 수도, 없을 수도 있다.
+- 선택 UI가 없는 경우 `showSelectionControls={false}`로 처리한다.
+
+헤더 규칙:
+- 상세 헤더 타이틀은 항상 `약관/동의서 상세`를 사용한다.
+
+폐기 규칙:
+- 약관 페이지에서 UI/상태/이동 로직을 페이지 파일에 중복 구현하는 방식은 더 이상 사용하지 않는다.
+
+정의 파일 연결 규칙:
+- 약관 데이터는 페이지에 하드코딩하지 않고 정의 파일에서 관리한다.
+- 권장 위치: `src/app/domains/<service-domain>/`
+- 권장 파일명: `definition.<scenario>.ts`
+  - 예: `definition.issue-account.ts`, `definition.wallet.ts`
+- 페이지는 목적에 맞는 정의 파일을 import해서 `definition` props로 주입한다.
