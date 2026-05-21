@@ -26,7 +26,7 @@ export function Complete() {
 
           <div className="space-y-3">
             <h2 className="text-2xl font-semibold">가입이 완료되었어요!</h2>
-            <p className="text-muted-foreground">우리 WON Global과 함께해 주셔서 감사합니다.</p>
+            
           </div>
         </div>
       </SignupContent>
