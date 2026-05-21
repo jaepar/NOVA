@@ -1,6 +1,7 @@
 package woorifisa.project.coreBanking.domain.wallet.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
@@ -58,14 +59,18 @@ public class WalletService {
             return failure(BAD_REQUEST_CODE, INSUFFICIENT_BALANCE_MESSAGE);
         }
 
-        accountTransactionRepository.save(AccountTransaction.builder()
-                .account(account)
-                .transactionFlow(TransactionFlow.WITHDRAWAL)
-                .transactionType(TransactionType.WALLET_CHARGE)
-                .counterParty(WALLET_CHARGE_COUNTERPARTY)
-                .amount(chargeAmount)
-                .externalRequestId(request.walletChargeRequestId())
-                .build());
+        try {
+            accountTransactionRepository.save(AccountTransaction.builder()
+                    .account(account)
+                    .transactionFlow(TransactionFlow.WITHDRAWAL)
+                    .transactionType(TransactionType.WALLET_CHARGE)
+                    .counterParty(WALLET_CHARGE_COUNTERPARTY)
+                    .amount(chargeAmount)
+                    .externalRequestId(request.walletChargeRequestId())
+                    .build());
+        } catch (DataIntegrityViolationException exception) {
+            return success();
+        }
 
         return success();
     }

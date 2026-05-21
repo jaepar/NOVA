@@ -2,6 +2,7 @@ package woorifisa.project.coreBanking.domain.wallet.service;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.dao.DataIntegrityViolationException;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.account.repository.AccountRepository;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
@@ -20,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 class WalletServiceTest {
 
@@ -88,6 +90,25 @@ class WalletServiceTest {
         assertThat(response.code()).isEqualTo(20000);
         assertThat(account.getBalance()).isEqualTo(30000);
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
+    }
+
+    @Test
+    void debitWalletChargeReturnsSuccessWhenExternalRequestIdUniqueConstraintIsViolated() {
+        DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
+        Account account = Account.builder()
+                .accountId(2001L)
+                .balance(30000)
+                .build();
+
+        when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(false);
+        when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.of(account));
+        doThrow(new DataIntegrityViolationException("duplicate external request id"))
+                .when(accountTransactionRepository).save(any(AccountTransaction.class));
+
+        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+
+        assertThat(response.success()).isTrue();
+        assertThat(response.code()).isEqualTo(20000);
     }
 
     @Test
