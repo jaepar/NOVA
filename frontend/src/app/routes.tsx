@@ -7,20 +7,20 @@ import { Login } from "./pages/Login";
 import { Transfer } from "./pages/Transfer";
 import { Exchange } from "./pages/Exchange";
 import { MyPage } from "./pages/MyPage";
-import { Step1 } from "./pages/certificate/Step01-TermsAgreement";
-import { Step1TermDetail } from "./pages/certificate/Step01-TermDetail";
-import { AllTermsAgreements } from "./pages/certificate/Step01-AllTermsAgreements";
-import { Step2 } from "./pages/certificate/Step02-VerificationFlow";
-import { Step3 } from "./pages/certificate/Step03-DocumentUpload";
+import { CertificateIssuanceConsentAgreement } from "./pages/certificate/Step01-TermsAgreement";
+import { CertificateIssuanceConsentTermDetail } from "./pages/certificate/Step01-TermDetail";
+import { CertificateIssuanceConsentAllTermsAgreements } from "./pages/certificate/Step01-AllTermsAgreements";
+import { Step02VerificationFlow } from "./pages/certificate/Step02-VerificationFlow";
+import { Step03DocumentUpload } from "./pages/certificate/Step03-DocumentUpload";
 import { PassportCaptureGuide } from "./pages/certificate/Step04-PassportCaptureGuide";
 import { PassportCameraCapture } from "./pages/certificate/Step05-PassportCameraCapture";
 import { NfcGuide } from "./pages/certificate/Step06-NfcGuide";
 import { NfcOcrLoading } from "./pages/certificate/Step07-NfcOcrLoading";
 import { NfcCompareFailed } from "./pages/certificate/Step08-NfcCompareFailed";
 import { LivenessGuide } from "./pages/certificate/Step09-LivenessGuide";
-import { LivenessTermsAgreement } from "./pages/certificate/Step10-LivenessTermsAgreement";
-import { Step10TermDetail } from "./pages/certificate/Step10-TermDetail";
-import { Step10AllTermsAgreements } from "./pages/certificate/Step10-AllTermsAgreements";
+import { LivenessConsentAgreement } from "./pages/certificate/Step10-LivenessTermsAgreement";
+import { LivenessConsentTermDetail } from "./pages/certificate/Step10-TermDetail";
+import { LivenessConsentAllTermsAgreements } from "./pages/certificate/Step10-AllTermsAgreements";
 import { LivenessCameraCapture } from "./pages/certificate/Step11-LivenessCameraCapture";
 import { VerificationCompleted } from "./pages/certificate/Step12-VerificationCompleted";
 import { TransactionHistory } from "./pages/TransactionHistory";
@@ -54,20 +54,20 @@ export const router = createBrowserRouter([
   { path: "/wallet/home", Component: WalletHome },
   { path: "/wallet/charge", Component: WalletCharge },
   { path: "/wallet/payment", Component: WalletPayment },
-  { path: "/certificate/step-01", Component: Step1 },
-  { path: "/certificate/step-01/terms/:termId", Component: Step1TermDetail },
-  { path: "/certificate/step-01/categories/:categoryId/consent", Component: AllTermsAgreements },
-  { path: "/certificate/step-02", Component: Step2 },
-  { path: "/certificate/step-03", Component: Step3 },
+  { path: "/certificate/step-01", Component: CertificateIssuanceConsentAgreement },
+  { path: "/certificate/step-01/terms/:termId", Component: CertificateIssuanceConsentTermDetail },
+  { path: "/certificate/step-01/categories/:categoryId/consent", Component: CertificateIssuanceConsentAllTermsAgreements },
+  { path: "/certificate/step-02", Component: Step02VerificationFlow },
+  { path: "/certificate/step-03", Component: Step03DocumentUpload },
   { path: "/certificate/step-04", Component: PassportCaptureGuide },
   { path: "/certificate/step-05", Component: PassportCameraCapture },
   { path: "/certificate/step-06", Component: NfcGuide },
   { path: "/certificate/step-07", Component: NfcOcrLoading },
   { path: "/certificate/step-08", Component: NfcCompareFailed },
   { path: "/certificate/step-09", Component: LivenessGuide },
-  { path: "/certificate/step-10", Component: LivenessTermsAgreement },
-  { path: "/certificate/step-10/terms/:termId", Component: Step10TermDetail },
-  { path: "/certificate/step-10/categories/:categoryId/consent", Component: Step10AllTermsAgreements },
+  { path: "/certificate/step-10", Component: LivenessConsentAgreement },
+  { path: "/certificate/step-10/terms/:termId", Component: LivenessConsentTermDetail },
+  { path: "/certificate/step-10/categories/:categoryId/consent", Component: LivenessConsentAllTermsAgreements },
   { path: "/certificate/step-11", Component: LivenessCameraCapture },
   { path: "/certificate/step-12", Component: VerificationCompleted },
   {

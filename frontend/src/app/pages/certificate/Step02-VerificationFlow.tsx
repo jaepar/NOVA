@@ -9,7 +9,7 @@ const verificationSteps = [
   { id: 4, title: "얼굴 인증" },
 ];
 
-export function Step2() {
+export function Step02VerificationFlow() {
   const navigate = useNavigate();
 
   return (

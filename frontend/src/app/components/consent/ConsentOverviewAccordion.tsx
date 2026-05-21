@@ -15,6 +15,11 @@ import {
 interface ConsentOverviewAccordionProps {
   definition: ConsentDefinition;
   preserveState: boolean;
+  basePath?: string;
+  preserveStateKey?: string;
+  resetCarouselCursorKey?: string;
+  title?: string;
+  description?: string;
   showSelectionControls?: boolean;
   onRequiredCompleteChange?: (complete: boolean) => void;
 }
@@ -22,6 +27,11 @@ interface ConsentOverviewAccordionProps {
 export function ConsentOverviewAccordion({
   definition,
   preserveState,
+  basePath = "/consent-template",
+  preserveStateKey = "preserveConsentState",
+  resetCarouselCursorKey = "resetCategoryCursor",
+  title = "서비스를 가입을 위해\n약관에 동의해 주세요",
+  description = "약관 동의 샘플 페이지",
   showSelectionControls = true,
   onRequiredCompleteChange,
 }: ConsentOverviewAccordionProps) {
@@ -33,6 +43,7 @@ export function ConsentOverviewAccordion({
   });
   const [checkedTermIds, setCheckedTermIds] = useState<Set<string>>(() => getAgreedTermIds());
 
+  const titleLines = title.split("\n");
   const requiredIds = useMemo(() => getRequiredTermIds(definition), [definition]);
   const isRequiredComplete = requiredIds.every((id) => checkedTermIds.has(id));
 
@@ -77,10 +88,9 @@ export function ConsentOverviewAccordion({
       return;
     }
 
-    // Re-entering from category-level must always start at 1/n.
     setCategoryCursor(categoryId, 0);
-    navigate(`/consent-template/categories/${categoryId}/consent`, {
-      state: { preserveConsentState: true, resetCategoryCursor: true },
+    navigate(`${basePath}/categories/${categoryId}/consent`, {
+      state: { [preserveStateKey]: true, [resetCarouselCursorKey]: true },
     });
   };
 
@@ -95,18 +105,21 @@ export function ConsentOverviewAccordion({
       });
       return;
     }
-    navigate(`/consent-template/terms/${termId}`, { state: { preserveConsentState: true } });
+    navigate(`${basePath}/terms/${termId}`, { state: { [preserveStateKey]: true } });
   };
 
   return (
     <div className="space-y-4 pb-2">
       <section className="space-y-2">
         <h2 className="text-2xl font-semibold leading-tight">
-          서비스를 가입을 위해
-          <br />
-          약관에 동의해 주세요
+          {titleLines.map((line, idx) => (
+            <span key={`${line}-${idx}`}>
+              {line}
+              {idx < titleLines.length - 1 && <br />}
+            </span>
+          ))}
         </h2>
-        <p className="text-sm text-muted-foreground">약관 동의 샘플 페이지</p>
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </section>
 
       <section className="space-y-3">
@@ -155,7 +168,7 @@ export function ConsentOverviewAccordion({
                       </AppButton>
                       <AppButton
                         variant="unstyled"
-                        onClick={() => navigate(`/consent-template/terms/${term.id}`, { state: { preserveConsentState: true } })}
+                        onClick={() => navigate(`${basePath}/terms/${term.id}`, { state: { [preserveStateKey]: true } })}
                         className="min-w-0 flex-1 text-left"
                       >
                         <p className="text-sm">{term.title}</p>
@@ -163,7 +176,7 @@ export function ConsentOverviewAccordion({
                       </AppButton>
                       <AppButton
                         variant="unstyled"
-                        onClick={() => navigate(`/consent-template/terms/${term.id}`, { state: { preserveConsentState: true } })}
+                        onClick={() => navigate(`${basePath}/terms/${term.id}`, { state: { [preserveStateKey]: true } })}
                         className="p-1"
                       >
                         <ChevronRight className="w-4 h-4 text-muted-foreground" />
