@@ -14,6 +14,7 @@ export function CertificateIssuanceConsentAgreement() {
   return (
     <MobileLayout
       title="시작하기"
+      backPath="/main"
       bottomContent={
         <Btn_1Col onClick={() => navigate("/certificate/step-02")} disabled={!isRequiredComplete}>
           동의하고 계속하기

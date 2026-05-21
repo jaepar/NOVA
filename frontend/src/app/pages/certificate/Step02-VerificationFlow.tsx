@@ -15,6 +15,7 @@ export function Step02VerificationFlow() {
   return (
     <MobileLayout
       title="비대면 실명확인"
+      backPath="/certificate/step-01"
       bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-03")}>다음</Btn_1Col>}
     >
       <div className="space-y-6 pb-2">

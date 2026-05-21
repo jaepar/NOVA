@@ -8,6 +8,7 @@ export function NfcGuide() {
   return (
     <MobileLayout
       title="비대면 실명확인"
+      backPath="/certificate/step-05"
       bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-07")}>NFC 태깅 시작</Btn_1Col>}
     >
       <div className="space-y-4 pb-2">

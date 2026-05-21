@@ -112,6 +112,7 @@ export function PassportCameraCapture() {
     return (
       <MobileLayout
         title="비대면 실명확인"
+        backPath="/certificate/step-04"
         bottomContent={
           <Btn_2Col
             leftLabel="재촬영"
@@ -162,7 +163,7 @@ export function PassportCameraCapture() {
   return (
     <CameraCapturePage
       title="비대면 실명확인"
-      onClose={() => navigate(-1)}
+      onClose={() => navigate("/certificate/step-04")}
       bottomBackgroundColor="#000000"
       bottomContent={
         <div className="space-y-4">

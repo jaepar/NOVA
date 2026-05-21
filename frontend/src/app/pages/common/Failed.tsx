@@ -13,6 +13,7 @@ interface FailedProps {
   buttonText?: string;
   onButtonClick?: () => void;
   redirectPath?: string;
+  backPath?: string;
 }
 
 export function Failed({
@@ -24,6 +25,7 @@ export function Failed({
   buttonText = "다시 시도",
   onButtonClick,
   redirectPath = "/",
+  backPath,
 }: FailedProps) {
   const navigate = useNavigate();
 
@@ -38,6 +40,7 @@ export function Failed({
   return (
     <MobileLayout
       title={headerTitle}
+      backPath={backPath}
       bottomContent={
         <Btn_1Col variant="primary" onClick={handleRetry}>
           {buttonText}

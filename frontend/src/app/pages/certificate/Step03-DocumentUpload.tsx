@@ -33,6 +33,7 @@ export function Step03DocumentUpload() {
   return (
     <MobileLayout
       title="비대면 실명확인"
+      backPath="/certificate/step-02"
       bottomContent={
         <Btn_1Col disabled={!isAllAttached} onClick={() => navigate("/certificate/step-04")}>
           다음으로
