@@ -49,13 +49,11 @@ export const router = createBrowserRouter([
   { path: "/exchange", Component: Exchange },
   { path: "/mypage", Component: MyPage },
   { path: "/notifications", Component: Notifications },
-
   { path: "/wallet", Component: WalletTerms },
   { path: "/wallet/terms", Component: WalletTerms },
   { path: "/wallet/home", Component: WalletHome },
   { path: "/wallet/charge", Component: WalletCharge },
   { path: "/wallet/payment", Component: WalletPayment },
-
   { path: "/certificate/step-01", Component: Step1 },
   { path: "/certificate/step-01/terms/:termId", Component: Step1TermDetail },
   { path: "/certificate/step-01/categories/:categoryId/consent", Component: AllTermsAgreements },
@@ -84,14 +82,11 @@ export const router = createBrowserRouter([
       />
     ),
   },
-
   { path: "/consent-template", Component: ConsentTemplate },
   { path: "/consent-template/terms/:termId", Component: ConsentDetailTemplate },
   { path: "/consent-template/categories/:categoryId/consent", Component: ConsentCategoryCarouselTemplate },
-
   { path: "/transaction-history", Component: TransactionHistory },
   { path: "/design-system", Component: DesignSystem },
-
   {
     path: "/loading",
     element: (
