@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.hibernate.TypeMismatchException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -44,7 +45,25 @@ public class GlobalControllerAdvice {
     }
 
     @ExceptionHandler(CustomException.class)
-    public BaseErrorResponse handleCustomException(CustomException e) {
-        return new BaseErrorResponse(e.getExceptionStatus(), e.getMessage());
+    public ResponseEntity<BaseErrorResponse> handleCustomException(CustomException e) {
+        return ResponseEntity
+                .status(resolveHttpStatus(e.getExceptionStatus().getCode()))
+                .body(new BaseErrorResponse(e.getExceptionStatus(), e.getMessage()));
+    }
+
+    private HttpStatus resolveHttpStatus(int code) {
+        if (code == WALLET_DEBIT_FAILED.getCode()) {
+            return HttpStatus.BAD_GATEWAY;
+        }
+        if (code >= 40100 && code < 40200) {
+            return HttpStatus.UNAUTHORIZED;
+        }
+        if (code >= 40400 && code < 40500) {
+            return HttpStatus.NOT_FOUND;
+        }
+        if (code >= 40000 && code < 50000) {
+            return HttpStatus.BAD_REQUEST;
+        }
+        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 }

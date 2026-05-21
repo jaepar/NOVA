@@ -12,7 +12,7 @@ import woorifisa.project.backend.domain.wallet.service.WalletService;
 import woorifisa.project.backend.global.exception.CustomException;
 import woorifisa.project.backend.global.response.BaseResponse;
 
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BAD_REQUEST;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.UNAUTHORIZED;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,7 +33,7 @@ public class WalletController {
     }
 
     private Long getSessionUserId(HttpSession session) {
-        // 로그인 세션의 현재 사용자 식별자 기반 월렛 소유자 검증
+        // 로그인 세션의 현재 사용자 식별값
         Object userId = session.getAttribute("userId");
         if (userId instanceof Long sessionUserId) {
             return sessionUserId;
@@ -41,6 +41,6 @@ public class WalletController {
         if (userId instanceof Integer sessionUserId) {
             return sessionUserId.longValue();
         }
-        throw new CustomException(BAD_REQUEST);
+        throw new CustomException(UNAUTHORIZED);
     }
 }

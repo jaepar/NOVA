@@ -13,7 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BAD_REQUEST;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.UNAUTHORIZED;
 
 class WalletControllerTest {
 
@@ -42,7 +42,7 @@ class WalletControllerTest {
 
         assertThatThrownBy(() -> walletController.chargeWallet(session, "idempotency-key", request))
                 .isInstanceOfSatisfying(CustomException.class,
-                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(BAD_REQUEST));
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(UNAUTHORIZED));
 
         verify(walletService, never()).chargeWallet(1L, "idempotency-key", request);
     }

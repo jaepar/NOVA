@@ -2,7 +2,6 @@ package woorifisa.project.backend.domain.wallet.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.BankingRepository;
 import woorifisa.project.backend.domain.wallet.client.OnPremWalletClient;
@@ -10,10 +9,7 @@ import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
 import woorifisa.project.backend.domain.wallet.dto.request.DebitWalletAccountRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.DebitWalletAccountResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
-import woorifisa.project.backend.domain.wallet.entity.WalletTransaction;
-import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
 import woorifisa.project.backend.domain.wallet.repository.WalletRepository;
-import woorifisa.project.backend.domain.wallet.repository.WalletTransactionRepository;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.time.LocalDate;
@@ -30,24 +26,23 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 public class WalletService {
 
     private static final int SUCCESS_CODE = 20000;
-    private static final String WALLET_CHARGE_COUNTERPARTY = "월렛 충전";
     private static final DateTimeFormatter REQUEST_DATE_FORMAT = DateTimeFormatter.BASIC_ISO_DATE;
 
     private final WalletRepository walletRepository;
-    private final WalletTransactionRepository walletTransactionRepository;
     private final BankingRepository bankingRepository;
     private final OnPremWalletClient onPremWalletClient;
+    private final WalletChargePersistenceService walletChargePersistenceService;
 
-    @Transactional
     public void chargeWallet(Long userId, String idempotencyKey, ChargeWalletRequest request) {
         validateChargeRequest(userId, request);
+        Integer chargeAmount = toIntegerAmount(request.chargeAmount());
 
         Wallet wallet = walletRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new CustomException(WALLET_NOT_FOUND));
         AccountRef accountRef = bankingRepository.findByUser_UserIdAndAccountId(userId, request.withdrawAccountId())
                 .orElseThrow(() -> new CustomException(WALLET_ACCOUNT_NOT_FOUND));
 
-        // Cloud와 On-Prem 거래 추적용 연동 식별자
+        // Cloud와 On-Prem 거래 추적을 연결하는 충전 요청 식별값
         DebitWalletAccountRequest debitRequest = new DebitWalletAccountRequest(
                 createWalletChargeRequestId(),
                 accountRef.getCustomerId(),
@@ -61,15 +56,7 @@ public class WalletService {
             throw new CustomException(WALLET_DEBIT_FAILED);
         }
 
-        // 차감 성공 확인 요청만 월렛 잔액과 사용자 표시용 거래내역 반영
-        Integer chargeAmount = toIntegerAmount(request.chargeAmount());
-        wallet.charge(chargeAmount);
-        walletTransactionRepository.save(WalletTransaction.builder()
-                .wallet(wallet)
-                .transactionFlow(TransactionFlow.DEPOSIT)
-                .counterparty(WALLET_CHARGE_COUNTERPARTY)
-                .amount(chargeAmount)
-                .build());
+        walletChargePersistenceService.completeWalletCharge(wallet.getWalletId(), chargeAmount);
     }
 
     private void validateChargeRequest(Long userId, ChargeWalletRequest request) {
