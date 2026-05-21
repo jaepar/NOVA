@@ -172,3 +172,77 @@ API 계층 작업 전 문서 확인:
   ...
 </MobileLayout>
 ```
+## 11. 공통 상태 페이지(로딩/성공/실패) 사용 가이드
+
+### 11.1 공통 콘텐츠 컴포넌트
+- `CenteredTaskContent`를 사용해 콘텐츠를 화면 기준 가로/세로 중앙 정렬한다.
+- `task`, `description`을 파라미터로 전달한다.
+- `description`은 `\n` 또는 `\\n` 개행 문자열을 줄바꿈으로 렌더링한다.
+
+### 11.2 Loading 컴포넌트 파라미터
+- `headerTitle: string`
+- `task: string`
+- `description?: string`
+- `spinnerSize?: 'sm' | 'md' | 'lg'`
+
+예시:
+```tsx
+<Loading
+  headerTitle="Template"
+  task="Task"
+  description={"안녕\n하세요"}
+  spinnerSize="lg"
+/>
+```
+
+### 11.3 Success 컴포넌트 파라미터
+- `headerTitle: string`
+- `task: string`
+- `description?: string`
+- `visualImageSrc?: string`
+- `visualImageAlt?: string`
+- `buttonText?: string`
+- `onButtonClick?: () => void`
+- `redirectPath?: string`
+
+렌더링 규칙:
+- `visualImageSrc`가 있으면 이미지 렌더링
+- `visualImageSrc`가 없으면 기본 성공 아이콘 렌더링
+
+예시:
+```tsx
+<Success
+  headerTitle="완료"
+  task="계좌 개설 완료"
+  description={"정상 처리되었습니다.\n메인으로 이동합니다."}
+  visualImageSrc="/images/success.png"
+  visualImageAlt="성공"
+  redirectPath="/main"
+/>
+```
+
+### 11.4 Failed 컴포넌트 파라미터
+- `headerTitle: string`
+- `task: string`
+- `description?: string`
+- `visualImageSrc?: string`
+- `visualImageAlt?: string`
+- `buttonText?: string`
+- `onButtonClick?: () => void`
+- `redirectPath?: string`
+
+렌더링 규칙:
+- `visualImageSrc`가 있으면 이미지 렌더링
+- `visualImageSrc`가 없으면 기본 실패 아이콘 렌더링
+
+예시:
+```tsx
+<Failed
+  headerTitle="실패"
+  task="인증 실패"
+  description={"입력 정보를 확인한 뒤\n다시 시도해주세요."}
+  visualImageSrc="/images/failed.png"
+  visualImageAlt="실패"
+  redirectPath="/"
+/>
+```

@@ -54,3 +54,8 @@
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
 - `frontend/src/main.tsx`
 - `frontend/src/styles/theme.css`
+## 7) 공통 상태 페이지 레이아웃
+
+- `Loading`, `Success`, `Failed`는 `CenteredTaskContent` 기반 중앙 정렬 레이아웃을 사용한다.
+- 상태 페이지 본문에서 개별 `px-*` 패딩을 임의로 추가하지 않는다.
+- 본문 텍스트는 `task`, `description` 파라미터로 주입한다.

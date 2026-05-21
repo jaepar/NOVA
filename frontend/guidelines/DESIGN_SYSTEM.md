@@ -81,3 +81,14 @@
 - 약관 동의 페이지의 하단 액션은 공통 하단 고정 버튼(`Btn_1Col`)을 사용한다.
 - 큰 카테고리/세부 항목의 체크/이동 인터랙션은 `frontend/src/app/domains/certificate-consent/README.md` 규격을 따른다.
 - 세부 약관 상세의 헤더 타이틀은 `약관/동의서 상세`로 통일한다.
+## 11) 공통 상태 콘텐츠 규칙
+
+- `Loading`, `Success`, `Failed`의 본문 레이아웃은 `CenteredTaskContent`를 공통 사용한다.
+- 공통 본문은 화면 기준 가로/세로 중앙 정렬을 유지한다.
+- `task`, `description` 텍스트 블록 스타일은 세 상태 페이지에서 일관되게 유지한다.
+- `description`은 줄바꿈 문자열(`\n`, `\\n`)을 표현해야 한다.
+
+성공/실패 시각 요소 규칙:
+- `visualImageSrc`가 있으면 이미지 렌더링
+- `visualImageSrc`가 없으면 기본 아이콘 렌더링
+- 이미지 사용 시 `visualImageAlt`를 제공한다.

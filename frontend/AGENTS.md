@@ -141,3 +141,25 @@
 - [ ] 헤더 색상 값이 확인되었거나 기본값으로 고정되었는가
 - [ ] 플로팅 하단 사용 시 `bottomBackgroundColor`가 확인되었거나 기본값으로 고정되었는가
 - [ ] 공통 헤더로 처리 가능한 버튼을 페이지별 임시 버튼으로 중복 구현하지 않았는가
+## 10) 공통 상태 페이지 구현 규칙 (필수)
+
+대상 컴포넌트:
+- `Loading`
+- `Success`
+- `Failed`
+- `CenteredTaskContent`
+
+규칙:
+- 콘텐츠 본문 정렬은 `CenteredTaskContent`를 재사용한다.
+- `task`, `description` 텍스트는 페이지별 하드코딩 레이아웃을 만들지 말고 공통 컴포넌트 props로 전달한다.
+- `description`은 줄바꿈 문자열(`\n`, `\\n`)을 표시할 수 있어야 한다.
+
+성공/실패 시각 요소 확장 규칙:
+- `visualImageSrc`가 전달되면 이미지 우선 렌더링
+- `visualImageSrc`가 없으면 기본 아이콘 렌더링
+- `visualImageAlt`를 함께 전달해 접근성을 유지한다.
+
+사전 확인 필수 항목(요청 시):
+- `task`, `description`
+- 버튼 동작(`onButtonClick` 또는 `redirectPath`)
+- 이미지 대체 여부(`visualImageSrc`, `visualImageAlt`)

@@ -123,7 +123,7 @@ export const router = createBrowserRouter([
     element: (
       <Loading
         headerTitle="Template"
-        title="Task"
+        task="Task"
         description="description(optional)"
         spinnerSize="lg"
       />
@@ -134,7 +134,7 @@ export const router = createBrowserRouter([
     element: (
       <Failed
         headerTitle="Template"
-        title="Task"
+        task="Task"
         description="description(optional)"
         buttonText="돌아가기"
         redirectPath="/"
@@ -146,7 +146,7 @@ export const router = createBrowserRouter([
     element: (
       <Success
         headerTitle="Template"
-        title="Task"
+        task="Task"
         description="description(optional)"
         buttonText="확인"
         redirectPath="/main"
