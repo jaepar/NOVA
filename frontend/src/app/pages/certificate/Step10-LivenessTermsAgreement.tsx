@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle2, ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
@@ -10,13 +10,13 @@ const livenessConsentDefinition = {
   categories: [
     {
       id: "required-service",
-      title: "[필수] 서비스 가입 동의",
+      title: "[필수] 본인확인 서비스 이용 동의",
       required: true,
       terms: [
         {
           id: "face-collect",
-          title: "개인(신용)정보 수집·이용 동의서",
-          summary: "안면인식 본인확인을 위한 필수 동의입니다.",
+          title: "안면인식 정보 수집·이용 동의서",
+          summary: "안면인식 기반 본인확인을 위한 필수 동의입니다.",
         },
       ],
     },
@@ -26,88 +26,104 @@ const livenessConsentDefinition = {
 export function LivenessTermsAgreement() {
   const navigate = useNavigate();
   const location = useLocation();
-  const checkedTermIds = useStep10TermsPageStore((state) => state.checkedTermIds);
-  const openCategoryIds = useStep10TermsPageStore((state) => state.openCategoryIds);
+  const savedOpenCategoryIds = useStep10TermsPageStore((state) => state.openCategoryIds);
+  const checkedTermIdsState = useStep10TermsPageStore((state) => state.checkedTermIds);
   const setCheckedTermIds = useStep10TermsPageStore((state) => state.setCheckedTermIds);
   const setOpenCategoryIds = useStep10TermsPageStore((state) => state.setOpenCategoryIds);
+  const setCategoryCursor = useStep10TermsPageStore((state) => state.setCategoryCursor);
   const reset = useStep10TermsPageStore((state) => state.reset);
 
-  useEffect(() => {
-    const shouldPreserve = Boolean((location.state as { preserveStep10State?: boolean } | null)?.preserveStep10State);
-    if (!shouldPreserve) reset();
-  }, [location.state, reset]);
+  const [openCategoryIds, setOpenCategoryIdsState] = useState<string[]>(() => {
+    if (savedOpenCategoryIds.length > 0) return savedOpenCategoryIds;
+    return livenessConsentDefinition.categories.filter((category) => category.required).map((category) => category.id);
+  });
 
-  const checkedSet = useMemo(() => new Set(checkedTermIds), [checkedTermIds]);
+  const checkedTermIds = useMemo(() => new Set(checkedTermIdsState), [checkedTermIdsState]);
   const requiredTermIds = useMemo(
     () =>
       livenessConsentDefinition.categories
-        .flatMap((category) => category.terms)
-        .filter((term) => livenessConsentDefinition.categories.find((c) => c.terms.some((t) => t.id === term.id))?.required)
-        .map((term) => term.id),
+        .filter((category) => category.required)
+        .flatMap((category) => category.terms.map((term) => term.id)),
     [],
   );
-  const isRequiredComplete = requiredTermIds.every((id) => checkedSet.has(id));
+  const isAllRequiredChecked = requiredTermIds.every((id) => checkedTermIds.has(id));
+
+  useEffect(() => {
+    const shouldPreserve = Boolean((location.state as { preserveStep10State?: boolean } | null)?.preserveStep10State);
+    if (shouldPreserve) return;
+
+    reset();
+    setOpenCategoryIdsState(livenessConsentDefinition.categories.filter((category) => category.required).map((category) => category.id));
+  }, [location.state, reset]);
+
+  useEffect(() => {
+    setOpenCategoryIds(openCategoryIds);
+  }, [openCategoryIds, setOpenCategoryIds]);
 
   const toggleCategory = (categoryId: string) => {
-    setOpenCategoryIds(
-      openCategoryIds.includes(categoryId)
-        ? openCategoryIds.filter((id) => id !== categoryId)
-        : [...openCategoryIds, categoryId],
+    setOpenCategoryIdsState((prev) =>
+      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
     );
   };
 
-  const toggleTerm = (termId: string) => {
-    const next = new Set(checkedSet);
-    if (next.has(termId)) next.delete(termId);
-    else next.add(termId);
-    setCheckedTermIds(Array.from(next));
-  };
-
-  const toggleCategoryTerms = (categoryId: string) => {
+  const handleCategoryCheckClick = (categoryId: string) => {
     const category = livenessConsentDefinition.categories.find((item) => item.id === categoryId);
     if (!category) return;
-    const termIds = category.terms.map((term) => term.id);
-    const isAllChecked = termIds.every((id) => checkedSet.has(id));
-    const next = new Set(checkedSet);
-    if (isAllChecked) {
-      termIds.forEach((id) => next.delete(id));
-    } else {
-      termIds.forEach((id) => next.add(id));
+
+    const categoryTermIds = category.terms.map((term) => term.id);
+    const isCategoryAllChecked = categoryTermIds.every((id) => checkedTermIds.has(id));
+
+    if (isCategoryAllChecked) {
+      const next = new Set(checkedTermIds);
+      categoryTermIds.forEach((id) => next.delete(id));
+      setCheckedTermIds(Array.from(next));
+      return;
     }
-    setCheckedTermIds(Array.from(next));
+
+    setCategoryCursor(categoryId, 0);
+    navigate(`/certificate/step-10/categories/${categoryId}/consent`, { state: { preserveStep10State: true } });
+  };
+
+  const handleTermCheckClick = (termId: string) => {
+    if (checkedTermIds.has(termId)) {
+      const next = new Set(checkedTermIds);
+      next.delete(termId);
+      setCheckedTermIds(Array.from(next));
+      return;
+    }
+    navigate(`/certificate/step-10/terms/${termId}`, { state: { preserveStep10State: true } });
   };
 
   return (
     <MobileLayout
       title="비대면 실명확인"
       bottomContent={
-        <Btn_1Col disabled={!isRequiredComplete} onClick={() => navigate("/certificate/step-11")}>
-          전체 동의하기
+        <Btn_1Col disabled={!isAllRequiredChecked} onClick={() => navigate("/certificate/step-11")}>
+          동의하고 촬영하기
         </Btn_1Col>
       }
     >
       <div className="space-y-4 pb-2">
-        <section className="space-y-1">
+        <section className="space-y-2">
           <h2 className="text-2xl font-semibold leading-tight">
             서비스 가입을 위해
             <br />
             약관에 동의해 주세요
           </h2>
-          <p className="text-muted-foreground">약관 동의 페이지</p>
         </section>
 
         <section className="space-y-3">
           {livenessConsentDefinition.categories.map((category) => {
             const isOpen = openCategoryIds.includes(category.id);
-            const isCategoryChecked = category.terms.every((term) => checkedSet.has(term.id));
+            const isCategoryAllChecked = category.terms.every((term) => checkedTermIds.has(term.id));
 
             return (
               <div key={category.id} className="rounded-2xl bg-secondary p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <AppButton variant="unstyled" onClick={() => toggleCategoryTerms(category.id)} className="p-1">
+                <div className="w-full flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-left flex-1 min-w-0">
+                    <AppButton variant="unstyled" onClick={() => handleCategoryCheckClick(category.id)} className="p-1">
                       <CheckCircle2
-                        className={`w-5 h-5 ${isCategoryChecked ? "text-primary fill-blue-100" : "text-muted-foreground"}`}
+                        className={`w-5 h-5 ${isCategoryAllChecked ? "text-blue-600 fill-blue-100" : "text-muted-foreground"}`}
                       />
                     </AppButton>
                     <AppButton
@@ -128,22 +144,23 @@ export function LivenessTermsAgreement() {
                 </div>
 
                 {isOpen && (
-                  <div className="mt-3 border-t border-border pt-2 space-y-1">
+                  <div className="mt-3 border-t border-border pt-2">
                     {category.terms.map((term) => (
-                      <div key={term.id} className="flex items-center gap-2 py-2">
-                        <AppButton variant="unstyled" onClick={() => toggleTerm(term.id)} className="p-1">
-                          <CheckCircle2
-                            className={`w-4 h-4 ${checkedSet.has(term.id) ? "text-primary fill-blue-100" : "text-muted-foreground"}`}
-                          />
-                        </AppButton>
-                        <AppButton
-                          variant="unstyled"
-                          onClick={() => navigate(`/certificate/step-10/terms/${term.id}`, { state: { preserveStep10State: true } })}
-                          className="min-w-0 flex-1 text-left"
-                        >
-                          <p className="text-sm">{term.title}</p>
-                          <p className="text-xs text-muted-foreground">{term.summary}</p>
-                        </AppButton>
+                      <div key={term.id} className="w-full flex items-center justify-between py-2">
+                        <div className="flex items-center gap-2 text-left">
+                          <AppButton variant="unstyled" onClick={() => handleTermCheckClick(term.id)} className="p-1">
+                            <CheckCircle2
+                              className={`w-4 h-4 ${checkedTermIds.has(term.id) ? "text-blue-600 fill-blue-100" : "text-muted-foreground"}`}
+                            />
+                          </AppButton>
+                          <AppButton
+                            variant="unstyled"
+                            onClick={() => navigate(`/certificate/step-10/terms/${term.id}`, { state: { preserveStep10State: true } })}
+                            className="text-sm text-left"
+                          >
+                            {term.title}
+                          </AppButton>
+                        </div>
                         <AppButton
                           variant="unstyled"
                           onClick={() => navigate(`/certificate/step-10/terms/${term.id}`, { state: { preserveStep10State: true } })}

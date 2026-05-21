@@ -153,20 +153,31 @@ export const useStep5PassportCaptureStore = create<Step5PassportCaptureState>((s
 interface Step10TermsPageState {
   checkedTermIds: string[];
   openCategoryIds: string[];
+  categoryCursor: Record<string, number>;
   setCheckedTermIds: (ids: string[]) => void;
   setOpenCategoryIds: (ids: string[]) => void;
+  setCategoryCursor: (categoryId: string, index: number) => void;
   reset: () => void;
 }
 
 export const useStep10TermsPageStore = create<Step10TermsPageState>((set) => ({
   checkedTermIds: [],
   openCategoryIds: ["required-service"],
+  categoryCursor: {},
   setCheckedTermIds: (checkedTermIds) => set({ checkedTermIds }),
   setOpenCategoryIds: (openCategoryIds) => set({ openCategoryIds }),
+  setCategoryCursor: (categoryId, index) =>
+    set((state) => ({
+      categoryCursor: {
+        ...state.categoryCursor,
+        [categoryId]: Math.max(0, Math.floor(index)),
+      },
+    })),
   reset: () =>
     set({
       checkedTermIds: [],
       openCategoryIds: ["required-service"],
+      categoryCursor: {},
     }),
 }));
 

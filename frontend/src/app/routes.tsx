@@ -20,6 +20,7 @@ import { NfcCompareFailed } from "./pages/certificate/Step08-NfcCompareFailed";
 import { LivenessGuide } from "./pages/certificate/Step09-LivenessGuide";
 import { LivenessTermsAgreement } from "./pages/certificate/Step10-LivenessTermsAgreement";
 import { Step10TermDetail } from "./pages/certificate/Step10-TermDetail";
+import { Step10AllTermsAgreements } from "./pages/certificate/Step10-AllTermsAgreements";
 import { LivenessCameraCapture } from "./pages/certificate/Step11-LivenessCameraCapture";
 import { VerificationCompleted } from "./pages/certificate/Step12-VerificationCompleted";
 import { TransactionHistory } from "./pages/TransactionHistory";
@@ -128,6 +129,10 @@ export const router = createBrowserRouter([
   {
     path: "/certificate/step-10/terms/:termId",
     Component: Step10TermDetail,
+  },
+  {
+    path: "/certificate/step-10/categories/:categoryId/consent",
+    Component: Step10AllTermsAgreements,
   },
   {
     path: "/certificate/step-11",
