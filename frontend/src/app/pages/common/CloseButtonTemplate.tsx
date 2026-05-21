@@ -1,8 +1,6 @@
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X } from 'lucide-react';
 import { MobileLayout } from '../../components/layout/MobileLayout';
-import { AppButton } from '../../components/design-system/AppButton';
 import { Btn_1Col } from '../../components/design-system/Btn_1Col';
 
 interface CloseButtonTemplateProps {
@@ -49,16 +47,9 @@ export function CloseButtonTemplate({
   return (
     <MobileLayout
       title={headerTitle}
-      showBackButton={false}
-      headerRightContent={
-        <AppButton
-          variant="unstyled"
-          onClick={handleClose}
-          className="p-2 -mr-2 hover:bg-secondary rounded-lg transition-colors"
-        >
-          <X className="w-6 h-6" />
-        </AppButton>
-      }
+      headerType="close"
+      onClose={handleClose}
+      closePath={closePath}
       bottomContent={
         showBottomButton && buttonText ? (
           <Btn_1Col onClick={handleButtonClick} variant={buttonVariant}>

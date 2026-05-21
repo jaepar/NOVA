@@ -30,7 +30,10 @@
 
 ## 4) 레이아웃 규칙 (필수)
 - 모든 페이지는 `MobileLayout`을 기본 스캐폴드로 사용
-- 상단 네비게이션은 `FixedHeader` 사용
+- 상단 네비게이션은 `MobileLayout`의 `headerType`으로 관리한다.
+  - `headerType="back"`: 뒤로가기 헤더(`FixedHeader`)
+  - `headerType="close"`: 닫기 헤더(`CloseFixedHeader`)
+  - `headerType="none"`: 버튼 없는 타이틀 헤더(`TitleOnlyFixedHeader`)
 - 하단 고정 액션은 `FloatingBottom` 또는 `BottomNav` 사용
 - 초기 렌더 시 본문은 헤더 아래에서 시작해야 함
 - 페이지 간 본문 시작 오프셋은 동일해야 함
@@ -104,3 +107,99 @@
 - `frontend/AGENTS.md`
 - `frontend/guidelines/DESIGN_SYSTEM.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
+
+## 9) 헤더 구현 입력 계약 (필수)
+
+페이지 헤더를 구현/수정할 때는 코딩 전에 요청에서 필요한 값을 먼저 수집한다.
+
+사전 확인 필수 항목:
+- 헤더 타입: `back` / `close` / `none`
+- 헤더 타이틀 텍스트
+- 이동 정책:
+  - `back` 헤더: 커스텀 로직(`onBack`) 사용 여부 또는 `backPath`
+  - `close` 헤더: 커스텀 로직(`onClose`) 사용 여부 또는 `closePath`
+- 색상 토큰 또는 명시값:
+  - `headerBackgroundColor`
+  - `headerTextColor`
+- 하단 액션 영역 사용 여부:
+  - `bottomContent` 필요 여부
+  - `bottomBackgroundColor` (플로팅 하단 사용 시)
+
+위 항목이 누락되어 안전하게 추론할 수 없으면, 반드시 사용자에게 먼저 확인한 뒤 구현한다.
+
+### 기본 기본값
+- `headerType`: `back`
+- `headerBackgroundColor`: `#ffffff`
+- `headerTextColor`: `#000000`
+- `bottomBackgroundColor`: `#ffffff`
+- 뒤로가기 기본 동작: `navigate(-1)`
+- 닫기 기본 동작: `/`
+
+### PR/리뷰 체크리스트 추가 항목
+- [ ] 페이지 의도에 맞게 헤더 타입을 명시적으로 선택했는가
+- [ ] 이동 목적지(`backPath`/`closePath`)가 플로우 스펙과 일치하는가
+- [ ] 헤더 색상 값이 확인되었거나 기본값으로 고정되었는가
+- [ ] 플로팅 하단 사용 시 `bottomBackgroundColor`가 확인되었거나 기본값으로 고정되었는가
+- [ ] 공통 헤더로 처리 가능한 버튼을 페이지별 임시 버튼으로 중복 구현하지 않았는가
+## 10) 공통 상태 페이지 구현 규칙 (필수)
+
+대상 컴포넌트:
+- `Loading`
+- `Success`
+- `Failed`
+- `CenteredTaskContent`
+
+규칙:
+- 콘텐츠 본문 정렬은 `CenteredTaskContent`를 재사용한다.
+- `task`, `description` 텍스트는 페이지별 하드코딩 레이아웃을 만들지 말고 공통 컴포넌트 props로 전달한다.
+- `description`은 줄바꿈 문자열(`\n`, `\\n`)을 표시할 수 있어야 한다.
+
+성공/실패 시각 요소 확장 규칙:
+- `visualImageSrc`가 전달되면 이미지 우선 렌더링
+- `visualImageSrc`가 없으면 기본 아이콘 렌더링
+- `visualImageAlt`를 함께 전달해 접근성을 유지한다.
+
+사전 확인 필수 항목(요청 시):
+- `task`, `description`
+- 버튼 동작(`onButtonClick` 또는 `redirectPath`)
+- 이미지 대체 여부(`visualImageSrc`, `visualImageAlt`)
+
+## 11) 약관 동의 컴포넌트 규칙 (필수)
+
+현재 약관 동의 기능은 페이지 직접 구현이 아니라 컴포넌트 조립 방식으로 사용한다.
+
+핵심 컴포넌트:
+- `ConsentOverviewAccordion`
+- `ConsentTermDetailView`
+- `ConsentCategoryCarouselView`
+
+상태 관리:
+- 약관 상태는 `zustand`(`domains/certificate-consent/storage.ts`)를 사용한다.
+- 컴포넌트 외부에서 `sessionStorage`를 직접 조작하지 않는다.
+
+진입/복귀 규칙:
+- 뒤로가기 복귀가 아닌 신규 진입 시 상태를 초기화한다.
+- 신규 진입 시 필수 카테고리만 펼친다.
+- 상세/캐러셀에서 메인으로 돌아올 때는 상태를 유지한다.
+
+상세/캐러셀 규칙:
+- 단건 상세(`ConsentTermDetailView`)는 캐러셀이 아니며 페이지 수 표시를 하지 않는다.
+- 카테고리 상세(`ConsentCategoryCarouselView`)는 캐러셀을 수행하고 `1/n` 표시를 한다.
+- 카테고리 캐러셀 재진입 시 시작 지점은 항상 1페이지(인덱스 0)다.
+
+선택 UI 옵션:
+- 페이지에 따라 선택(체크) UI는 있을 수도, 없을 수도 있다.
+- 선택 UI가 없는 경우 `showSelectionControls={false}`로 처리한다.
+
+헤더 규칙:
+- 상세 헤더 타이틀은 항상 `약관/동의서 상세`를 사용한다.
+
+폐기 규칙:
+- 약관 페이지에서 UI/상태/이동 로직을 페이지 파일에 중복 구현하는 방식은 더 이상 사용하지 않는다.
+
+정의 파일 연결 규칙:
+- 약관 데이터는 페이지에 하드코딩하지 않고 정의 파일에서 관리한다.
+- 권장 위치: `src/app/domains/<service-domain>/`
+- 권장 파일명: `definition.<scenario>.ts`
+  - 예: `definition.issue-account.ts`, `definition.wallet.ts`
+- 페이지는 목적에 맞는 정의 파일을 import해서 `definition` props로 주입한다.

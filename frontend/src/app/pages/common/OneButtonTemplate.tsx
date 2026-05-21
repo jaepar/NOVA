@@ -5,8 +5,12 @@ import { Btn_1Col } from '../../components/design-system/Btn_1Col';
 
 interface OneButtonTemplateProps {
   headerTitle: string;
+  headerType?: 'back' | 'close';
   showBackButton?: boolean;
   onBack?: () => void;
+  backPath?: string;
+  onClose?: () => void;
+  closePath?: string;
   headerRightContent?: ReactNode;
   children: ReactNode;
   buttonText: string;
@@ -17,8 +21,12 @@ interface OneButtonTemplateProps {
 
 export function OneButtonTemplate({
   headerTitle,
+  headerType = 'back',
   showBackButton = true,
   onBack,
+  backPath,
+  onClose,
+  closePath,
   headerRightContent,
   children,
   buttonText,
@@ -39,8 +47,12 @@ export function OneButtonTemplate({
   return (
     <MobileLayout
       title={headerTitle}
+      headerType={headerType}
       showBackButton={showBackButton}
       onBack={onBack}
+      backPath={backPath}
+      onClose={onClose}
+      closePath={closePath}
       headerRightContent={headerRightContent}
       bottomContent={
         <Btn_1Col onClick={handleButtonClick} variant={buttonVariant}>

@@ -28,8 +28,6 @@ logging:
     root: info
     org.hibernate.SQL: warn
 
-app:
-  fds:
-    base-url: ${FDS_BASE_URL}
-  government:
-    base-url: ${GOVERNMENT_BASE_URL}
+#app:
+#  fds:
+#    base-url: ${FDS_BASE_URL}

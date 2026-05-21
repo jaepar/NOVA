@@ -2,7 +2,7 @@ spring:
   application:
     name: backend
   profiles:
-    active: dev
+    active: local
 
   servlet:
     multipart:
