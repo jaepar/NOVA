@@ -1,5 +1,6 @@
 package woorifisa.project.coreBanking.domain.wallet.dto.response;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -7,7 +8,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DebitWalletAccountResponseTest {
 
     @Test
-    void storesWalletChargeDebitResponseFields() {
+    @DisplayName("월렛 충전 계좌차감 응답 필드를 저장한다")
+    void storesResponseFields() {
         DebitWalletAccountResponse response = new DebitWalletAccountResponse(
                 true,
                 20000,

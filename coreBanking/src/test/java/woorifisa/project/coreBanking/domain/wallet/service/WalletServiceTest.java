@@ -1,8 +1,8 @@
 package woorifisa.project.coreBanking.domain.wallet.service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.mockito.ArgumentCaptor;
-import org.springframework.dao.DataIntegrityViolationException;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.account.repository.AccountRepository;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
@@ -21,7 +21,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
 
 class WalletServiceTest {
 
@@ -30,7 +29,8 @@ class WalletServiceTest {
     private final WalletService walletService = new WalletService(accountRepository, accountTransactionRepository);
 
     @Test
-    void debitWalletChargeDecreasesAccountBalanceAndCreatesWithdrawalTransaction() {
+    @DisplayName("월렛 충전 계좌차감 성공 시 잔액을 감소시키고 출금 거래내역을 저장한다")
+    void debitWalletChargeSucceeds() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
         Account account = Account.builder()
                 .accountId(2001L)
@@ -58,7 +58,8 @@ class WalletServiceTest {
     }
 
     @Test
-    void debitWalletChargeReturnsSuccessWithoutDebitWhenExternalRequestIdAlreadyExists() {
+    @DisplayName("이미 처리된 요청이면 재차감하지 않고 성공 응답한다")
+    void duplicateRequestReturnsSuccess() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
 
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(true);
@@ -72,7 +73,8 @@ class WalletServiceTest {
     }
 
     @Test
-    void debitWalletChargeRechecksExternalRequestIdAfterAccountLockBeforeDebit() {
+    @DisplayName("계좌 락 획득 후 중복 요청이면 차감하지 않고 성공 응답한다")
+    void duplicateRequestAfterAccountLockReturnsSuccess() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
         Account account = Account.builder()
                 .accountId(2001L)
@@ -93,26 +95,8 @@ class WalletServiceTest {
     }
 
     @Test
-    void debitWalletChargeReturnsSuccessWhenExternalRequestIdUniqueConstraintIsViolated() {
-        DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
-        Account account = Account.builder()
-                .accountId(2001L)
-                .balance(30000)
-                .build();
-
-        when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(false);
-        when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.of(account));
-        doThrow(new DataIntegrityViolationException("duplicate external request id"))
-                .when(accountTransactionRepository).save(any(AccountTransaction.class));
-
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
-
-        assertThat(response.success()).isTrue();
-        assertThat(response.code()).isEqualTo(20000);
-    }
-
-    @Test
-    void debitWalletChargeFailsWhenAccountDoesNotExist() {
+    @DisplayName("출금 계좌가 없으면 실패 응답하고 거래내역을 저장하지 않는다")
+    void missingAccountFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
 
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(false);
@@ -126,7 +110,8 @@ class WalletServiceTest {
     }
 
     @Test
-    void debitWalletChargeFailsWhenBalanceIsInsufficientWithoutChangingBalance() {
+    @DisplayName("잔액 부족이면 실패 응답하고 잔액을 변경하지 않는다")
+    void insufficientBalanceFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 40000L);
         Account account = Account.builder()
                 .accountId(2001L)
@@ -145,7 +130,8 @@ class WalletServiceTest {
     }
 
     @Test
-    void debitWalletChargeFailsWhenRequestAmountIsInvalid() {
+    @DisplayName("차감 금액이 0원 이하면 실패 응답한다")
+    void nonPositiveAmountFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 0L);
 
         DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
@@ -158,7 +144,8 @@ class WalletServiceTest {
     }
 
     @Test
-    void debitWalletChargeFailsWhenRequestAmountExceedsIntegerRange() {
+    @DisplayName("차감 금액이 정수 범위를 초과하면 실패 응답한다")
+    void amountOverflowFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest(
                 "WCR-20260514-0001",
                 1001L,
@@ -176,7 +163,8 @@ class WalletServiceTest {
     }
 
     @Test
-    void debitWalletChargeFailsWhenExternalRequestIdIsBlank() {
+    @DisplayName("요청 식별자가 공백이면 실패 응답한다")
+    void blankRequestIdFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest(" ", 1001L, 2001L, 10000L);
 
         DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
@@ -189,7 +177,8 @@ class WalletServiceTest {
     }
 
     @Test
-    void debitWalletChargeFailsWhenAccountIdentifiersAreMissing() {
+    @DisplayName("고객 ID가 없으면 실패 응답한다")
+    void missingCustomerIdFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", null, 2001L, 10000L);
 
         DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
@@ -202,7 +191,8 @@ class WalletServiceTest {
     }
 
     @Test
-    void debitWalletChargeFailsWhenWithdrawAccountIdIsMissing() {
+    @DisplayName("출금 계좌 ID가 없으면 실패 응답한다")
+    void missingWithdrawAccountIdFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, null, 10000L);
 
         DebitWalletAccountResponse response = walletService.debitWalletCharge(request);

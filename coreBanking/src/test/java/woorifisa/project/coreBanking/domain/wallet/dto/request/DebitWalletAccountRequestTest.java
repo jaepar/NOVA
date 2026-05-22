@@ -1,5 +1,6 @@
 package woorifisa.project.coreBanking.domain.wallet.dto.request;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -7,7 +8,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DebitWalletAccountRequestTest {
 
     @Test
-    void storesWalletChargeDebitRequestFields() {
+    @DisplayName("월렛 충전 계좌차감 요청 필드를 저장한다")
+    void storesRequestFields() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest(
                 "WCR-20260514-0001",
                 1001L,

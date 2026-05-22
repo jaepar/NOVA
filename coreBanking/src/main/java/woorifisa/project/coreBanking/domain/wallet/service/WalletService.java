@@ -1,7 +1,6 @@
 package woorifisa.project.coreBanking.domain.wallet.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
@@ -35,6 +34,7 @@ public class WalletService {
             return failure(BAD_REQUEST_CODE, INVALID_REQUEST_MESSAGE);
         }
 
+        // 이미 처리된 충전 요청이면 계좌를 다시 차감하지 않고 멱등 성공으로 응답한다.
         if (accountTransactionRepository.existsByExternalRequestId(request.walletChargeRequestId())) {
             return success();
         }
@@ -48,6 +48,7 @@ public class WalletService {
             return failure(NOT_FOUND_CODE, ACCOUNT_NOT_FOUND_MESSAGE);
         }
 
+        // 계좌 락 획득 이후 한 번 더 확인해 동시 중복 요청의 이중 차감을 방지한다.
         if (accountTransactionRepository.existsByExternalRequestId(request.walletChargeRequestId())) {
             return success();
         }
@@ -59,18 +60,15 @@ public class WalletService {
             return failure(BAD_REQUEST_CODE, INSUFFICIENT_BALANCE_MESSAGE);
         }
 
-        try {
-            accountTransactionRepository.save(AccountTransaction.builder()
-                    .account(account)
-                    .transactionFlow(TransactionFlow.WITHDRAWAL)
-                    .transactionType(TransactionType.WALLET_CHARGE)
-                    .counterParty(WALLET_CHARGE_COUNTERPARTY)
-                    .amount(chargeAmount)
-                    .externalRequestId(request.walletChargeRequestId())
-                    .build());
-        } catch (DataIntegrityViolationException exception) {
-            return success();
-        }
+        // 계좌 차감과 거래내역 저장은 같은 트랜잭션 안에서 확정한다.
+        accountTransactionRepository.save(AccountTransaction.builder()
+                .account(account)
+                .transactionFlow(TransactionFlow.WITHDRAWAL)
+                .transactionType(TransactionType.WALLET_CHARGE)
+                .counterParty(WALLET_CHARGE_COUNTERPARTY)
+                .amount(chargeAmount)
+                .externalRequestId(request.walletChargeRequestId())
+                .build());
 
         return success();
     }

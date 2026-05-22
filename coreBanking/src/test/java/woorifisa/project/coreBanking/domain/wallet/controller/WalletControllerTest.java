@@ -1,5 +1,6 @@
 package woorifisa.project.coreBanking.domain.wallet.controller;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
@@ -25,7 +26,8 @@ class WalletControllerTest {
     private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new WalletController(walletService)).build();
 
     @Test
-    void postsWalletChargeDebitRequestToService() throws Exception {
+    @DisplayName("월렛 충전 계좌차감 요청을 서비스로 전달하고 성공 응답을 반환한다")
+    void debitWalletChargeEndpointSucceeds() throws Exception {
         when(walletService.debitWalletCharge(any(DebitWalletAccountRequest.class)))
                 .thenReturn(new DebitWalletAccountResponse(true, 20000, "계좌 차감이 완료되었습니다."));
 
@@ -54,7 +56,8 @@ class WalletControllerTest {
     }
 
     @Test
-    void returnsServiceFailureResponseBody() throws Exception {
+    @DisplayName("서비스 실패 응답을 응답 본문에 그대로 반환한다")
+    void debitWalletChargeEndpointReturnsFailureBody() throws Exception {
         when(walletService.debitWalletCharge(any(DebitWalletAccountRequest.class)))
                 .thenReturn(new DebitWalletAccountResponse(false, 40000, "계좌 차감 요청이 올바르지 않습니다."));
 
