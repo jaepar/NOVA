@@ -5,9 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite",
-    "lint": "eslint .",
-    "prettier": "prettier ."
+    "dev": "vite"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
@@ -70,18 +68,11 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@eslint/js": "^9.32.0",
     "@tailwindcss/vite": "4.1.12",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "4.7.0",
-    "eslint": "^9.32.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
-    "globals": "^16.3.0",
-    "prettier": "^3.6.2",
     "tailwindcss": "4.1.12",
-    "typescript-eslint": "^8.39.0",
     "vite": "6.3.5"
   },
   "peerDependencies": {
