@@ -10,10 +10,6 @@ public record AccountTransactionRequestLookupResponse(
         return new AccountTransactionRequestLookupResponse(externalRequestId);
     }
 
-    public static AccountTransactionRequestLookupResponse notFound() {
-        return new AccountTransactionRequestLookupResponse(null);
-    }
-
     @JsonIgnore
     public boolean found() {
         return externalRequestId != null;

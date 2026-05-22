@@ -4,12 +4,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
+import woorifisa.project.coreBanking.global.exception.CustomException;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSACTION_NOT_FOUND;
 
 class AccountTransactionServiceTest {
 
@@ -34,16 +37,15 @@ class AccountTransactionServiceTest {
     }
 
     @Test
-    @DisplayName("externalRequestId가 존재하지 않으면 null 결과를 반환한다")
+    @DisplayName("externalRequestId가 존재하지 않으면 예외를 반환한다")
     void notFound() {
         String externalRequestId = "WCR-20260522-0001";
 
         when(accountTransactionRepository.findByExternalRequestId(externalRequestId))
                 .thenReturn(Optional.empty());
 
-        var response = accountTransactionService.findRequestResult(externalRequestId);
-
-        assertThat(response.externalRequestId()).isNull();
-        assertThat(response.found()).isFalse();
+        assertThatThrownBy(() -> accountTransactionService.findRequestResult(externalRequestId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ACCOUNT_TRANSACTION_NOT_FOUND.getMessage());
     }
 }
