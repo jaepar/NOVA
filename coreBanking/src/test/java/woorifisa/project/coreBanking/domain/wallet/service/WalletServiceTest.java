@@ -10,17 +10,21 @@ import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.Tran
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
 import woorifisa.project.coreBanking.domain.wallet.dto.request.DebitWalletAccountRequest;
-import woorifisa.project.coreBanking.domain.wallet.dto.response.DebitWalletAccountResponse;
+import woorifisa.project.coreBanking.global.exception.CustomException;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INVALID_REQUEST;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_NOT_FOUND;
 
 class WalletServiceTest {
 
@@ -40,10 +44,8 @@ class WalletServiceTest {
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(false);
         when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.of(account));
 
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+        walletService.debitWalletCharge(request);
 
-        assertThat(response.success()).isTrue();
-        assertThat(response.code()).isEqualTo(20000);
         assertThat(account.getBalance()).isEqualTo(20000);
 
         ArgumentCaptor<AccountTransaction> transactionCaptor = forClass(AccountTransaction.class);
@@ -64,10 +66,8 @@ class WalletServiceTest {
 
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(true);
 
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+        walletService.debitWalletCharge(request);
 
-        assertThat(response.success()).isTrue();
-        assertThat(response.code()).isEqualTo(20000);
         verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
     }
@@ -86,31 +86,29 @@ class WalletServiceTest {
                 .thenReturn(true);
         when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.of(account));
 
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+        walletService.debitWalletCharge(request);
 
-        assertThat(response.success()).isTrue();
-        assertThat(response.code()).isEqualTo(20000);
         assertThat(account.getBalance()).isEqualTo(30000);
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
     }
 
     @Test
-    @DisplayName("출금 계좌가 없으면 실패 응답하고 거래내역을 저장하지 않는다")
+    @DisplayName("출금 계좌가 없으면 공통 예외를 던지고 거래내역을 저장하지 않는다")
     void missingAccountFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
 
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(false);
         when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.empty());
 
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(WALLET_ACCOUNT_DEBIT_NOT_FOUND.getMessage());
 
-        assertThat(response.success()).isFalse();
-        assertThat(response.code()).isEqualTo(40400);
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
     }
 
     @Test
-    @DisplayName("잔액 부족이면 실패 응답하고 잔액을 변경하지 않는다")
+    @DisplayName("잔액 부족이면 공통 예외를 던지고 잔액을 변경하지 않는다")
     void insufficientBalanceFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 40000L);
         Account account = Account.builder()
@@ -121,30 +119,30 @@ class WalletServiceTest {
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(false);
         when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.of(account));
 
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE.getMessage());
 
-        assertThat(response.success()).isFalse();
-        assertThat(response.code()).isEqualTo(40000);
         assertThat(account.getBalance()).isEqualTo(30000);
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
     }
 
     @Test
-    @DisplayName("차감 금액이 0원 이하면 실패 응답한다")
+    @DisplayName("차감 금액이 0원 이하면 공통 예외를 던진다")
     void nonPositiveAmountFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 0L);
 
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST.getMessage());
 
-        assertThat(response.success()).isFalse();
-        assertThat(response.code()).isEqualTo(40000);
         verify(accountTransactionRepository, never()).existsByExternalRequestId(any());
         verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
     }
 
     @Test
-    @DisplayName("차감 금액이 정수 범위를 초과하면 실패 응답한다")
+    @DisplayName("차감 금액이 정수 범위를 초과하면 공통 예외를 던진다")
     void amountOverflowFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest(
                 "WCR-20260514-0001",
@@ -153,52 +151,52 @@ class WalletServiceTest {
                 (long) Integer.MAX_VALUE + 1
         );
 
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST.getMessage());
 
-        assertThat(response.success()).isFalse();
-        assertThat(response.code()).isEqualTo(40000);
         verify(accountTransactionRepository, never()).existsByExternalRequestId(any());
         verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
     }
 
     @Test
-    @DisplayName("요청 식별자가 공백이면 실패 응답한다")
+    @DisplayName("요청 식별자가 공백이면 공통 예외를 던진다")
     void blankRequestIdFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest(" ", 1001L, 2001L, 10000L);
 
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST.getMessage());
 
-        assertThat(response.success()).isFalse();
-        assertThat(response.code()).isEqualTo(40000);
         verify(accountTransactionRepository, never()).existsByExternalRequestId(any());
         verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
     }
 
     @Test
-    @DisplayName("고객 ID가 없으면 실패 응답한다")
+    @DisplayName("고객 ID가 없으면 공통 예외를 던진다")
     void missingCustomerIdFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", null, 2001L, 10000L);
 
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST.getMessage());
 
-        assertThat(response.success()).isFalse();
-        assertThat(response.code()).isEqualTo(40000);
         verify(accountTransactionRepository, never()).existsByExternalRequestId(any());
         verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
     }
 
     @Test
-    @DisplayName("출금 계좌 ID가 없으면 실패 응답한다")
+    @DisplayName("출금 계좌 ID가 없으면 공통 예외를 던진다")
     void missingWithdrawAccountIdFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, null, 10000L);
 
-        DebitWalletAccountResponse response = walletService.debitWalletCharge(request);
+        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST.getMessage());
 
-        assertThat(response.success()).isFalse();
-        assertThat(response.code()).isEqualTo(40000);
         verify(accountTransactionRepository, never()).existsByExternalRequestId(any());
         verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));

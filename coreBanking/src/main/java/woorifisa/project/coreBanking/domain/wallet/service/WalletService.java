@@ -10,52 +10,47 @@ import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.Tran
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
 import woorifisa.project.coreBanking.domain.wallet.dto.request.DebitWalletAccountRequest;
-import woorifisa.project.coreBanking.domain.wallet.dto.response.DebitWalletAccountResponse;
-import woorifisa.project.coreBanking.global.response.status.BaseResponseStatus;
+import woorifisa.project.coreBanking.global.exception.CustomException;
+
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INVALID_REQUEST;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
 public class WalletService {
 
     private static final String WALLET_CHARGE_COUNTERPARTY = "월렛 충전";
-    private static final String SUCCESS_MESSAGE = "계좌 차감이 완료되었습니다.";
-    private static final String INVALID_REQUEST_MESSAGE = "계좌 차감 요청이 올바르지 않습니다.";
-    private static final String ACCOUNT_NOT_FOUND_MESSAGE = "출금 계좌를 찾을 수 없습니다.";
-    private static final String INSUFFICIENT_BALANCE_MESSAGE = "계좌 잔액이 부족합니다.";
 
     private final AccountRepository accountRepository;
     private final AccountTransactionRepository accountTransactionRepository;
 
     @Transactional
-    public DebitWalletAccountResponse debitWalletCharge(DebitWalletAccountRequest request) {
+    public void debitWalletCharge(DebitWalletAccountRequest request) {
         if (isInvalidRequest(request)) {
-            return failure(BaseResponseStatus.BAD_REQUEST, INVALID_REQUEST_MESSAGE);
+            throw new CustomException(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST);
         }
 
         // 이미 처리된 충전 요청이면 계좌를 다시 차감하지 않고 멱등 성공으로 응답한다.
         if (accountTransactionRepository.existsByExternalRequestId(request.walletChargeRequestId())) {
-            return success();
+            return;
         }
 
         Account account = accountRepository.findByAccountIdAndCustomer_CustomerId(
                 request.withdrawAccountId(),
                 request.customerId()
-        ).orElse(null);
-
-        if (account == null) {
-            return failure(BaseResponseStatus.NOT_FOUND, ACCOUNT_NOT_FOUND_MESSAGE);
-        }
+        ).orElseThrow(() -> new CustomException(WALLET_ACCOUNT_DEBIT_NOT_FOUND));
 
         // 계좌 락 획득 이후 한 번 더 확인해 동시 중복 요청의 이중 차감을 방지한다.
         if (accountTransactionRepository.existsByExternalRequestId(request.walletChargeRequestId())) {
-            return success();
+            return;
         }
 
         Integer chargeAmount = request.chargeAmount().intValue();
         try {
             account.debit(chargeAmount);
         } catch (IllegalArgumentException exception) {
-            return failure(BaseResponseStatus.BAD_REQUEST, INSUFFICIENT_BALANCE_MESSAGE);
+            throw new CustomException(WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE);
         }
 
         // 계좌 차감과 거래내역 저장은 같은 트랜잭션 안에서 확정한다.
@@ -68,7 +63,6 @@ public class WalletService {
                 .externalRequestId(request.walletChargeRequestId())
                 .build());
 
-        return success();
     }
 
     private boolean isInvalidRequest(DebitWalletAccountRequest request) {
@@ -82,15 +76,4 @@ public class WalletService {
                 || request.chargeAmount() > Integer.MAX_VALUE;
     }
 
-    private DebitWalletAccountResponse success() {
-        return new DebitWalletAccountResponse(
-                BaseResponseStatus.SUCCESS.getSuccess(),
-                BaseResponseStatus.SUCCESS.getCode(),
-                SUCCESS_MESSAGE
-        );
-    }
-
-    private DebitWalletAccountResponse failure(BaseResponseStatus status, String message) {
-        return new DebitWalletAccountResponse(status.getSuccess(), status.getCode(), message);
-    }
 }

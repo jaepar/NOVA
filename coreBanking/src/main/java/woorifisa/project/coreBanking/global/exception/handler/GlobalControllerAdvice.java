@@ -43,6 +43,7 @@ public class GlobalControllerAdvice {
         return new BaseErrorResponse(INTERNAL_SERVER_ERROR);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CustomException.class)
     public BaseErrorResponse handleCustomException(CustomException e) {
         return new BaseErrorResponse(e.getExceptionStatus(), e.getMessage());
