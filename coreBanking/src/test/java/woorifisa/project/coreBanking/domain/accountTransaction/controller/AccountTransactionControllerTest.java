@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.AccountTransactionRequestLookupResponse;
 import woorifisa.project.coreBanking.domain.accountTransaction.service.AccountTransactionService;
 import woorifisa.project.coreBanking.global.exception.CustomException;
@@ -28,11 +29,14 @@ class AccountTransactionControllerTest {
     @DisplayName("거래 처리 내역이 있으면 성공 응답을 반환한다")
     void found() throws Exception {
         String externalRequestId = "TR-20260513-0001";
+        AccountTransaction accountTransaction = AccountTransaction.builder()
+                .externalRequestId(externalRequestId)
+                .build();
 
         when(accountTransactionService.findRequestResult(externalRequestId))
-                .thenReturn(AccountTransactionRequestLookupResponse.found(externalRequestId));
+                .thenReturn(AccountTransactionRequestLookupResponse.from(accountTransaction));
 
-        mockMvc.perform(get("/core-banking/account-transactions/requests/{externalRequestId}", externalRequestId))
+        mockMvc.perform(get("/core-banking/account-transactions/{externalRequestId}", externalRequestId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
@@ -48,7 +52,7 @@ class AccountTransactionControllerTest {
         when(accountTransactionService.findRequestResult(externalRequestId))
                 .thenThrow(new CustomException(ACCOUNT_TRANSACTION_NOT_FOUND));
 
-        mockMvc.perform(get("/core-banking/account-transactions/requests/{externalRequestId}", externalRequestId))
+        mockMvc.perform(get("/core-banking/account-transactions/{externalRequestId}", externalRequestId))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("ACCOUNT_TRANSACTION-001"))

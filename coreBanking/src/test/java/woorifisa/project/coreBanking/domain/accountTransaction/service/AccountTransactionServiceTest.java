@@ -33,7 +33,6 @@ class AccountTransactionServiceTest {
         var response = accountTransactionService.findRequestResult(externalRequestId);
 
         assertThat(response.externalRequestId()).isEqualTo(externalRequestId);
-        assertThat(response.found()).isTrue();
     }
 
     @Test

@@ -18,7 +18,7 @@ public class AccountTransactionService {
     @Transactional(readOnly = true)
     public AccountTransactionRequestLookupResponse findRequestResult(String externalRequestId) {
         return accountTransactionRepository.findByExternalRequestId(externalRequestId)
-                .map(accountTransaction -> AccountTransactionRequestLookupResponse.found(accountTransaction.getExternalRequestId()))
+                .map(AccountTransactionRequestLookupResponse::from)
                 .orElseThrow(() -> new CustomException(ACCOUNT_TRANSACTION_NOT_FOUND));
     }
 }

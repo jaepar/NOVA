@@ -1,17 +1,12 @@
 package woorifisa.project.coreBanking.domain.accountTransaction.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
 
 public record AccountTransactionRequestLookupResponse(
         String externalRequestId
 ) {
 
-    public static AccountTransactionRequestLookupResponse found(String externalRequestId) {
-        return new AccountTransactionRequestLookupResponse(externalRequestId);
-    }
-
-    @JsonIgnore
-    public boolean found() {
-        return externalRequestId != null;
+    public static AccountTransactionRequestLookupResponse from(AccountTransaction accountTransaction) {
+        return new AccountTransactionRequestLookupResponse(accountTransaction.getExternalRequestId());
     }
 }

@@ -16,11 +16,10 @@ public class AccountTransactionController {
 
     private final AccountTransactionService accountTransactionService;
 
-    @GetMapping("/requests/{externalRequestId}")
+    @GetMapping("/{externalRequestId}")
     public BaseResponse<AccountTransactionRequestLookupResponse> findRequestResult(
             @PathVariable String externalRequestId
     ) {
-        AccountTransactionRequestLookupResponse response = accountTransactionService.findRequestResult(externalRequestId);
-        return BaseResponse.ok(response);
+        return BaseResponse.ok(accountTransactionService.findRequestResult(externalRequestId));
     }
 }
