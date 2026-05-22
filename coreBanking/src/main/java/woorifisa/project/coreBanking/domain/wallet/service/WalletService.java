@@ -11,14 +11,12 @@ import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.Tran
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
 import woorifisa.project.coreBanking.domain.wallet.dto.request.DebitWalletAccountRequest;
 import woorifisa.project.coreBanking.domain.wallet.dto.response.DebitWalletAccountResponse;
+import woorifisa.project.coreBanking.global.response.status.BaseResponseStatus;
 
 @Service
 @RequiredArgsConstructor
 public class WalletService {
 
-    private static final int SUCCESS_CODE = 20000;
-    private static final int BAD_REQUEST_CODE = 40000;
-    private static final int NOT_FOUND_CODE = 40400;
     private static final String WALLET_CHARGE_COUNTERPARTY = "월렛 충전";
     private static final String SUCCESS_MESSAGE = "계좌 차감이 완료되었습니다.";
     private static final String INVALID_REQUEST_MESSAGE = "계좌 차감 요청이 올바르지 않습니다.";
@@ -31,7 +29,7 @@ public class WalletService {
     @Transactional
     public DebitWalletAccountResponse debitWalletCharge(DebitWalletAccountRequest request) {
         if (isInvalidRequest(request)) {
-            return failure(BAD_REQUEST_CODE, INVALID_REQUEST_MESSAGE);
+            return failure(BaseResponseStatus.BAD_REQUEST, INVALID_REQUEST_MESSAGE);
         }
 
         // 이미 처리된 충전 요청이면 계좌를 다시 차감하지 않고 멱등 성공으로 응답한다.
@@ -45,7 +43,7 @@ public class WalletService {
         ).orElse(null);
 
         if (account == null) {
-            return failure(NOT_FOUND_CODE, ACCOUNT_NOT_FOUND_MESSAGE);
+            return failure(BaseResponseStatus.NOT_FOUND, ACCOUNT_NOT_FOUND_MESSAGE);
         }
 
         // 계좌 락 획득 이후 한 번 더 확인해 동시 중복 요청의 이중 차감을 방지한다.
@@ -57,7 +55,7 @@ public class WalletService {
         try {
             account.debit(chargeAmount);
         } catch (IllegalArgumentException exception) {
-            return failure(BAD_REQUEST_CODE, INSUFFICIENT_BALANCE_MESSAGE);
+            return failure(BaseResponseStatus.BAD_REQUEST, INSUFFICIENT_BALANCE_MESSAGE);
         }
 
         // 계좌 차감과 거래내역 저장은 같은 트랜잭션 안에서 확정한다.
@@ -85,10 +83,14 @@ public class WalletService {
     }
 
     private DebitWalletAccountResponse success() {
-        return new DebitWalletAccountResponse(true, SUCCESS_CODE, SUCCESS_MESSAGE);
+        return new DebitWalletAccountResponse(
+                BaseResponseStatus.SUCCESS.getSuccess(),
+                BaseResponseStatus.SUCCESS.getCode(),
+                SUCCESS_MESSAGE
+        );
     }
 
-    private DebitWalletAccountResponse failure(Integer code, String message) {
-        return new DebitWalletAccountResponse(false, code, message);
+    private DebitWalletAccountResponse failure(BaseResponseStatus status, String message) {
+        return new DebitWalletAccountResponse(status.getSuccess(), status.getCode(), message);
     }
 }
