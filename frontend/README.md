@@ -16,6 +16,7 @@
 - React Router
 - Axios
 - pnpm
+- zustand
 
 ## 3. 시작하기
 ### 3.1 요구사항
@@ -65,3 +66,58 @@ fallback 뒤에는 일반 라우트를 배치하지 않는다.
 - `frontend/AGENTS.md`
 - `frontend/guidelines/DESIGN_SYSTEM.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
+
+## 8. 핵심 개발 규칙
+### 8.1 프레임/반응형
+- 기준 프레임은 `390 x 844`
+- 뷰포트가 작아지면 비율 유지 축소
+- 뷰포트가 커져도 앱 프레임은 `390 x 844`를 초과하지 않음
+- 앱 프레임 외부 영역은 배경색으로 구분
+
+관련 구현 파일:
+- `src/main.tsx`
+- `src/styles/theme.css`
+
+### 8.2 레이아웃
+- 모든 페이지는 `MobileLayout`을 기본 스캐폴드로 사용
+- 상단 헤더는 `MobileLayout`의 `headerType`으로 선택
+  - `back`: 뒤로가기 헤더 (`FixedHeader`)
+  - `close`: 닫기 헤더 (`CloseFixedHeader`)
+  - `none`: 버튼 없는 타이틀 헤더 (`TitleOnlyFixedHeader`)
+- 하단 고정 영역은 `FloatingBottom` 또는 `BottomNav` 사용
+- 초기 렌더 시 본문 시작점은 헤더 아래 동일 오프셋 규칙 유지
+- 페이지별 `max-w-[390px]`, `mx-auto` 중복 선언 금지
+
+### 8.3 컴포넌트 사용 원칙
+- 버튼은 공통 컴포넌트 우선 사용: `AppButton`, `Btn_1Col`, `Btn_2Col`
+- 입력은 공통 입력 컴포넌트 우선 사용
+- 페이지별 임시 스타일 남발 금지
+
+## 9. 작업 체크리스트
+- 페이지가 `MobileLayout`을 사용하는가
+- 버튼/입력이 공통 컴포넌트 기반인가
+- `390x844` 프레임 정책이 유지되는가
+- 헤더/본문/하단 고정 영역이 충돌하지 않는가
+- 변경 사항이 `AGENTS.md`/가이드 문서와 충돌하지 않는가
+
+## 10. 약관 동의 규격
+인증서 약관 동의 페이지는 아래 규격을 사용한다.
+
+- `src/app/domains/certificate-consent/spec.ts`
+- `src/app/domains/certificate-consent/storage.ts`
+- `src/app/domains/certificate-consent/README.md`
+
+팀 규칙:
+- 약관 데이터는 `ConsentDefinition` 스키마로 정의
+- 약관 텍스트를 페이지 컴포넌트에 직접 하드코딩하지 않음
+- 동의/아코디언/캐러셀 상태는 `storage.ts` API만 사용
+
+## 11. 헤더/하단 액션 사용 가이드
+페이지 헤더와 하단 고정 액션은 `MobileLayout`을 단일 진입점으로 사용한다.
+
+- 뒤로가기 클릭 우선순위: `onBack` -> `backPath` -> `navigate(-1)`
+- 닫기 클릭 우선순위: `onClose` -> `closePath` -> `/`
+- 단계형 페이지: `headerType="back"` + `backPath`
+- 모달 성격 흐름: `headerType="close"` + `closePath`
+- 진입/웰컴 페이지: `headerType="none"`
+- 하단 CTA 고정 페이지: `bottomContent` 사용
