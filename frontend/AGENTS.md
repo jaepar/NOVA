@@ -209,3 +209,26 @@
 - 각 스텝 페이지는 `MobileLayout`의 `backPath`를 명시하고, 현재 스텝 기준 이전 스텝 경로로 이동해야 한다.
 - 히스토리 기반 이동이 필요한 예외 케이스는 `onBack`을 사용하되, 예외 사유를 PR 설명에 반드시 남긴다.
 - 템플릿 기반 페이지(`Failed` 등)도 스텝형 플로우에 포함될 경우 `backPath`를 받아 동일 정책을 따른다.
+
+## 12) 라우팅 구조 규칙 (필수)
+
+목적:
+- `routes.tsx` 단일 파일 충돌을 줄이고, 도메인별 병렬 개발 시 머지 충돌 비용을 낮춘다.
+
+규칙:
+- 신규/변경 라우트는 `src/app/routes/` 하위의 도메인 라우트 파일에서만 작업한다.
+  - 예: `mainRoutes.tsx`, `walletRoutes.tsx`, `certificateRoutes.tsx`, `jobRoutes.tsx`
+- 각 도메인 라우트 파일은 `RouteObject[]`를 export 한다.
+- `src/app/routes/index.ts`에서 도메인 라우트들을 import 하여 `appRoutes`로 병합한다.
+- `src/app/routes.tsx`는 라우트 정의를 직접 갖지 않고, `appRoutes`를 받아 `createBrowserRouter(appRoutes)`만 수행한다.
+- import 경로 충돌 방지를 위해 `routes.tsx`에서는 `./routes/index`를 명시적으로 import 한다.
+
+폴백 규칙:
+- `NotFound` 같은 fallback 라우트(`{ path: "*", ... }`)는 반드시 `appRoutes`의 마지막에 추가한다.
+- fallback 라우트보다 뒤에 일반 라우트를 배치하지 않는다.
+
+체크리스트(PR/리뷰):
+- [ ] 도메인 라우트 파일에서만 신규 경로를 추가/수정했는가
+- [ ] `routes/index.ts`에서 도메인 라우트 병합을 반영했는가
+- [ ] `routes.tsx`는 조립 전용(얇은 파일) 상태를 유지하는가
+- [ ] `*` fallback 라우트가 배열 마지막에 위치하는가
