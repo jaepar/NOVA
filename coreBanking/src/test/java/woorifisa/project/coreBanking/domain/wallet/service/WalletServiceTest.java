@@ -3,6 +3,7 @@ package woorifisa.project.coreBanking.domain.wallet.service;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.ArgumentCaptor;
+import org.springframework.dao.DataIntegrityViolationException;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.account.repository.AccountRepository;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INVALID_REQUEST;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_NOT_FOUND;
@@ -34,7 +36,7 @@ class WalletServiceTest {
 
     @Test
     @DisplayName("월렛 충전 계좌차감 성공 시 잔액을 감소시키고 출금 거래내역을 저장한다")
-    void debitWalletChargeSucceeds() {
+    void success() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
         Account account = Account.builder()
                 .accountId(2001L)
@@ -61,7 +63,7 @@ class WalletServiceTest {
 
     @Test
     @DisplayName("이미 처리된 요청이면 재차감하지 않고 성공 응답한다")
-    void duplicateRequestReturnsSuccess() {
+    void duplicate() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
 
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(true);
@@ -74,7 +76,7 @@ class WalletServiceTest {
 
     @Test
     @DisplayName("계좌 락 획득 후 중복 요청이면 차감하지 않고 성공 응답한다")
-    void duplicateRequestAfterAccountLockReturnsSuccess() {
+    void duplicateAfterLock() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
         Account account = Account.builder()
                 .accountId(2001L)
@@ -90,6 +92,27 @@ class WalletServiceTest {
 
         assertThat(account.getBalance()).isEqualTo(30000);
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
+    }
+
+    @Test
+    @DisplayName("외부 요청 식별자 유니크 제약 충돌이면 멱등 성공으로 응답한다")
+    void duplicateOnSave() {
+        DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 10000L);
+        Account account = Account.builder()
+                .accountId(2001L)
+                .balance(30000)
+                .build();
+
+        when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(false);
+        when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.of(account));
+        doThrow(new DataIntegrityViolationException("duplicate external request id"))
+                .when(accountTransactionRepository)
+                .save(any(AccountTransaction.class));
+
+        walletService.debitWalletCharge(request);
+
+        assertThat(account.getBalance()).isEqualTo(30000);
+        verify(accountTransactionRepository).save(any(AccountTransaction.class));
     }
 
     @Test

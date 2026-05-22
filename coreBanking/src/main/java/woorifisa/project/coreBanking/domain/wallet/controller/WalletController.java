@@ -11,7 +11,7 @@ import woorifisa.project.coreBanking.global.response.BaseResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/wallet")
+@RequestMapping("/core-banking/wallet")
 public class WalletController {
 
     private final WalletService walletService;

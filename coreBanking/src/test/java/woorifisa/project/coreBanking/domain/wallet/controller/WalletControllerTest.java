@@ -31,8 +31,8 @@ class WalletControllerTest {
 
     @Test
     @DisplayName("월렛 충전 계좌차감 요청을 서비스로 전달하고 공통 성공 응답을 반환한다")
-    void debitWalletChargeEndpointSucceeds() throws Exception {
-        mockMvc.perform(post("/wallet/charges/debit")
+    void success() throws Exception {
+        mockMvc.perform(post("/core-banking/wallet/charges/debit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -59,12 +59,12 @@ class WalletControllerTest {
 
     @Test
     @DisplayName("월렛 충전 계좌차감 실패 예외를 공통 예외 응답으로 반환한다")
-    void debitWalletChargeEndpointReturnsCommonErrorBody() throws Exception {
+    void fail() throws Exception {
         doThrow(new CustomException(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST))
                 .when(walletService)
                 .debitWalletCharge(any(DebitWalletAccountRequest.class));
 
-        mockMvc.perform(post("/wallet/charges/debit")
+        mockMvc.perform(post("/core-banking/wallet/charges/debit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

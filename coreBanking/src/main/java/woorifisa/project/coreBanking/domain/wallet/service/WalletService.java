@@ -1,6 +1,7 @@
 package woorifisa.project.coreBanking.domain.wallet.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
@@ -46,28 +47,31 @@ public class WalletService {
             return;
         }
 
-        Integer chargeAmount = request.chargeAmount().intValue();
-        try {
-            account.debit(chargeAmount);
-        } catch (IllegalArgumentException exception) {
+        int chargeAmount = request.chargeAmount().intValue();
+        if (account.getBalance() < chargeAmount) {
             throw new CustomException(WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE);
         }
 
         // 계좌 차감과 거래내역 저장은 같은 트랜잭션 안에서 확정한다.
-        accountTransactionRepository.save(AccountTransaction.builder()
-                .account(account)
-                .transactionFlow(TransactionFlow.WITHDRAWAL)
-                .transactionType(TransactionType.WALLET_CHARGE)
-                .counterParty(WALLET_CHARGE_COUNTERPARTY)
-                .amount(chargeAmount)
-                .externalRequestId(request.walletChargeRequestId())
-                .build());
+        try {
+            accountTransactionRepository.save(AccountTransaction.builder()
+                    .account(account)
+                    .transactionFlow(TransactionFlow.WITHDRAWAL)
+                    .transactionType(TransactionType.WALLET_CHARGE)
+                    .counterParty(WALLET_CHARGE_COUNTERPARTY)
+                    .amount(chargeAmount)
+                    .externalRequestId(request.walletChargeRequestId())
+                    .build());
+        } catch (DataIntegrityViolationException exception) {
+            return;
+        }
+
+        account.debit(chargeAmount);
 
     }
 
     private boolean isInvalidRequest(DebitWalletAccountRequest request) {
-        return request == null
-                || request.walletChargeRequestId() == null
+        return request.walletChargeRequestId() == null
                 || request.walletChargeRequestId().isBlank()
                 || request.customerId() == null
                 || request.withdrawAccountId() == null
