@@ -11,7 +11,7 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     INTERNAL_SERVER_ERROR("50000", "서버 내부 오류입니다."),
 
     /*
-     * auth : 300
+     * auth
      */
     INVALID_PASSWORD_FORMAT("AUTH-001", "비밀번호는 영문+숫자+특수문자를 포함한 8~16자여야 합니다."),
     PASSWORD_CONFIRM_NOT_MATCHED("AUTH-002", "비밀번호와 비밀번호 확인이 일치하지 않습니다."),
