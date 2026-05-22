@@ -38,7 +38,7 @@ erDiagram
     BIGINT account_transaction_id PK
     BIGINT account_id FK
     ENUM transaction_flow "DEPOSIT | WITHDRAWAL"
-    ENUM transaction_type "SMART_WITHDRAWAL | CASH_IC | CHECK_CARD | ACCOUNT_TRANSFER | ATM_WITHDRAWAL | ATM_DEPOSIT | AUTO_DEBIT | FEE"
+    ENUM transaction_type "SMART_WITHDRAWAL | CASH_IC | CHECK_CARD | ACCOUNT_TRANSFER | ATM_WITHDRAWAL | ATM_DEPOSIT | AUTO_DEBIT | WALLET_CHARGE | FEE"
     VARCHAR_100 counter_party
     INT amount
     VARCHAR_100 memo

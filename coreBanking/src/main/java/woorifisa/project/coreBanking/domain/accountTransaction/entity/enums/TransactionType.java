@@ -8,5 +8,6 @@ public enum TransactionType {
     ATM_WITHDRAWAL,    // ATM 출금
     ATM_DEPOSIT,       // ATM 입금
     AUTO_DEBIT,        // 자동이체/자동출금
+    WALLET_CHARGE,     // 월렛 충전을 위한 계좌 차감
     FEE                // 수수료
 }
