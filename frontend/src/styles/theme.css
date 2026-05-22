@@ -245,7 +245,7 @@
       transform: translateX(-120px);
     }
     100% {
-      transform: translateX(calc(390px + 120px));
+      transform: translateX(calc(var(--app-width) + 120px));
     }
   }
 
