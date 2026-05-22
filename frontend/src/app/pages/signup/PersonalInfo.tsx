@@ -15,11 +15,20 @@ export function PersonalInfo() {
   const setName = useSignupPageStore((state) => state.setName);
   const setBirthDate = useSignupPageStore((state) => state.setBirthDate);
   const setGender = useSignupPageStore((state) => state.setGender);
+  const resetEmailVerification = useSignupPageStore((state) => state.resetEmailVerification);
+  const resetPersonalInfo = useSignupPageStore((state) => state.resetPersonalInfo);
   const canContinue = name.trim().length > 0 && birthDate.length === 8 && Boolean(gender);
+
+  const handleBack = () => {
+    resetEmailVerification();
+    resetPersonalInfo();
+    navigate("/signup");
+  };
 
   return (
     <MobileLayout
       title="회원가입"
+      onBack={handleBack}
       bottomContent={
         <Btn_1Col onClick={() => navigate("/signup/terms")} disabled={!canContinue}>
           다음으로
