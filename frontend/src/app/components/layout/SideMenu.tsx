@@ -1,28 +1,45 @@
-import { useEffect, useState } from 'react';
-import { X, User, Settings, HelpCircle, LogOut, LogIn } from 'lucide-react';
-import { AppButton } from '../design-system/AppButton';
+import { useEffect, useMemo } from 'react'
+import { useStore } from 'zustand'
+import { createStore } from 'zustand/vanilla'
+import { X, User, Settings, HelpCircle, LogOut, LogIn } from 'lucide-react'
+import { AppButton } from '../design-system/AppButton'
 
 interface SideMenuProps {
-  isOpen: boolean;
-  onClose: () => void;
-  isLoggedIn?: boolean;
-  onLogout?: () => void;
-  onLogin?: () => void;
+  isOpen: boolean
+  onClose: () => void
+  isLoggedIn?: boolean
+  onLogout?: () => void
+  onLogin?: () => void
 }
 
-export function SideMenu({ isOpen, onClose, isLoggedIn = false, onLogout, onLogin }: SideMenuProps) {
-  const [isVisible, setIsVisible] = useState(false);
+export function SideMenu({
+  isOpen,
+  onClose,
+  isLoggedIn = false,
+  onLogout,
+  onLogin,
+}: SideMenuProps) {
+  const visibilityStore = useMemo(
+    () =>
+      createStore<{ isVisible: boolean; setIsVisible: (next: boolean) => void }>((set) => ({
+        isVisible: false,
+        setIsVisible: (next) => set({ isVisible: next }),
+      })),
+    []
+  )
+  const isVisible = useStore(visibilityStore, (state) => state.isVisible)
+  const setIsVisible = useStore(visibilityStore, (state) => state.setIsVisible)
 
   useEffect(() => {
     if (isOpen) {
-      setIsVisible(true);
+      setIsVisible(true)
     } else {
       const timer = setTimeout(() => {
-        setIsVisible(false);
-      }, 300);
-      return () => clearTimeout(timer);
+        setIsVisible(false)
+      }, 300)
+      return () => clearTimeout(timer)
     }
-  }, [isOpen]);
+  }, [isOpen])
 
   const menuItems = [
     { icon: <User className="w-5 h-5" />, label: '프로필', onClick: () => {} },
@@ -31,9 +48,9 @@ export function SideMenu({ isOpen, onClose, isLoggedIn = false, onLogout, onLogi
     isLoggedIn
       ? { icon: <LogOut className="w-5 h-5" />, label: '로그아웃', onClick: onLogout || (() => {}) }
       : { icon: <LogIn className="w-5 h-5" />, label: '로그인', onClick: onLogin || (() => {}) },
-  ];
+  ]
 
-  if (!isVisible) return null;
+  if (!isVisible) return null
 
   return (
     <>
@@ -72,8 +89,8 @@ export function SideMenu({ isOpen, onClose, isLoggedIn = false, onLogout, onLogi
                   variant="unstyled"
                   key={index}
                   onClick={() => {
-                    item.onClick();
-                    onClose();
+                    item.onClick()
+                    onClose()
                   }}
                   className="w-full flex items-center gap-3 p-4 hover:bg-secondary rounded-xl transition-colors"
                 >
@@ -91,5 +108,5 @@ export function SideMenu({ isOpen, onClose, isLoggedIn = false, onLogout, onLogi
         </div>
       </div>
     </>
-  );
+  )
 }

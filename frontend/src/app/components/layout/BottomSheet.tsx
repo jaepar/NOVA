@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
-import { AppButton } from '../design-system/AppButton';
+import { useEffect, useMemo } from 'react'
+import { useStore } from 'zustand'
+import { createStore } from 'zustand/vanilla'
+import { X } from 'lucide-react'
+import { AppButton } from '../design-system/AppButton'
 
 interface BottomSheetProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children?: React.ReactNode;
-  bottomAction?: React.ReactNode;
-  height?: string;
-  disableScroll?: boolean;
+  isOpen: boolean
+  onClose: () => void
+  title: string
+  children?: React.ReactNode
+  bottomAction?: React.ReactNode
+  height?: string
+  disableScroll?: boolean
 }
 
 export function BottomSheet({
@@ -21,28 +23,37 @@ export function BottomSheet({
   height,
   disableScroll = false,
 }: BottomSheetProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const visibilityStore = useMemo(
+    () =>
+      createStore<{ isVisible: boolean; setIsVisible: (next: boolean) => void }>((set) => ({
+        isVisible: false,
+        setIsVisible: (next) => set({ isVisible: next }),
+      })),
+    []
+  )
+  const isVisible = useStore(visibilityStore, (state) => state.isVisible)
+  const setIsVisible = useStore(visibilityStore, (state) => state.setIsVisible)
 
   useEffect(() => {
     if (isOpen) {
-      setIsVisible(true);
-      document.body.style.overflow = 'hidden';
+      setIsVisible(true)
+      document.body.style.overflow = 'hidden'
     } else {
       const timer = setTimeout(() => {
-        setIsVisible(false);
-      }, 300);
-      document.body.style.overflow = '';
-      return () => clearTimeout(timer);
+        setIsVisible(false)
+      }, 300)
+      document.body.style.overflow = ''
+      return () => clearTimeout(timer)
     }
-  }, [isOpen]);
+  }, [isOpen])
 
   useEffect(() => {
     return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
+      document.body.style.overflow = ''
+    }
+  }, [])
 
-  if (!isVisible) return null;
+  if (!isVisible) return null
 
   return (
     <>
@@ -78,7 +89,9 @@ export function BottomSheet({
           </AppButton>
         </div>
 
-        <div className={`flex-1 px-5 py-6 ${disableScroll ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+        <div
+          className={`flex-1 px-5 py-6 ${disableScroll ? 'overflow-hidden' : 'overflow-y-auto'}`}
+        >
           {children}
         </div>
 
@@ -97,5 +110,5 @@ export function BottomSheet({
         )}
       </div>
     </>
-  );
+  )
 }

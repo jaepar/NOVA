@@ -1,27 +1,23 @@
-import { useNavigate } from "react-router-dom";
-import { MobileLayout } from "../components/layout/MobileLayout";
-import { AppButton } from "../components/design-system/AppButton";
-import { Btn_1Col } from "../components/design-system/Btn_1Col";
+import { useNavigate } from 'react-router-dom'
+import { MobileLayout } from '../components/layout/MobileLayout'
+import { AppButton } from '../components/design-system/AppButton'
+import { Btn_1Col } from '../components/design-system/Btn_1Col'
 
 export function Home() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <MobileLayout
       title="Welcome"
-      showBackButton={false}
+      headerType="none"
       bottomContent={
-        <Btn_1Col onClick={() => navigate("/step-1")}>
-          Get Started
-        </Btn_1Col>
+        <Btn_1Col onClick={() => navigate('/certificate/step-01')}>Get Started</Btn_1Col>
       }
     >
       <div className="flex flex-col items-center gap-6">
         <div className="text-center space-y-4">
           <h1 className="text-4xl">Mobile App Demo</h1>
-          <p className="text-muted-foreground">
-            iPhone 13 (390 x 844) Web View
-          </p>
+          <p className="text-muted-foreground">iPhone 13 (390 x 844) Web View</p>
         </div>
 
         <div className="w-full space-y-4">
@@ -40,7 +36,7 @@ export function Home() {
           <div className="space-y-3">
             <AppButton
               variant="unstyled"
-              onClick={() => navigate("/design-system")}
+              onClick={() => navigate('/design-system')}
               className="w-full p-4 bg-primary text-primary-foreground hover:bg-blue-700 rounded-xl transition-all"
             >
               <div className="flex items-center justify-between">
@@ -51,7 +47,7 @@ export function Home() {
 
             <AppButton
               variant="unstyled"
-              onClick={() => navigate("/main")}
+              onClick={() => navigate('/main')}
               className="w-full p-4 bg-accent hover:bg-secondary rounded-xl transition-colors border border-border"
             >
               <div className="flex items-center justify-between">
@@ -62,7 +58,7 @@ export function Home() {
 
             <AppButton
               variant="unstyled"
-              onClick={() => navigate("/language")}
+              onClick={() => navigate('/language')}
               className="w-full p-4 bg-accent hover:bg-secondary rounded-xl transition-colors border border-border"
             >
               <div className="flex items-center justify-between">
@@ -73,7 +69,7 @@ export function Home() {
 
             <AppButton
               variant="unstyled"
-              onClick={() => navigate("/landing")}
+              onClick={() => navigate('/landing')}
               className="w-full p-4 bg-accent hover:bg-secondary rounded-xl transition-colors border border-border"
             >
               <div className="flex items-center justify-between">
@@ -84,7 +80,7 @@ export function Home() {
 
             <AppButton
               variant="unstyled"
-              onClick={() => navigate("/transaction-history")}
+              onClick={() => navigate('/transaction-history')}
               className="w-full p-4 bg-accent hover:bg-secondary rounded-xl transition-colors border border-border"
             >
               <div className="flex items-center justify-between">
@@ -99,7 +95,18 @@ export function Home() {
             <div className="space-y-2">
               <AppButton
                 variant="unstyled"
-                onClick={() => navigate("/one-button-template")}
+                onClick={() => navigate('/consent-template')}
+                className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Consent Template</span>
+                  <span className="text-primary text-sm">→</span>
+                </div>
+              </AppButton>
+
+              <AppButton
+                variant="unstyled"
+                onClick={() => navigate('/one-button-template')}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
                 <div className="flex items-center justify-between">
@@ -110,7 +117,7 @@ export function Home() {
 
               <AppButton
                 variant="unstyled"
-                onClick={() => navigate("/two-button-template")}
+                onClick={() => navigate('/two-button-template')}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
                 <div className="flex items-center justify-between">
@@ -121,7 +128,7 @@ export function Home() {
 
               <AppButton
                 variant="unstyled"
-                onClick={() => navigate("/loading")}
+                onClick={() => navigate('/loading')}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
                 <div className="flex items-center justify-between">
@@ -132,7 +139,7 @@ export function Home() {
 
               <AppButton
                 variant="unstyled"
-                onClick={() => navigate("/failed")}
+                onClick={() => navigate('/failed')}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
                 <div className="flex items-center justify-between">
@@ -143,7 +150,7 @@ export function Home() {
 
               <AppButton
                 variant="unstyled"
-                onClick={() => navigate("/success")}
+                onClick={() => navigate('/success')}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
                 <div className="flex items-center justify-between">
@@ -154,7 +161,7 @@ export function Home() {
 
               <AppButton
                 variant="unstyled"
-                onClick={() => navigate("/close-button-template")}
+                onClick={() => navigate('/close-button-template')}
                 className="w-full p-3 bg-background hover:bg-accent rounded-xl transition-colors border border-border"
               >
                 <div className="flex items-center justify-between">
@@ -167,5 +174,5 @@ export function Home() {
         </div>
       </div>
     </MobileLayout>
-  );
+  )
 }

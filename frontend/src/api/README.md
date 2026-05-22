@@ -3,11 +3,13 @@
 이 폴더는 프론트엔드 API 연동의 공통 기반을 제공합니다.
 
 우선 규칙 문서:
+
 - `src/api/AGENTS.md`
 
 ## 개요
 
 현재 구현된 파일:
+
 - `client.ts`: Axios 인스턴스 및 인터셉터
 - `types.ts`: 공통 응답 타입
 - `index.ts`: API 레이어 export 진입점
@@ -34,11 +36,13 @@ src/api/
 - 기본 헤더: `Content-Type: application/json`
 
 요청 인터셉터:
+
 - localStorage의 `accessToken` 조회
 - 토큰 존재 시 `Authorization: Bearer <token>` 자동 주입
 - 개발 환경에서 요청 로그 출력
 
 응답 인터셉터:
+
 - 개발 환경에서 응답 로그 출력
 - `401`, `403`, `404`, `500` 상태 코드 중앙 처리
 - `401` 발생 시 `accessToken` 제거
@@ -64,21 +68,22 @@ VITE_API_BASE_URL=https://your-api-url.com
 ```
 
 참고:
+
 - 개발 로그 분기는 `import.meta.env.DEV`를 사용합니다.
 - 별도 커스텀 환경변수 없이 동작합니다.
 
 ## 기본 사용 예시
 
 ```ts
-import { apiClient, ApiResponse } from '@/api';
+import { apiClient, ApiResponse } from '@/api'
 
 interface User {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
-const res = await apiClient.get<ApiResponse<User>>('/users/me');
-const user = res.data.data;
+const res = await apiClient.get<ApiResponse<User>>('/users/me')
+const user = res.data.data
 ```
 
 ## 엔드포인트 모듈 작성 패턴 (권장)
@@ -89,44 +94,44 @@ const user = res.data.data;
 
 ```ts
 // src/api/endpoints/auth.ts
-import apiClient from '../client';
-import type { ApiResponse } from '../types';
+import apiClient from '../client'
+import type { ApiResponse } from '../types'
 
 interface LoginRequest {
-  email: string;
-  password: string;
+  email: string
+  password: string
 }
 
 interface UserDto {
-  id: string;
-  name: string;
-  email: string;
+  id: string
+  name: string
+  email: string
 }
 
 interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: UserDto;
+  accessToken: string
+  refreshToken: string
+  user: UserDto
 }
 
 export const authApi = {
   login: async (payload: LoginRequest): Promise<LoginResponse> => {
-    const res = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', payload);
+    const res = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', payload)
 
     // 팀 정책 확정 시 토큰 저장
-    const { accessToken, refreshToken } = res.data.data;
-    if (accessToken) localStorage.setItem('accessToken', accessToken);
-    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    const { accessToken, refreshToken } = res.data.data
+    if (accessToken) localStorage.setItem('accessToken', accessToken)
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken)
 
-    return res.data.data;
+    return res.data.data
   },
-};
+}
 ```
 
 작성 후 `src/api/index.ts`에 export를 추가하세요.
 
 ```ts
-export { authApi } from './endpoints/auth';
+export { authApi } from './endpoints/auth'
 ```
 
 ## 확장 권장 구조

@@ -1,0 +1,103 @@
+name: Backend CD with Gradle and Docker (On-Prem Dev)
+
+on:
+  push:
+    branches:
+      - 'develop'
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-onprem-dev-cd.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_REPO: jaypark0205/nova-backend
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        working-directory: backend
+
+      - name: Build with Gradle (without test)
+        run: ./gradlew clean build -x test --stacktrace
+        working-directory: backend
+
+      - name: Set image tag
+        id: meta
+        run: echo "image_tag=develop-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Docker build & push
+        run: |
+          docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}"
+          docker build -f backend/Dockerfile -t "${{ env.IMAGE_REPO }}:${{ steps.meta.outputs.image_tag }}" backend
+          docker tag "${{ env.IMAGE_REPO }}:${{ steps.meta.outputs.image_tag }}" "${{ env.IMAGE_REPO }}:latest"
+          docker push "${{ env.IMAGE_REPO }}:${{ steps.meta.outputs.image_tag }}"
+          docker push "${{ env.IMAGE_REPO }}:latest"
+
+      - name: Send docker-compose.dev.yml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ONPREM_BACKEND_HOST }}
+          port: 22
+          username: ${{ secrets.ONPREM_BACKEND_USER }}
+          key: ${{ secrets.ONPREM_BACKEND_SSH_KEY }}
+          proxy_host: ${{ secrets.BASTION_TUNNEL_HOST }}
+          proxy_port: ${{ secrets.BASTION_TUNNEL_PORT }}
+          proxy_username: ${{ secrets.BASTION_TUNNEL_USER }}
+          proxy_key: ${{ secrets.BASTION_TUNNEL_SSH_KEY }}
+          source: "backend/docker-compose.dev.yml"
+          target: "/home/ubuntu/app"
+          strip_components: 1
+
+      - name: Deploy to on-prem backend server
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
+        with:
+          host: ${{ secrets.ONPREM_BACKEND_HOST }}
+          port: 22
+          username: ${{ secrets.ONPREM_BACKEND_USER }}
+          key: ${{ secrets.ONPREM_BACKEND_SSH_KEY }}
+          proxy_host: ${{ secrets.BASTION_TUNNEL_HOST }}
+          proxy_port: ${{ secrets.BASTION_TUNNEL_PORT }}
+          proxy_username: ${{ secrets.BASTION_TUNNEL_USER }}
+          proxy_key: ${{ secrets.BASTION_TUNNEL_SSH_KEY }}
+          envs: IMAGE_TAG
+          script_stop: true
+          script: |
+            set -eu
+            APP_DIR="/home/ubuntu/app"
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+
+            docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}"
+            docker pull "${{ env.IMAGE_REPO }}:${IMAGE_TAG}"
+            docker tag "${{ env.IMAGE_REPO }}:${IMAGE_TAG}" "${{ env.IMAGE_REPO }}:latest"
+
+            docker compose --env-file .env -f docker-compose.dev.yml up -d
+            docker image prune -f

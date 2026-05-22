@@ -1,12 +1,12 @@
-import { Home, Send, TrendingUp, User } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { AppButton } from '../design-system/AppButton';
+import { Home, Send, TrendingUp, User } from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { AppButton } from '../design-system/AppButton'
 
 interface NavItem {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  path: string;
+  id: string
+  label: string
+  icon: React.ReactNode
+  path: string
 }
 
 const navItems: NavItem[] = [
@@ -14,11 +14,11 @@ const navItems: NavItem[] = [
   { id: 'transfer', label: '송금', icon: <Send className="w-6 h-6" />, path: '/transfer' },
   { id: 'exchange', label: '환율', icon: <TrendingUp className="w-6 h-6" />, path: '/exchange' },
   { id: 'mypage', label: '마이페이지', icon: <User className="w-6 h-6" />, path: '/mypage' },
-];
+]
 
 export function BottomNav() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useNavigate()
+  const location = useLocation()
 
   return (
     <div className="fixed bottom-5 left-0 right-0 z-40 w-full px-5">
@@ -31,7 +31,7 @@ export function BottomNav() {
       >
         <div className="flex items-center justify-around">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path
             return (
               <AppButton
                 variant="unstyled"
@@ -44,10 +44,10 @@ export function BottomNav() {
                 {item.icon}
                 <span className="text-xs">{item.label}</span>
               </AppButton>
-            );
+            )
           })}
         </div>
       </div>
     </div>
-  );
+  )
 }
