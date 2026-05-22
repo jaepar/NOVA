@@ -42,6 +42,48 @@ export const useStep1PageStore = create<Step1PageState>((set) => ({
   setEmail: (email) => set({ email }),
 }));
 
+type SignupGender = "male" | "female" | "";
+
+interface SignupPageState {
+  email: string;
+  verificationCode: string;
+  name: string;
+  birthDate: string;
+  gender: SignupGender;
+  password: string;
+  passwordConfirm: string;
+  setEmail: (email: string) => void;
+  setVerificationCode: (verificationCode: string) => void;
+  setName: (name: string) => void;
+  setBirthDate: (birthDate: string) => void;
+  setGender: (gender: SignupGender) => void;
+  setPassword: (password: string) => void;
+  setPasswordConfirm: (passwordConfirm: string) => void;
+  resetSignup: () => void;
+}
+
+const signupInitialState = {
+  email: "",
+  verificationCode: "",
+  name: "",
+  birthDate: "",
+  gender: "" as SignupGender,
+  password: "",
+  passwordConfirm: "",
+};
+
+export const useSignupPageStore = create<SignupPageState>((set) => ({
+  ...signupInitialState,
+  setEmail: (email) => set({ email }),
+  setVerificationCode: (verificationCode) => set({ verificationCode }),
+  setName: (name) => set({ name }),
+  setBirthDate: (birthDate) => set({ birthDate }),
+  setGender: (gender) => set({ gender }),
+  setPassword: (password) => set({ password }),
+  setPasswordConfirm: (passwordConfirm) => set({ passwordConfirm }),
+  resetSignup: () => set(signupInitialState),
+}));
+
 interface TransactionHistoryPageState {
   isFilterOpen: boolean;
   selectedPeriod: string;
