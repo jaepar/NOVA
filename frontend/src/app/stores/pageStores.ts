@@ -1,17 +1,17 @@
-import { create } from "zustand";
+import { create } from 'zustand'
 
 interface MainPageState {
-  isMenuOpen: boolean;
-  isLoggedIn: boolean;
-  hasAccount: boolean;
-  hasUnreadNotifications: boolean;
-  isCertificateSheetOpen: boolean;
-  setMenuOpen: (open: boolean) => void;
-  setLoggedIn: (loggedIn: boolean) => void;
-  setHasAccount: (hasAccount: boolean) => void;
-  setHasUnreadNotifications: (hasUnread: boolean) => void;
-  setCertificateSheetOpen: (open: boolean) => void;
-  logout: () => void;
+  isMenuOpen: boolean
+  isLoggedIn: boolean
+  hasAccount: boolean
+  hasUnreadNotifications: boolean
+  isCertificateSheetOpen: boolean
+  setMenuOpen: (open: boolean) => void
+  setLoggedIn: (loggedIn: boolean) => void
+  setHasAccount: (hasAccount: boolean) => void
+  setHasUnreadNotifications: (hasUnread: boolean) => void
+  setCertificateSheetOpen: (open: boolean) => void
+  logout: () => void
 }
 
 export const useMainPageStore = create<MainPageState>((set) => ({
@@ -26,21 +26,21 @@ export const useMainPageStore = create<MainPageState>((set) => ({
   setHasUnreadNotifications: (hasUnreadNotifications) => set({ hasUnreadNotifications }),
   setCertificateSheetOpen: (isCertificateSheetOpen) => set({ isCertificateSheetOpen }),
   logout: () => set({ isLoggedIn: false, hasAccount: false }),
-}));
+}))
 
 interface Step1PageState {
-  name: string;
-  email: string;
-  setName: (name: string) => void;
-  setEmail: (email: string) => void;
+  name: string
+  email: string
+  setName: (name: string) => void
+  setEmail: (email: string) => void
 }
 
 export const useStep1PageStore = create<Step1PageState>((set) => ({
-  name: "",
-  email: "",
+  name: '',
+  email: '',
   setName: (name) => set({ name }),
   setEmail: (email) => set({ email }),
-}));
+}))
 
 type SignupGender = "male" | "female" | "";
 
@@ -85,77 +85,79 @@ export const useSignupPageStore = create<SignupPageState>((set) => ({
 }));
 
 interface TransactionHistoryPageState {
-  isFilterOpen: boolean;
-  selectedPeriod: string;
-  selectedType: string;
-  setFilterOpen: (open: boolean) => void;
-  setSelectedPeriod: (period: string) => void;
-  setSelectedType: (type: string) => void;
+  isFilterOpen: boolean
+  selectedPeriod: string
+  selectedType: string
+  setFilterOpen: (open: boolean) => void
+  setSelectedPeriod: (period: string) => void
+  setSelectedType: (type: string) => void
 }
 
 export const useTransactionHistoryPageStore = create<TransactionHistoryPageState>((set) => ({
   isFilterOpen: false,
-  selectedPeriod: "전체",
-  selectedType: "전체",
+  selectedPeriod: '전체',
+  selectedType: '전체',
   setFilterOpen: (isFilterOpen) => set({ isFilterOpen }),
   setSelectedPeriod: (selectedPeriod) => set({ selectedPeriod }),
   setSelectedType: (selectedType) => set({ selectedType }),
-}));
+}))
 
 interface DesignSystemPageState {
-  inputValue: string;
-  isBottomSheetOpen: boolean;
-  isFilterSheetOpen: boolean;
-  isPinSheetOpen: boolean;
-  selectedPeriod: string;
-  selectedType: string;
-  setInputValue: (value: string) => void;
-  setBottomSheetOpen: (open: boolean) => void;
-  setFilterSheetOpen: (open: boolean) => void;
-  setPinSheetOpen: (open: boolean) => void;
-  setSelectedPeriod: (period: string) => void;
-  setSelectedType: (type: string) => void;
+  inputValue: string
+  isBottomSheetOpen: boolean
+  isFilterSheetOpen: boolean
+  isPinSheetOpen: boolean
+  selectedPeriod: string
+  selectedType: string
+  setInputValue: (value: string) => void
+  setBottomSheetOpen: (open: boolean) => void
+  setFilterSheetOpen: (open: boolean) => void
+  setPinSheetOpen: (open: boolean) => void
+  setSelectedPeriod: (period: string) => void
+  setSelectedType: (type: string) => void
 }
 
 export const useDesignSystemPageStore = create<DesignSystemPageState>((set) => ({
-  inputValue: "",
+  inputValue: '',
   isBottomSheetOpen: false,
   isFilterSheetOpen: false,
   isPinSheetOpen: false,
-  selectedPeriod: "all",
-  selectedType: "all",
+  selectedPeriod: 'all',
+  selectedType: 'all',
   setInputValue: (inputValue) => set({ inputValue }),
   setBottomSheetOpen: (isBottomSheetOpen) => set({ isBottomSheetOpen }),
   setFilterSheetOpen: (isFilterSheetOpen) => set({ isFilterSheetOpen }),
   setPinSheetOpen: (isPinSheetOpen) => set({ isPinSheetOpen }),
   setSelectedPeriod: (selectedPeriod) => set({ selectedPeriod }),
   setSelectedType: (selectedType) => set({ selectedType }),
-}));
+}))
 
 interface Step3DocumentItem {
-  id: "registration-application" | "residence-proof";
-  title: string;
-  file: File | null;
-  error: string | null;
+  id: 'registration-application' | 'residence-proof'
+  title: string
+  file: File | null
+  error: string | null
 }
 
 interface Step3PageState {
-  documents: Step3DocumentItem[];
-  setDocumentFile: (id: Step3DocumentItem["id"], file: File | null) => void;
-  setDocumentError: (id: Step3DocumentItem["id"], error: string | null) => void;
-  reset: () => void;
+  documents: Step3DocumentItem[]
+  setDocumentFile: (id: Step3DocumentItem['id'], file: File | null) => void
+  setDocumentError: (id: Step3DocumentItem['id'], error: string | null) => void
+  reset: () => void
 }
 
 const initialStep3Documents: Step3DocumentItem[] = [
-  { id: "registration-application", title: "외국인등록증 신청 서류", file: null, error: null },
-  { id: "residence-proof", title: "거소확인 증빙 서류", file: null, error: null },
-];
+  { id: 'registration-application', title: '외국인등록증 신청 서류', file: null, error: null },
+  { id: 'residence-proof', title: '거소확인 증빙 서류', file: null, error: null },
+]
 
 export const useStep3PageStore = create<Step3PageState>((set) => ({
   documents: initialStep3Documents,
   setDocumentFile: (id, file) =>
     set((state) => ({
-      documents: state.documents.map((item) => (item.id === id ? { ...item, file, error: null } : item)),
+      documents: state.documents.map((item) =>
+        item.id === id ? { ...item, file, error: null } : item
+      ),
     })),
   setDocumentError: (id, error) =>
     set((state) => ({
@@ -165,20 +167,20 @@ export const useStep3PageStore = create<Step3PageState>((set) => ({
     set({
       documents: initialStep3Documents,
     }),
-}));
+}))
 
 interface Step5PassportCaptureState {
-  mode: "live" | "review";
-  capturedImage: string | null;
-  cameraError: string | null;
-  setMode: (mode: "live" | "review") => void;
-  setCapturedImage: (capturedImage: string | null) => void;
-  setCameraError: (cameraError: string | null) => void;
-  reset: () => void;
+  mode: 'live' | 'review'
+  capturedImage: string | null
+  cameraError: string | null
+  setMode: (mode: 'live' | 'review') => void
+  setCapturedImage: (capturedImage: string | null) => void
+  setCameraError: (cameraError: string | null) => void
+  reset: () => void
 }
 
 export const useStep5PassportCaptureStore = create<Step5PassportCaptureState>((set) => ({
-  mode: "live",
+  mode: 'live',
   capturedImage: null,
   cameraError: null,
   setMode: (mode) => set({ mode }),
@@ -186,25 +188,25 @@ export const useStep5PassportCaptureStore = create<Step5PassportCaptureState>((s
   setCameraError: (cameraError) => set({ cameraError }),
   reset: () =>
     set({
-      mode: "live",
+      mode: 'live',
       capturedImage: null,
       cameraError: null,
     }),
-}));
+}))
 
 interface Step10TermsPageState {
-  checkedTermIds: string[];
-  openCategoryIds: string[];
-  categoryCursor: Record<string, number>;
-  setCheckedTermIds: (ids: string[]) => void;
-  setOpenCategoryIds: (ids: string[]) => void;
-  setCategoryCursor: (categoryId: string, index: number) => void;
-  reset: () => void;
+  checkedTermIds: string[]
+  openCategoryIds: string[]
+  categoryCursor: Record<string, number>
+  setCheckedTermIds: (ids: string[]) => void
+  setOpenCategoryIds: (ids: string[]) => void
+  setCategoryCursor: (categoryId: string, index: number) => void
+  reset: () => void
 }
 
 export const useStep10TermsPageStore = create<Step10TermsPageState>((set) => ({
   checkedTermIds: [],
-  openCategoryIds: ["required-service"],
+  openCategoryIds: ['required-service'],
   categoryCursor: {},
   setCheckedTermIds: (checkedTermIds) => set({ checkedTermIds }),
   setOpenCategoryIds: (openCategoryIds) => set({ openCategoryIds }),
@@ -218,15 +220,15 @@ export const useStep10TermsPageStore = create<Step10TermsPageState>((set) => ({
   reset: () =>
     set({
       checkedTermIds: [],
-      openCategoryIds: ["required-service"],
+      openCategoryIds: ['required-service'],
       categoryCursor: {},
     }),
-}));
+}))
 
 interface ConsentCarouselTemplateState {
-  currentIndex: number;
-  setCurrentIndex: (index: number | ((prev: number) => number)) => void;
-  reset: () => void;
+  currentIndex: number
+  setCurrentIndex: (index: number | ((prev: number) => number)) => void
+  reset: () => void
 }
 
 export const useConsentCarouselTemplateStore = create<ConsentCarouselTemplateState>((set) => ({
@@ -234,7 +236,9 @@ export const useConsentCarouselTemplateStore = create<ConsentCarouselTemplateSta
   setCurrentIndex: (currentIndex) =>
     set((state) => ({
       currentIndex:
-        typeof currentIndex === "function" ? Math.max(0, currentIndex(state.currentIndex)) : Math.max(0, currentIndex),
+        typeof currentIndex === 'function'
+          ? Math.max(0, currentIndex(state.currentIndex))
+          : Math.max(0, currentIndex),
     })),
   reset: () => set({ currentIndex: 0 }),
-}));
+}))

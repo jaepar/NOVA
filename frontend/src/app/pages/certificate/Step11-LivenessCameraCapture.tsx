@@ -1,44 +1,46 @@
-import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { ScanFace } from "lucide-react";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
-import { CameraCapturePage } from "../../components/camera/CameraCapturePage";
+import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ScanFace } from 'lucide-react'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { CameraCapturePage } from '../../components/camera/CameraCapturePage'
 
 export function LivenessCameraCapture() {
-  const navigate = useNavigate();
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const navigate = useNavigate()
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
 
   useEffect(() => {
     const startCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" },
+          video: { facingMode: 'user' },
           audio: false,
-        });
-        streamRef.current = stream;
+        })
+        streamRef.current = stream
         if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
+          videoRef.current.srcObject = stream
+          await videoRef.current.play()
         }
       } catch {
         // 권한 거부 시에만 기본 화면 구조 유지
       }
-    };
+    }
 
-    startCamera();
+    startCamera()
 
     return () => {
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    };
-  }, []);
+      streamRef.current?.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+    }
+  }, [])
 
   return (
     <CameraCapturePage
       title="비대면 실명확인"
-      onClose={() => navigate("/certificate/step-10", { state: { preserveStep10State: true } })}
-      bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-12")}>동의하고 촬영하기</Btn_1Col>}
+      onClose={() => navigate('/certificate/step-10', { state: { preserveStep10State: true } })}
+      bottomContent={
+        <Btn_1Col onClick={() => navigate('/certificate/step-12')}>동의하고 촬영하기</Btn_1Col>
+      }
       bottomBackgroundColor="#000000"
     >
       <div className="space-y-6 pb-6">
@@ -76,5 +78,5 @@ export function LivenessCameraCapture() {
         </div>
       </div>
     </CameraCapturePage>
-  );
+  )
 }

@@ -1,16 +1,18 @@
-import { useNavigate } from "react-router-dom";
-import { Camera, Lightbulb, ScanFace } from "lucide-react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { useNavigate } from 'react-router-dom'
+import { Camera, Lightbulb, ScanFace } from 'lucide-react'
+import { MobileLayout } from '../../components/layout/MobileLayout'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 
 export function LivenessGuide() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <MobileLayout
       title="비대면 실명확인"
       backPath="/certificate/step-08"
-      bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-10")}>동의하고 촬영하기</Btn_1Col>}
+      bottomContent={
+        <Btn_1Col onClick={() => navigate('/certificate/step-10')}>동의하고 촬영하기</Btn_1Col>
+      }
     >
       <div className="space-y-5 pb-2">
         <section className="space-y-1">
@@ -48,10 +50,12 @@ export function LivenessGuide() {
             <div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center shrink-0">
               <Camera className="w-4 h-4" />
             </div>
-            <p className="text-sm leading-relaxed">휴대폰 전면 카메라를 깨끗이 닦고 얼굴 높이까지 들어주세요.</p>
+            <p className="text-sm leading-relaxed">
+              휴대폰 전면 카메라를 깨끗이 닦고 얼굴 높이까지 들어주세요.
+            </p>
           </div>
         </section>
       </div>
     </MobileLayout>
-  );
+  )
 }

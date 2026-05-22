@@ -1,15 +1,17 @@
-import { useNavigate } from "react-router-dom";
-import { MobileLayout } from "../../components/layout/MobileLayout";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { useNavigate } from 'react-router-dom'
+import { MobileLayout } from '../../components/layout/MobileLayout'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 
 export function NfcGuide() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <MobileLayout
       title="비대면 실명확인"
       backPath="/certificate/step-05"
-      bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-07")}>NFC 태깅 시작</Btn_1Col>}
+      bottomContent={
+        <Btn_1Col onClick={() => navigate('/certificate/step-07')}>NFC 태깅 시작</Btn_1Col>
+      }
     >
       <div className="space-y-4 pb-2">
         <section className="space-y-1">
@@ -42,5 +44,5 @@ export function NfcGuide() {
         </section>
       </div>
     </MobileLayout>
-  );
+  )
 }

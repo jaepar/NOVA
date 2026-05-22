@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { ConsentTermDetailView } from "../../components/consent/ConsentTermDetailView";
-import { signupConsentDefinition } from "./consentDefinition";
+import { signupConsentDefinition } from "../../domains/signup-consent/definition.signup";
 
 export function ConsentDetail() {
   const { termId } = useParams();

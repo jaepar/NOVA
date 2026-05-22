@@ -1,5 +1,5 @@
-import { MobileLayout } from '../components/layout/MobileLayout';
-import { BottomNav } from '../components/layout/BottomNav';
+import { MobileLayout } from '../components/layout/MobileLayout'
+import { BottomNav } from '../components/layout/BottomNav'
 
 export function MyPage() {
   return (
@@ -14,6 +14,5 @@ export function MyPage() {
       </MobileLayout>
       <BottomNav />
     </>
-  );
+  )
 }
-

@@ -1,13 +1,13 @@
-import { spacing } from './tokens';
-import { Search } from 'lucide-react';
+import { spacing } from './tokens'
+import { Search } from 'lucide-react'
 
 interface CommonInputGroupProps {
-  label: string;
-  placeholder?: string;
-  value?: string;
-  onChange?: (value: string) => void;
-  type?: 'text' | 'email' | 'password' | 'tel' | 'number';
-  showSearchIcon?: boolean;
+  label: string
+  placeholder?: string
+  value?: string
+  onChange?: (value: string) => void
+  type?: 'text' | 'email' | 'password' | 'tel' | 'number'
+  showSearchIcon?: boolean
 }
 
 export function CommonInputGroup({
@@ -37,5 +37,5 @@ export function CommonInputGroup({
         />
       </div>
     </div>
-  );
+  )
 }

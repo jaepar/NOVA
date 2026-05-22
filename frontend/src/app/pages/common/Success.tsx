@@ -1,18 +1,18 @@
-import { useNavigate } from "react-router-dom";
-import { Check } from "lucide-react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
-import { CenteredTaskContent } from "../../components/design-system/CenteredTaskContent";
+import { useNavigate } from 'react-router-dom'
+import { Check } from 'lucide-react'
+import { MobileLayout } from '../../components/layout/MobileLayout'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
 
 interface SuccessProps {
-  headerTitle: string;
-  task: string;
-  description?: string;
-  visualImageSrc?: string;
-  visualImageAlt?: string;
-  buttonText?: string;
-  onButtonClick?: () => void;
-  redirectPath?: string;
+  headerTitle: string
+  task: string
+  description?: string
+  visualImageSrc?: string
+  visualImageAlt?: string
+  buttonText?: string
+  onButtonClick?: () => void
+  redirectPath?: string
 }
 
 export function Success({
@@ -20,20 +20,20 @@ export function Success({
   task,
   description,
   visualImageSrc,
-  visualImageAlt = "성공 이미지",
-  buttonText = "확인",
+  visualImageAlt = '성공 이미지',
+  buttonText = '확인',
   onButtonClick,
-  redirectPath = "/main",
+  redirectPath = '/main',
 }: SuccessProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleConfirm = () => {
     if (onButtonClick) {
-      onButtonClick();
-      return;
+      onButtonClick()
+      return
     }
-    navigate(redirectPath);
-  };
+    navigate(redirectPath)
+  }
 
   return (
     <MobileLayout
@@ -46,11 +46,7 @@ export function Success({
     >
       <CenteredTaskContent task={task} description={description}>
         {visualImageSrc ? (
-          <img
-            src={visualImageSrc}
-            alt={visualImageAlt}
-            className="h-24 w-24 object-contain"
-          />
+          <img src={visualImageSrc} alt={visualImageAlt} className="h-24 w-24 object-contain" />
         ) : (
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-600">
             <Check className="h-14 w-14 stroke-[4] text-white" />
@@ -58,5 +54,5 @@ export function Success({
         )}
       </CenteredTaskContent>
     </MobileLayout>
-  );
+  )
 }

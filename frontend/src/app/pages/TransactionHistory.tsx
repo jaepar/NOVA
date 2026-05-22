@@ -1,29 +1,35 @@
-import { MobileLayout } from '../components/layout/MobileLayout';
-import { AppButton } from '../components/design-system/AppButton';
-import { FilterBottomSheet } from '../components/design-system/FilterBottomSheet';
-import { Filter, ChevronRight } from 'lucide-react';
-import { useTransactionHistoryPageStore } from '../stores/pageStores';
+import { MobileLayout } from '../components/layout/MobileLayout'
+import { AppButton } from '../components/design-system/AppButton'
+import { FilterBottomSheet } from '../components/design-system/FilterBottomSheet'
+import { Filter, ChevronRight } from 'lucide-react'
+import { useTransactionHistoryPageStore } from '../stores/pageStores'
 
 export function TransactionHistory() {
-  const isFilterOpen = useTransactionHistoryPageStore((state) => state.isFilterOpen);
-  const selectedPeriod = useTransactionHistoryPageStore((state) => state.selectedPeriod);
-  const selectedType = useTransactionHistoryPageStore((state) => state.selectedType);
-  const setFilterOpen = useTransactionHistoryPageStore((state) => state.setFilterOpen);
-  const setSelectedPeriod = useTransactionHistoryPageStore((state) => state.setSelectedPeriod);
-  const setSelectedType = useTransactionHistoryPageStore((state) => state.setSelectedType);
+  const isFilterOpen = useTransactionHistoryPageStore((state) => state.isFilterOpen)
+  const selectedPeriod = useTransactionHistoryPageStore((state) => state.selectedPeriod)
+  const selectedType = useTransactionHistoryPageStore((state) => state.selectedType)
+  const setFilterOpen = useTransactionHistoryPageStore((state) => state.setFilterOpen)
+  const setSelectedPeriod = useTransactionHistoryPageStore((state) => state.setSelectedPeriod)
+  const setSelectedType = useTransactionHistoryPageStore((state) => state.setSelectedType)
 
   const transactions = [
     { id: 1, type: '입금', amount: '+500,000원', date: '2026.05.14', description: '급여 입금' },
     { id: 2, type: '출금', amount: '-50,000원', date: '2026.05.13', description: 'ATM 출금' },
-    { id: 3, type: '송금', amount: '-100,000원', date: '2026.05.12', description: '김철수님께 송금' },
+    {
+      id: 3,
+      type: '송금',
+      amount: '-100,000원',
+      date: '2026.05.12',
+      description: '김철수님께 송금',
+    },
     { id: 4, type: '환전', amount: '-200,000원', date: '2026.05.11', description: 'USD 환전' },
     { id: 5, type: '입금', amount: '+30,000원', date: '2026.05.10', description: '이체 입금' },
-  ];
+  ]
 
   const handleApplyFilter = () => {
-    setFilterOpen(false);
+    setFilterOpen(false)
     // 필터 적용 로직
-  };
+  }
 
   return (
     <>
@@ -31,9 +37,9 @@ export function TransactionHistory() {
         title="거래내역 조회"
         headerType="back"
         headerRightContent={
-            <AppButton
-              variant="unstyled"
-              onClick={() => setFilterOpen(true)}
+          <AppButton
+            variant="unstyled"
+            onClick={() => setFilterOpen(true)}
             className="p-2 hover:bg-secondary rounded-lg transition-colors"
           >
             <Filter className="w-5 h-5" />
@@ -80,14 +86,14 @@ export function TransactionHistory() {
                       <span className="text-xs px-2 py-0.5 bg-secondary rounded">
                         {transaction.type}
                       </span>
-                      <span className="text-sm text-muted-foreground">
-                        {transaction.date}
-                      </span>
+                      <span className="text-sm text-muted-foreground">{transaction.date}</span>
                     </div>
                     <p className="mb-1">{transaction.description}</p>
-                    <p className={`font-medium ${
-                      transaction.amount.startsWith('+') ? 'text-blue-600' : 'text-foreground'
-                    }`}>
+                    <p
+                      className={`font-medium ${
+                        transaction.amount.startsWith('+') ? 'text-blue-600' : 'text-foreground'
+                      }`}
+                    >
                       {transaction.amount}
                     </p>
                   </div>
@@ -131,5 +137,5 @@ export function TransactionHistory() {
         onApply={handleApplyFilter}
       />
     </>
-  );
+  )
 }

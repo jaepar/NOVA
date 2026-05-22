@@ -1,9 +1,9 @@
-import { useParams } from "react-router-dom";
-import { ConsentCategoryCarouselView } from "../../components/consent/ConsentCategoryCarouselView";
-import { livenessConsentDefinitionSample } from "../../domains/certificate-consent/definition.liveness.sample";
+import { useParams } from 'react-router-dom'
+import { ConsentCategoryCarouselView } from '../../components/consent/ConsentCategoryCarouselView'
+import { livenessConsentDefinitionSample } from '../../domains/certificate-consent/definition.liveness.sample'
 
 export function LivenessConsentAllTermsAgreements() {
-  const { categoryId } = useParams();
+  const { categoryId } = useParams()
   return (
     <ConsentCategoryCarouselView
       definition={livenessConsentDefinitionSample}
@@ -12,5 +12,5 @@ export function LivenessConsentAllTermsAgreements() {
       preserveStateKey="preserveStep10State"
       resetCarouselCursorKey="resetCategoryCursor"
     />
-  );
+  )
 }

@@ -32,7 +32,7 @@ class AuthControllerTest {
 
         verify(authService).signup(request);
         assertThat(response.getSuccess()).isTrue();
-        assertThat(response.getCode()).isEqualTo(20000);
+        assertThat(response.getCode()).isEqualTo("20000");
         assertThat(response.getMessage()).isEqualTo("요청에 성공했습니다.");
         assertThat(response.getData()).isNull();
     }

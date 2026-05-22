@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { ConsentOverviewAccordion } from "../../components/consent/ConsentOverviewAccordion";
 import { MobileLayout } from "../../components/layout/MobileLayout";
-import { signupConsentDefinition } from "./consentDefinition";
+import { signupConsentDefinition } from "../../domains/signup-consent/definition.signup";
 
 export function Terms() {
   const navigate = useNavigate();

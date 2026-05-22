@@ -1,19 +1,18 @@
-import { useState } from 'react';
-import { Bell, CheckCircle, AlertCircle, Info, Gift } from 'lucide-react';
-import { MobileLayout } from '../components/layout/MobileLayout';
-import { AppButton } from '../components/design-system/AppButton';
+import { useState } from 'react'
+import { Bell, CheckCircle, AlertCircle, Info, Gift } from 'lucide-react'
+import { MobileLayout } from '../components/layout/MobileLayout'
+import { AppButton } from '../components/design-system/AppButton'
 
 interface Notification {
-  id: string;
-  type: 'success' | 'info' | 'alert' | 'event';
-  title: string;
-  message: string;
-  time: string;
-  isRead: boolean;
+  id: string
+  type: 'success' | 'info' | 'alert' | 'event'
+  title: string
+  message: string
+  time: string
+  isRead: boolean
 }
 
 export function Notifications() {
-
   // TODO: 실제 구현 시 API에서 가져올 데이터
   const [notifications, setNotifications] = useState<Notification[]>([
     {
@@ -56,44 +55,36 @@ export function Notifications() {
       time: '2일 전',
       isRead: true,
     },
-  ]);
+  ])
 
   const getIcon = (type: Notification['type']) => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="w-6 h-6 text-green-600" />;
+        return <CheckCircle className="w-6 h-6 text-green-600" />
       case 'alert':
-        return <AlertCircle className="w-6 h-6 text-red-600" />;
+        return <AlertCircle className="w-6 h-6 text-red-600" />
       case 'event':
-        return <Gift className="w-6 h-6 text-blue-600" />;
+        return <Gift className="w-6 h-6 text-blue-600" />
       default:
-        return <Info className="w-6 h-6 text-blue-600" />;
+        return <Info className="w-6 h-6 text-blue-600" />
     }
-  };
+  }
 
   const handleNotificationClick = (id: string) => {
-    setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
-  };
+    setNotifications((prev) =>
+      prev.map((notif) => (notif.id === id ? { ...notif, isRead: true } : notif))
+    )
+  }
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length
 
   return (
-    <MobileLayout
-      title="알림"
-      headerType="close"
-      closePath="/main"
-    >
+    <MobileLayout title="알림" headerType="close" closePath="/main">
       <div className="space-y-4 pb-8">
         {/* Header Info */}
         {unreadCount > 0 && (
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl">
-            <p className="text-sm text-blue-800">
-              읽지 않은 알림 {unreadCount}개가 있습니다.
-            </p>
+            <p className="text-sm text-blue-800">읽지 않은 알림 {unreadCount}개가 있습니다.</p>
           </div>
         )}
 
@@ -120,9 +111,7 @@ export function Notifications() {
                 }`}
               >
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 mt-1">
-                    {getIcon(notification.type)}
-                  </div>
+                  <div className="flex-shrink-0 mt-1">{getIcon(notification.type)}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h4 className={notification.isRead ? 'text-muted-foreground' : ''}>
@@ -132,14 +121,14 @@ export function Notifications() {
                         <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></span>
                       )}
                     </div>
-                    <p className={`text-sm mb-2 ${
-                      notification.isRead ? 'text-muted-foreground' : 'text-foreground'
-                    }`}>
+                    <p
+                      className={`text-sm mb-2 ${
+                        notification.isRead ? 'text-muted-foreground' : 'text-foreground'
+                      }`}
+                    >
                       {notification.message}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {notification.time}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{notification.time}</p>
                   </div>
                 </div>
               </AppButton>
@@ -148,5 +137,5 @@ export function Notifications() {
         </div>
       </div>
     </MobileLayout>
-  );
+  )
 }

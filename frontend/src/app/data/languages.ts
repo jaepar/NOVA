@@ -1,7 +1,7 @@
 export interface Language {
-  id: string;
-  name: string;
-  flag: string;
+  id: string
+  name: string
+  flag: string
 }
 
 export const languages: Language[] = [
@@ -14,4 +14,4 @@ export const languages: Language[] = [
   { id: 'ko', name: 'Korean', flag: '🇰🇷' },
   { id: 'ne', name: 'Nepali', flag: '🇳🇵' },
   { id: 'ru', name: 'Russian', flag: '🇷🇺' },
-];
+]
