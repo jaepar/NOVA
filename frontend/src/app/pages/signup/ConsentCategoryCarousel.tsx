@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { ConsentCategoryCarouselView } from "../../components/consent/ConsentCategoryCarouselView";
-import { signupConsentDefinition } from "./consentDefinition";
+import { signupConsentDefinition } from "../../domains/signup-consent/definition.signup";
 
 export function ConsentCategoryCarousel() {
   const { categoryId } = useParams();

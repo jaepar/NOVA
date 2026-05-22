@@ -1,10 +1,10 @@
-import { useNavigate } from "react-router-dom";
-import { Btn_1Col } from "../components/design-system/Btn_1Col";
-import { AppButton } from "../components/design-system/AppButton";
-import { MobileLayout } from "../components/layout/MobileLayout";
+import { useNavigate } from 'react-router-dom'
+import { Btn_1Col } from '../components/design-system/Btn_1Col'
+import { AppButton } from '../components/design-system/AppButton'
+import { MobileLayout } from '../components/layout/MobileLayout'
 
 export function Landing() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <div className="h-full bg-background w-full relative">
@@ -12,7 +12,7 @@ export function Landing() {
       <div className="absolute top-4 right-5 z-50">
         <AppButton
           variant="unstyled"
-          onClick={() => navigate("/language")}
+          onClick={() => navigate('/language')}
           className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Language
@@ -22,11 +22,7 @@ export function Landing() {
       <MobileLayout
         title=""
         headerType="close"
-        bottomContent={
-          <Btn_1Col onClick={() => navigate("/language")}>
-            시작하기
-          </Btn_1Col>
-        }
+        bottomContent={<Btn_1Col onClick={() => navigate('/language')}>시작하기</Btn_1Col>}
       >
         <div className="flex flex-col items-center justify-center min-h-full">
           {/* Logo */}
@@ -35,12 +31,14 @@ export function Landing() {
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl mb-2"><span className="text-blue-600">NOVA</span></h1>
+          <h1 className="text-2xl mb-2">
+            <span className="text-blue-600">NOVA</span>
+          </h1>
 
           {/* Subtitle */}
           <p className="text-muted-foreground text-center">한국에서의 첫 금융 생활</p>
         </div>
       </MobileLayout>
     </div>
-  );
+  )
 }

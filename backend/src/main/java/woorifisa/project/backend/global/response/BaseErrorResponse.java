@@ -8,7 +8,7 @@ import woorifisa.project.backend.global.response.status.ResponseStatus;
 @JsonPropertyOrder({"success", "code", "message","data"})
 public class BaseErrorResponse implements ResponseStatus {
     private final boolean success;
-    private final int code;
+    private final String code;
     private final String message;
     private final Object data;
 
@@ -31,7 +31,7 @@ public class BaseErrorResponse implements ResponseStatus {
         return this.success;
     }
     @Override
-    public int getCode() {
+    public String getCode() {
         return this.code;
     }
     @Override

@@ -7,8 +7,8 @@
  * const response = await apiClient.get('/your-endpoint');
  */
 
-export { default as apiClient } from './client';
-export * from './types';
+export { default as apiClient } from './client'
+export * from './types'
 
 /**
  * 엔드포인트별 API 함수를 작성한 후 여기에 export 추가

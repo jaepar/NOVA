@@ -1,13 +1,16 @@
 # 디자인 시스템 가이드
 
 ## 1) 범위
+
 이 문서는 NOVA 프론트엔드의 공통 UI 규칙을 정의한다.
 
 상위 참조:
+
 - `frontend/AGENTS.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
 
 ## 2) 핵심 토큰
+
 - 기준 프레임: `390 x 844`
 - 좌우 기본 패딩: `px-5` (20px)
 - Primary: `#6366F1`
@@ -17,6 +20,7 @@
 - 배경: `#FFFFFF`
 
 ## 3) 타이포그래피
+
 - 기본 폰트: `Inter`
 - 보조 폰트: `Urbanist`
 - 크기 스케일:
@@ -28,6 +32,7 @@
   - `--text-xs`: 12px
 
 ## 4) 버튼 시스템 (필수)
+
 - 모든 상호작용 버튼은 공통 버튼 컴포넌트를 사용한다.
 - 사용 컴포넌트:
   - `AppButton`: 범용 버튼 래퍼
@@ -37,10 +42,12 @@
 - 텍스트/상태/동작은 props로 제어한다.
 
 ## 5) 입력 시스템
+
 - `CommonInputGroup` 등 공통 입력 컴포넌트를 우선 사용한다.
 - 공통 컴포넌트가 존재하면 임의 입력 스타일을 추가하지 않는다.
 
 ## 6) 공통 레이아웃 컴포넌트
+
 - `FixedHeader`
 - `CloseFixedHeader`
 - `TitleOnlyFixedHeader`
@@ -50,21 +57,25 @@
 - `BottomSheet`
 
 ### 헤더 선택 규칙
+
 - 페이지에서는 헤더 컴포넌트를 직접 조합하기보다 `MobileLayout`의 `headerType`을 우선 사용한다.
 - `headerType="back"`: 뒤로가기 아이콘 헤더
 - `headerType="close"`: 닫기 아이콘 헤더
 - `headerType="none"`: 아이콘 없는 타이틀 헤더
 
 ### 하단 액션 규칙
+
 - 하단 고정 액션은 `MobileLayout`의 `bottomContent`로 구성한다.
 - 하단 배경색은 `bottomBackgroundColor`로 제어하며 기본값은 `#ffffff`이다.
 
 ## 7) 상호작용 원칙
+
 - hover/active 동작은 기존 variant 규칙과 일치시킨다.
 - 공통 컴포넌트 규칙과 충돌하는 페이지별 예외 스타일을 만들지 않는다.
 - 페이지 간 간격 리듬을 유지한다.
 
 ## 8) 준수 체크리스트
+
 - [ ] 공통 레이아웃 스캐폴드 사용
 - [ ] 공통 버튼 컴포넌트 사용
 - [ ] 공통 입력 컴포넌트 우선 사용
@@ -72,15 +83,19 @@
 - [ ] 명시적 사유 없는 예외 스타일 없음
 
 ## 9) 동기화 정책
+
 디자인 규칙 변경 시 아래 문서를 함께 갱신한다.
+
 - `frontend/AGENTS.md`
 - `frontend/guidelines/DESIGN_SYSTEM.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
 
 ## 10) 약관 동의 UI 규칙
+
 - 약관 동의 페이지의 하단 액션은 공통 하단 고정 버튼(`Btn_1Col`)을 사용한다.
 - 큰 카테고리/세부 항목의 체크/이동 인터랙션은 `frontend/src/app/domains/certificate-consent/README.md` 규격을 따른다.
 - 세부 약관 상세의 헤더 타이틀은 `약관/동의서 상세`로 통일한다.
+
 ## 11) 공통 상태 콘텐츠 규칙
 
 - `Loading`, `Success`, `Failed`의 본문 레이아웃은 `CenteredTaskContent`를 공통 사용한다.
@@ -89,6 +104,7 @@
 - `description`은 줄바꿈 문자열(`\n`, `\\n`)을 표현해야 한다.
 
 성공/실패 시각 요소 규칙:
+
 - `visualImageSrc`가 있으면 이미지 렌더링
 - `visualImageSrc`가 없으면 기본 아이콘 렌더링
 - 이미지 사용 시 `visualImageAlt`를 제공한다.
@@ -108,11 +124,13 @@
 - 이전처럼 약관 페이지별로 동일 UI를 반복 구현하는 방식은 사용하지 않는다.
 
 약관 정의 데이터 소스 규칙:
+
 - 약관 데이터는 정의 파일(`definition.*.ts`)에서 관리하고 컴포넌트에 주입한다.
 - 정의 파일 권장 경로: `src/app/domains/<service-domain>/`
 - 정의 파일 권장 네이밍: `definition.<scenario>.ts`
 
 ## 헤더 뒤로가기 정책 (스텝형 플로우 필수)
+
 - 스텝형 플로우(예: 인증서 발급)에서는 `navigate(-1)`을 뒤로가기 기본 동작으로 사용하지 않는다.
 - 각 스텝 페이지는 `MobileLayout`의 `backPath`를 명시하고, 현재 스텝 기준 이전 스텝 경로로 이동해야 한다.
 - 히스토리 기반 이동이 필요한 예외 케이스는 `onBack`을 사용하되, 예외 사유를 PR 설명에 반드시 남긴다.

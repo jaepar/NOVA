@@ -1,8 +1,13 @@
-import { useParams } from "react-router-dom";
-import { ConsentCategoryCarouselView } from "../../components/consent/ConsentCategoryCarouselView";
-import { certificateConsentDefinitionSample } from "../../domains/certificate-consent/definition.sample";
+import { useParams } from 'react-router-dom'
+import { ConsentCategoryCarouselView } from '../../components/consent/ConsentCategoryCarouselView'
+import { certificateConsentDefinitionSample } from '../../domains/certificate-consent/definition.sample'
 
 export function ConsentCategoryCarouselTemplate() {
-  const { categoryId } = useParams();
-  return <ConsentCategoryCarouselView definition={certificateConsentDefinitionSample} categoryId={categoryId} />;
+  const { categoryId } = useParams()
+  return (
+    <ConsentCategoryCarouselView
+      definition={certificateConsentDefinitionSample}
+      categoryId={categoryId}
+    />
+  )
 }

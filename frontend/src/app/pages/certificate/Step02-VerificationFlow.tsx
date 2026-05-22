@@ -1,22 +1,22 @@
-import { useNavigate } from "react-router-dom";
-import { MobileLayout } from "../../components/layout/MobileLayout";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { useNavigate } from 'react-router-dom'
+import { MobileLayout } from '../../components/layout/MobileLayout'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 
 const verificationSteps = [
-  { id: 1, title: "서류 제출" },
-  { id: 2, title: "OCR 인증" },
-  { id: 3, title: "NFC 인증" },
-  { id: 4, title: "얼굴 인증" },
-];
+  { id: 1, title: '서류 제출' },
+  { id: 2, title: 'OCR 인증' },
+  { id: 3, title: 'NFC 인증' },
+  { id: 4, title: '얼굴 인증' },
+]
 
 export function Step02VerificationFlow() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <MobileLayout
       title="비대면 실명확인"
       backPath="/certificate/step-01"
-      bottomContent={<Btn_1Col onClick={() => navigate("/certificate/step-03")}>다음</Btn_1Col>}
+      bottomContent={<Btn_1Col onClick={() => navigate('/certificate/step-03')}>다음</Btn_1Col>}
     >
       <div className="space-y-6 pb-2">
         <section className="pt-2">
@@ -25,7 +25,7 @@ export function Step02VerificationFlow() {
 
         <section className="space-y-0">
           {verificationSteps.map((step, index) => {
-            const isLast = index === verificationSteps.length - 1;
+            const isLast = index === verificationSteps.length - 1
 
             return (
               <div key={step.id}>
@@ -47,10 +47,10 @@ export function Step02VerificationFlow() {
                   </div>
                 )}
               </div>
-            );
+            )
           })}
         </section>
       </div>
     </MobileLayout>
-  );
+  )
 }

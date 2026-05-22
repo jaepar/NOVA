@@ -1,17 +1,13 @@
-import { ReactNode } from 'react';
+import { ReactNode } from 'react'
 
 interface CenteredTaskContentProps {
-  task: string;
-  description?: string;
-  children?: ReactNode;
+  task: string
+  description?: string
+  children?: ReactNode
 }
 
-export function CenteredTaskContent({
-  task,
-  description,
-  children,
-}: CenteredTaskContentProps) {
-  const normalizedDescription = description?.replace(/\\n/g, '\n');
+export function CenteredTaskContent({ task, description, children }: CenteredTaskContentProps) {
+  const normalizedDescription = description?.replace(/\\n/g, '\n')
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
@@ -26,5 +22,5 @@ export function CenteredTaskContent({
         </div>
       </div>
     </div>
-  );
+  )
 }
