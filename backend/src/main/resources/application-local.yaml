@@ -28,10 +28,17 @@ logging:
     root: info
     org.hibernate.SQL: debug
 
-app:
-  core-banking:
-    base-url: ${ONPREM_GATEWAY_BASE_URL}
-  government:
-    base-url: ${ONPREM_GATEWAY_BASE_URL}
+#app:
+#  core-banking:
+#    base-url: ${CORE_BANKING_BASE_URL}
+#  government:
+#    base-url: ${GOVERMENT_DB_URL}
 #  ai:
 #    base-url: ${AI_BASE_URL}
+
+cloud:
+  aws:
+    s3:
+      region: ap-northeast-2
+      bucket: ${AWS_S3_BUCKET}
+      base-url: ${AWS_S3_BASE_URL}
