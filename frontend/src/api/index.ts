@@ -17,3 +17,6 @@ export * from './types';
  * export { authApi } from './endpoints/auth';
  * export { accountApi } from './endpoints/account';
  */
+
+export { authApi } from './endpoints/auth';
+export type { AuthMessageResponse, SignupRequest } from './endpoints/auth';

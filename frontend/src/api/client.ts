@@ -1,7 +1,8 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 
 // API Base URL - 환경변수로 관리 권장
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.example.com';
+// 로컬 개발에서는 Vite proxy를 사용하기 위해 같은 origin으로 요청한다.
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // Axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
