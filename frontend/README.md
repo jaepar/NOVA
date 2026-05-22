@@ -16,7 +16,7 @@
 - React Router
 - Axios
 - pnpm
-- zustand
+- Zustand
 
 ## 3. 시작하기
 ### 3.1 요구사항
@@ -41,6 +41,10 @@ pnpm build
 2. `frontend/guidelines/DESIGN_SYSTEM.md`
 3. `frontend/guidelines/LAYOUT_GUIDELINES.md`
 4. 기존 구현 코드
+
+운영 원칙:
+- 이 README는 온보딩/요약 문서다.
+- 구현 시 최종 판단 기준은 `frontend/AGENTS.md`를 따른다.
 
 ## 5. 프론트엔드 라우팅 규칙 (도메인 분리)
 협업 시 머지 충돌을 줄이기 위해 라우팅은 반드시 분리 후 조립 방식으로 관리한다.
@@ -121,3 +125,183 @@ fallback 뒤에는 일반 라우트를 배치하지 않는다.
 - 모달 성격 흐름: `headerType="close"` + `closePath`
 - 진입/웰컴 페이지: `headerType="none"`
 - 하단 CTA 고정 페이지: `bottomContent` 사용
+
+### 11.1 헤더 타입
+- `headerType="back"`: 뒤로가기 버튼 헤더 (`FixedHeader`)
+- `headerType="close"`: 닫기 버튼 헤더 (`CloseFixedHeader`)
+- `headerType="none"`: 좌우 버튼 없는 타이틀 헤더 (`TitleOnlyFixedHeader`)
+
+### 11.2 MobileLayout 헤더/하단 옵션
+- `title: string` (required)
+- `headerType?: 'back' | 'close' | 'none'` (default: `back`)
+- `onBack?: () => void`
+- `backPath?: string`
+- `onClose?: () => void`
+- `closePath?: string`
+- `headerBackgroundColor?: string` (default: `#ffffff`)
+- `headerTextColor?: string` (default: `#000000`)
+- `bottomContent?: ReactNode`
+- `bottomBackgroundColor?: string` (default: `#ffffff`)
+
+### 11.3 예시
+```tsx
+<MobileLayout
+  title="Step 2"
+  headerType="back"
+  backPath="/step-1"
+  headerBackgroundColor="#ffffff"
+  headerTextColor="#000000"
+  bottomContent={<Btn_1Col>다음</Btn_1Col>}
+  bottomBackgroundColor="#ffffff"
+>
+  ...
+</MobileLayout>
+```
+
+## 12. 공통 상태 페이지(로딩/성공/실패) 사용 가이드
+
+### 12.1 공통 콘텐츠 컴포넌트
+- `CenteredTaskContent`를 사용해 콘텐츠를 화면 기준 가로/세로 중앙 정렬한다.
+- `task`, `description`을 파라미터로 전달한다.
+- `description`은 `\n` 또는 `\\n` 개행 문자열을 줄바꿈으로 렌더링한다.
+
+### 12.2 Loading 컴포넌트 파라미터
+- `headerTitle: string`
+- `task: string`
+- `description?: string`
+- `spinnerSize?: 'sm' | 'md' | 'lg'`
+
+예시:
+```tsx
+<Loading
+  headerTitle="Template"
+  task="Task"
+  description={"안녕\n하세요"}
+  spinnerSize="lg"
+/>
+```
+
+### 12.3 Success 컴포넌트 파라미터
+- `headerTitle: string`
+- `task: string`
+- `description?: string`
+- `visualImageSrc?: string`
+- `visualImageAlt?: string`
+- `buttonText?: string`
+- `onButtonClick?: () => void`
+- `redirectPath?: string`
+
+렌더링 규칙:
+- `visualImageSrc`가 있으면 이미지 렌더링
+- `visualImageSrc`가 없으면 기본 성공 아이콘 렌더링
+
+예시:
+```tsx
+<Success
+  headerTitle="완료"
+  task="계좌 개설 완료"
+  description={"정상 처리되었습니다.\n메인으로 이동합니다."}
+  visualImageSrc="/images/success.png"
+  visualImageAlt="성공"
+  redirectPath="/main"
+/>
+```
+
+### 12.4 Failed 컴포넌트 파라미터
+- `headerTitle: string`
+- `task: string`
+- `description?: string`
+- `visualImageSrc?: string`
+- `visualImageAlt?: string`
+- `buttonText?: string`
+- `onButtonClick?: () => void`
+- `redirectPath?: string`
+
+렌더링 규칙:
+- `visualImageSrc`가 있으면 이미지 렌더링
+- `visualImageSrc`가 없으면 기본 실패 아이콘 렌더링
+
+예시:
+```tsx
+<Failed
+  headerTitle="실패"
+  task="인증 실패"
+  description={"입력 정보를 확인한 뒤\n다시 시도해주세요."}
+  visualImageSrc="/images/failed.png"
+  visualImageAlt="실패"
+  redirectPath="/"
+/>
+```
+
+## 13. 약관 동의 컴포넌트 사용 가이드
+
+약관 동의 기능은 샘플 페이지 내부에서 공통 컴포넌트를 조립해 사용한다.
+
+### 13.1 컴포넌트 목록
+- `ConsentOverviewAccordion`: 메인 약관 아코디언
+- `ConsentTermDetailView`: 세부 약관 단건 상세
+- `ConsentCategoryCarouselView`: 주요 약관 체크 시 진입하는 캐러셀 상세
+
+### 13.2 공통 동작 요약
+- 상태 관리는 `zustand`(`domains/certificate-consent/storage.ts`)를 사용한다.
+- 신규 진입 시 상태 초기화, 복귀 시 상태 유지
+- 상세 헤더 타이틀은 `약관/동의서 상세` 고정
+- 카테고리 캐러셀 재진입 시 시작은 항상 1페이지
+
+### 13.3 파라미터
+
+`ConsentOverviewAccordion`
+- `definition: ConsentDefinition`
+- `preserveState: boolean`
+- `showSelectionControls?: boolean`
+- `onRequiredCompleteChange?: (complete: boolean) => void`
+
+`ConsentTermDetailView`
+- `definition: ConsentDefinition`
+- `termId?: string`
+- `showSelectionControls?: boolean`
+
+`ConsentCategoryCarouselView`
+- `definition: ConsentDefinition`
+- `categoryId?: string`
+- `showSelectionControls?: boolean`
+
+### 13.4 사용 예시
+```tsx
+<ConsentOverviewAccordion
+  definition={certificateConsentDefinitionSample}
+  preserveState={preserveState}
+  onRequiredCompleteChange={setIsRequiredComplete}
+/>
+```
+
+```tsx
+<ConsentTermDetailView
+  definition={certificateConsentDefinitionSample}
+  termId={termId}
+/>
+```
+
+```tsx
+<ConsentCategoryCarouselView
+  definition={certificateConsentDefinitionSample}
+  categoryId={categoryId}
+/>
+```
+
+### 13.5 약관 정의 파일 네이밍/연결 규칙
+- 약관 데이터는 페이지에 직접 작성하지 않고 정의 파일에서 관리한다.
+- 권장 경로: `src/app/domains/<service-domain>/`
+- 권장 파일명: `definition.<scenario>.ts`
+  - 예: `definition.issue-account.ts`
+  - 예: `definition.wallet.ts`
+
+페이지 연결 예시:
+```tsx
+import { issueAccountConsentDefinition } from "../../domains/certificate-consent/definition.issue-account";
+
+<ConsentOverviewAccordion
+  definition={issueAccountConsentDefinition}
+  preserveState={preserveState}
+/>
+```
