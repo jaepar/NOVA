@@ -1,14 +1,14 @@
-import { ReactNode } from 'react';
-import { AppButton } from '../design-system/AppButton';
+import { ReactNode } from 'react'
+import { AppButton } from '../design-system/AppButton'
 
 interface HeaderActionButtonProps {
-  onClick: () => void;
-  children: ReactNode;
-  align?: 'left' | 'right';
+  onClick: () => void
+  children: ReactNode
+  align?: 'left' | 'right'
 }
 
 export function HeaderActionButton({ onClick, children, align = 'left' }: HeaderActionButtonProps) {
-  const edgeClass = align === 'left' ? '-ml-2' : '-mr-2';
+  const edgeClass = align === 'left' ? '-ml-2' : '-mr-2'
 
   return (
     <AppButton
@@ -18,5 +18,5 @@ export function HeaderActionButton({ onClick, children, align = 'left' }: Header
     >
       {children}
     </AppButton>
-  );
+  )
 }

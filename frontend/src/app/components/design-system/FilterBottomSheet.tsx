@@ -1,26 +1,26 @@
-import { BottomSheet } from '../layout/BottomSheet';
-import { AppButton } from './AppButton';
-import { Btn_1Col } from './Btn_1Col';
+import { BottomSheet } from '../layout/BottomSheet'
+import { AppButton } from './AppButton'
+import { Btn_1Col } from './Btn_1Col'
 
 interface FilterOption {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 interface FilterSection {
-  title: string;
-  options: FilterOption[];
-  selectedValue: string;
-  onSelect: (value: string) => void;
+  title: string
+  options: FilterOption[]
+  selectedValue: string
+  onSelect: (value: string) => void
 }
 
 interface FilterBottomSheetProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title?: string;
-  sections: FilterSection[];
-  onApply: () => void;
-  applyButtonText?: string;
+  isOpen: boolean
+  onClose: () => void
+  title?: string
+  sections: FilterSection[]
+  onApply: () => void
+  applyButtonText?: string
 }
 
 export function FilterBottomSheet({
@@ -37,9 +37,7 @@ export function FilterBottomSheet({
       onClose={onClose}
       title={title}
       height="520px"
-      bottomAction={
-        <Btn_1Col onClick={onApply}>{applyButtonText}</Btn_1Col>
-      }
+      bottomAction={<Btn_1Col onClick={onApply}>{applyButtonText}</Btn_1Col>}
     >
       <div className="space-y-6 pb-4">
         {sections.map((section, index) => (
@@ -65,5 +63,5 @@ export function FilterBottomSheet({
         ))}
       </div>
     </BottomSheet>
-  );
+  )
 }

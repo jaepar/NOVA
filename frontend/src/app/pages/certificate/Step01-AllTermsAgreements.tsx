@@ -1,9 +1,9 @@
-import { useParams } from "react-router-dom";
-import { ConsentCategoryCarouselView } from "../../components/consent/ConsentCategoryCarouselView";
-import { certificateConsentDefinitionSample } from "../../domains/certificate-consent/definition.sample";
+import { useParams } from 'react-router-dom'
+import { ConsentCategoryCarouselView } from '../../components/consent/ConsentCategoryCarouselView'
+import { certificateConsentDefinitionSample } from '../../domains/certificate-consent/definition.sample'
 
 export function CertificateIssuanceConsentAllTermsAgreements() {
-  const { categoryId } = useParams();
+  const { categoryId } = useParams()
   return (
     <ConsentCategoryCarouselView
       definition={certificateConsentDefinitionSample}
@@ -12,5 +12,5 @@ export function CertificateIssuanceConsentAllTermsAgreements() {
       preserveStateKey="preserveConsentState"
       resetCarouselCursorKey="resetCategoryCursor"
     />
-  );
+  )
 }

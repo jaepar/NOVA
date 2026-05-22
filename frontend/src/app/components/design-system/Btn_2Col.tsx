@@ -1,12 +1,12 @@
-import { AppButton } from './AppButton';
+import { AppButton } from './AppButton'
 
 interface Btn2ColProps {
-  leftLabel: string;
-  rightLabel: string;
-  onLeftClick?: () => void;
-  onRightClick?: () => void;
-  leftVariant?: 'primary' | 'secondary' | 'outline';
-  rightVariant?: 'primary' | 'secondary' | 'outline';
+  leftLabel: string
+  rightLabel: string
+  onLeftClick?: () => void
+  onRightClick?: () => void
+  leftVariant?: 'primary' | 'secondary' | 'outline'
+  rightVariant?: 'primary' | 'secondary' | 'outline'
 }
 
 export function Btn_2Col({
@@ -21,7 +21,7 @@ export function Btn_2Col({
     primary: 'bg-primary text-primary-foreground hover:bg-blue-700 border-2 border-primary',
     secondary: 'bg-secondary text-secondary-foreground hover:bg-accent border-2 border-secondary',
     outline: 'bg-background border-2 border-border text-foreground hover:bg-secondary',
-  };
+  }
 
   return (
     <div className="flex gap-4 w-full">
@@ -40,5 +40,5 @@ export function Btn_2Col({
         {rightLabel}
       </AppButton>
     </div>
-  );
+  )
 }

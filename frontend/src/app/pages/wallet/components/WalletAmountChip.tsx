@@ -1,8 +1,8 @@
-import { AppButton } from "../../../components/design-system/AppButton";
+import { AppButton } from '../../../components/design-system/AppButton'
 
 interface WalletAmountChipProps {
-  amount: number;
-  onClick: (amount: number) => void;
+  amount: number
+  onClick: (amount: number) => void
 }
 
 export function WalletAmountChip({ amount, onClick }: WalletAmountChipProps) {
@@ -15,5 +15,5 @@ export function WalletAmountChip({ amount, onClick }: WalletAmountChipProps) {
     >
       + {amount / 10000}만원
     </AppButton>
-  );
+  )
 }

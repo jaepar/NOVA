@@ -1,12 +1,10 @@
-import { ChevronRight } from "lucide-react";
-import { AppButton } from "../../../components/design-system/AppButton";
+import { ChevronRight } from 'lucide-react'
+import { AppButton } from '../../../components/design-system/AppButton'
 
 export function WalletAccountCard() {
   return (
     <section className="rounded-[14px] border border-[#e4e4e4] bg-white px-5 py-5">
-      <h2 className="text-[18px] font-semibold leading-7 text-[#111111]">
-        출금 계좌
-      </h2>
+      <h2 className="text-[18px] font-semibold leading-7 text-[#111111]">출금 계좌</h2>
 
       <div className="mt-8 flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
@@ -16,12 +14,8 @@ export function WalletAccountCard() {
           </div>
 
           <div className="min-w-0">
-            <p className="text-[16px] font-medium leading-6 text-[#111111]">
-              우리은행
-            </p>
-            <p className="truncate text-[14px] leading-5 text-[#999999]">
-              우리 1002-****-5678
-            </p>
+            <p className="text-[16px] font-medium leading-6 text-[#111111]">우리은행</p>
+            <p className="truncate text-[14px] leading-5 text-[#999999]">우리 1002-****-5678</p>
           </div>
         </div>
 
@@ -35,5 +29,5 @@ export function WalletAccountCard() {
         </AppButton>
       </div>
     </section>
-  );
+  )
 }

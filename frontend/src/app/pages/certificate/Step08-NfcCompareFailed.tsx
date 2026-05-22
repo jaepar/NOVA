@@ -1,4 +1,4 @@
-import { Failed } from "../common/Failed";
+import { Failed } from '../common/Failed'
 
 export function NfcCompareFailed() {
   return (
@@ -10,5 +10,5 @@ export function NfcCompareFailed() {
       backPath="/certificate/step-07"
       redirectPath="/certificate/step-06"
     />
-  );
+  )
 }

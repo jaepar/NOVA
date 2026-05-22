@@ -1,60 +1,60 @@
-import { useEffect, useMemo } from "react";
-import { Delete } from "lucide-react";
-import { useStore } from "zustand";
-import { createStore } from "zustand/vanilla";
-import { BottomSheet } from "../layout/BottomSheet";
-import { AppButton } from "./AppButton";
+import { useEffect, useMemo } from 'react'
+import { Delete } from 'lucide-react'
+import { useStore } from 'zustand'
+import { createStore } from 'zustand/vanilla'
+import { BottomSheet } from '../layout/BottomSheet'
+import { AppButton } from './AppButton'
 
 interface PinInputBottomSheetProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title?: string;
-  pinLength?: number;
-  onComplete?: (pin: string) => void;
+  isOpen: boolean
+  onClose: () => void
+  title?: string
+  pinLength?: number
+  onComplete?: (pin: string) => void
 }
 
 export function PinInputBottomSheet({
   isOpen,
   onClose,
-  title = "계좌 비밀번호",
+  title = '계좌 비밀번호',
   pinLength = 4,
   onComplete,
 }: PinInputBottomSheetProps) {
   const pinStore = useMemo(
     () =>
       createStore<{ pin: string; setPin: (next: string) => void }>((set) => ({
-        pin: "",
+        pin: '',
         setPin: (next) => set({ pin: next }),
       })),
-    [],
-  );
-  const pin = useStore(pinStore, (state) => state.pin);
-  const setPin = useStore(pinStore, (state) => state.setPin);
+    []
+  )
+  const pin = useStore(pinStore, (state) => state.pin)
+  const setPin = useStore(pinStore, (state) => state.setPin)
 
   useEffect(() => {
-    if (isOpen) setPin("");
-  }, [isOpen]);
+    if (isOpen) setPin('')
+  }, [isOpen])
 
   useEffect(() => {
     if (pin.length === pinLength && onComplete) {
-      onComplete(pin);
+      onComplete(pin)
     }
-  }, [pin, pinLength, onComplete]);
+  }, [pin, pinLength, onComplete])
 
   const handleNumberClick = (num: number) => {
     if (pin.length < pinLength) {
-      setPin(pin + num);
+      setPin(pin + num)
     }
-  };
+  }
 
-  const handleDelete = () => setPin(pin.slice(0, -1));
-  const handleClear = () => setPin("");
+  const handleDelete = () => setPin(pin.slice(0, -1))
+  const handleClear = () => setPin('')
 
   const numbers = [
     [1, 2, 3],
     [4, 5, 6],
     [7, 8, 9],
-  ];
+  ]
 
   return (
     <BottomSheet
@@ -70,9 +70,7 @@ export function PinInputBottomSheet({
             <div
               key={index}
               className={`w-3 h-3 rounded-full border-2 transition-all ${
-                index < pin.length
-                  ? "bg-primary border-primary"
-                  : "bg-transparent border-border"
+                index < pin.length ? 'bg-primary border-primary' : 'bg-transparent border-border'
               }`}
             />
           ))}
@@ -120,5 +118,5 @@ export function PinInputBottomSheet({
         </div>
       </div>
     </BottomSheet>
-  );
+  )
 }

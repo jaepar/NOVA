@@ -1,13 +1,13 @@
-import { ReactNode } from "react";
-import { MobileLayout } from "../layout/MobileLayout";
+import { ReactNode } from 'react'
+import { MobileLayout } from '../layout/MobileLayout'
 
 interface CameraCapturePageProps {
-  title: string;
-  children: ReactNode;
-  bottomContent?: ReactNode;
-  onClose?: () => void;
-  closePath?: string;
-  bottomBackgroundColor?: string;
+  title: string
+  children: ReactNode
+  bottomContent?: ReactNode
+  onClose?: () => void
+  closePath?: string
+  bottomBackgroundColor?: string
 }
 
 export function CameraCapturePage({
@@ -16,7 +16,7 @@ export function CameraCapturePage({
   bottomContent,
   onClose,
   closePath,
-  bottomBackgroundColor = "#000000",
+  bottomBackgroundColor = '#000000',
 }: CameraCapturePageProps) {
   return (
     <MobileLayout
@@ -31,5 +31,5 @@ export function CameraCapturePage({
     >
       <div className="min-h-full -mx-5 -mb-32 px-5 pb-32 bg-black text-white">{children}</div>
     </MobileLayout>
-  );
+  )
 }

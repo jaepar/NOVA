@@ -1,19 +1,19 @@
-import { useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
-import { CenteredTaskContent } from "../../components/design-system/CenteredTaskContent";
+import { useNavigate } from 'react-router-dom'
+import { X } from 'lucide-react'
+import { MobileLayout } from '../../components/layout/MobileLayout'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
 
 interface FailedProps {
-  headerTitle: string;
-  task: string;
-  description?: string;
-  visualImageSrc?: string;
-  visualImageAlt?: string;
-  buttonText?: string;
-  onButtonClick?: () => void;
-  redirectPath?: string;
-  backPath?: string;
+  headerTitle: string
+  task: string
+  description?: string
+  visualImageSrc?: string
+  visualImageAlt?: string
+  buttonText?: string
+  onButtonClick?: () => void
+  redirectPath?: string
+  backPath?: string
 }
 
 export function Failed({
@@ -21,21 +21,21 @@ export function Failed({
   task,
   description,
   visualImageSrc,
-  visualImageAlt = "실패 이미지",
-  buttonText = "다시 시도",
+  visualImageAlt = '실패 이미지',
+  buttonText = '다시 시도',
   onButtonClick,
-  redirectPath = "/",
+  redirectPath = '/',
   backPath,
 }: FailedProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleRetry = () => {
     if (onButtonClick) {
-      onButtonClick();
-      return;
+      onButtonClick()
+      return
     }
-    navigate(redirectPath);
-  };
+    navigate(redirectPath)
+  }
 
   return (
     <MobileLayout
@@ -49,11 +49,7 @@ export function Failed({
     >
       <CenteredTaskContent task={task} description={description}>
         {visualImageSrc ? (
-          <img
-            src={visualImageSrc}
-            alt={visualImageAlt}
-            className="h-20 w-20 object-contain"
-          />
+          <img src={visualImageSrc} alt={visualImageAlt} className="h-20 w-20 object-contain" />
         ) : (
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
             <X className="h-10 w-10 stroke-[3] text-red-500" />
@@ -61,5 +57,5 @@ export function Failed({
         )}
       </CenteredTaskContent>
     </MobileLayout>
-  );
+  )
 }

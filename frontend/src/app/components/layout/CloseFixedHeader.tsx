@@ -1,13 +1,13 @@
-import { X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { HeaderActionButton } from './HeaderActionButton';
+import { X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { HeaderActionButton } from './HeaderActionButton'
 
 interface CloseFixedHeaderProps {
-  title: string;
-  onClose?: () => void;
-  closePath?: string;
-  backgroundColor?: string;
-  textColor?: string;
+  title: string
+  onClose?: () => void
+  closePath?: string
+  backgroundColor?: string
+  textColor?: string
 }
 
 export function CloseFixedHeader({
@@ -17,15 +17,15 @@ export function CloseFixedHeader({
   backgroundColor = '#ffffff',
   textColor = '#000000',
 }: CloseFixedHeaderProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleClose = () => {
     if (onClose) {
-      onClose();
+      onClose()
     } else {
-      navigate(closePath);
+      navigate(closePath)
     }
-  };
+  }
 
   return (
     <header
@@ -42,7 +42,9 @@ export function CloseFixedHeader({
       >
         <div className="w-10" />
 
-        <h1 className="flex-1 text-center text-[20px]" style={{ color: textColor }}>{title}</h1>
+        <h1 className="flex-1 text-center text-[20px]" style={{ color: textColor }}>
+          {title}
+        </h1>
 
         <div className="w-10 flex justify-end">
           <HeaderActionButton onClick={handleClose} align="right">
@@ -51,5 +53,5 @@ export function CloseFixedHeader({
         </div>
       </div>
     </header>
-  );
+  )
 }

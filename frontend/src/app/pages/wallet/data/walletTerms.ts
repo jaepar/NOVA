@@ -1,14 +1,14 @@
 export type WalletTerm = {
-  id: string;
-  title: string;
-  required: boolean;
-  content: string;
-};
+  id: string
+  title: string
+  required: boolean
+  content: string
+}
 
 export const walletTerms: WalletTerm[] = [
   {
-    id: "wallet-service",
-    title: "월렛 서비스 이용약관",
+    id: 'wallet-service',
+    title: '월렛 서비스 이용약관',
     required: true,
     content: `제1조 (목적)
 이 약관은 NOVA(이하 "회사")가 제공하는 월렛 서비스의 이용 조건 및 절차, 회사와 이용자 간의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.
@@ -36,8 +36,8 @@ export const walletTerms: WalletTerm[] = [
 ② 이용자의 부주의로 인한 계정 도용 피해에 대해 회사는 책임을 지지 않습니다.`,
   },
   {
-    id: "privacy",
-    title: "월렛 개인정보 수집 및 이용 동의",
+    id: 'privacy',
+    title: '월렛 개인정보 수집 및 이용 동의',
     required: true,
     content: `수집 항목
 [필수] 여권 번호, 성명, 국적, 생년월일, 여권 만료일
@@ -64,8 +64,8 @@ export const walletTerms: WalletTerm[] = [
 필수 항목 동의 거부 시 월렛 서비스 이용이 불가합니다.`,
   },
   {
-    id: "linked-account",
-    title: "월렛 계좌 연동 서비스 이용 동의",
+    id: 'linked-account',
+    title: '월렛 계좌 연동 서비스 이용 동의',
     required: true,
     content: `제1조 (목적)
 이 약관은 이용자의 기존 개설 계좌와 월렛 서비스를 연동하여 자금 관리 및 결제 기능을 이용하기 위한 조건과 절차를 규정합니다.
@@ -91,8 +91,8 @@ export const walletTerms: WalletTerm[] = [
 ② 외국환거래법에 따른 해외 송금 연계 기능은 별도 인증 절차가 필요할 수 있습니다.`,
   },
   {
-    id: "electronic-finance",
-    title: "월렛 전자금융거래 기본 약관",
+    id: 'electronic-finance',
+    title: '월렛 전자금융거래 기본 약관',
     required: true,
     content: `제1조 (목적)
 이 약관은 전자금융거래법에 따라 회사가 제공하는 전자금융거래 서비스의 이용 조건과 절차를 규정합니다.
@@ -119,4 +119,4 @@ export const walletTerms: WalletTerm[] = [
 ① 전자금융거래와 관련한 분쟁은 전자금융거래법 제33조에 따라 금융감독원 또는 한국소비자원에 조정을 신청할 수 있습니다.
 ② 이 약관에 명시되지 않은 사항은 전자금융거래법 및 관련 법령에 따릅니다.`,
   },
-];
+]
