@@ -66,10 +66,10 @@ jobs:
           port: 22
           username: ${{ secrets.ONPREM_BACKEND_USER }}
           key: ${{ secrets.ONPREM_BACKEND_SSH_KEY }}
-          proxy_host: us.loclx.io
-          proxy_port: 25126
-          proxy_username: 3-16
-          proxy_password: ${{ secrets.OPENSTACK_TUNNEL_PASSWORD }}
+          proxy_host: ${{ secrets.BASTION_TUNNEL_HOST }}
+          proxy_port: ${{ secrets.BASTION_TUNNEL_PORT }}
+          proxy_username: ${{ secrets.BASTION_TUNNEL_USER }}
+          proxy_key: ${{ secrets.BASTION_TUNNEL_SSH_KEY }}
           source: "backend/docker-compose.dev.yml"
           target: "/home/ubuntu/app"
           strip_components: 1
@@ -83,10 +83,10 @@ jobs:
           port: 22
           username: ${{ secrets.ONPREM_BACKEND_USER }}
           key: ${{ secrets.ONPREM_BACKEND_SSH_KEY }}
-          proxy_host: us.loclx.io
-          proxy_port: 25126
-          proxy_username: 3-16
-          proxy_password: ${{ secrets.OPENSTACK_TUNNEL_PASSWORD }}
+          proxy_host: ${{ secrets.BASTION_TUNNEL_HOST }}
+          proxy_port: ${{ secrets.BASTION_TUNNEL_PORT }}
+          proxy_username: ${{ secrets.BASTION_TUNNEL_USER }}
+          proxy_key: ${{ secrets.BASTION_TUNNEL_SSH_KEY }}
           envs: IMAGE_TAG
           script_stop: true
           script: |
