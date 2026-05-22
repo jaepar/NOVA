@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.AccountTransactionRequestLookupResponse;
+import woorifisa.project.coreBanking.domain.accountTransaction.response.status.AccountTransactionResponseStatus;
 import woorifisa.project.coreBanking.domain.accountTransaction.service.AccountTransactionService;
 import woorifisa.project.coreBanking.global.response.BaseResponse;
-import woorifisa.project.coreBanking.global.response.status.BaseResponseStatus;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,9 +22,9 @@ public class AccountTransactionController {
             @PathVariable String externalRequestId
     ) {
         AccountTransactionRequestLookupResponse response = accountTransactionService.findRequestResult(externalRequestId);
-        BaseResponseStatus status = response.found()
-                ? BaseResponseStatus.ACCOUNT_TRANSACTION_REQUEST_FOUND
-                : BaseResponseStatus.ACCOUNT_TRANSACTION_REQUEST_NOT_FOUND;
+        AccountTransactionResponseStatus status = response.found()
+                ? AccountTransactionResponseStatus.REQUEST_FOUND
+                : AccountTransactionResponseStatus.REQUEST_NOT_FOUND;
 
         return BaseResponse.of(status, response);
     }
