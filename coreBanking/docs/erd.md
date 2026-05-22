@@ -42,7 +42,7 @@ erDiagram
     VARCHAR_100 counter_party
     INT amount
     VARCHAR_100 memo
-    VARCHAR_100 transfer_request_id
+    VARCHAR_100 external_request_id
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
