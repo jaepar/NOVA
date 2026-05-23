@@ -1,4 +1,4 @@
-package woorifisa.project.coreBanking.domain.wallet.dto.request;
+package woorifisa.project.coreBanking.domain.accountTransaction.dto.request;
 
 public record DebitWalletAccountRequest(
         String walletChargeRequestId,

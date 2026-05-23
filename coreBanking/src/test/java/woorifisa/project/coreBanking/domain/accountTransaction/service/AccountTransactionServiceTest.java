@@ -1,4 +1,4 @@
-package woorifisa.project.coreBanking.domain.wallet.service;
+package woorifisa.project.coreBanking.domain.accountTransaction.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -9,8 +9,8 @@ import woorifisa.project.coreBanking.domain.account.repository.AccountRepository
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionFlow;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
-import woorifisa.project.coreBanking.domain.wallet.dto.request.DebitWalletAccountRequest;
 import woorifisa.project.coreBanking.global.exception.CustomException;
 
 import java.util.Optional;
@@ -28,11 +28,11 @@ import static woorifisa.project.coreBanking.global.response.status.BaseResponseS
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INVALID_REQUEST;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_NOT_FOUND;
 
-class WalletServiceTest {
+class AccountTransactionServiceTest {
 
     private final AccountRepository accountRepository = mock(AccountRepository.class);
     private final AccountTransactionRepository accountTransactionRepository = mock(AccountTransactionRepository.class);
-    private final WalletService walletService = new WalletService(accountRepository, accountTransactionRepository);
+    private final AccountTransactionService accountTransactionService = new AccountTransactionService(accountRepository, accountTransactionRepository);
 
     @Test
     @DisplayName("월렛 충전 계좌차감 성공 시 잔액을 감소시키고 출금 거래내역을 저장한다")
@@ -46,7 +46,7 @@ class WalletServiceTest {
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(false);
         when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.of(account));
 
-        walletService.debitWalletCharge(request);
+        accountTransactionService.debitWalletCharge(request);
 
         assertThat(account.getBalance()).isEqualTo(20000);
 
@@ -68,7 +68,7 @@ class WalletServiceTest {
 
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(true);
 
-        walletService.debitWalletCharge(request);
+        accountTransactionService.debitWalletCharge(request);
 
         verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
@@ -88,7 +88,7 @@ class WalletServiceTest {
                 .thenReturn(true);
         when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.of(account));
 
-        walletService.debitWalletCharge(request);
+        accountTransactionService.debitWalletCharge(request);
 
         assertThat(account.getBalance()).isEqualTo(30000);
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
@@ -109,7 +109,7 @@ class WalletServiceTest {
                 .when(accountTransactionRepository)
                 .save(any(AccountTransaction.class));
 
-        walletService.debitWalletCharge(request);
+        accountTransactionService.debitWalletCharge(request);
 
         assertThat(account.getBalance()).isEqualTo(30000);
         verify(accountTransactionRepository).save(any(AccountTransaction.class));
@@ -123,7 +123,7 @@ class WalletServiceTest {
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(false);
         when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+        assertThatThrownBy(() -> accountTransactionService.debitWalletCharge(request))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(WALLET_ACCOUNT_DEBIT_NOT_FOUND.getMessage());
 
@@ -142,7 +142,7 @@ class WalletServiceTest {
         when(accountTransactionRepository.existsByExternalRequestId("WCR-20260514-0001")).thenReturn(false);
         when(accountRepository.findByAccountIdAndCustomer_CustomerId(2001L, 1001L)).thenReturn(Optional.of(account));
 
-        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+        assertThatThrownBy(() -> accountTransactionService.debitWalletCharge(request))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE.getMessage());
 
@@ -155,7 +155,7 @@ class WalletServiceTest {
     void nonPositiveAmountFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, 2001L, 0L);
 
-        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+        assertThatThrownBy(() -> accountTransactionService.debitWalletCharge(request))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST.getMessage());
 
@@ -174,7 +174,7 @@ class WalletServiceTest {
                 (long) Integer.MAX_VALUE + 1
         );
 
-        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+        assertThatThrownBy(() -> accountTransactionService.debitWalletCharge(request))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST.getMessage());
 
@@ -188,7 +188,7 @@ class WalletServiceTest {
     void blankRequestIdFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest(" ", 1001L, 2001L, 10000L);
 
-        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+        assertThatThrownBy(() -> accountTransactionService.debitWalletCharge(request))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST.getMessage());
 
@@ -202,7 +202,7 @@ class WalletServiceTest {
     void missingCustomerIdFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", null, 2001L, 10000L);
 
-        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+        assertThatThrownBy(() -> accountTransactionService.debitWalletCharge(request))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST.getMessage());
 
@@ -216,7 +216,7 @@ class WalletServiceTest {
     void missingWithdrawAccountIdFails() {
         DebitWalletAccountRequest request = new DebitWalletAccountRequest("WCR-20260514-0001", 1001L, null, 10000L);
 
-        assertThatThrownBy(() -> walletService.debitWalletCharge(request))
+        assertThatThrownBy(() -> accountTransactionService.debitWalletCharge(request))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST.getMessage());
 

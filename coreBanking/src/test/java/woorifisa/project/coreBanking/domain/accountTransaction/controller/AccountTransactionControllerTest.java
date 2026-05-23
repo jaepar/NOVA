@@ -1,4 +1,4 @@
-package woorifisa.project.coreBanking.domain.wallet.controller;
+package woorifisa.project.coreBanking.domain.accountTransaction.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -6,8 +6,8 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import woorifisa.project.coreBanking.domain.wallet.dto.request.DebitWalletAccountRequest;
-import woorifisa.project.coreBanking.domain.wallet.service.WalletService;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
+import woorifisa.project.coreBanking.domain.accountTransaction.service.AccountTransactionService;
 import woorifisa.project.coreBanking.global.exception.CustomException;
 import woorifisa.project.coreBanking.global.exception.handler.GlobalControllerAdvice;
 
@@ -22,17 +22,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INVALID_REQUEST;
 
-class WalletControllerTest {
+class AccountTransactionControllerTest {
 
-    private final WalletService walletService = mock(WalletService.class);
-    private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new WalletController(walletService))
+    private final AccountTransactionService accountTransactionService = mock(AccountTransactionService.class);
+    private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AccountTransactionController(accountTransactionService))
             .setControllerAdvice(new GlobalControllerAdvice())
             .build();
 
     @Test
     @DisplayName("월렛 충전 계좌차감 요청을 서비스로 전달하고 공통 성공 응답을 반환한다")
     void success() throws Exception {
-        mockMvc.perform(post("/core-banking/wallet/charges/debit")
+        mockMvc.perform(post("/core-banking/account-transactions/wallet")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -49,7 +49,7 @@ class WalletControllerTest {
                 .andExpect(jsonPath("$.data").doesNotExist());
 
         ArgumentCaptor<DebitWalletAccountRequest> requestCaptor = forClass(DebitWalletAccountRequest.class);
-        verify(walletService).debitWalletCharge(requestCaptor.capture());
+        verify(accountTransactionService).debitWalletCharge(requestCaptor.capture());
         DebitWalletAccountRequest request = requestCaptor.getValue();
         assertThat(request.walletChargeRequestId()).isEqualTo("WCR-20260514-0001");
         assertThat(request.customerId()).isEqualTo(1001L);
@@ -61,10 +61,10 @@ class WalletControllerTest {
     @DisplayName("월렛 충전 계좌차감 실패 예외를 공통 예외 응답으로 반환한다")
     void fail() throws Exception {
         doThrow(new CustomException(WALLET_ACCOUNT_DEBIT_INVALID_REQUEST))
-                .when(walletService)
+                .when(accountTransactionService)
                 .debitWalletCharge(any(DebitWalletAccountRequest.class));
 
-        mockMvc.perform(post("/core-banking/wallet/charges/debit")
+        mockMvc.perform(post("/core-banking/account-transactions/wallet")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

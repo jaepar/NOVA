@@ -1,4 +1,4 @@
-package woorifisa.project.coreBanking.domain.wallet.service;
+package woorifisa.project.coreBanking.domain.accountTransaction.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -9,8 +9,8 @@ import woorifisa.project.coreBanking.domain.account.repository.AccountRepository
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionFlow;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
-import woorifisa.project.coreBanking.domain.wallet.dto.request.DebitWalletAccountRequest;
 import woorifisa.project.coreBanking.global.exception.CustomException;
 
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE;
@@ -19,7 +19,7 @@ import static woorifisa.project.coreBanking.global.response.status.BaseResponseS
 
 @Service
 @RequiredArgsConstructor
-public class WalletService {
+public class AccountTransactionService {
 
     private static final String WALLET_CHARGE_COUNTERPARTY = "월렛 충전";
 
