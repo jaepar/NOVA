@@ -246,7 +246,7 @@ export function WalletCharge() {
 
       {success && (
         <div
-          className="fixed inset-0 z-50 mx-auto flex h-full w-full max-w-[390px] items-end bg-black/35"
+          className="fixed inset-0 z-50 mx-auto flex h-full w-full max-w-[var(--app-width)] items-end bg-black/35"
           role="dialog"
           aria-modal="true"
           aria-labelledby="wallet-charge-success-title"

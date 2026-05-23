@@ -13,6 +13,15 @@ public enum BaseResponseStatus implements ResponseStatus {
      * accountTransaction
      */
     ACCOUNT_TRANSACTION_NOT_FOUND("ACCOUNT_TRANSACTION-001", "거래 처리 내역을 찾을 수 없습니다.");
+  
+  
+    /*
+     * wallet
+     */
+    WALLET_ACCOUNT_DEBIT_INVALID_REQUEST("WALLET_ACCOUNT_DEBIT-001", "계좌 차감 요청이 올바르지 않습니다."),
+    WALLET_ACCOUNT_DEBIT_NOT_FOUND("WALLET_ACCOUNT_DEBIT-002", "출금 계좌를 찾을 수 없습니다."),
+    WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE("WALLET_ACCOUNT_DEBIT-003", "계좌 잔액이 부족합니다."),
+    WALLET_ACCOUNT_DEBIT_CONFLICT("WALLET_ACCOUNT_DEBIT-004", "계좌 차감 요청 처리 중 충돌이 발생했습니다.");
 
     private final boolean success = false;
     private final String code;

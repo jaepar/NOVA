@@ -62,6 +62,9 @@ public class AccountTransaction extends BaseEntity {
     @Column(name = "memo", length = 100)
     private String memo;
 
+    @Column(name = "transfer_request_id", length = 100)
+    private String transferRequestId;
+
     @Column(name = "external_request_id", length = 100)
     private String externalRequestId;
 }

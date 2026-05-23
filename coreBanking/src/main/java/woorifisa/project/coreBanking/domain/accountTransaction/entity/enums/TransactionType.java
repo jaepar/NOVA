@@ -1,13 +1,13 @@
 package woorifisa.project.coreBanking.domain.accountTransaction.entity.enums;
 
 public enum TransactionType {
-    SMART_WITHDRAWAL,  // 스마트 출금
-    CASH_IC,           // 현금 IC
-    CHECK_CARD,        // 체크카드
-    ACCOUNT_TRANSFER,  // 계좌이체
-    ATM_WITHDRAWAL,    // ATM 출금
-    ATM_DEPOSIT,       // ATM 입금
-    AUTO_DEBIT,        // 자동이체/자동출금
-    WALLET_CHARGE,     // 월렛 충전을 위한 계좌 차감
-    FEE                // 수수료
+    SMART_WITHDRAWAL,
+    CASH_IC,
+    CHECK_CARD,
+    ACCOUNT_TRANSFER,
+    ATM_WITHDRAWAL,
+    ATM_DEPOSIT,
+    AUTO_DEBIT,
+    WALLET_CHARGE,
+    FEE
 }

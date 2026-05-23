@@ -9,4 +9,6 @@ public interface AccountTransactionRepository extends JpaRepository<AccountTrans
 
     // 외부 요청 ID로 이체 처리 결과를 조회
     Optional<AccountTransaction> findByExternalRequestId(String externalRequestId);
+
+    boolean existsByExternalRequestId(String externalRequestId);
 }

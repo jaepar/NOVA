@@ -11,11 +11,19 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     INTERNAL_SERVER_ERROR("50000", "서버 내부 오류입니다."),
 
     /*
-     * auth : 300
+     * auth
      */
-    INVALID_PASSWORD_FORMAT("AUTH-001", "비밀번호 형식이 올바르지 않습니다."),
+    INVALID_PASSWORD_FORMAT("AUTH-001", "비밀번호는 영문+숫자+특수문자를 포함한 8~16자여야 합니다."),
     PASSWORD_CONFIRM_NOT_MATCHED("AUTH-002", "비밀번호와 비밀번호 확인이 일치하지 않습니다."),
-    DUPLICATE_EMAIL("AUTH-003", "이미 가입된 이메일입니다.");
+    DUPLICATE_EMAIL("AUTH-003", "이미 가입된 이메일입니다."),
+    EMAIL_NOT_FOUND("AUTH-004", "존재하지 않는 이메일입니다."),
+    DELETED_USER("AUTH-005", "탈퇴한 사용자입니다."),
+    PASSWORD_NOT_MATCHED("AUTH-006", "비밀번호가 일치하지 않습니다."),
+
+    /*
+     * wallet
+     */
+    WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다.");
 
     private final boolean success = false;
     private final String code;
