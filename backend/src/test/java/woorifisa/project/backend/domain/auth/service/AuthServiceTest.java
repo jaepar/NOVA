@@ -7,13 +7,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
+import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.Gender;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.exception.CustomException;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,9 +26,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DELETED_USER;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DUPLICATE_EMAIL;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_PASSWORD_FORMAT;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_CONFIRM_NOT_MATCHED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_NOT_MATCHED;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -45,8 +53,8 @@ class AuthServiceTest {
     void signupEncryptsPasswordAndSavesUser() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
-                "Password123",
-                "Password123",
+                "Password123!",
+                "Password123!",
                 "string",
                 "020215",
                 Gender.MALE
@@ -78,8 +86,8 @@ class AuthServiceTest {
     void signupFailsWhenPasswordConfirmDoesNotMatch() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
-                "Password123",
-                "Password124",
+                "Password123!",
+                "Password124!",
                 "string",
                 "020215",
                 Gender.MALE
@@ -98,8 +106,8 @@ class AuthServiceTest {
     void signupFailsWhenPasswordFormatIsInvalid() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
-                "password",
-                "password",
+                "Password123",
+                "Password123",
                 "string",
                 "020215",
                 Gender.MALE
@@ -114,12 +122,19 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("비밀번호 형식 오류 메시지를 정책과 일치하게 반환한다")
+    void invalidPasswordFormatMessageMatchesPolicy() {
+        assertThat(INVALID_PASSWORD_FORMAT.getMessage())
+                .isEqualTo("비밀번호는 영문+숫자+특수문자를 포함한 8~16자여야 합니다.");
+    }
+
+    @Test
     @DisplayName("이미 가입된 이메일이면 회원가입에 실패한다")
     void signupFailsWhenEmailAlreadyExists() {
         SignupRequest request = new SignupRequest(
                 "email@konkuk.ac.kr",
-                "Password123",
-                "Password123",
+                "Password123!",
+                "Password123!",
                 "string",
                 "020215",
                 Gender.MALE
@@ -133,5 +148,80 @@ class AuthServiceTest {
                 .isEqualTo(DUPLICATE_EMAIL);
 
         verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("로그인 성공 시 세션에 userId를 저장하고 userId를 반환한다")
+    void loginStoresUserIdInSession() {
+        User user = createUser(false, passwordEncoder.encode("Password123!"));
+        when(userRepository.findByEmail("login@test.com")).thenReturn(Optional.of(user));
+        MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+        String oldSessionId = httpRequest.getSession().getId();
+
+        LoginResponse response = authService.login(
+                new LoginRequest("login@test.com", "Password123!"),
+                httpRequest
+        );
+
+        assertThat(response.userId()).isEqualTo(1L);
+        assertThat(httpRequest.getSession().getId()).isNotEqualTo(oldSessionId);
+        assertThat(httpRequest.getSession().getAttribute("userId")).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 이메일이면 로그인에 실패한다")
+    void loginFailsWhenEmailDoesNotExist() {
+        when(userRepository.findByEmail("missing@test.com")).thenReturn(Optional.empty());
+
+        assertLoginFailed(() -> authService.login(
+                new LoginRequest("missing@test.com", "Password123!"),
+                new MockHttpServletRequest()
+        ), EMAIL_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("비밀번호가 일치하지 않으면 로그인에 실패한다")
+    void loginFailsWhenPasswordDoesNotMatch() {
+        User user = createUser(false, passwordEncoder.encode("Password123!"));
+        when(userRepository.findByEmail("login@test.com")).thenReturn(Optional.of(user));
+
+        assertLoginFailed(() -> authService.login(
+                new LoginRequest("login@test.com", "WrongPassword123!"),
+                new MockHttpServletRequest()
+        ), PASSWORD_NOT_MATCHED);
+    }
+
+    @Test
+    @DisplayName("탈퇴한 사용자는 로그인에 실패한다")
+    void loginFailsWhenUserIsDeleted() {
+        User user = createUser(true, passwordEncoder.encode("Password123!"));
+        when(userRepository.findByEmail("login@test.com")).thenReturn(Optional.of(user));
+
+        assertLoginFailed(() -> authService.login(
+                new LoginRequest("login@test.com", "Password123!"),
+                new MockHttpServletRequest()
+        ), DELETED_USER);
+    }
+
+    private void assertLoginFailed(Runnable action, Object exceptionStatus) {
+        assertThatThrownBy(action::run)
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(exceptionStatus);
+    }
+
+    private User createUser(boolean hasDelete, String password) {
+        return User.builder()
+                .userId(1L)
+                .name("Login Test User")
+                .birth("020215")
+                .gender(Gender.MALE)
+                .email("login@test.com")
+                .password(password)
+                .hasResidenceCard(false)
+                .hasCertificate(false)
+                .hasDelete(hasDelete)
+                .issuedTime(null)
+                .build();
     }
 }
