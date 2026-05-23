@@ -2,10 +2,6 @@ package woorifisa.project.coreBanking.domain.accountTransaction.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
-import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.AccountTransactionRequestLookupResponse;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -15,12 +11,6 @@ import woorifisa.project.coreBanking.domain.accountTransaction.service.AccountTr
 import woorifisa.project.coreBanking.global.exception.CustomException;
 import woorifisa.project.coreBanking.global.exception.handler.GlobalControllerAdvice;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSACTION_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,12 +22,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INVALID_REQUEST;
 
+import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.AccountTransactionRequestLookupResponse;
+
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSACTION_NOT_FOUND;
+
 class AccountTransactionControllerTest {
 
     private final AccountTransactionService accountTransactionService = mock(AccountTransactionService.class);
     private final AccountTransactionController accountTransactionController = new AccountTransactionController(accountTransactionService);
     private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(accountTransactionController)
-    private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AccountTransactionController(accountTransactionService))
             .setControllerAdvice(new GlobalControllerAdvice())
             .build();
 

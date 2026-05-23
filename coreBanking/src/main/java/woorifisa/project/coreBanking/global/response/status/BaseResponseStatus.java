@@ -9,13 +9,13 @@ public enum BaseResponseStatus implements ResponseStatus {
     NOT_FOUND("40400", "대상을 찾을 수 없습니다."),
     INTERNAL_SERVER_ERROR("50000", "서버 내부 오류입니다."),
 
-    /*
+    /**
      * accountTransaction
      */
-    ACCOUNT_TRANSACTION_NOT_FOUND("ACCOUNT_TRANSACTION-001", "거래 처리 내역을 찾을 수 없습니다.");
-  
-  
-    /*
+    ACCOUNT_TRANSACTION_NOT_FOUND("ACCOUNT_TRANSACTION-001", "거래 처리 내역을 찾을 수 없습니다."),
+
+
+    /**
      * wallet
      */
     WALLET_ACCOUNT_DEBIT_INVALID_REQUEST("WALLET_ACCOUNT_DEBIT-001", "계좌 차감 요청이 올바르지 않습니다."),

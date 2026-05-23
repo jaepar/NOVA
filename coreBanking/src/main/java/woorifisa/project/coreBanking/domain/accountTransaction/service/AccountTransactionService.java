@@ -9,16 +9,12 @@ import woorifisa.project.coreBanking.global.exception.CustomException;
 
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSACTION_NOT_FOUND;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.account.repository.AccountRepository;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionFlow;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
-import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
-import woorifisa.project.coreBanking.global.exception.CustomException;
 
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_CONFLICT;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE;
@@ -29,7 +25,10 @@ import static woorifisa.project.coreBanking.global.response.status.BaseResponseS
 @RequiredArgsConstructor
 public class AccountTransactionService {
 
+    private final AccountRepository accountRepository;
     private final AccountTransactionRepository accountTransactionRepository;
+
+    private static final String WALLET_CHARGE_COUNTERPARTY = "월렛 충전";
 
     @Transactional(readOnly = true)
     public AccountTransactionRequestLookupResponse findRequestResult(String externalRequestId) {
@@ -37,10 +36,6 @@ public class AccountTransactionService {
                 .map(AccountTransactionRequestLookupResponse::from)
                 .orElseThrow(() -> new CustomException(ACCOUNT_TRANSACTION_NOT_FOUND));
     }
-    private static final String WALLET_CHARGE_COUNTERPARTY = "월렛 충전";
-
-    private final AccountRepository accountRepository;
-    private final AccountTransactionRepository accountTransactionRepository;
 
     @Transactional
     public void debitWalletCharge(DebitWalletAccountRequest request) {
