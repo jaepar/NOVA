@@ -2,6 +2,7 @@ package woorifisa.project.backend.domain.wallet.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
 import woorifisa.project.backend.domain.wallet.entity.WalletTransaction;
@@ -20,6 +21,7 @@ public class WalletService {
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
 
+    @Transactional(readOnly = true)
     public WalletTransactionsResponse findWalletTransactions(Long userId) {
         Wallet wallet = walletRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new CustomException(WALLET_NOT_FOUND));

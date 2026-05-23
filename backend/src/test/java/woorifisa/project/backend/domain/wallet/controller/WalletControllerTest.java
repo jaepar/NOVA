@@ -8,7 +8,7 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionResponse;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionItem;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
@@ -40,7 +40,7 @@ class WalletControllerTest {
         Long userId = 1L;
         WalletTransactionsResponse response = new WalletTransactionsResponse(
                 12500,
-                List.of(new WalletTransactionResponse(
+                List.of(new WalletTransactionItem(
                         102L,
                         TransactionFlow.WITHDRAWAL,
                         "이마트24 강남역점",

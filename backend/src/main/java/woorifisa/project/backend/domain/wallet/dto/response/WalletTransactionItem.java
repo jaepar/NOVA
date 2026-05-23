@@ -5,7 +5,7 @@ import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
 
 import java.time.LocalDateTime;
 
-public record WalletTransactionResponse(
+public record WalletTransactionItem(
         Long walletTransactionId,
         TransactionFlow transactionFlow,
         String counterparty,
@@ -13,8 +13,8 @@ public record WalletTransactionResponse(
         LocalDateTime createdAt
 ) {
 
-    public static WalletTransactionResponse from(WalletTransaction walletTransaction) {
-        return new WalletTransactionResponse(
+    public static WalletTransactionItem from(WalletTransaction walletTransaction) {
+        return new WalletTransactionItem(
                 walletTransaction.getWalletTransactionId(),
                 walletTransaction.getTransactionFlow(),
                 walletTransaction.getCounterparty(),
