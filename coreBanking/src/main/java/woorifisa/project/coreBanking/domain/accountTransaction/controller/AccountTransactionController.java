@@ -11,7 +11,7 @@ import woorifisa.project.coreBanking.global.response.BaseResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/core-banking/account-transactions")
+@RequestMapping("/account-transactions")
 public class AccountTransactionController {
 
     private final AccountTransactionService accountTransactionService;

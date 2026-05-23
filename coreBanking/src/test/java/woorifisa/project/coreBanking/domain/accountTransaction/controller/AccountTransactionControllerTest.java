@@ -32,7 +32,7 @@ class AccountTransactionControllerTest {
     @Test
     @DisplayName("월렛 충전 계좌차감 요청을 서비스로 전달하고 공통 성공 응답을 반환한다")
     void success() throws Exception {
-        mockMvc.perform(post("/core-banking/account-transactions/wallet")
+        mockMvc.perform(post("/account-transactions/wallet")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -64,7 +64,7 @@ class AccountTransactionControllerTest {
                 .when(accountTransactionService)
                 .debitWalletCharge(any(DebitWalletAccountRequest.class));
 
-        mockMvc.perform(post("/core-banking/account-transactions/wallet")
+        mockMvc.perform(post("/account-transactions/wallet")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
