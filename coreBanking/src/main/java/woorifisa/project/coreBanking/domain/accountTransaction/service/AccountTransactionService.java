@@ -13,6 +13,7 @@ import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.Debit
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
 import woorifisa.project.coreBanking.global.exception.CustomException;
 
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_CONFLICT;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INVALID_REQUEST;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_NOT_FOUND;
@@ -47,7 +48,7 @@ public class AccountTransactionService {
             return;
         }
 
-        int chargeAmount = request.chargeAmount().intValue();
+        int chargeAmount = request.chargeAmount();
         if (account.getBalance() < chargeAmount) {
             throw new CustomException(WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE);
         }
@@ -63,7 +64,10 @@ public class AccountTransactionService {
                     .externalRequestId(request.walletChargeRequestId())
                     .build());
         } catch (DataIntegrityViolationException exception) {
-            return;
+            if (accountTransactionRepository.existsByExternalRequestId(request.walletChargeRequestId())) {
+                return;
+            }
+            throw new CustomException(WALLET_ACCOUNT_DEBIT_CONFLICT);
         }
 
         account.debit(chargeAmount);
@@ -76,8 +80,7 @@ public class AccountTransactionService {
                 || request.customerId() == null
                 || request.withdrawAccountId() == null
                 || request.chargeAmount() == null
-                || request.chargeAmount() <= 0
-                || request.chargeAmount() > Integer.MAX_VALUE;
+                || request.chargeAmount() <= 0;
     }
 
 }

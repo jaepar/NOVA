@@ -54,7 +54,7 @@ class AccountTransactionControllerTest {
         assertThat(request.walletChargeRequestId()).isEqualTo("WCR-20260514-0001");
         assertThat(request.customerId()).isEqualTo(1001L);
         assertThat(request.withdrawAccountId()).isEqualTo(2001L);
-        assertThat(request.chargeAmount()).isEqualTo(10000L);
+        assertThat(request.chargeAmount()).isEqualTo(10000);
     }
 
     @Test
