@@ -36,7 +36,7 @@ class AccountTransactionControllerTest {
         when(accountTransactionService.findRequestResult(externalRequestId))
                 .thenReturn(AccountTransactionRequestLookupResponse.from(accountTransaction));
 
-        mockMvc.perform(get("/core-banking/account-transactions/{externalRequestId}", externalRequestId))
+        mockMvc.perform(get("/account-transactions/requests/{externalRequestId}", externalRequestId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
@@ -52,7 +52,7 @@ class AccountTransactionControllerTest {
         when(accountTransactionService.findRequestResult(externalRequestId))
                 .thenThrow(new CustomException(ACCOUNT_TRANSACTION_NOT_FOUND));
 
-        mockMvc.perform(get("/core-banking/account-transactions/{externalRequestId}", externalRequestId))
+        mockMvc.perform(get("/account-transactions/requests/{externalRequestId}", externalRequestId))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("ACCOUNT_TRANSACTION-001"))
