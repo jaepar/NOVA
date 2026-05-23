@@ -2,7 +2,7 @@ package woorifisa.project.backend.domain.auth.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpSession;
+import org.springframework.mock.web.MockHttpServletRequest;
 import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
 import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
@@ -45,12 +45,12 @@ class AuthControllerTest {
     @DisplayName("로그인 성공 시 userId를 공통 응답으로 반환한다")
     void loginReturnsUserId() {
         LoginRequest request = new LoginRequest("email@konkuk.ac.kr", "Password123!");
-        MockHttpSession session = new MockHttpSession();
-        when(authService.login(request, session)).thenReturn(1L);
+        MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+        when(authService.login(request, httpRequest)).thenReturn(LoginResponse.from(1L));
 
-        BaseResponse<LoginResponse> response = authController.login(request, session);
+        BaseResponse<LoginResponse> response = authController.login(request, httpRequest);
 
-        verify(authService).login(request, session);
+        verify(authService).login(request, httpRequest);
         assertThat(response.getSuccess()).isTrue();
         assertThat(response.getCode()).isEqualTo("20000");
         assertThat(response.getMessage()).isEqualTo("요청에 성공했습니다.");

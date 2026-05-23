@@ -1,5 +1,6 @@
 package woorifisa.project.backend.domain.auth.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -7,14 +8,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
+import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DUPLICATE_EMAIL;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DELETED_USER;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_PASSWORD_FORMAT;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.LOGIN_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_CONFIRM_NOT_MATCHED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_NOT_MATCHED;
 
 @Service
 @RequiredArgsConstructor
@@ -48,21 +52,24 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    @Transactional(readOnly = true)
-    public Long login(LoginRequest request, HttpSession session) {
+    @Transactional
+    public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new CustomException(LOGIN_FAILED));
+                .orElseThrow(() -> new CustomException(EMAIL_NOT_FOUND));
 
         if (Boolean.TRUE.equals(user.getHasDelete())) {
-            throw new CustomException(LOGIN_FAILED);
+            throw new CustomException(DELETED_USER);
         }
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new CustomException(LOGIN_FAILED);
+            throw new CustomException(PASSWORD_NOT_MATCHED);
         }
 
+        httpRequest.getSession();
+        httpRequest.changeSessionId();
+        HttpSession session = httpRequest.getSession();
         session.setAttribute("userId", user.getUserId());
-        return user.getUserId();
+        return LoginResponse.from(user.getUserId());
     }
 
     private void validatePassword(String password) {

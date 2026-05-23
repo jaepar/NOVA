@@ -1,6 +1,6 @@
 package woorifisa.project.backend.domain.auth.controller;
 
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,9 +29,8 @@ public class AuthController {
     @PostMapping("/login")
     public BaseResponse<LoginResponse> login(
             @Valid @RequestBody LoginRequest request,
-            HttpSession session
+            HttpServletRequest httpRequest
     ) {
-        Long userId = authService.login(request, session);
-        return BaseResponse.ok(new LoginResponse(userId));
+        return BaseResponse.ok(authService.login(request, httpRequest));
     }
 }

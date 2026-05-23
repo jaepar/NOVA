@@ -7,11 +7,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockHttpSession;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
+import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.Gender;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
@@ -25,10 +26,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DELETED_USER;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DUPLICATE_EMAIL;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_PASSWORD_FORMAT;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.LOGIN_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_CONFIRM_NOT_MATCHED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_NOT_MATCHED;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -152,15 +155,17 @@ class AuthServiceTest {
     void loginStoresUserIdInSession() {
         User user = createUser(false, passwordEncoder.encode("Password123!"));
         when(userRepository.findByEmail("login@test.com")).thenReturn(Optional.of(user));
-        MockHttpSession session = new MockHttpSession();
+        MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+        String oldSessionId = httpRequest.getSession().getId();
 
-        Long userId = authService.login(
+        LoginResponse response = authService.login(
                 new LoginRequest("login@test.com", "Password123!"),
-                session
+                httpRequest
         );
 
-        assertThat(userId).isEqualTo(1L);
-        assertThat(session.getAttribute("userId")).isEqualTo(1L);
+        assertThat(response.userId()).isEqualTo(1L);
+        assertThat(httpRequest.getSession().getId()).isNotEqualTo(oldSessionId);
+        assertThat(httpRequest.getSession().getAttribute("userId")).isEqualTo(1L);
     }
 
     @Test
@@ -170,8 +175,8 @@ class AuthServiceTest {
 
         assertLoginFailed(() -> authService.login(
                 new LoginRequest("missing@test.com", "Password123!"),
-                new MockHttpSession()
-        ));
+                new MockHttpServletRequest()
+        ), EMAIL_NOT_FOUND);
     }
 
     @Test
@@ -182,8 +187,8 @@ class AuthServiceTest {
 
         assertLoginFailed(() -> authService.login(
                 new LoginRequest("login@test.com", "WrongPassword123!"),
-                new MockHttpSession()
-        ));
+                new MockHttpServletRequest()
+        ), PASSWORD_NOT_MATCHED);
     }
 
     @Test
@@ -194,15 +199,15 @@ class AuthServiceTest {
 
         assertLoginFailed(() -> authService.login(
                 new LoginRequest("login@test.com", "Password123!"),
-                new MockHttpSession()
-        ));
+                new MockHttpServletRequest()
+        ), DELETED_USER);
     }
 
-    private void assertLoginFailed(Runnable action) {
+    private void assertLoginFailed(Runnable action, Object exceptionStatus) {
         assertThatThrownBy(action::run)
                 .isInstanceOf(CustomException.class)
                 .extracting("exceptionStatus")
-                .isEqualTo(LOGIN_FAILED);
+                .isEqualTo(exceptionStatus);
     }
 
     private User createUser(boolean hasDelete, String password) {
