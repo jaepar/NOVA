@@ -70,17 +70,8 @@ class AccountTransactionControllerTest {
                 .andExpect(jsonPath("$.code").value("ACCOUNT_TRANSACTION-001"))
                 .andExpect(jsonPath("$.message").value("거래 처리 내역을 찾을 수 없습니다."))
                 .andExpect(jsonPath("$.data").isEmpty());
-                .andExpect(jsonPath("$.data").doesNotExist());
-
-        ArgumentCaptor<DebitWalletAccountRequest> requestCaptor = forClass(DebitWalletAccountRequest.class);
-        verify(accountTransactionService).debitWalletCharge(requestCaptor.capture());
-        DebitWalletAccountRequest request = requestCaptor.getValue();
-        assertThat(request.walletChargeRequestId()).isEqualTo("WCR-20260514-0001");
-        assertThat(request.customerId()).isEqualTo(1001L);
-        assertThat(request.withdrawAccountId()).isEqualTo(2001L);
-        assertThat(request.chargeAmount()).isEqualTo(10000);
     }
-  
+
     @Test
     @DisplayName("월렛 충전 계좌차감 요청을 서비스로 전달하고 공통 성공 응답을 반환한다")
     void success() throws Exception {
@@ -98,7 +89,15 @@ class AccountTransactionControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
                 .andExpect(jsonPath("$.message").value("요청에 성공했습니다."))
-                .andExpect(jsonPath("$.data.externalRequestId").value(externalRequestId));
+                .andExpect(jsonPath("$.data").doesNotExist());
+
+        ArgumentCaptor<DebitWalletAccountRequest> requestCaptor = forClass(DebitWalletAccountRequest.class);
+        verify(accountTransactionService).debitWalletCharge(requestCaptor.capture());
+        DebitWalletAccountRequest request = requestCaptor.getValue();
+        assertThat(request.walletChargeRequestId()).isEqualTo("WCR-20260514-0001");
+        assertThat(request.customerId()).isEqualTo(1001L);
+        assertThat(request.withdrawAccountId()).isEqualTo(2001L);
+        assertThat(request.chargeAmount()).isEqualTo(10000);
     }
 
     @Test
