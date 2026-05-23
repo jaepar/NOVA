@@ -1,34 +1,39 @@
 import { useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import { Btn_1Col } from '../components/design-system/Btn_1Col'
+import loginIllustration from './login/assets/login-illustration.png'
 
 export function Login() {
   const navigate = useNavigate()
 
   const handleLogin = () => {
-    // 로그인 로직 구현 예정
-    console.log('로그인 처리')
+    navigate('/login/form')
   }
 
   return (
     <MobileLayout
       title="로그인"
+      headerType="back"
+      backPath="/main"
       bottomContent={<Btn_1Col onClick={handleLogin}>일반 로그인</Btn_1Col>}
     >
-      <div className="flex flex-col h-full">
-        {/* 상단 텍스트 */}
-        <div className=" pb-4">
-          <h2>반가워요!</h2>
-          <p className="text-muted-foreground mt-2">로그인을 진행해주세요</p>
-        </div>
+      <section className="flex min-h-full flex-col pt-8">
+        <section className="space-y-3">
+          <h2 className="text-2xl font-semibold leading-tight">
+            반가워요!
+            <br />
+            로그인을 진행해주세요
+          </h2>
+        </section>
 
-        {/* 중간 빈 공간 (일러스트레이션 영역) */}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-full h-64 bg-secondary/30 rounded-2xl flex items-center justify-center">
-            <p className="text-muted-foreground text-sm">일러스트레이션 영역</p>
-          </div>
+        <div className="mt-14 flex flex-1 items-center justify-center overflow-hidden">
+          <img
+            src={loginIllustration}
+            alt="로그인 안내 일러스트레이션"
+            className="h-[360px] w-[calc(100%+48px)] max-w-none object-contain"
+          />
         </div>
-      </div>
+      </section>
     </MobileLayout>
   )
 }
