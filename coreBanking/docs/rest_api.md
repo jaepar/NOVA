@@ -30,34 +30,6 @@ coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.
 | `CB-008` | 해외 송금(On-Prem) | TBD | `TBD` | O | AUTHORIZED | 명세 상세 확정 후 반영 |
 | `CB-009` | 해외 송금 이상거래 탐지(On-Prem) | TBD | `TBD` | O | AUTHORIZED | FDS 연동 정책/룰셋 확정 후 반영 |
 
-## CB-004 Response
-
-### 거래 처리 내역 있음
-
-```json
-{
-  "success": true,
-  "code": 20000,
-  "message": "거래 처리 내역이 확인되었습니다.",
-  "data": {
-    "externalRequestId": "TR-20260513-0001"
-  }
-}
-```
-
-### 거래 처리 내역 없음
-
-```json
-{
-  "success": false,
-  "code": 40410,
-  "message": "거래 처리 내역을 찾을 수 없습니다.",
-  "data": {
-    "externalRequestId": null
-  }
-}
-```
-
 ## Hold Policy
 
 | API ID | Status | Reason |
