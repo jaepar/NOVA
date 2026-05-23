@@ -7,7 +7,7 @@ coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.
 
 - 인증 방식은 서버 간 인증(내부망/전용 연동) 기준으로 운영한다.
 - 모든 응답은 coreBanking 공통 응답 래퍼를 사용한다.
-- 원장 변경 API는 중복 방지를 위해 요청 식별자(`transferRequestId` 등)를 사용한다.
+- 원장 변경 API는 중복 방지를 위해 요청 식별자(`externalRequestId` 등)를 사용한다.
 - 컨트롤러는 DTO만 입출력하고 엔티티 직접 반환을 금지한다.
 
 ## Role Rules
@@ -23,7 +23,7 @@ coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.
 | `CB-001` | 계좌 개설(On-Prem) | POST | `/core-banking` | O | AUTHORIZED | |
 | `CB-002` | 계좌 비밀번호 검증(On-Prem) | POST | `/core-banking/{accountId}/password/verify` | O | AUTHORIZED | |
 | `CB-003` | 계좌 이체(On-Prem) | POST | `/core-banking/transfers` | O | AUTHORIZED | |
-| `CB-004` | 이체 처리 결과 조회(On-Prem) | GET | `/core-banking/transfers/{transferRequestId}` | O | AUTHORIZED | 중복 요청 방지용 결과 조회 |
+| `CB-004` | 이체 처리 결과 조회(On-Prem) | GET | `/account-transactions/requests/{externalRequestId}` | O | AUTHORIZED | 이체/월렛충전 공통 외부 요청 ID 기반 결과 조회 |
 | `CB-005` | 거래 내역 조회(On-Prem) | GET | `/core-banking/{accountId}/transactions` | O | AUTHORIZED | |
 | `CB-006` | 거래 내역 메모 수정(On-Prem) | PATCH | `/core-banking/{accountId}/transactions/{transactionId}/memo` | O | AUTHORIZED | |
 | `CB-007` | 홈 계좌 정보 조회(On-Prem) | GET | `/core-banking/home` | O | AUTHORIZED | |

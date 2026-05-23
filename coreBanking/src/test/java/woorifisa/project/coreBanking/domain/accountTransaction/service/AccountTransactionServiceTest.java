@@ -2,6 +2,7 @@ package woorifisa.project.coreBanking.domain.accountTransaction.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
 import org.mockito.ArgumentCaptor;
 import org.springframework.dao.DataIntegrityViolationException;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
@@ -229,5 +230,34 @@ class AccountTransactionServiceTest {
         verify(accountTransactionRepository, never()).existsByExternalRequestId(any());
         verify(accountRepository, never()).findByAccountIdAndCustomer_CustomerId(any(), any());
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
+    }
+  
+    @Test
+    @DisplayName("externalRequestId가 존재하면 거래 처리 결과를 확인한다")
+    void found() {
+        String externalRequestId = "TR-20260513-0001";
+        AccountTransaction accountTransaction = AccountTransaction.builder()
+                .externalRequestId(externalRequestId)
+                .build();
+
+        when(accountTransactionRepository.findByExternalRequestId(externalRequestId))
+                .thenReturn(Optional.of(accountTransaction));
+
+        var response = accountTransactionService.findRequestResult(externalRequestId);
+
+        assertThat(response.externalRequestId()).isEqualTo(externalRequestId);
+    }
+
+    @Test
+    @DisplayName("externalRequestId가 존재하지 않으면 예외를 반환한다")
+    void notFound() {
+        String externalRequestId = "WCR-20260522-0001";
+
+        when(accountTransactionRepository.findByExternalRequestId(externalRequestId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> accountTransactionService.findRequestResult(externalRequestId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ACCOUNT_TRANSACTION_NOT_FOUND.getMessage());
     }
 }
