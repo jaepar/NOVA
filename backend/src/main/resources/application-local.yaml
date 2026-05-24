@@ -23,6 +23,24 @@ spring:
     compose:
       enabled: false
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT:465}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+
 logging:
   level:
     root: info

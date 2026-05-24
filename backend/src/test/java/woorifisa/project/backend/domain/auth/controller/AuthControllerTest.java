@@ -3,6 +3,7 @@ package woorifisa.project.backend.domain.auth.controller;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import woorifisa.project.backend.domain.auth.dto.request.EmailVerificationSendRequest;
 import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
 import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
@@ -55,5 +56,19 @@ class AuthControllerTest {
         assertThat(response.getCode()).isEqualTo("20000");
         assertThat(response.getMessage()).isEqualTo("요청에 성공했습니다.");
         assertThat(response.getData().userId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("이메일 인증번호 발송 성공 시 공통 성공 응답을 반환한다")
+    void sendEmailVerificationCodeReturnsSuccess() {
+        EmailVerificationSendRequest request = new EmailVerificationSendRequest("email@konkuk.ac.kr");
+
+        BaseResponse<Void> response = authController.sendEmailVerificationCode(request);
+
+        verify(authService).sendEmailVerificationCode(request.email());
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo("요청에 성공했습니다.");
+        assertThat(response.getData()).isNull();
     }
 }
