@@ -25,7 +25,6 @@ export function Main() {
   const hasUnreadNotifications = useMainPageStore((state) => state.hasUnreadNotifications)
   const isCertificateSheetOpen = useMainPageStore((state) => state.isCertificateSheetOpen)
   const setMenuOpen = useMainPageStore((state) => state.setMenuOpen)
-  const setLoggedIn = useMainPageStore((state) => state.setLoggedIn)
   const setCertificateSheetOpen = useMainPageStore((state) => state.setCertificateSheetOpen)
   const logout = useMainPageStore((state) => state.logout)
 
@@ -81,7 +80,7 @@ export function Main() {
             {!isLoggedIn ? (
               <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-center">
                 <div className="space-y-3">
-                  <Btn_1Col onClick={() => setLoggedIn(true)}>로그인</Btn_1Col>
+                  <Btn_1Col onClick={() => navigate('/login')}>로그인</Btn_1Col>
                   <Btn_1Col variant="outline" onClick={() => navigate('/signup')}>
                     회원가입
                   </Btn_1Col>
@@ -186,7 +185,7 @@ export function Main() {
         onClose={() => setMenuOpen(false)}
         isLoggedIn={isLoggedIn}
         onLogout={logout}
-        onLogin={() => setLoggedIn(true)}
+        onLogin={() => navigate('/login')}
       />
 
       <BottomSheet
