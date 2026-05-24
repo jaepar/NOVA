@@ -21,7 +21,13 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     PASSWORD_NOT_MATCHED("AUTH-006", "비밀번호가 일치하지 않습니다."),
     INVALID_EMAIL_FORMAT("AUTH-007", "올바른 이메일 형식이 아닙니다."),
     EMAIL_VERIFICATION_RESEND_TOO_EARLY("AUTH-008", "인증번호 재발송은 60초 후에 가능합니다."),
-    EMAIL_VERIFICATION_SEND_FAILED("AUTH-009", "인증번호 이메일 발송에 실패했습니다.");
+    EMAIL_VERIFICATION_SEND_FAILED("AUTH-009", "인증번호 이메일 발송에 실패했습니다."),
+
+    /*
+     * wallet
+     */
+    WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다.")
+    ;
 
     private final boolean success = false;
     private final String code;

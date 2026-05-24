@@ -12,14 +12,14 @@ import static woorifisa.project.coreBanking.global.response.status.BaseResponseS
 public class BaseResponse<T> implements ResponseStatus {
 
     private final boolean success;
-    private final int code;
+    private final String code;
     private final String message;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final T data;
 
     public BaseResponse(T data) {
-        this.success = SUCCESS.getSuccess();
+        this.success = true;
         this.code = SUCCESS.getCode();
         this.message = SUCCESS.getMessage();
         this.data = data;
@@ -35,7 +35,7 @@ public class BaseResponse<T> implements ResponseStatus {
     }
 
     @Override
-    public int getCode() {
+    public String getCode() {
         return code;
     }
 
