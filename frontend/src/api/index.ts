@@ -19,4 +19,4 @@ export * from './types'
  */
 
 export { authApi } from './endpoints/auth';
-export type { AuthMessageResponse, SignupRequest } from './endpoints/auth';
+export type { AuthMessageResponse, LoginRequest, LoginResponse, SignupRequest } from './endpoints/auth';
