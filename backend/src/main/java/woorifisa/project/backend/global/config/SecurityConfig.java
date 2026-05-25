@@ -7,8 +7,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import woorifisa.project.backend.domain.auth.security.SessionAuthenticationFilter;
-import woorifisa.project.backend.domain.auth.security.SessionAuthenticationEntryPoint;
+import woorifisa.project.backend.global.auth.security.SessionAuthenticationFilter;
+import woorifisa.project.backend.global.auth.security.SessionAuthenticationEntryPoint;
 
 @Configuration
 @RequiredArgsConstructor
@@ -37,7 +37,8 @@ public class SecurityConfig {
                                 "/wallet/**",
                                 "/users/**",
                                 "/banking/**",
-                                "/hospital/**"
+                                "/hospital/**",
+                                "/auth/me"
                         ).authenticated()
                         .anyRequest().permitAll()
                 )

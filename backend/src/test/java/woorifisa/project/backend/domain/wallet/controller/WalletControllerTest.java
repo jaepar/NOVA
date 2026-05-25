@@ -10,7 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import woorifisa.project.backend.domain.auth.security.SessionUserPrincipal;
+import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionItem;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
