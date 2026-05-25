@@ -22,6 +22,7 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     INVALID_EMAIL_FORMAT("AUTH-007", "올바른 이메일 형식이 아닙니다."),
     EMAIL_VERIFICATION_RESEND_TOO_EARLY("AUTH-008", "인증번호 재발송은 60초 후에 가능합니다."),
     EMAIL_VERIFICATION_SEND_FAILED("AUTH-009", "인증번호 이메일 발송에 실패했습니다."),
+    UNAUTHORIZED_SESSION("AUTH-010", "로그인 세션이 유효하지 않습니다."),
 
     /*
      * wallet
