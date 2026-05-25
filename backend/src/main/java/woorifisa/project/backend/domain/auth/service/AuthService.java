@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
 import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
+import woorifisa.project.backend.domain.auth.dto.response.SessionCheckResponse;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.exception.CustomException;

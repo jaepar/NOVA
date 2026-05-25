@@ -3,6 +3,8 @@ package woorifisa.project.backend.domain.auth.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +14,8 @@ import woorifisa.project.backend.domain.auth.dto.request.EmailVerificationSendRe
 import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
 import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
+import woorifisa.project.backend.domain.auth.dto.response.SessionCheckResponse;
+import woorifisa.project.backend.domain.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.domain.auth.service.AuthService;
 import woorifisa.project.backend.global.response.BaseResponse;
 
@@ -36,6 +40,14 @@ public class AuthController {
             HttpServletRequest httpRequest
     ) {
         return BaseResponse.ok(authService.login(request, httpRequest));
+    }
+
+    // 새로고침 시 세션 유효성 검증하는 API
+    @GetMapping("/me")
+    public BaseResponse<SessionCheckResponse> me(
+            @AuthenticationPrincipal SessionUserPrincipal principal
+    ) {
+        return BaseResponse.ok(SessionCheckResponse.from(principal.userId()));
     }
 
     @PostMapping("/email-verifications")
