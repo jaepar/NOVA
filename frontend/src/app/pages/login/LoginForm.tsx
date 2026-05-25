@@ -22,7 +22,7 @@ function getLoginErrorMessage(error: unknown) {
 
 export function LoginForm() {
   const navigate = useNavigate()
-  const setLoggedIn = useMainPageStore((state) => state.setLoggedIn)
+  const setAuthenticated = useMainPageStore((state) => state.setAuthenticated)
   const setHasAccount = useMainPageStore((state) => state.setHasAccount)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -41,8 +41,8 @@ export function LoginForm() {
     setErrorMessage('')
 
     try {
-      await authApi.login({ email: email.trim(), password })
-      setLoggedIn(true)
+      const loginResult = await authApi.login({ email: email.trim(), password })
+      setAuthenticated(loginResult.userId)
       setHasAccount(false)
       navigate('/main')
     } catch (error) {
