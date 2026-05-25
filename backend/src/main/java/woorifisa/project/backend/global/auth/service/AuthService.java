@@ -38,6 +38,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_PASSWORD_FORMAT;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_CONFIRM_NOT_MATCHED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_NOT_MATCHED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.UNAUTHORIZED_SESSION;
 
 @Slf4j
 @Service
@@ -103,6 +104,15 @@ public class AuthService {
         HttpSession session = httpRequest.getSession();
         session.setAttribute("userId", user.getUserId());
         return LoginResponse.from(user.getUserId());
+    }
+
+    public void logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            throw new CustomException(UNAUTHORIZED_SESSION);
+        }
+
+        session.invalidate();
     }
 
     public void sendEmailVerificationCode(String email) {
