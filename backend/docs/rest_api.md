@@ -51,6 +51,7 @@
 | `AUTH-003`     | 로그아웃 | POST | `/auth/logout` | O | USER | |
 | `AUTH-004`     | 이메일 인증번호 발송 | POST | `/auth/email-verifications` | X | PUBLIC | |
 | `AUTH-005`     | 이메일 인증번호 확인 | POST | `/auth/email-verifications/confirm` | X | PUBLIC | |
+| `AUTH-006`     | 세션 확인 | GET | `/auth/me` | X | PUBLIC | `JSESSIONID` 기준 로그인 상태 확인 |
 | `USER-001`     | 회원 정보 조회 | GET | `/users` | O | USER | |
 | `USER-002`     | 회원 정보 수정 | PATCH | `/users` | O | USER | |
 | `USER-003`     | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |
@@ -84,6 +85,44 @@
 | `BANK-005`     | 거래 내역 메모 수정(Cloud) | PATCH | `/banking/{accountId}/transactions/{transactionId}/memo` | O | USER | |
 | `BANK-006`     | 홈 계좌 정보 조회(Cloud) | GET | `/banking/home` | O | USER | |
 | `BANK-007`     | 해외 송금(Cloud) | TBD | `TBD` | O | USER | 프로세스 정의 중 (추후 작성) |
+
+## Auth API Contracts
+
+### AUTH-006 세션 확인
+
+- Method: `GET`
+- Path: `/auth/me`
+- Auth: X
+- Role: PUBLIC
+- Description: `JSESSIONID` 기준으로 현재 서버 세션에 `userId`가 있는지 확인한다. 세션이 없거나 `userId`가 없으면 새 세션을 만들지 않고 비로그인 상태를 반환한다.
+
+로그인 상태 응답:
+
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "isLoggedIn": true,
+    "userId": 1
+  }
+}
+```
+
+비로그인 상태 응답:
+
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "isLoggedIn": false,
+    "userId": null
+  }
+}
+```
 
 ## Naming and Contract Notes
 
