@@ -15,14 +15,19 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
-import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
-import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
+import woorifisa.project.backend.global.auth.dto.request.LoginRequest;
+import woorifisa.project.backend.global.auth.dto.request.SignupRequest;
+import woorifisa.project.backend.global.auth.dto.response.LoginResponse;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.Gender;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
+import woorifisa.project.backend.global.auth.service.AuthService;
 import woorifisa.project.backend.global.exception.CustomException;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +42,8 @@ import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DELETED_USER;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DUPLICATE_EMAIL;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_CODE_EXPIRED_OR_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_CODE_NOT_MATCHED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_RESEND_TOO_EARLY;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_SEND_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_EMAIL_FORMAT;
@@ -265,6 +272,43 @@ class AuthServiceTest {
                 .isEqualTo(EMAIL_VERIFICATION_SEND_FAILED);
     }
 
+    @Test
+    @DisplayName("이메일 인증번호 확인 성공 시 인증코드 키를 삭제한다")
+    void confirmEmailVerificationCodeDeletesCodeKeyWhenValid() {
+        String email = "email@konkuk.ac.kr";
+        String code = "123456";
+        when(valueOperations.get("auth:email-verification:code:" + email))
+                .thenReturn(hashForTest(code));
+
+        authService.confirmEmailVerificationCode(email, code);
+
+        verify(stringRedisTemplate).delete("auth:email-verification:code:" + email);
+    }
+
+    @Test
+    @DisplayName("이메일 인증번호가 만료되었거나 없으면 확인에 실패한다")
+    void confirmEmailVerificationCodeFailsWhenCodeMissing() {
+        String email = "email@konkuk.ac.kr";
+        when(valueOperations.get("auth:email-verification:code:" + email)).thenReturn(null);
+
+        assertThatThrownBy(() -> authService.confirmEmailVerificationCode(email, "123456"))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(EMAIL_VERIFICATION_CODE_EXPIRED_OR_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("이메일 인증번호가 일치하지 않으면 확인에 실패한다")
+    void confirmEmailVerificationCodeFailsWhenCodeNotMatched() {
+        String email = "email@konkuk.ac.kr";
+        when(valueOperations.get("auth:email-verification:code:" + email)).thenReturn(hashForTest("654321"));
+
+        assertThatThrownBy(() -> authService.confirmEmailVerificationCode(email, "123456"))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(EMAIL_VERIFICATION_CODE_NOT_MATCHED);
+    }
+
     private void assertLoginFailed(Runnable action, Object exceptionStatus) {
         assertThatThrownBy(action::run)
                 .isInstanceOf(CustomException.class)
@@ -285,5 +329,16 @@ class AuthServiceTest {
                 .hasDelete(hasDelete)
                 .issuedTime(null)
                 .build();
+    }
+
+    private String hashForTest(String code) {
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = messageDigest.digest((code + "nova-email-verification-salt")
+                    .getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(bytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

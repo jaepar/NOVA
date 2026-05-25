@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { resetConsentStorage } from "../../domains/certificate-consent/storage";
 import { useSignupPageStore } from "../../stores/pageStores";
 import { PasswordInputGroup } from "./components/PasswordInputGroup";
 import { SignupContent } from "./components/SignupContent";
@@ -46,6 +47,7 @@ export function PasswordSetup() {
   const passwordConfirm = useSignupPageStore((state) => state.passwordConfirm);
   const setPassword = useSignupPageStore((state) => state.setPassword);
   const setPasswordConfirm = useSignupPageStore((state) => state.setPasswordConfirm);
+  const resetPassword = useSignupPageStore((state) => state.resetPassword);
   const [isPasswordVisible, setPasswordVisible] = useState(false);
   const [isConfirmVisible, setConfirmVisible] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
@@ -90,9 +92,16 @@ export function PasswordSetup() {
     }
   };
 
+  const handleBack = () => {
+    resetConsentStorage();
+    resetPassword();
+    navigate("/signup/terms");
+  };
+
   return (
     <MobileLayout
       title="회원가입"
+      onBack={handleBack}
       bottomContent={
         <Btn_1Col onClick={handleSignup} disabled={!canContinue}>
           {isSubmitting ? "처리 중" : "다음으로"}
