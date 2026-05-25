@@ -4,12 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 import woorifisa.project.backend.domain.wallet.dto.request.DebitWalletAccountRequest;
-import woorifisa.project.backend.domain.wallet.dto.response.DebitWalletAccountResponse;
-import woorifisa.project.backend.global.exception.CustomException;
-
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitResponse;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitLookupResponse;
 
 @Component
 public class OnPremWalletClient {
@@ -25,16 +22,18 @@ public class OnPremWalletClient {
         this.restClient = restClient;
     }
 
-    public DebitWalletAccountResponse debitWalletAccount(DebitWalletAccountRequest request) {
-        try {
-            // Cloud 충전 요청 정보를 On-Prem Core Banking 차감 API 전달
-            return restClient.post()
-                    .uri("/wallet/charges/debit")
-                    .body(request)
-                    .retrieve()
-                    .body(DebitWalletAccountResponse.class);
-        } catch (RestClientException e) {
-            throw new CustomException(WALLET_DEBIT_FAILED);
-        }
+    public WalletDebitResponse debitWalletAccount(DebitWalletAccountRequest request) {
+        return restClient.post()
+                .uri("/account-transactions/wallet")
+                .body(request)
+                .retrieve()
+                .body(WalletDebitResponse.class);
+    }
+
+    public WalletDebitLookupResponse findWalletDebitResult(String externalRequestId) {
+        return restClient.get()
+                .uri("/account-transactions/requests/{externalRequestId}", externalRequestId)
+                .retrieve()
+                .body(WalletDebitLookupResponse.class);
     }
 }

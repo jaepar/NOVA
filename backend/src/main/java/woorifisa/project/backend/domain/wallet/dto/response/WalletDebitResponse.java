@@ -1,8 +1,8 @@
 package woorifisa.project.backend.domain.wallet.dto.response;
 
-public record DebitWalletAccountResponse(
+public record WalletDebitResponse(
         Boolean success,
-        Integer code,
+        String code,
         String message
 ) {
 }
