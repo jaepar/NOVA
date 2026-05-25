@@ -59,6 +59,9 @@ interface SignupPageState {
   setGender: (gender: SignupGender) => void;
   setPassword: (password: string) => void;
   setPasswordConfirm: (passwordConfirm: string) => void;
+  resetEmailVerification: () => void;
+  resetPersonalInfo: () => void;
+  resetPassword: () => void;
   resetSignup: () => void;
 }
 
@@ -81,6 +84,9 @@ export const useSignupPageStore = create<SignupPageState>((set) => ({
   setGender: (gender) => set({ gender }),
   setPassword: (password) => set({ password }),
   setPasswordConfirm: (passwordConfirm) => set({ passwordConfirm }),
+  resetEmailVerification: () => set({ email: "", verificationCode: "" }),
+  resetPersonalInfo: () => set({ name: "", birthDate: "", gender: "" }),
+  resetPassword: () => set({ password: "", passwordConfirm: "" }),
   resetSignup: () => set(signupInitialState),
 }));
 
