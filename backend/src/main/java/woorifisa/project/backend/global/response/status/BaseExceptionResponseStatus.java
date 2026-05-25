@@ -29,8 +29,14 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     /*
      * wallet
      */
-    WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다.")
-    ;
+    WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다."),
+
+    /*
+     * user
+     */
+    USER_NOT_FOUND("USER-001", "사용자 정보를 찾을 수 없습니다."),
+    INVALID_DOCUMENT_FILE("USER-002", "PDF 파일만 업로드할 수 있습니다."),
+    DOCUMENT_UPLOAD_FAILED("USER-003", "문서 업로드에 실패했습니다.");
 
     private final boolean success = false;
     private final String code;
