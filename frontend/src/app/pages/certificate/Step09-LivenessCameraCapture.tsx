@@ -22,7 +22,7 @@ export function LivenessCameraCapture() {
           await videoRef.current.play()
         }
       } catch {
-        // 권한 거부 시에만 기본 화면 구조 유지
+        // 권한 거부 시에도 기본 화면 구조는 유지
       }
     }
 
@@ -37,9 +37,9 @@ export function LivenessCameraCapture() {
   return (
     <CameraCapturePage
       title="비대면 실명확인"
-      onClose={() => navigate('/certificate/step-10', { state: { preserveStep10State: true } })}
+      onClose={() => navigate('/certificate/step-08', { state: { preserveStep08State: true } })}
       bottomContent={
-        <Btn_1Col onClick={() => navigate('/certificate/step-12')}>동의하고 촬영하기</Btn_1Col>
+        <Btn_1Col onClick={() => navigate('/certificate/step-10')}>동의하고 촬영하기</Btn_1Col>
       }
       bottomBackgroundColor="#000000"
     >
@@ -67,7 +67,7 @@ export function LivenessCameraCapture() {
             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
               <ScanFace className="w-5 h-5 text-blue-400" />
             </div>
-            <p className="text-lg">입을 닫아 주세요</p>
+            <p className="text-lg">입을 다물어 주세요</p>
           </div>
           <div className="px-4 py-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">

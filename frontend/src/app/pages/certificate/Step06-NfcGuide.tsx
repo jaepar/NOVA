@@ -48,7 +48,15 @@ export function NfcGuide() {
 
   const handleStartNfcTagging = async () => {
     if (isScanning) return
+    // [TEST CODE START] 웹 테스트용 우회 로직
+    // 배포 전 이 블록(START~END)을 삭제하면 실제 NFC 로직이 동작합니다.
+    setStatusMessage('테스트 모드: NFC 없이 다음 단계로 이동합니다.')
+    navigate('/certificate/step-07')
+    return
+    // [TEST CODE END]
 
+    // [REAL NFC CODE START] 배포 시 아래 주석 블록을 해제해 사용하세요.
+    /*
     if (!('NDEFReader' in window)) {
       setStatusMessage(nfcUnsupportedMessage)
       console.warn('[NFC] Web NFC is not supported in this browser.')
@@ -101,10 +109,6 @@ export function NfcGuide() {
       })
 
       const parsedRecords = parseNdefRecords(readEvent)
-      console.log('[NFC] read success', {
-        serialNumber: readEvent.serialNumber,
-        records: parsedRecords,
-      })
       alert(
         `NFC 인식 성공\nserialNumber: ${readEvent.serialNumber ?? 'N/A'}\nrecords: ${JSON.stringify(parsedRecords, null, 2)}`
       )
@@ -123,6 +127,8 @@ export function NfcGuide() {
     } finally {
       setIsScanning(false)
     }
+    */
+    // [REAL NFC CODE END]
   }
 
   return (
