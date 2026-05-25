@@ -1,6 +1,6 @@
 import type { RouteObject } from "react-router-dom";
-import { Login as LoginIntro } from "../pages/Login";
-import { Login as LoginForm } from "../pages/login/Login";
+import { LoginIntro } from "../pages/login/LoginIntro";
+import { LoginForm } from "../pages/login/LoginForm";
 
 export const loginRoutes: RouteObject[] = [
   { path: "/login", Component: LoginIntro },
