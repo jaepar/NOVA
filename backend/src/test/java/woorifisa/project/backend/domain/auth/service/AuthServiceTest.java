@@ -13,6 +13,7 @@ import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import woorifisa.project.backend.global.auth.dto.request.LoginRequest;
@@ -50,6 +51,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_PASSWORD_FORMAT;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_CONFIRM_NOT_MATCHED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_NOT_MATCHED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.UNAUTHORIZED_SESSION;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -226,6 +228,29 @@ class AuthServiceTest {
                 new LoginRequest("login@test.com", "Password123!"),
                 new MockHttpServletRequest()
         ), DELETED_USER);
+    }
+
+    @Test
+    @DisplayName("로그아웃 성공 시 현재 세션을 무효화한다")
+    void logoutInvalidatesCurrentSession() {
+        MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+        MockHttpSession session = (MockHttpSession) httpRequest.getSession();
+        session.setAttribute("userId", 1L);
+
+        authService.logout(httpRequest);
+
+        assertThat(session.isInvalid()).isTrue();
+    }
+
+    @Test
+    @DisplayName("세션이 없으면 로그아웃에 실패한다")
+    void logoutFailsWhenSessionDoesNotExist() {
+        MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+
+        assertThatThrownBy(() -> authService.logout(httpRequest))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(UNAUTHORIZED_SESSION);
     }
 
     @Test
