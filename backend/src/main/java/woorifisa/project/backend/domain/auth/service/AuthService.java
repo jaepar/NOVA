@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
 import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
+import woorifisa.project.backend.domain.auth.dto.response.SessionCheckResponse;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -36,6 +37,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_PASSWORD_FORMAT;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_CONFIRM_NOT_MATCHED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_NOT_MATCHED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.UNAUTHORIZED_SESSION;
 
 @Slf4j
 @Service
@@ -101,6 +103,16 @@ public class AuthService {
         HttpSession session = httpRequest.getSession();
         session.setAttribute("userId", user.getUserId());
         return LoginResponse.from(user.getUserId());
+    }
+
+    public SessionCheckResponse checkSession(HttpServletRequest httpRequest) {
+        HttpSession session = httpRequest.getSession(false);
+
+        if (session == null || session.getAttribute("userId") == null) {
+            throw new CustomException(UNAUTHORIZED_SESSION);
+        }
+
+        return SessionCheckResponse.from((Long) session.getAttribute("userId"));
     }
 
     public void sendEmailVerificationCode(String email) {
