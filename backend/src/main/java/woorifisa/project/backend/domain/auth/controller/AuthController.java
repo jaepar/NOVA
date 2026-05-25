@@ -1,8 +1,10 @@
 package woorifisa.project.backend.domain.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +13,7 @@ import woorifisa.project.backend.domain.auth.dto.request.EmailVerificationSendRe
 import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
 import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
+import woorifisa.project.backend.domain.auth.dto.response.SessionCheckResponse;
 import woorifisa.project.backend.domain.auth.service.AuthService;
 import woorifisa.project.backend.global.response.BaseResponse;
 
@@ -35,6 +38,19 @@ public class AuthController {
             HttpServletRequest httpRequest
     ) {
         return BaseResponse.ok(authService.login(request, httpRequest));
+    }
+
+    @GetMapping("/me")
+    public BaseResponse<SessionCheckResponse> me(
+            HttpServletRequest httpRequest
+    ) {
+        HttpSession session = httpRequest.getSession(false);
+
+        if (session == null || session.getAttribute("userId") == null) {
+            return BaseResponse.ok(SessionCheckResponse.loggedOut());
+        }
+
+        return BaseResponse.ok(SessionCheckResponse.loggedIn((Long) session.getAttribute("userId")));
     }
 
     @PostMapping("/email-verifications")
