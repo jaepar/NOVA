@@ -15,7 +15,7 @@ export function LivenessConsentAgreement() {
 
   return (
     <MobileLayout
-      title="비밀번호 본인확인"
+      title="비대면 실명확인"
       backPath="/certificate/step-07"
       bottomContent={
         <Btn_1Col disabled={!isRequiredComplete} onClick={() => navigate('/certificate/step-09')}>
