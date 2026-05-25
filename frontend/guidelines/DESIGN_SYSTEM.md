@@ -75,6 +75,12 @@
 - 하단 고정 액션은 `MobileLayout`의 `bottomContent`로 구성한다.
 - 하단 배경색은 `bottomBackgroundColor`로 제어하며 기본값은 `#ffffff`이다.
 
+
+### Main 페이지 구현 정책 참조
+
+- `Main.tsx` 구조 규칙은 디자인 토큰 규칙과 별도로 관리한다.
+- Main 페이지 신규 UI는 `src/app/pages/main/` 하위 컴포넌트로 분리하고, `Main.tsx`는 조립 전용으로 유지한다.
+- 상세 구현 규칙은 `frontend/AGENTS.md`와 `frontend/guidelines/LAYOUT_GUIDELINES.md`를 따른다.
 ## 7) 상호작용 원칙
 
 - hover/active 동작은 기존 variant 규칙과 일치시킨다.
@@ -136,7 +142,7 @@
 - 정의 파일 권장 경로: `src/app/domains/<service-domain>/`
 - 정의 파일 권장 네이밍: `definition.<scenario>.ts`
 
-## 헤더 뒤로가기 정책 (스텝형 플로우 필수)
+## 13) 헤더 뒤로가기 정책 (스텝형 플로우 필수)
 
 - 스텝형 플로우(예: 인증서 발급)에서는 `navigate(-1)`을 뒤로가기 기본 동작으로 사용하지 않는다.
 - 각 스텝 페이지는 `MobileLayout`의 `backPath`를 명시하고, 현재 스텝 기준 이전 스텝 경로로 이동해야 한다.
