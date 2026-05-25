@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import { Eye, EyeOff } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
@@ -12,7 +13,7 @@ const LOGIN_FAILED_MESSAGE = '이메일 또는 비밀번호가 일치하지 않�
 const NETWORK_ERROR_MESSAGE = '서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.'
 
 function getLoginErrorMessage(error: unknown) {
-  if (typeof error === 'object' && error !== null && 'response' in error) {
+  if (axios.isAxiosError(error) && error.response) {
     return LOGIN_FAILED_MESSAGE
   }
 
