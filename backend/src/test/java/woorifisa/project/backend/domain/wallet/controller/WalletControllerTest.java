@@ -8,6 +8,7 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import woorifisa.project.backend.domain.auth.session.service.SessionAuthService;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionItem;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
@@ -16,6 +17,7 @@ import woorifisa.project.backend.domain.wallet.service.WalletService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -34,6 +36,9 @@ class WalletControllerTest {
     @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
+    @MockitoBean
+    private SessionAuthService sessionAuthService;
+
     @Test
     @DisplayName("세션 사용자 기준 월렛 잔액과 거래내역을 조회한다")
     void success() throws Exception {
@@ -50,6 +55,7 @@ class WalletControllerTest {
         );
 
         when(walletService.findWalletTransactions(userId)).thenReturn(response);
+        when(sessionAuthService.requireUserId(any())).thenReturn(userId);
 
         mockMvc.perform(get("/wallet/transactions")
                         .sessionAttr("userId", userId)
