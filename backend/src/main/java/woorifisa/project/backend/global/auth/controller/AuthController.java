@@ -42,6 +42,14 @@ public class AuthController {
         return BaseResponse.ok(authService.login(request, httpRequest));
     }
 
+    @PostMapping("/logout")
+    public BaseResponse<Void> logout(
+            HttpServletRequest httpRequest
+    ) {
+        authService.logout(httpRequest);
+        return BaseResponse.ok(null);
+    }
+
     // 새로고침 시 세션 유효성 검증하는 API
     @GetMapping("/me")
     public BaseResponse<SessionCheckResponse> me(
