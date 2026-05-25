@@ -1,7 +1,6 @@
 package woorifisa.project.backend.domain.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,13 +43,7 @@ public class AuthController {
     public BaseResponse<SessionCheckResponse> me(
             HttpServletRequest httpRequest
     ) {
-        HttpSession session = httpRequest.getSession(false);
-
-        if (session == null || session.getAttribute("userId") == null) {
-            return BaseResponse.ok(SessionCheckResponse.loggedOut());
-        }
-
-        return BaseResponse.ok(SessionCheckResponse.loggedIn((Long) session.getAttribute("userId")));
+        return BaseResponse.ok(authService.checkSession(httpRequest));
     }
 
     @PostMapping("/email-verifications")
