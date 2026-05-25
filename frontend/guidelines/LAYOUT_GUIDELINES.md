@@ -4,25 +4,26 @@
 
 - 기준 프레임: `390 x 844`
 - 프레임 기준 요소: `#root`
-- 뷰포트가 기준보다 작으면 비율 유지 축소
-- 뷰포트가 기준보다 커도 `390x844` 고정 (확대 금지)
+- 데스크탑 브라우저(`>768px`)에서는 `390x844` 프레임을 중앙 고정으로 유지
+- 모바일/앱 브라우저(`<=768px`)에서는 기기 뷰포트 크기에 맞춰 `#root`를 확장
+- 모바일/앱 브라우저에서는 스케일 축소를 적용하지 않음(`--app-scale: 1`)
 - 프레임 외부 영역은 별도 배경색으로 앱 영역과 구분
 
 ## 2) 현재 구현 기준
 
 - `src/main.tsx`
-  - 로드/리사이즈 시 `--app-scale` 계산
-  - `scale = min(windowWidth/390, windowHeight/844, 1)`
+  - 브레이크포인트: `768px`
+  - `<=768px`: `--app-width/--app-height`를 뷰포트 크기로 설정, `--app-scale: 1`
+  - `>768px`: `--app-width: 390px`, `--app-height: 844px`, `--app-scale = min(windowWidth/390, windowHeight/844, 1)`
 - `src/styles/theme.css`
-  - `#root` 고정 크기:
-    - `--app-width: 390px`
-    - `--app-height: 844px`
+  - `#root` 크기는 CSS 변수(`--app-width`, `--app-height`)로 제어
   - `#root`에 `transform: scale(var(--app-scale))` 적용
   - `body`에서 중앙 정렬 및 외부 배경 영역 처리
 
 ## 3) 레이아웃 구성 규칙
 
 - 모든 페이지는 `MobileLayout`을 사용한다.
+- 예외 없이 모든 페이지가 동일 레이아웃 규격을 따른다.
 - 상단 영역은 `MobileLayout`의 `headerType` 규칙으로 사용한다.
   - `headerType="back"`: 뒤로가기 헤더 (`FixedHeader`)
   - `headerType="close"`: 닫기 헤더 (`CloseFixedHeader`)
@@ -46,9 +47,9 @@
 
 ## 5) 반응형 점검 체크리스트
 
-- [ ] `390x844`에서 1:1 렌더링
-- [ ] 기준 이하에서 비율 유지 축소
-- [ ] 기준 이상에서 `390x844` 고정
+- [ ] 데스크탑(`>768px`)에서 `390x844` 중앙 고정 프레임 유지
+- [ ] 모바일/앱 브라우저(`<=768px`)에서 기기 뷰포트 크기로 렌더링
+- [ ] 모바일/앱 브라우저에서 `--app-scale: 1` 유지
 - [ ] 프레임 외부 배경 구분 확인
 - [ ] 헤더/하단 고정 영역 정렬 이상 없음
 
