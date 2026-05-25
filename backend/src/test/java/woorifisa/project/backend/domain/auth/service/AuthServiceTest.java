@@ -15,12 +15,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import woorifisa.project.backend.domain.auth.dto.request.LoginRequest;
-import woorifisa.project.backend.domain.auth.dto.request.SignupRequest;
-import woorifisa.project.backend.domain.auth.dto.response.LoginResponse;
+import woorifisa.project.backend.global.auth.dto.request.LoginRequest;
+import woorifisa.project.backend.global.auth.dto.request.SignupRequest;
+import woorifisa.project.backend.global.auth.dto.response.LoginResponse;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.Gender;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
+import woorifisa.project.backend.global.auth.service.AuthService;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.nio.charset.StandardCharsets;

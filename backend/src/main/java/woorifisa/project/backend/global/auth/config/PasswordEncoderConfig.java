@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.auth.config;
+package woorifisa.project.backend.global.auth.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

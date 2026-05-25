@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.auth.dto.response;
+package woorifisa.project.backend.global.auth.dto.response;
 
 public record SessionCheckResponse(
         Long userId

@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.auth.security;
+package woorifisa.project.backend.global.auth.security;
 
 public record SessionUserPrincipal(
         Long userId
