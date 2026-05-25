@@ -31,6 +31,8 @@ import java.util.regex.Pattern;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DUPLICATE_EMAIL;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DELETED_USER;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_CODE_EXPIRED_OR_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_CODE_NOT_MATCHED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_RESEND_TOO_EARLY;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_SEND_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_EMAIL_FORMAT;
@@ -143,6 +145,25 @@ public class AuthService {
         stringRedisTemplate.opsForValue().set(formatCodeKey(email), codeHash, EMAIL_CODE_TTL);
         // 60초 내 재요청을 막기 위해 redis에 저장
         stringRedisTemplate.opsForValue().set(formatCooldownKey(email), "1", EMAIL_RESEND_COOLDOWN);
+    }
+
+    public void confirmEmailVerificationCode(String email, String code) {
+        validateEmailFormat(email);
+
+        String savedCodeHash = stringRedisTemplate.opsForValue().get(formatCodeKey(email));
+        if (savedCodeHash == null) {
+            // savedCodeHash가 null 이라면, 인증시간이 만료가 돼서 예외처리
+            throw new CustomException(EMAIL_VERIFICATION_CODE_EXPIRED_OR_NOT_FOUND);
+        }
+
+        // 해시를 복호화가 불가능하기 때문에, 사용자가 입력한 code를 동일한 방식으로 hash해서 일치여부 판단
+        String inputCodeHash = hashCode(code);
+        if (!savedCodeHash.equals(inputCodeHash)) {
+            throw new CustomException(EMAIL_VERIFICATION_CODE_NOT_MATCHED);
+        }
+
+        // 인증이 성공하면, 해당 이메에 대해서 같은 코드 재사용 방지를 위해 redis에서 제거
+        stringRedisTemplate.delete(formatCodeKey(email));
     }
 
     private void validatePassword(String password) {
