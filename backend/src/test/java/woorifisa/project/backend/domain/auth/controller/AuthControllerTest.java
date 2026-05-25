@@ -61,6 +61,20 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("로그아웃 성공 시 공통 성공 응답을 반환한다")
+    void logoutReturnsSuccess() {
+        MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+
+        BaseResponse<Void> response = authController.logout(httpRequest);
+
+        verify(authService).logout(httpRequest);
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo("요청에 성공했습니다.");
+        assertThat(response.getData()).isNull();
+    }
+
+    @Test
     @DisplayName("이메일 인증번호 발송 성공 시 공통 성공 응답을 반환한다")
     void sendEmailVerificationCodeReturnsSuccess() {
         EmailVerificationSendRequest request = new EmailVerificationSendRequest("email@konkuk.ac.kr");
