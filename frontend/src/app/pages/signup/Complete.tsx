@@ -8,14 +8,24 @@ import { SignupContent } from "./components/SignupContent";
 export function Complete() {
   const navigate = useNavigate();
   const resetSignup = useSignupPageStore((state) => state.resetSignup);
+  const resetPassword = useSignupPageStore((state) => state.resetPassword);
 
   const handleComplete = () => {
     resetSignup();
     navigate("/main");
   };
 
+  const handleBack = () => {
+    resetPassword();
+    navigate("/signup/password");
+  };
+
   return (
-    <MobileLayout title="회원가입" bottomContent={<Btn_1Col onClick={handleComplete}>완료</Btn_1Col>}>
+    <MobileLayout
+      title="회원가입"
+      onBack={handleBack}
+      bottomContent={<Btn_1Col onClick={handleComplete}>완료</Btn_1Col>}
+    >
       <SignupContent className="flex min-h-full flex-col">
         <div className="flex flex-1 flex-col items-center justify-center gap-7 text-center">
           <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-primary/10">

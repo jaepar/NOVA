@@ -9,9 +9,9 @@ export function LivenessGuide() {
   return (
     <MobileLayout
       title="비대면 실명확인"
-      backPath="/certificate/step-08"
+      backPath="/certificate/step-06"
       bottomContent={
-        <Btn_1Col onClick={() => navigate('/certificate/step-10')}>동의하고 촬영하기</Btn_1Col>
+        <Btn_1Col onClick={() => navigate('/certificate/step-08')}>동의하고 촬영하기</Btn_1Col>
       }
     >
       <div className="space-y-5 pb-2">
@@ -38,20 +38,20 @@ export function LivenessGuide() {
             <div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center shrink-0">
               <ScanFace className="w-4 h-4" />
             </div>
-            <p className="text-sm leading-relaxed">얼굴을 영역 안에 맞추고 정면을 바라봐 주세요.</p>
+            <p className="text-sm leading-relaxed">얼굴을 영역 안에 맞추고 정면을 바라봐 주세요</p>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center shrink-0">
               <Lightbulb className="w-4 h-4" />
             </div>
-            <p className="text-sm leading-relaxed">너무 밝거나 어둡지 않은 곳에서 진행해 주세요.</p>
+            <p className="text-sm leading-relaxed">너무 밝거나 어둡지 않은 곳에서 진행해 주세요</p>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center shrink-0">
               <Camera className="w-4 h-4" />
             </div>
             <p className="text-sm leading-relaxed">
-              휴대폰 전면 카메라를 깨끗이 닦고 얼굴 높이까지 들어주세요.
+              모바일 전면 카메라를 켠 상태에서 얼굴 가까이로 이동해 주세요
             </p>
           </div>
         </section>

@@ -1,4 +1,14 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: nova-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-dev-data:/data
+
   backend:
     image: jaypark0205/nova-backend:latest
     container_name: nova-backend-dev
@@ -11,11 +21,25 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       ONPREM_GATEWAY_BASE_URL: ${ONPREM_GATEWAY_BASE_URL}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_S3_BASE_URL: ${AWS_S3_BASE_URL}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
     ports:
       - "8000:8000"
+    depends_on:
+      - redis
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8000/actuator/health"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 40s
+
+volumes:
+  redis-dev-data:

@@ -12,6 +12,8 @@
 ## 2) 핵심 토큰
 
 - 기준 프레임: `390 x 844`
+- 브레이크포인트 기준: `768px`
+- 데스크탑(`>768px`)은 중앙 `390x844` 프레임, 모바일/앱 브라우저(`<=768px`)는 기기 뷰포트 기준 렌더링
 - 좌우 기본 패딩: `px-5` (20px)
 - Primary: `#6366F1`
 - 본문 텍스트: `#1F2937`
@@ -56,6 +58,11 @@
 - `BottomNav`
 - `BottomSheet`
 
+### 레이아웃 적용 범위
+
+- 모든 페이지는 예외 없이 공통 레이아웃 규격(`MobileLayout` + 동일 헤더/본문/하단 구조)을 따른다.
+- 신규 페이지도 동일 규격을 기본값으로 적용하며, 페이지별 독자 프레임 규칙을 추가하지 않는다.
+
 ### 헤더 선택 규칙
 
 - 페이지에서는 헤더 컴포넌트를 직접 조합하기보다 `MobileLayout`의 `headerType`을 우선 사용한다.
@@ -68,6 +75,12 @@
 - 하단 고정 액션은 `MobileLayout`의 `bottomContent`로 구성한다.
 - 하단 배경색은 `bottomBackgroundColor`로 제어하며 기본값은 `#ffffff`이다.
 
+
+### Main 페이지 구현 정책 참조
+
+- `Main.tsx` 구조 규칙은 디자인 토큰 규칙과 별도로 관리한다.
+- Main 페이지 신규 UI는 `src/app/pages/main/` 하위 컴포넌트로 분리하고, `Main.tsx`는 조립 전용으로 유지한다.
+- 상세 구현 규칙은 `frontend/AGENTS.md`와 `frontend/guidelines/LAYOUT_GUIDELINES.md`를 따른다.
 ## 7) 상호작용 원칙
 
 - hover/active 동작은 기존 variant 규칙과 일치시킨다.
@@ -129,7 +142,7 @@
 - 정의 파일 권장 경로: `src/app/domains/<service-domain>/`
 - 정의 파일 권장 네이밍: `definition.<scenario>.ts`
 
-## 헤더 뒤로가기 정책 (스텝형 플로우 필수)
+## 13) 헤더 뒤로가기 정책 (스텝형 플로우 필수)
 
 - 스텝형 플로우(예: 인증서 발급)에서는 `navigate(-1)`을 뒤로가기 기본 동작으로 사용하지 않는다.
 - 각 스텝 페이지는 `MobileLayout`의 `backPath`를 명시하고, 현재 스텝 기준 이전 스텝 경로로 이동해야 한다.

@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 
 // API Base URL - 환경변수로 관리 권장
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.example.com'
+const BASE_URL = import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_BASE_URL
 
 // Axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
