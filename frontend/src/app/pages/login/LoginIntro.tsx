@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { MobileLayout } from '../components/layout/MobileLayout'
-import { Btn_1Col } from '../components/design-system/Btn_1Col'
-import loginIllustration from './login/assets/login-illustration.png'
+import { MobileLayout } from '../../components/layout/MobileLayout'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import loginIllustration from './assets/login-illustration.png'
 
-export function Login() {
+export function LoginIntro() {
   const navigate = useNavigate()
 
   const handleLogin = () => {
