@@ -23,6 +23,7 @@ export function EmailVerification() {
   const verificationCode = useSignupPageStore((state) => state.verificationCode);
   const setEmail = useSignupPageStore((state) => state.setEmail);
   const setVerificationCode = useSignupPageStore((state) => state.setVerificationCode);
+  const resetSignup = useSignupPageStore((state) => state.resetSignup);
   const [isCodeSent, setCodeSent] = useState(false);
   const [isSendingCode, setSendingCode] = useState(false);
   const [isVerifying, setVerifying] = useState(false);
@@ -134,9 +135,15 @@ export function EmailVerification() {
     }
   };
 
+  const handleBack = () => {
+    resetSignup();
+    navigate("/main");
+  };
+
   return (
     <MobileLayout
       title="회원가입"
+      onBack={handleBack}
       bottomContent={
         <Btn_1Col onClick={() => navigate("/signup/personal-info")} disabled={!isEmailVerified}>
           다음
