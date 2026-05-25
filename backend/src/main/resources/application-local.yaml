@@ -21,7 +21,13 @@ spring:
 
   docker:
     compose:
-      enabled: false
+      enabled: ${DOCKER_COMPOSE_ENABLED:true}
+      file: docker-compose.local.yml
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 logging:
   level:
