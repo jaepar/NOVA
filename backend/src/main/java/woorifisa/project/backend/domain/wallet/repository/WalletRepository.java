@@ -13,8 +13,10 @@ import java.util.Optional;
 @Repository
 public interface WalletRepository extends JpaRepository<Wallet, Long> {
 
+    // 사용자 ID로 월렛을 조회한다.
     Optional<Wallet> findByUser_UserId(Long userId);
 
+    // 월렛 충전 확정을 위해 월렛을 조회한다.
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select w from Wallet w where w.walletId = :walletId")
     Optional<Wallet> findByIdForUpdate(@Param("walletId") Long walletId);

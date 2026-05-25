@@ -24,16 +24,15 @@ public class WalletController {
     @PostMapping("/charges")
     public BaseResponse<Void> chargeWallet(
             HttpSession session,
-            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody ChargeWalletRequest request
     ) {
         Long userId = getSessionUserId(session);
         walletService.chargeWallet(userId, idempotencyKey, request);
-        return BaseResponse.ok(null, "월렛 충전이 완료되었습니다.");
+        return BaseResponse.ok(null);
     }
 
     private Long getSessionUserId(HttpSession session) {
-        // 로그인 세션의 현재 사용자 식별값
         Object userId = session.getAttribute("userId");
         if (userId instanceof Long sessionUserId) {
             return sessionUserId;

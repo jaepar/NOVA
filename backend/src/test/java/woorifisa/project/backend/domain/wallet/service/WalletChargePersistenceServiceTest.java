@@ -1,5 +1,6 @@
 package woorifisa.project.backend.domain.wallet.service;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
@@ -30,7 +31,8 @@ class WalletChargePersistenceServiceTest {
     );
 
     @Test
-    void completeWalletChargeIncreasesBalanceAndCreatesDepositTransaction() {
+    @DisplayName("월렛 충전 확정 시 잔액을 증가시키고 입금 거래내역을 저장한다")
+    void success() {
         Wallet wallet = Wallet.builder()
                 .walletId(10L)
                 .balance(30000)
@@ -48,7 +50,8 @@ class WalletChargePersistenceServiceTest {
     }
 
     @Test
-    void completeWalletChargeFailsWhenWalletDoesNotExist() {
+    @DisplayName("월렛이 없으면 충전 확정에 실패한다")
+    void walletNotFound() {
         when(walletRepository.findByIdForUpdate(10L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> walletChargePersistenceService.completeWalletCharge(10L, 10000))
@@ -57,7 +60,8 @@ class WalletChargePersistenceServiceTest {
     }
 
     @Test
-    void completeWalletChargeRejectsOverflowedBalance() {
+    @DisplayName("월렛 잔액이 Integer 범위를 넘으면 충전 확정에 실패한다")
+    void amountOverflow() {
         Wallet wallet = Wallet.builder()
                 .walletId(10L)
                 .balance(Integer.MAX_VALUE)

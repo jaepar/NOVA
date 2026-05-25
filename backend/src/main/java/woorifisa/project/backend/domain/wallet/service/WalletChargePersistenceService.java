@@ -23,13 +23,13 @@ public class WalletChargePersistenceService {
 
     @Transactional
     public void completeWalletCharge(Long walletId, Integer chargeAmount) {
-        // On-Prem 계좌 차감 성공 이후 월렛 저장 트랜잭션 경계
+        // pessimistic lock으로 월렛을 조회해 충전 확정 중 잔액 경합을 막는다.
         Wallet wallet = walletRepository.findByIdForUpdate(walletId)
                 .orElseThrow(() -> new CustomException(WALLET_NOT_FOUND));
 
         wallet.charge(chargeAmount);
 
-        // 사용자 사용내역 조회 화면에 표시할 월렛 충전 거래내역
+        // 사용자 거래내역에 표시할 월렛 충전 입금 내역을 저장한다.
         walletTransactionRepository.save(WalletTransaction.builder()
                 .wallet(wallet)
                 .transactionFlow(TransactionFlow.DEPOSIT)

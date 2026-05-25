@@ -43,7 +43,6 @@ public class Wallet extends BaseEntity {
     @Column(name = "balance", nullable = false)
     private Integer balance;
 
-    // 계좌 차감 성공 확인 이후 월렛 잔액 증가 계산
     public void charge(Integer amount) {
         if (amount == null || amount <= 0 || balance == null || balance > Integer.MAX_VALUE - amount) {
             throw new CustomException(WALLET_INVALID_CHARGE_AMOUNT);
