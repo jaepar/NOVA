@@ -7,7 +7,7 @@ import { AppButton } from '../../components/design-system/AppButton'
 import { CommonInputGroup } from '../../components/design-system/CommonInputGroup'
 import { useMainPageStore } from '../../stores/pageStores'
 
-export function Login() {
+export function LoginForm() {
   const navigate = useNavigate()
   const setLoggedIn = useMainPageStore((state) => state.setLoggedIn)
   const setHasAccount = useMainPageStore((state) => state.setHasAccount)
