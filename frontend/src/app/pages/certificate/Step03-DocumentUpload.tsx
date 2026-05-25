@@ -35,9 +35,12 @@ export function Step03DocumentUpload() {
       title="비대면 실명확인"
       backPath="/certificate/step-02"
       bottomContent={
-        <Btn_1Col disabled={!isAllAttached} onClick={() => navigate('/certificate/step-04')}>
+        // <Btn_1Col disabled={!isAllAttached} onClick={() => navigate('/certificate/step-04')}>
+        //   다음으로
+        // </Btn_1Col>  // 실제 배포
+        <Btn_1Col onClick={() => navigate('/certificate/step-04')}>
           다음으로
-        </Btn_1Col>
+        </Btn_1Col>  // 테스트
       }
     >
       <div className="space-y-5 pb-2">
