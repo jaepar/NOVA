@@ -93,6 +93,7 @@ export function Main() {
         isLoggedIn={isLoggedIn}
         onLogout={logout}
         onLogin={() => navigate('/login')}
+        onProfile={() => navigate('/mypage')}
       />
 
       <BottomSheet
