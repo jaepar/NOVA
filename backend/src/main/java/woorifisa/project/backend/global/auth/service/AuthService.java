@@ -1,6 +1,8 @@
 package woorifisa.project.backend.global.auth.service;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -106,13 +108,14 @@ public class AuthService {
         return LoginResponse.from(user.getUserId());
     }
 
-    public void logout(HttpServletRequest request) {
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession(false);
         if (session == null) {
             throw new CustomException(UNAUTHORIZED_SESSION);
         }
 
         session.invalidate();
+        expireSessionCookie(request, response);
     }
 
     public void sendEmailVerificationCode(String email) {
@@ -199,6 +202,15 @@ public class AuthService {
 
     private String formatCooldownKey(String email) {
         return String.format(EMAIL_VERIFICATION_COOLDOWN_KEY, email);
+    }
+
+    private void expireSessionCookie(HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookie = new Cookie("JSESSIONID", null);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(request.isSecure());
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 
     private String createVerificationCode() {

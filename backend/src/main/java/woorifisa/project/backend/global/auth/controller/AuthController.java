@@ -1,6 +1,7 @@
 package woorifisa.project.backend.global.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,9 +45,10 @@ public class AuthController {
 
     @PostMapping("/logout")
     public BaseResponse<Void> logout(
-            HttpServletRequest httpRequest
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
     ) {
-        authService.logout(httpRequest);
+        authService.logout(httpRequest, httpResponse);
         return BaseResponse.ok(null);
     }
 
