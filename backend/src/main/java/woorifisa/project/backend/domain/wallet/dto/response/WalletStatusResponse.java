@@ -6,7 +6,6 @@ import woorifisa.project.backend.domain.wallet.entity.Wallet;
 public record WalletStatusResponse(
         Boolean hasWallet,
         Boolean canCreateWallet,
-        Boolean requiresTermsAgreement,
         Long walletId,
         Integer balance,
         Long linkedAccountId,
@@ -16,7 +15,6 @@ public record WalletStatusResponse(
     public static WalletStatusResponse from(Wallet wallet) {
         return new WalletStatusResponse(
                 true,
-                false,
                 false,
                 wallet.getWalletId(),
                 wallet.getBalance(),
@@ -28,7 +26,6 @@ public record WalletStatusResponse(
     public static WalletStatusResponse from(AccountRef accountRef) {
         return new WalletStatusResponse(
                 false,
-                true,
                 true,
                 null,
                 null,

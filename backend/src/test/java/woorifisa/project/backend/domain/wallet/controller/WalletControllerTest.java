@@ -84,7 +84,6 @@ class WalletControllerTest {
         WalletStatusResponse response = new WalletStatusResponse(
                 false,
                 true,
-                true,
                 null,
                 null,
                 2001L,
@@ -106,7 +105,7 @@ class WalletControllerTest {
                 .andExpect(jsonPath("$.code").value(20000))
                 .andExpect(jsonPath("$.data.hasWallet").value(false))
                 .andExpect(jsonPath("$.data.canCreateWallet").value(true))
-                .andExpect(jsonPath("$.data.requiresTermsAgreement").value(true))
+                .andExpect(jsonPath("$.data.requiresTermsAgreement").doesNotExist())
                 .andExpect(jsonPath("$.data.walletId").doesNotExist())
                 .andExpect(jsonPath("$.data.balance").doesNotExist())
                 .andExpect(jsonPath("$.data.linkedAccountId").value(2001))

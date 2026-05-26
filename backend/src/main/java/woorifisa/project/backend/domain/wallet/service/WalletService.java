@@ -49,7 +49,6 @@ public class WalletService {
                 .orElseGet(() -> new WalletStatusResponse(
                         false,
                         false,
-                        false,
                         null,
                         null,
                         null,

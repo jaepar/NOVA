@@ -99,7 +99,6 @@ class WalletServiceTest {
 
         assertThat(response.hasWallet()).isTrue();
         assertThat(response.canCreateWallet()).isFalse();
-        assertThat(response.requiresTermsAgreement()).isFalse();
         assertThat(response.walletId()).isEqualTo(10L);
         assertThat(response.balance()).isEqualTo(12500);
         assertThat(response.linkedAccountId()).isEqualTo(2001L);
@@ -121,7 +120,6 @@ class WalletServiceTest {
 
         assertThat(response.hasWallet()).isFalse();
         assertThat(response.canCreateWallet()).isTrue();
-        assertThat(response.requiresTermsAgreement()).isTrue();
         assertThat(response.walletId()).isNull();
         assertThat(response.balance()).isNull();
         assertThat(response.linkedAccountId()).isEqualTo(2001L);
@@ -140,7 +138,6 @@ class WalletServiceTest {
 
         assertThat(response.hasWallet()).isFalse();
         assertThat(response.canCreateWallet()).isFalse();
-        assertThat(response.requiresTermsAgreement()).isFalse();
         assertThat(response.walletId()).isNull();
         assertThat(response.balance()).isNull();
         assertThat(response.linkedAccountId()).isNull();
