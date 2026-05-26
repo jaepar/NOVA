@@ -10,11 +10,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionItem;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
+import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -74,5 +75,41 @@ class WalletControllerTest {
                 .andExpect(jsonPath("$.data.transactions[0].counterparty").value("이마트24 강남역점"))
                 .andExpect(jsonPath("$.data.transactions[0].amount").value(2500))
                 .andExpect(jsonPath("$.data.transactions[0].createdAt").value("2025-05-24T14:22:00"));
+    }
+
+    @Test
+    @DisplayName("세션 사용자 기준 월렛 상태를 조회한다")
+    void walletStatus() throws Exception {
+        Long userId = 1L;
+        WalletStatusResponse response = new WalletStatusResponse(
+                false,
+                true,
+                true,
+                null,
+                null,
+                2001L,
+                null
+        );
+
+        when(walletService.findWalletStatus(any())).thenReturn(response);
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        mockMvc.perform(get("/wallet/status")
+                        .with(authentication(authToken))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value(20000))
+                .andExpect(jsonPath("$.data.hasWallet").value(false))
+                .andExpect(jsonPath("$.data.canCreateWallet").value(true))
+                .andExpect(jsonPath("$.data.requiresTermsAgreement").value(true))
+                .andExpect(jsonPath("$.data.walletId").doesNotExist())
+                .andExpect(jsonPath("$.data.balance").doesNotExist())
+                .andExpect(jsonPath("$.data.linkedAccountId").value(2001))
+                .andExpect(jsonPath("$.data.reason").doesNotExist());
     }
 }

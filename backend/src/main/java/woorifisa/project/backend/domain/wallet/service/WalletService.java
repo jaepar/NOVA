@@ -3,6 +3,8 @@ package woorifisa.project.backend.domain.wallet.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import woorifisa.project.backend.domain.banking.repository.BankingRepository;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
 import woorifisa.project.backend.domain.wallet.entity.WalletTransaction;
@@ -18,7 +20,11 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 @RequiredArgsConstructor
 public class WalletService {
 
+    // 프론트 분기용 상태값
+    private static final String ACCOUNT_REQUIRED = "ACCOUNT_REQUIRED";
+
     private final WalletRepository walletRepository;
+    private final BankingRepository bankingRepository;
     private final WalletTransactionRepository walletTransactionRepository;
 
     @Transactional(readOnly = true)
@@ -28,5 +34,26 @@ public class WalletService {
         List<WalletTransaction> transactions = walletTransactionRepository.findAllByWallet_WalletIdOrderByCreatedAtDesc(wallet.getWalletId());
 
         return WalletTransactionsResponse.from(wallet, transactions);
+    }
+
+    @Transactional(readOnly = true)
+    public WalletStatusResponse findWalletStatus(Long userId) {
+        return walletRepository.findByUser_UserId(userId)
+                .map(WalletStatusResponse::from)
+                .orElseGet(() -> findCreatableWalletStatus(userId));
+    }
+
+    private WalletStatusResponse findCreatableWalletStatus(Long userId) {
+        return bankingRepository.findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(userId)
+                .map(WalletStatusResponse::from)
+                .orElseGet(() -> new WalletStatusResponse(
+                        false,
+                        false,
+                        false,
+                        null,
+                        null,
+                        null,
+                        ACCOUNT_REQUIRED
+                ));
     }
 }
