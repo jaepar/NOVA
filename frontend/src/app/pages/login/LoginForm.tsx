@@ -108,6 +108,7 @@ export function LoginForm() {
               </AppButton>
             </div>
           </div>
+
           {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
         </div>
       </section>
