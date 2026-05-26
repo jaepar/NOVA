@@ -6,11 +6,28 @@ const BASE_URL = import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_BASE_UR
 // Axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
+  withCredentials: true,
   timeout: 10000, // 10초
   headers: {
     'Content-Type': 'application/json',
   },
 })
+
+function maskSensitiveData(data: unknown) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return data
+  }
+
+  const maskedData = { ...(data as Record<string, unknown>) }
+
+  for (const key of Object.keys(maskedData)) {
+    if (key.toLowerCase().includes('password')) {
+      maskedData[key] = '[REDACTED]'
+    }
+  }
+
+  return maskedData
+}
 
 // Request Interceptor - 요청 전 처리
 apiClient.interceptors.request.use(
@@ -26,7 +43,7 @@ apiClient.interceptors.request.use(
       console.log('API Request:', {
         method: config.method?.toUpperCase(),
         url: config.url,
-        data: config.data,
+        data: maskSensitiveData(config.data),
       })
     }
 
