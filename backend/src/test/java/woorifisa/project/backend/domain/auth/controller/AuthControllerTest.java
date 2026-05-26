@@ -3,6 +3,8 @@ package woorifisa.project.backend.domain.auth.controller;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import woorifisa.project.backend.domain.user.entity.enums.Gender;
 import woorifisa.project.backend.global.auth.controller.AuthController;
 import woorifisa.project.backend.global.auth.dto.request.EmailVerificationConfirmRequest;
 import woorifisa.project.backend.global.auth.dto.request.EmailVerificationSendRequest;
@@ -10,7 +12,6 @@ import woorifisa.project.backend.global.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.global.auth.dto.request.SignupRequest;
 import woorifisa.project.backend.global.auth.dto.response.LoginResponse;
 import woorifisa.project.backend.global.auth.service.AuthService;
-import woorifisa.project.backend.domain.user.entity.enums.Gender;
 import woorifisa.project.backend.global.response.BaseResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,13 +62,14 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("로그아웃 성공 시 공통 성공 응답을 반환한다")
+    @DisplayName("로그아웃 성공 시 서비스에 위임하고 공통 성공 응답을 반환한다")
     void logoutReturnsSuccess() {
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+        MockHttpServletResponse httpResponse = new MockHttpServletResponse();
 
-        BaseResponse<Void> response = authController.logout(httpRequest);
+        BaseResponse<Void> response = authController.logout(httpRequest, httpResponse);
 
-        verify(authService).logout(httpRequest);
+        verify(authService).logout(httpRequest, httpResponse);
         assertThat(response.getSuccess()).isTrue();
         assertThat(response.getCode()).isEqualTo("20000");
         assertThat(response.getMessage()).isEqualTo("요청에 성공했습니다.");

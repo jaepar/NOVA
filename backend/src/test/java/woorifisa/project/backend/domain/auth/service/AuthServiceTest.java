@@ -13,6 +13,7 @@ import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +26,7 @@ import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.auth.service.AuthService;
 import woorifisa.project.backend.global.exception.CustomException;
 
+import jakarta.servlet.http.Cookie;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -231,23 +233,47 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("로그아웃 성공 시 현재 세션을 무효화한다")
-    void logoutInvalidatesCurrentSession() {
+    @DisplayName("logout invalidates current session and expires session cookie")
+    void logoutInvalidatesSessionAndExpiresCookie() {
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+        MockHttpServletResponse httpResponse = new MockHttpServletResponse();
         MockHttpSession session = (MockHttpSession) httpRequest.getSession();
         session.setAttribute("userId", 1L);
 
-        authService.logout(httpRequest);
+        authService.logout(httpRequest, httpResponse);
 
         assertThat(session.isInvalid()).isTrue();
+        Cookie cookie = httpResponse.getCookie("JSESSIONID");
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.getValue()).isNull();
+        assertThat(cookie.getPath()).isEqualTo("/");
+        assertThat(cookie.isHttpOnly()).isTrue();
+        assertThat(cookie.getSecure()).isFalse();
+        assertThat(cookie.getMaxAge()).isZero();
     }
 
     @Test
-    @DisplayName("세션이 없으면 로그아웃에 실패한다")
+    @DisplayName("logout expires secure cookie for secure requests")
+    void logoutExpiresSecureCookieWhenRequestIsSecure() {
+        MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+        MockHttpServletResponse httpResponse = new MockHttpServletResponse();
+        httpRequest.setSecure(true);
+        httpRequest.getSession().setAttribute("userId", 1L);
+
+        authService.logout(httpRequest, httpResponse);
+
+        Cookie cookie = httpResponse.getCookie("JSESSIONID");
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.getSecure()).isTrue();
+    }
+
+    @Test
+    @DisplayName("logout fails when session does not exist")
     void logoutFailsWhenSessionDoesNotExist() {
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+        MockHttpServletResponse httpResponse = new MockHttpServletResponse();
 
-        assertThatThrownBy(() -> authService.logout(httpRequest))
+        assertThatThrownBy(() -> authService.logout(httpRequest, httpResponse))
                 .isInstanceOf(CustomException.class)
                 .extracting("exceptionStatus")
                 .isEqualTo(UNAUTHORIZED_SESSION);
