@@ -2,8 +2,6 @@ package woorifisa.project.backend.domain.user.service;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,39 +29,96 @@ public class UserService {
 		MultipartFile residenceVerificationPdf,
 		MultipartFile alienRegistrationApplicationPdf
 	) {
-		// 유저 로딩
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
-		// 파일 유효성 검사
-		validatePdfFile(residenceVerificationPdf);
-		validatePdfFile(alienRegistrationApplicationPdf);
+		boolean hasUploadHistory = documentRepository.existsByUser(user);  // 서류를 제출한 사용자인지 확인
+		if (!hasUploadHistory) {
+			uploadInitialDocuments(user, residenceVerificationPdf, alienRegistrationApplicationPdf);
+			return;
+		}
 
-		// 파일 URL 생성
-		String residenceFileUrl = userDocumentS3Uploader.createUrl(userId, residenceVerificationPdf, "residence");
-		String alienFileUrl = userDocumentS3Uploader.createUrl(userId, alienRegistrationApplicationPdf, "alien");
-
-		// Document 객체 생성
-		Document residenceDocument = createDocument(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT,
-			residenceFileUrl);
-		Document alienDocument = createDocument(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT,
-			alienFileUrl);
-
-		// 저장
-		documentRepository.saveAll(List.of(residenceDocument, alienDocument));
+		uploadCorrectionDocuments(user, residenceVerificationPdf, alienRegistrationApplicationPdf);
 	}
 
-	private Document createDocument(User user, DocumentType documentType,
-		String fileUrl) {  // 입력받은 PDF를 Document 객체로 변환
-		return Document.builder()
-			.user(user)
-			.documentType(documentType)
-			.fileUrl(fileUrl)
-			.status(DocumentStatus.PENDING)  // 초기 상태 고정
-			.build();
+	private void uploadInitialDocuments(User user, MultipartFile residenceVerificationPdf,
+		MultipartFile alienRegistrationApplicationPdf) {
+		// 최초 업로드
+		if (!isUploadedFile(residenceVerificationPdf) || !isUploadedFile(alienRegistrationApplicationPdf)) {
+			// 두 서류 모두 누락됐다면
+			throw new CustomException(INITIAL_DOCUMENT_BOTH_REQUIRED);
+		}
+
+		// 대기 상태로 저장
+		saveDocuments(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT, residenceVerificationPdf,
+			DocumentStatus.PENDING);
+		saveDocuments(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT, alienRegistrationApplicationPdf,
+			DocumentStatus.PENDING);
 	}
 
-	private void validatePdfFile(MultipartFile file) {  //  파일 유형 검증 -> 클라이언트에서 1차 필터링
+	private void uploadCorrectionDocuments(User user, MultipartFile residenceVerificationPdf,
+		MultipartFile alienRegistrationApplicationPdf) {
+		boolean residenceRejected = isLatestRejected(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT);
+		boolean alienRejected = isLatestRejected(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT);
+		boolean hasResidenceUpload = isUploadedFile(residenceVerificationPdf);
+		boolean hasAlienUpload = isUploadedFile(alienRegistrationApplicationPdf);
+
+		if (!hasResidenceUpload && !hasAlienUpload) {  // 두 파일 등록 실패
+			throw new CustomException(REUPLOAD_TARGET_REQUIRED);
+		}
+
+		if (residenceRejected && alienRejected && (!hasResidenceUpload || !hasAlienUpload)) {
+			// 둘 다 거절 됐는데 둘 중 하나만 업로드 했거나 업로드하지 않은 경우
+			throw new CustomException(REUPLOAD_ALL_REJECTED_REQUIRED);
+		}
+
+		if (hasResidenceUpload) {
+			validateRejectedTarget(residenceRejected);
+			saveDocuments(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT, residenceVerificationPdf,
+				DocumentStatus.MODIFIED);
+		}
+
+		if (hasAlienUpload) {
+			validateRejectedTarget(alienRejected);
+			saveDocuments(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT, alienRegistrationApplicationPdf,
+				DocumentStatus.MODIFIED);
+		}
+	}
+
+	private boolean isLatestRejected(User user, DocumentType documentType) {
+		// 사용자의 서류 처리 여부
+		return documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
+			.map(document -> document.getStatus() == DocumentStatus.REJECTED)
+			.orElse(false);
+	}
+
+	private void validateRejectedTarget(boolean rejected) {  // 거절된 파일인지 확인
+		if (!rejected) {
+			throw new CustomException(REUPLOAD_ONLY_REJECTED_ALLOWED);
+		}
+	}
+
+	private void saveDocuments(User user, DocumentType documentType, MultipartFile file, DocumentStatus status) {
+		validatePdfFile(file);
+		String fileUrl = userDocumentS3Uploader.createUrl(user.getUserId(), file, documentType, status);
+
+		Document document = documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
+			.orElseGet(() -> Document.builder()
+				.user(user)
+				.documentType(documentType)
+				.fileUrl(fileUrl)
+				.status(status)
+				.build());
+
+		document.updateSubmission(fileUrl, status);
+		documentRepository.save(document);
+	}
+
+	private boolean isUploadedFile(MultipartFile file) {  // 서류가 없거나 빈 서류라면
+		return file != null && !file.isEmpty();
+	}
+
+	private void validatePdfFile(MultipartFile file) {
 		if (file == null || file.isEmpty() || !"application/pdf".equalsIgnoreCase(file.getContentType())) {
 			throw new CustomException(INVALID_DOCUMENT_FILE);
 		}

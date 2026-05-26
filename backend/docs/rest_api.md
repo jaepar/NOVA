@@ -56,7 +56,7 @@
 | `USER-001`     | 회원 정보 조회             | GET    | `/users`                                                 | O    | USER   |                               |
 | `USER-002`     | 회원 정보 수정             | PATCH  | `/users`                                                 | O    | USER   |                               |
 | `USER-003`     | 회원 탈퇴                | POST   | `/users`                                                 | O    | USER   | soft delete                   |
-| `USER-004`     | 서류 제출                | POST   | `/users/documents`                                       | O    | USER   |                               |
+| `USER-004`     | 서류 제출                | POST   | `/users/documents`                                       | O    | USER   | 최초 업로드는 2개 필수, 재업로드는 반려(REJECTED) 문서만 허용(2개 반려 시 2개 모두 필수) |
 | `USER-005`     | 여권 인증                | POST   | `/users/verifications/passports`                         | O    | USER   |                               |
 | `USER-006`     | Liveness 얼굴 인증       | POST   | `/users/verifications/liveness`                          | O    | USER   |                               |
 | `USER-007`     | 인증서 발급               | POST   | `/users/verifications`                                   | O    | USER   |                               |

@@ -22,8 +22,8 @@ public class UserController {
     @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse<Void> uploadDocuments(
             @AuthenticationPrincipal SessionUserPrincipal principal,
-            @RequestPart("residenceVerificationPdf") MultipartFile residenceVerificationPdf,
-            @RequestPart("alienRegistrationApplicationPdf") MultipartFile alienRegistrationApplicationPdf
+            @RequestPart(value = "residenceVerificationPdf", required = false) MultipartFile residenceVerificationPdf,
+            @RequestPart(value = "alienRegistrationApplicationPdf", required = false) MultipartFile alienRegistrationApplicationPdf
     ) {
         userService.uploadDocuments(principal.userId(), residenceVerificationPdf, alienRegistrationApplicationPdf);
         return BaseResponse.ok(null);

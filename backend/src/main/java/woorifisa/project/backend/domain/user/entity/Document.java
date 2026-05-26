@@ -48,4 +48,10 @@ public class Document extends BaseEntity {
 
     @Column(name = "missing", columnDefinition = "TEXT")
     private String missing;
+
+    public void updateSubmission(String fileUrl, DocumentStatus status) {
+        this.fileUrl = fileUrl;
+        this.status = status;
+        this.missing = null;
+    }
 }
