@@ -29,8 +29,8 @@ import woorifisa.project.coreBanking.global.entity.BaseEntity;
         name = "account_transaction",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_account_transaction_external_request_id",
-                        columnNames = "external_request_id"
+                        name = "uk_account_transaction_external_request_id_flow",
+                        columnNames = {"external_request_id", "transaction_flow"}
                 )
         }
 )
@@ -61,9 +61,6 @@ public class AccountTransaction extends BaseEntity {
 
     @Column(name = "memo", length = 100)
     private String memo;
-
-    @Column(name = "transfer_request_id", length = 100)
-    private String transferRequestId;
 
     @Column(name = "external_request_id", length = 100)
     private String externalRequestId;

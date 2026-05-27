@@ -36,7 +36,17 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     WALLET_DEBIT_FAILED("WALLET_CHARGE-005", "계좌 차감이 실패했습니다."),
     WALLET_CHARGE_IN_PROGRESS("WALLET_CHARGE-006", "월렛 충전 요청이 처리 중입니다."),
     WALLET_IDEMPOTENCY_KEY_REQUIRED("WALLET_CHARGE-007", "Idempotency-Key가 필요합니다."),
-    WALLET_IDEMPOTENCY_KEY_CONFLICT("WALLET_CHARGE-008", "동일한 Idempotency-Key로 다른 요청을 처리할 수 없습니다.");
+    WALLET_IDEMPOTENCY_KEY_CONFLICT("WALLET_CHARGE-008", "동일한 Idempotency-Key로 다른 요청을 처리할 수 없습니다."),
+
+    /*
+     * banking
+     */
+    BANKING_ACCOUNT_NOT_FOUND("BANK-001", "계좌 정보를 찾을 수 없습니다."),
+    BANKING_TRANSFER_PROCESSING("BANK-002", "이미 처리 중인 이체 요청입니다."),
+    BANKING_CORE_BANKING_COMMUNICATION_FAILED("BANK-003", "코어뱅킹 통신에 실패했습니다."),
+    BANKING_TRANSFER_FAILED("BANK-004", "계좌 이체 처리에 실패했습니다."),
+    BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED("BANK-005", "이체 처리 확인 재시도 대기 중 인터럽트가 발생했습니다.")
+    ;
 
     private final boolean success = false;
     private final String code;

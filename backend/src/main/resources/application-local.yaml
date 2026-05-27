@@ -23,8 +23,7 @@ spring:
 
   docker:
     compose:
-      enabled: ${DOCKER_COMPOSE_ENABLED:true}
-      file: docker-compose.local.yml
+      enabled: false
 
   data:
     redis:
@@ -49,9 +48,9 @@ logging:
     root: info
     org.hibernate.SQL: debug
 
-app:
-  core-banking:
-    base-url: ${ONPREM_GATEWAY_BASE_URL:http://localhost:8080}
+#app:
+#  core-banking:
+#    base-url: ${CORE_BANKING_BASE_URL}
 #  government:
 #    base-url: ${GOVERMENT_DB_URL}
 #  ai:
