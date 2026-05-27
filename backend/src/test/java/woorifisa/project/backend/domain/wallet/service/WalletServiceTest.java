@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.test.util.ReflectionTestUtils;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
+import woorifisa.project.backend.domain.wallet.dto.WalletChargeIdempotencyResult;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
@@ -74,13 +75,11 @@ class WalletServiceTest {
     }
 
     @Test
-    @DisplayName("On-Prem 차감 성공 후 월렛 충전을 확정하고 멱등 상태를 완료로 변경한다")
+    @DisplayName("CoreBanking 차감 성공 후 월렛 충전을 확정하고 멱등 상태를 완료로 변경한다")
     void success() {
         ChargeWalletRequest request = new ChargeWalletRequest(10000);
-        AccountRef accountRef = AccountRef.builder().customerId(1001L).accountId(2001L).build();
-        Wallet wallet = Wallet.builder().walletId(10L).balance(30000).userAccount(accountRef).build();
 
-        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet));
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet()));
         when(walletChargeIdempotencyService.startOrGet(eq(1L), eq("idempotency-key"), any(), eq(2001L), eq(10000)))
                 .thenAnswer(invocation -> WalletChargeIdempotencyResult.started(invocation.getArgument(2)));
 
@@ -95,10 +94,8 @@ class WalletServiceTest {
     @DisplayName("완료된 동일 멱등 요청이면 재처리하지 않고 성공 처리한다")
     void completed() {
         ChargeWalletRequest request = new ChargeWalletRequest(10000);
-        AccountRef accountRef = AccountRef.builder().customerId(1001L).accountId(2001L).build();
-        Wallet wallet = Wallet.builder().walletId(10L).balance(30000).userAccount(accountRef).build();
 
-        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet));
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet()));
         when(walletChargeIdempotencyService.startOrGet(eq(1L), eq("idempotency-key"), any(), eq(2001L), eq(10000)))
                 .thenReturn(WalletChargeIdempotencyResult.completed("WCR-20260525-0001", 2001L, 10000));
 
@@ -112,26 +109,25 @@ class WalletServiceTest {
     @DisplayName("완료된 멱등 요청과 요청 값이 다르면 예외를 던진다")
     void conflict() {
         ChargeWalletRequest request = new ChargeWalletRequest(10000);
-        AccountRef accountRef = AccountRef.builder().customerId(1001L).accountId(2001L).build();
-        Wallet wallet = Wallet.builder().walletId(10L).balance(30000).userAccount(accountRef).build();
 
-        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet));
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet()));
         when(walletChargeIdempotencyService.startOrGet(eq(1L), eq("idempotency-key"), any(), eq(2001L), eq(10000)))
                 .thenReturn(WalletChargeIdempotencyResult.completed("WCR-20260525-0001", 2001L, 20000));
 
         assertThatThrownBy(() -> walletService.chargeWallet(1L, "idempotency-key", request))
                 .isInstanceOfSatisfying(CustomException.class,
                         exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_IDEMPOTENCY_KEY_CONFLICT));
+
+        verify(walletAccountDebitService, never()).debit(any(), any(), any(), any());
+        verify(walletChargePersistenceService, never()).completeWalletCharge(any(), any());
     }
 
     @Test
-    @DisplayName("On-Prem 차감 실패 시 월렛 충전을 확정하지 않는다")
+    @DisplayName("CoreBanking 차감 실패 시 월렛 충전을 확정하지 않는다")
     void debitFailed() {
         ChargeWalletRequest request = new ChargeWalletRequest(10000);
-        AccountRef accountRef = AccountRef.builder().customerId(1001L).accountId(2001L).build();
-        Wallet wallet = Wallet.builder().walletId(10L).balance(30000).userAccount(accountRef).build();
 
-        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet));
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet()));
         when(walletChargeIdempotencyService.startOrGet(eq(1L), eq("idempotency-key"), any(), eq(2001L), eq(10000)))
                 .thenAnswer(invocation -> WalletChargeIdempotencyResult.started(invocation.getArgument(2)));
         doThrow(new CustomException(WALLET_DEBIT_FAILED))
@@ -149,10 +145,8 @@ class WalletServiceTest {
     @DisplayName("멱등 키 정리 실패가 원래 실패 원인을 덮지 않는다")
     void cleanupFailed() {
         ChargeWalletRequest request = new ChargeWalletRequest(10000);
-        AccountRef accountRef = AccountRef.builder().customerId(1001L).accountId(2001L).build();
-        Wallet wallet = Wallet.builder().walletId(10L).balance(30000).userAccount(accountRef).build();
 
-        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet));
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet()));
         when(walletChargeIdempotencyService.startOrGet(eq(1L), eq("idempotency-key"), any(), eq(2001L), eq(10000)))
                 .thenAnswer(invocation -> WalletChargeIdempotencyResult.started(invocation.getArgument(2)));
         doThrow(new CustomException(WALLET_DEBIT_FAILED))
@@ -169,10 +163,8 @@ class WalletServiceTest {
     @DisplayName("월렛 충전 확정 후 멱등 완료 저장이 실패해도 성공 처리한다")
     void completeFailed() {
         ChargeWalletRequest request = new ChargeWalletRequest(10000);
-        AccountRef accountRef = AccountRef.builder().customerId(1001L).accountId(2001L).build();
-        Wallet wallet = Wallet.builder().walletId(10L).balance(30000).userAccount(accountRef).build();
 
-        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet));
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet()));
         when(walletChargeIdempotencyService.startOrGet(eq(1L), eq("idempotency-key"), any(), eq(2001L), eq(10000)))
                 .thenAnswer(invocation -> WalletChargeIdempotencyResult.started(invocation.getArgument(2)));
         doThrow(new RedisConnectionFailureException("redis down"))
@@ -204,16 +196,16 @@ class WalletServiceTest {
     @DisplayName("동일 Idempotency-Key가 처리 중이면 예외를 던진다")
     void duplicatedKey() {
         ChargeWalletRequest request = new ChargeWalletRequest(10000);
-        AccountRef accountRef = AccountRef.builder().customerId(1001L).accountId(2001L).build();
-        Wallet wallet = Wallet.builder().walletId(10L).balance(30000).userAccount(accountRef).build();
 
-        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet));
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet()));
         when(walletChargeIdempotencyService.startOrGet(eq(1L), eq("idempotency-key"), any(), eq(2001L), eq(10000)))
                 .thenReturn(WalletChargeIdempotencyResult.processing("WCR-20260525-0001"));
 
         assertThatThrownBy(() -> walletService.chargeWallet(1L, "idempotency-key", request))
                 .isInstanceOfSatisfying(CustomException.class,
                         exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_CHARGE_IN_PROGRESS));
+
+        verify(walletAccountDebitService, never()).debit(any(), any(), any(), any());
     }
 
     @Test
@@ -237,7 +229,7 @@ class WalletServiceTest {
     }
 
     @Test
-    @DisplayName("충전할 월렛이 없으면 예외를 던지고 멱등 키를 제거한다")
+    @DisplayName("월렛이 없으면 예외를 던진다")
     void walletNotFound() {
         ChargeWalletRequest request = new ChargeWalletRequest(10000);
         when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.empty());
@@ -247,10 +239,11 @@ class WalletServiceTest {
                         exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_NOT_FOUND));
 
         verify(walletChargeIdempotencyService, never()).startOrGet(any(), any(), any(), any(), any());
+        verify(walletAccountDebitService, never()).debit(any(), any(), any(), any());
     }
 
     @Test
-    @DisplayName("출금 계좌가 없으면 예외를 던진다")
+    @DisplayName("월렛에 연결된 출금 계좌가 없으면 예외를 던진다")
     void accountNotFound() {
         ChargeWalletRequest request = new ChargeWalletRequest(10000);
         Wallet wallet = Wallet.builder().walletId(10L).balance(30000).build();
@@ -260,6 +253,9 @@ class WalletServiceTest {
         assertThatThrownBy(() -> walletService.chargeWallet(1L, "idempotency-key", request))
                 .isInstanceOfSatisfying(CustomException.class,
                         exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_ACCOUNT_NOT_FOUND));
+
+        verify(walletChargeIdempotencyService, never()).startOrGet(any(), any(), any(), any(), any());
+        verify(walletAccountDebitService, never()).debit(any(), any(), any(), any());
     }
 
     private WalletTransaction walletTransaction(Long walletTransactionId, Wallet wallet, TransactionFlow transactionFlow, String counterparty, Integer amount, LocalDateTime createdAt) {
@@ -272,5 +268,20 @@ class WalletServiceTest {
                 .build();
         ReflectionTestUtils.setField(walletTransaction, "createdAt", createdAt);
         return walletTransaction;
+    }
+
+    private Wallet wallet() {
+        return Wallet.builder()
+                .walletId(10L)
+                .balance(30000)
+                .userAccount(accountRef())
+                .build();
+    }
+
+    private AccountRef accountRef() {
+        return AccountRef.builder()
+                .customerId(1001L)
+                .accountId(2001L)
+                .build();
     }
 }

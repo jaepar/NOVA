@@ -8,9 +8,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DebitWalletAccountRequestTest {
 
     @Test
-    @DisplayName("On-Prem 계좌 차감 요청 필드를 보관한다")
+    @DisplayName("CoreBanking 계좌 차감 요청 필드를 보관한다")
     void success() {
-        DebitWalletAccountRequest request = new DebitWalletAccountRequest(
+        DebitWalletAccountRequest request = DebitWalletAccountRequest.of(
                 "WCR-20260514-0001",
                 1001L,
                 2001L,

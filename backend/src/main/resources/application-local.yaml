@@ -30,11 +30,6 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
   mail:
@@ -54,9 +49,9 @@ logging:
     root: info
     org.hibernate.SQL: debug
 
-#app:
-#  core-banking:
-#    base-url: ${CORE_BANKING_BASE_URL}
+app:
+  core-banking:
+    base-url: ${ONPREM_GATEWAY_BASE_URL:http://localhost:8080}
 #  government:
 #    base-url: ${GOVERMENT_DB_URL}
 #  ai:

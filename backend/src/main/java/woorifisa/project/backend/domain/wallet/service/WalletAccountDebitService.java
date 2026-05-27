@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
-import woorifisa.project.backend.domain.wallet.client.OnPremWalletClient;
+import woorifisa.project.backend.domain.wallet.client.CoreBankingWalletClient;
 import woorifisa.project.backend.domain.wallet.dto.request.DebitWalletAccountRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitLookupResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitResponse;
@@ -18,10 +18,10 @@ public class WalletAccountDebitService {
 
     private static final String SUCCESS_CODE = "20000";
 
-    private final OnPremWalletClient onPremWalletClient;
+    private final CoreBankingWalletClient coreBankingWalletClient;
 
     public void debit(String walletChargeRequestId, Long customerId, Long withdrawAccountId, Integer chargeAmount) {
-        DebitWalletAccountRequest debitRequest = new DebitWalletAccountRequest(
+        DebitWalletAccountRequest debitRequest = DebitWalletAccountRequest.of(
                 walletChargeRequestId,
                 customerId,
                 withdrawAccountId,
@@ -29,12 +29,12 @@ public class WalletAccountDebitService {
         );
 
         try {
-            validateDebitSuccess(onPremWalletClient.debitWalletAccount(debitRequest));
+            validateDebitSuccess(coreBankingWalletClient.debitWalletAccount(debitRequest));
         } catch (ResourceAccessException exception) {
             try {
-                // timeout처럼 결과가 불명확한 경우에만 On-Prem 처리 결과를 조회해 복구한다.
+                // timeout처럼 결과가 불명확한 경우에만 CoreBanking 처리 결과를 조회해 복구한다.
                 validateLookupSuccess(
-                        onPremWalletClient.findWalletDebitResult(walletChargeRequestId),
+                        coreBankingWalletClient.findWalletDebitResult(walletChargeRequestId),
                         walletChargeRequestId
                 );
             } catch (RestClientException lookupException) {

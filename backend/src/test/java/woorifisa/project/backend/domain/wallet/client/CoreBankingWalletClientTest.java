@@ -21,22 +21,22 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-class OnPremWalletClientTest {
+class CoreBankingWalletClientTest {
 
     @Test
-    @DisplayName("On-Prem 월렛 계좌 차감 API를 호출한다")
+    @DisplayName("CoreBanking 월렛 계좌 차감 API를 호출한다")
     void debit() {
-        RestClient.Builder builder = RestClient.builder().baseUrl("http://onprem.test");
+        RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-        OnPremWalletClient client = new OnPremWalletClient(builder.build());
-        DebitWalletAccountRequest request = new DebitWalletAccountRequest(
+        CoreBankingWalletClient client = new CoreBankingWalletClient(builder, "http://core-banking.test");
+        DebitWalletAccountRequest request = DebitWalletAccountRequest.of(
                 "WCR-20260514-0001",
                 1001L,
                 2001L,
                 10000
         );
 
-        server.expect(requestTo("http://onprem.test/account-transactions/wallet"))
+        server.expect(requestTo("http://core-banking.test/account-transactions/wallet"))
                 .andExpect(method(POST))
                 .andRespond(withSuccess("""
                         {
@@ -57,17 +57,17 @@ class OnPremWalletClientTest {
     @Test
     @DisplayName("차감 호출 timeout은 호출자에게 전달한다")
     void timeout() {
-        RestClient.Builder builder = RestClient.builder().baseUrl("http://onprem.test");
+        RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-        OnPremWalletClient client = new OnPremWalletClient(builder.build());
-        DebitWalletAccountRequest request = new DebitWalletAccountRequest(
+        CoreBankingWalletClient client = new CoreBankingWalletClient(builder, "http://core-banking.test");
+        DebitWalletAccountRequest request = DebitWalletAccountRequest.of(
                 "WCR-20260514-0001",
                 1001L,
                 2001L,
                 10000
         );
 
-        server.expect(requestTo("http://onprem.test/account-transactions/wallet"))
+        server.expect(requestTo("http://core-banking.test/account-transactions/wallet"))
                 .andExpect(method(POST))
                 .andRespond(withException(new SocketTimeoutException("timeout")));
 
@@ -78,13 +78,13 @@ class OnPremWalletClientTest {
     }
 
     @Test
-    @DisplayName("On-Prem 차감 요청 결과 조회 API를 호출한다")
+    @DisplayName("CoreBanking 차감 요청 결과 조회 API를 호출한다")
     void lookup() {
-        RestClient.Builder builder = RestClient.builder().baseUrl("http://onprem.test");
+        RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-        OnPremWalletClient client = new OnPremWalletClient(builder.build());
+        CoreBankingWalletClient client = new CoreBankingWalletClient(builder, "http://core-banking.test");
 
-        server.expect(requestTo("http://onprem.test/account-transactions/requests/WCR-20260514-0001"))
+        server.expect(requestTo("http://core-banking.test/account-transactions/requests/WCR-20260514-0001"))
                 .andExpect(method(GET))
                 .andRespond(withSuccess("""
                         {

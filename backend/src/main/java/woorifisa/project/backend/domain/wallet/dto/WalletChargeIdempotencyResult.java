@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.wallet.service;
+package woorifisa.project.backend.domain.wallet.dto;
 
 public record WalletChargeIdempotencyResult(
         Status status,

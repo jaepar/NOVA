@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
+import woorifisa.project.backend.domain.wallet.dto.WalletChargeIdempotencyResult;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
@@ -118,6 +119,7 @@ public class WalletService {
         }
     }
 
+    // 충전 요청 ID 생성
     private String createWalletChargeRequestId() {
         return "WCR-" + LocalDate.now().format(REQUEST_DATE_FORMAT) + "-" + UUID.randomUUID();
     }

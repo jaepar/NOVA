@@ -5,21 +5,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import woorifisa.project.backend.domain.wallet.dto.request.DebitWalletAccountRequest;
-import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitLookupResponse;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitResponse;
 
 @Component
-public class OnPremWalletClient {
+public class CoreBankingWalletClient {
 
     private final RestClient restClient;
 
     @Autowired
-    public OnPremWalletClient(@Value("${app.core-banking.base-url}") String coreBankingBaseUrl) {
-        this(RestClient.create(coreBankingBaseUrl));
+    public CoreBankingWalletClient(@Value("${app.core-banking.base-url}") String coreBankingBaseUrl) {
+        this.restClient = RestClient.create(coreBankingBaseUrl);
     }
 
-    OnPremWalletClient(RestClient restClient) {
-        this.restClient = restClient;
+    // 테스트에서 MockRestServiceServer가 연결된 RestClient를 주입하기 위한 생성자다.
+    CoreBankingWalletClient(RestClient.Builder restClientBuilder, String coreBankingBaseUrl) {
+        this.restClient = restClientBuilder
+                .baseUrl(coreBankingBaseUrl)
+                .build();
     }
 
     public WalletDebitResponse debitWalletAccount(DebitWalletAccountRequest request) {

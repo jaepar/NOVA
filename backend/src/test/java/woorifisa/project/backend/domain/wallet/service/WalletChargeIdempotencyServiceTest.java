@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import woorifisa.project.backend.domain.wallet.dto.WalletChargeIdempotencyResult;
 
 import java.time.Duration;
 

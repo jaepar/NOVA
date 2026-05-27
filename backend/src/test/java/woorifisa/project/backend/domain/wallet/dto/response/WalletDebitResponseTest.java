@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class WalletDebitResponseTest {
 
     @Test
-    @DisplayName("On-Prem 계좌 차감 응답 필드를 보관한다")
+    @DisplayName("CoreBanking 계좌 차감 응답 필드를 보관한다")
     void success() {
         WalletDebitResponse response = new WalletDebitResponse(
                 true,

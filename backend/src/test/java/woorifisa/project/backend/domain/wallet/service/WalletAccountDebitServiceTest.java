@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
-import woorifisa.project.backend.domain.wallet.client.OnPremWalletClient;
+import woorifisa.project.backend.domain.wallet.client.CoreBankingWalletClient;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitLookupData;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitLookupResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitResponse;
@@ -21,13 +21,13 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 
 class WalletAccountDebitServiceTest {
 
-    private final OnPremWalletClient onPremWalletClient = mock(OnPremWalletClient.class);
-    private final WalletAccountDebitService walletAccountDebitService = new WalletAccountDebitService(onPremWalletClient);
+    private final CoreBankingWalletClient coreBankingWalletClient = mock(CoreBankingWalletClient.class);
+    private final WalletAccountDebitService walletAccountDebitService = new WalletAccountDebitService(coreBankingWalletClient);
 
     @Test
-    @DisplayName("On-Prem 계좌 차감 성공 응답이면 예외 없이 완료한다")
+    @DisplayName("CoreBanking 계좌 차감 성공 응답이면 예외 없이 완료한다")
     void success() {
-        when(onPremWalletClient.debitWalletAccount(any()))
+        when(coreBankingWalletClient.debitWalletAccount(any()))
                 .thenReturn(new WalletDebitResponse(true, "20000", "OK"));
 
         walletAccountDebitService.debit(
@@ -37,13 +37,13 @@ class WalletAccountDebitServiceTest {
                 10000
         );
 
-        verify(onPremWalletClient, never()).findWalletDebitResult(any());
+        verify(coreBankingWalletClient, never()).findWalletDebitResult(any());
     }
 
     @Test
-    @DisplayName("On-Prem 계좌 차감 실패 응답이면 예외를 던진다")
+    @DisplayName("CoreBanking 계좌 차감 실패 응답이면 예외를 던진다")
     void fail() {
-        when(onPremWalletClient.debitWalletAccount(any()))
+        when(coreBankingWalletClient.debitWalletAccount(any()))
                 .thenReturn(new WalletDebitResponse(false, "40000", "FAIL"));
 
         assertThatThrownBy(() -> walletAccountDebitService.debit(
@@ -54,15 +54,15 @@ class WalletAccountDebitServiceTest {
         )).isInstanceOfSatisfying(CustomException.class,
                 exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_DEBIT_FAILED));
 
-        verify(onPremWalletClient, never()).findWalletDebitResult(any());
+        verify(coreBankingWalletClient, never()).findWalletDebitResult(any());
     }
 
     @Test
     @DisplayName("timeout 후 조회로 차감 성공을 확인하면 예외 없이 완료한다")
     void timeoutRecovered() {
-        when(onPremWalletClient.debitWalletAccount(any()))
+        when(coreBankingWalletClient.debitWalletAccount(any()))
                 .thenThrow(new ResourceAccessException("timeout"));
-        when(onPremWalletClient.findWalletDebitResult("WCR-20260525-0001"))
+        when(coreBankingWalletClient.findWalletDebitResult("WCR-20260525-0001"))
                 .thenReturn(new WalletDebitLookupResponse(
                         true,
                         "20000",
@@ -77,13 +77,13 @@ class WalletAccountDebitServiceTest {
                 10000
         );
 
-        verify(onPremWalletClient).findWalletDebitResult("WCR-20260525-0001");
+        verify(coreBankingWalletClient).findWalletDebitResult("WCR-20260525-0001");
     }
 
     @Test
-    @DisplayName("명확한 On-Prem 호출 실패는 조회 복구 없이 예외로 변환한다")
+    @DisplayName("명확한 CoreBanking 호출 실패는 조회 복구 없이 예외로 변환한다")
     void responseException() {
-        when(onPremWalletClient.debitWalletAccount(any()))
+        when(coreBankingWalletClient.debitWalletAccount(any()))
                 .thenThrow(new RestClientException("bad request"));
 
         assertThatThrownBy(() -> walletAccountDebitService.debit(
@@ -94,6 +94,6 @@ class WalletAccountDebitServiceTest {
         )).isInstanceOfSatisfying(CustomException.class,
                 exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_DEBIT_FAILED));
 
-        verify(onPremWalletClient, never()).findWalletDebitResult(any());
+        verify(coreBankingWalletClient, never()).findWalletDebitResult(any());
     }
 }
