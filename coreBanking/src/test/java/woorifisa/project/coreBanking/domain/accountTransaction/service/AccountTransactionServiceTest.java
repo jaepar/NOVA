@@ -8,9 +8,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.account.repository.AccountRepository;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransferAccountRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionFlow;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
+import woorifisa.project.coreBanking.domain.customer.entity.Customer;
 import woorifisa.project.coreBanking.global.exception.CustomException;
 
 import java.util.Optional;
@@ -22,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.*;
@@ -232,12 +235,8 @@ class AccountTransactionServiceTest {
     @DisplayName("externalRequestId가 존재하면 거래 처리 결과를 확인한다")
     void found() {
         String externalRequestId = "TR-20260513-0001";
-        AccountTransaction accountTransaction = AccountTransaction.builder()
-                .externalRequestId(externalRequestId)
-                .build();
-
-        when(accountTransactionRepository.findByExternalRequestId(externalRequestId))
-                .thenReturn(Optional.of(accountTransaction));
+        when(accountTransactionRepository.existsByExternalRequestId(externalRequestId))
+                .thenReturn(true);
 
         var response = accountTransactionService.findRequestResult(externalRequestId);
 
@@ -249,11 +248,94 @@ class AccountTransactionServiceTest {
     void notFound() {
         String externalRequestId = "WCR-20260522-0001";
 
-        when(accountTransactionRepository.findByExternalRequestId(externalRequestId))
-                .thenReturn(Optional.empty());
+        when(accountTransactionRepository.existsByExternalRequestId(externalRequestId))
+                .thenReturn(false);
 
         assertThatThrownBy(() -> accountTransactionService.findRequestResult(externalRequestId))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ACCOUNT_TRANSACTION_NOT_FOUND.getMessage());
     }
+
+    @Test
+    @DisplayName("계좌 이체 성공 시 출금/입금 거래내역을 저장하고 양 계좌 잔액을 갱신한다")
+    void transferSuccess() {
+        TransferAccountRequest request = new TransferAccountRequest(
+                "REQ-20260526-0001", 2001L, 2002L, 5000, "박재하", "박재하"
+        );
+        Account withdraw = Account.builder()
+                .accountId(2001L)
+                .accountNumber("1122261925001")
+                .customer(Customer.builder().name("홍길동").build())
+                .balance(30000)
+                .build();
+        Account deposit = Account.builder()
+                .accountId(2002L)
+                .accountNumber("1122261925003")
+                .customer(Customer.builder().name("박재하").build())
+                .balance(7000)
+                .build();
+
+        when(accountTransactionRepository.existsByExternalRequestId("REQ-20260526-0001"))
+                .thenReturn(false)
+                .thenReturn(false);
+        when(accountRepository.findByAccountId(2001L)).thenReturn(Optional.of(withdraw));
+        when(accountRepository.findById(2002L)).thenReturn(Optional.of(deposit));
+
+        accountTransactionService.transfer(request);
+
+        assertThat(withdraw.getBalance()).isEqualTo(25000);
+        assertThat(deposit.getBalance()).isEqualTo(12000);
+        verify(accountTransactionRepository, times(2)).save(any(AccountTransaction.class));
+
+        ArgumentCaptor<AccountTransaction> captor = forClass(AccountTransaction.class);
+        verify(accountTransactionRepository, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues().get(0).getCounterParty()).isEqualTo("박재하");
+        assertThat(captor.getAllValues().get(1).getCounterParty()).isEqualTo("홍길동");
+    }
+
+    @Test
+    @DisplayName("계좌 이체 요청 식별자가 중복이면 재처리하지 않는다")
+    void transferDuplicate() {
+        TransferAccountRequest request = new TransferAccountRequest(
+                "REQ-20260526-0001", 2001L, 2002L, 5000, "박재하", "박재하"
+        );
+
+        when(accountTransactionRepository.existsByExternalRequestId("REQ-20260526-0001")).thenReturn(true);
+
+        accountTransactionService.transfer(request);
+
+        verify(accountRepository, never()).findByAccountId(any());
+        verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
+    }
+
+    @Test
+    @DisplayName("계좌 이체 잔액 부족이면 예외를 던진다")
+    void transferInsufficientBalance() {
+        TransferAccountRequest request = new TransferAccountRequest(
+                "REQ-20260526-0001", 2001L, 2002L, 5000, "박재하", "박재하"
+        );
+        Account withdraw = Account.builder()
+                .accountId(2001L)
+                .accountNumber("1122261925001")
+                .customer(Customer.builder().name("홍길동").build())
+                .balance(3000)
+                .build();
+        Account deposit = Account.builder()
+                .accountId(2002L)
+                .accountNumber("1122261925003")
+                .customer(Customer.builder().name("박재하").build())
+                .balance(7000)
+                .build();
+
+        when(accountTransactionRepository.existsByExternalRequestId("REQ-20260526-0001"))
+                .thenReturn(false)
+                .thenReturn(false);
+        when(accountRepository.findByAccountId(2001L)).thenReturn(Optional.of(withdraw));
+        when(accountRepository.findById(2002L)).thenReturn(Optional.of(deposit));
+
+        assertThatThrownBy(() -> accountTransactionService.transfer(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ACCOUNT_TRANSFER_INSUFFICIENT_BALANCE.getMessage());
+    }
+
 }
