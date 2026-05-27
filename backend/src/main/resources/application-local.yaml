@@ -50,7 +50,7 @@ logging:
 
 app:
   core-banking:
-    base-url: ${CORE_BANKING_BASE_URL}
+    base-url: ${CORE_BANKING_BASE_URL:http://localhost:8001}
 #  government:
 #    base-url: ${GOVERMENT_DB_URL}
 #  ai:
