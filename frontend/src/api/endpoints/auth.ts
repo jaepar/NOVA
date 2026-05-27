@@ -1,11 +1,13 @@
 import apiClient from "../client";
 
-export type AuthMessageResponse = {
+type AuthApiResponse<T> = {
   success: boolean;
-  code: number;
+  code: string;
   message: string;
-  data?: null;
+  data: T;
 };
+
+export type AuthMessageResponse = AuthApiResponse<null>;
 
 export type SignupRequest = {
   email: string;
@@ -14,6 +16,19 @@ export type SignupRequest = {
   name: string;
   birth: string;
   gender: "MALE" | "FEMALE";
+};
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+};
+
+export type LoginResponse = {
+  userId: number;
+};
+
+export type SessionCheckResponse = {
+  userId: number;
 };
 
 export const authApi = {
@@ -26,5 +41,15 @@ export const authApi = {
     const response = await apiClient.post<AuthMessageResponse>("/auth/logout");
 
     return response.data;
+  },
+  login: async (payload: LoginRequest): Promise<LoginResponse> => {
+    const response = await apiClient.post<AuthApiResponse<LoginResponse>>("/auth/login", payload);
+
+    return response.data.data;
+  },
+  me: async (): Promise<SessionCheckResponse> => {
+    const response = await apiClient.get<AuthApiResponse<SessionCheckResponse>>("/auth/me");
+
+    return response.data.data;
   },
 };

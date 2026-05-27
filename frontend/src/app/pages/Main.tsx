@@ -23,7 +23,6 @@ export function Main() {
   const hasUnreadNotifications = useMainPageStore((state) => state.hasUnreadNotifications)
   const isCertificateSheetOpen = useMainPageStore((state) => state.isCertificateSheetOpen)
   const setMenuOpen = useMainPageStore((state) => state.setMenuOpen)
-  const setLoggedIn = useMainPageStore((state) => state.setLoggedIn)
   const setCertificateSheetOpen = useMainPageStore((state) => state.setCertificateSheetOpen)
   const logout = useMainPageStore((state) => state.logout)
 
@@ -80,7 +79,7 @@ export function Main() {
             <MainAccountPanel
               isLoggedIn={isLoggedIn}
               hasAccount={hasAccount}
-              onLoginClick={() => setLoggedIn(true)}
+              onLoginClick={() => navigate('/login')}
               onSignupClick={() => navigate('/signup')}
               onOpenCertificateSheet={() => setCertificateSheetOpen(true)}
             />
@@ -103,7 +102,7 @@ export function Main() {
         onClose={() => setMenuOpen(false)}
         isLoggedIn={isLoggedIn}
         onLogout={handleLogout}
-        onLogin={() => setLoggedIn(true)}
+        onLogin={() => navigate('/login')}
       />
 
       <BottomSheet
