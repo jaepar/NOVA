@@ -23,7 +23,13 @@ import { ConsentTemplate } from "./pages/common/ConsentTemplate";
 import { ConsentDetailTemplate } from "./pages/common/ConsentDetailTemplate";
 import { ConsentCategoryCarouselTemplate } from "./pages/common/ConsentCategoryCarouselTemplate";
 import { Notifications } from "./pages/Notifications";
-import { WalletCharge, WalletHome, WalletPayment, WalletTerms } from "./pages/wallet";
+import {
+  WalletCharge,
+  WalletHome,
+  WalletPayment,
+  WalletSplash,
+  WalletTerms,
+} from "./pages/wallet";
 
 export const router = createBrowserRouter([
   {
@@ -68,7 +74,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/wallet",
-    Component: WalletTerms,
+    Component: WalletSplash,
   },
   {
     path: "/wallet/terms",
