@@ -2,12 +2,11 @@ package woorifisa.project.backend.domain.user.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -43,7 +42,7 @@ class UserServiceTest {
 	private UserService userService;
 
 	@Test
-	@DisplayName("initial upload requires both files and saves pending")
+	@DisplayName("최초 업로드 시 대기 상태 문서 2개를 저장한다")
 	void initialUploadSuccess() {
 		Long userId = 1L;
 		User user = User.builder().userId(userId).build();
@@ -54,19 +53,21 @@ class UserServiceTest {
 		when(documentRepository.existsByUser(user)).thenReturn(false);
 		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)).thenReturn(Optional.empty());
 		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT)).thenReturn(Optional.empty());
-		when(userDocumentS3Uploader.createUrl(userId, residencePdf, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT, DocumentStatus.PENDING)).thenReturn("https://s3/documents/1_RESIDENCE_VERIFICATION_DOCUMENT_PENDING.pdf");
-		when(userDocumentS3Uploader.createUrl(userId, alienPdf, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT, DocumentStatus.PENDING)).thenReturn("https://s3/documents/1_ALIEN_REGISTRATION_SUPPORTING_DOCUMENT_PENDING.pdf");
+		when(userDocumentS3Uploader.upload(userId, residencePdf, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT, DocumentStatus.PENDING))
+			.thenReturn("https://s3/documents/1_RESIDENCE_VERIFICATION_DOCUMENT_PENDING.pdf");
+		when(userDocumentS3Uploader.upload(userId, alienPdf, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT, DocumentStatus.PENDING))
+			.thenReturn("https://s3/documents/1_ALIEN_REGISTRATION_SUPPORTING_DOCUMENT_PENDING.pdf");
 
 		userService.uploadDocuments(userId, residencePdf, alienPdf);
 
 		ArgumentCaptor<Document> captor = ArgumentCaptor.forClass(Document.class);
-		verify(documentRepository, org.mockito.Mockito.times(2)).save(captor.capture());
+		verify(documentRepository, times(2)).save(captor.capture());
 		assertThat(captor.getAllValues()).extracting(Document::getStatus)
 			.containsExactlyInAnyOrder(DocumentStatus.PENDING, DocumentStatus.PENDING);
 	}
 
 	@Test
-	@DisplayName("initial upload fails when one file is missing")
+	@DisplayName("최초 업로드는 두 파일이 모두 필요하다")
 	void initialUploadRequiresBothFiles() {
 		Long userId = 1L;
 		User user = User.builder().userId(userId).build();
@@ -82,7 +83,7 @@ class UserServiceTest {
 	}
 
 	@Test
-	@DisplayName("correction allows only rejected type")
+	@DisplayName("보완 업로드는 반려된 문서만 허용한다")
 	void reuploadOnlyRejectedAllowed() {
 		Long userId = 1L;
 		User user = User.builder().userId(userId).build();
@@ -95,8 +96,10 @@ class UserServiceTest {
 
 		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 		when(documentRepository.existsByUser(user)).thenReturn(true);
-		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)).thenReturn(Optional.of(latestResidence));
-		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT)).thenReturn(Optional.of(latestAlien));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT))
+			.thenReturn(Optional.of(latestResidence));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT))
+			.thenReturn(Optional.of(latestAlien));
 
 		assertThatThrownBy(() -> userService.uploadDocuments(userId, null, alienPdf))
 			.isInstanceOf(CustomException.class)
@@ -105,7 +108,7 @@ class UserServiceTest {
 	}
 
 	@Test
-	@DisplayName("when both rejected, both must be reuploaded")
+	@DisplayName("두 문서가 모두 반려된 경우 두 파일 모두 필수다")
 	void reuploadRequiresBothWhenBothRejected() {
 		Long userId = 1L;
 		User user = User.builder().userId(userId).build();
@@ -118,8 +121,10 @@ class UserServiceTest {
 
 		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 		when(documentRepository.existsByUser(user)).thenReturn(true);
-		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)).thenReturn(Optional.of(latestResidence));
-		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT)).thenReturn(Optional.of(latestAlien));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT))
+			.thenReturn(Optional.of(latestResidence));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT))
+			.thenReturn(Optional.of(latestAlien));
 
 		assertThatThrownBy(() -> userService.uploadDocuments(userId, residencePdf, null))
 			.isInstanceOf(CustomException.class)
@@ -128,7 +133,7 @@ class UserServiceTest {
 	}
 
 	@Test
-	@DisplayName("user not found")
+	@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
 	void userNotFound() {
 		Long userId = 1L;
 		MockMultipartFile residencePdf = new MockMultipartFile("residenceVerificationPdf", "residence.pdf", "application/pdf", "residence".getBytes());
