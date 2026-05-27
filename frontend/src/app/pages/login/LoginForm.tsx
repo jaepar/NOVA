@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import { Eye, EyeOff } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
@@ -8,31 +9,26 @@ import { CommonInputGroup } from '../../components/design-system/CommonInputGrou
 import { useMainPageStore } from '../../stores/pageStores'
 import { authApi } from '../../../api'
 
-function getApiErrorMessage(error: unknown, fallbackMessage: string) {
-  if (typeof error === 'object' && error !== null && 'response' in error) {
-    const response = (error as { response?: { data?: { message?: unknown } } }).response
-    const message = response?.data?.message
+const LOGIN_FAILED_MESSAGE = '이메일 또는 비밀번호가 일치하지 않습니다.'
+const NETWORK_ERROR_MESSAGE = '서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.'
 
-    if (typeof message === 'string' && message.length > 0) {
-      return message
-    }
+function getLoginErrorMessage(error: unknown) {
+  if (axios.isAxiosError(error) && error.response) {
+    return LOGIN_FAILED_MESSAGE
   }
 
-  return fallbackMessage
+  return NETWORK_ERROR_MESSAGE
 }
 
-export function Login() {
+export function LoginForm() {
   const navigate = useNavigate()
-  const setLoggedIn = useMainPageStore((state) => state.setLoggedIn)
+  const setAuthenticated = useMainPageStore((state) => state.setAuthenticated)
   const setHasAccount = useMainPageStore((state) => state.setHasAccount)
-  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isPasswordVisible, setPasswordVisible] = useState(false)
-  
   const [isSubmitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-
   const canSubmit = email.trim().length > 0 && password.trim().length > 0 && !isSubmitting
   const PasswordIcon = isPasswordVisible ? EyeOff : Eye
 
@@ -45,12 +41,12 @@ export function Login() {
     setErrorMessage('')
 
     try {
-      await authApi.login({ email: email.trim(), password })
-      setLoggedIn(true)
+      const loginResult = await authApi.login({ email: email.trim(), password })
+      setAuthenticated(loginResult.userId)
       setHasAccount(false)
       navigate('/main')
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error, '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.'))
+      setErrorMessage(getLoginErrorMessage(error))
     } finally {
       setSubmitting(false)
     }
@@ -112,6 +108,7 @@ export function Login() {
               </AppButton>
             </div>
           </div>
+
           {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
         </div>
       </section>

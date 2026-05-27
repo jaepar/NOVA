@@ -1,5 +1,6 @@
 package woorifisa.project.coreBanking.domain.accountTransaction.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,6 +10,7 @@ import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.Acco
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransferAccountRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.service.AccountTransactionService;
 import woorifisa.project.coreBanking.global.response.BaseResponse;
 
@@ -29,6 +31,12 @@ public class AccountTransactionController {
     @PostMapping("/wallet")
     public BaseResponse<Void> debitWalletCharge(@RequestBody DebitWalletAccountRequest request) {
         accountTransactionService.debitWalletCharge(request);
+        return BaseResponse.ok(null);
+    }
+
+    @PostMapping("/transfers")
+    public BaseResponse<Void> transfer(@Valid @RequestBody TransferAccountRequest request) {
+        accountTransactionService.transfer(request);
         return BaseResponse.ok(null);
     }
 }

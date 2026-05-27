@@ -32,12 +32,6 @@ function maskSensitiveData(data: unknown) {
 // Request Interceptor - 요청 전 처리
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // 토큰이 있으면 헤더에 추가
-    const token = localStorage.getItem('accessToken')
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-
     // 요청 로깅 (개발 환경에서만)
     if (import.meta.env.DEV) {
       console.log('API Request:', {
@@ -76,7 +70,6 @@ apiClient.interceptors.response.use(
         case 401:
           // 인증 실패 - 로그인 페이지로 리다이렉트
           console.error('Authentication failed')
-          localStorage.removeItem('accessToken')
           // TODO: 로그인 페이지로 리다이렉트
           // window.location.href = '/login';
           break

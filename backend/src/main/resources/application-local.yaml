@@ -48,9 +48,9 @@ logging:
     root: info
     org.hibernate.SQL: debug
 
-#app:
-#  core-banking:
-#    base-url: ${CORE_BANKING_BASE_URL}
+app:
+  core-banking:
+    base-url: ${CORE_BANKING_BASE_URL:http://localhost:8001}
 #  government:
 #    base-url: ${GOVERMENT_DB_URL}
 #  ai:
