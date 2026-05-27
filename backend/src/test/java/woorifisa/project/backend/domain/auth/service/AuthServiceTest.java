@@ -15,6 +15,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import woorifisa.project.backend.global.auth.dto.request.LoginRequest;
@@ -73,6 +75,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.clearContext();
         authService = new AuthService(userRepository, passwordEncoder, stringRedisTemplate, javaMailSender);
         lenient().when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
     }
@@ -239,10 +242,12 @@ class AuthServiceTest {
         MockHttpServletResponse httpResponse = new MockHttpServletResponse();
         MockHttpSession session = (MockHttpSession) httpRequest.getSession();
         session.setAttribute("userId", 1L);
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("user", null));
 
         authService.logout(httpRequest, httpResponse);
 
         assertThat(session.isInvalid()).isTrue();
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
         Cookie cookie = httpResponse.getCookie("JSESSIONID");
         assertThat(cookie).isNotNull();
         assertThat(cookie.getValue()).isNull();
