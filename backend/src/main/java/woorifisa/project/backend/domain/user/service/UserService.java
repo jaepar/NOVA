@@ -100,7 +100,7 @@ public class UserService {
 
 	private void saveDocuments(User user, DocumentType documentType, MultipartFile file, DocumentStatus status) {
 		validatePdfFile(file);
-		String fileUrl = userDocumentS3Uploader.createUrl(user.getUserId(), file, documentType, status);
+		String fileUrl = userDocumentS3Uploader.upload(user.getUserId(), file, documentType, status);  // 업로드 주소
 
 		Document document = documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
 			.orElseGet(() -> Document.builder()
