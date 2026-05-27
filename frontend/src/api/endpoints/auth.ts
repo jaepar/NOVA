@@ -22,4 +22,9 @@ export const authApi = {
 
     return response.data;
   },
+  logout: async (): Promise<AuthMessageResponse> => {
+    const response = await apiClient.post<AuthMessageResponse>("/auth/logout");
+
+    return response.data;
+  },
 };
