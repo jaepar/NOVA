@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { WalletAgreementItem } from "./components/WalletAgreementItem";
 import { walletTerms } from "./data/walletTerms";
+import { walletPrimaryButtonClass } from "./styles";
 
 export function WalletTerms() {
   const navigate = useNavigate();
@@ -47,9 +47,15 @@ export function WalletTerms() {
     <MobileLayout
       title="월렛"
       bottomContent={
-        <Btn_1Col onClick={handleAgree}>
+        <AppButton
+          type="button"
+          variant="unstyled"
+          disabled={!allRequiredChecked}
+          onClick={handleAgree}
+          className={walletPrimaryButtonClass}
+        >
           동의
-        </Btn_1Col>
+        </AppButton>
       }
     >
       <section className="pt-12 pl-3 pr-5">
@@ -71,7 +77,7 @@ export function WalletTerms() {
               aria-pressed={allRequiredChecked}
               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors ${
                 allRequiredChecked
-                  ? "border-primary bg-primary text-primary-foreground"
+                  ? "border-[#111111] bg-[#111111] text-white"
                   : "border-gray-300 bg-background text-transparent"
               }`}
             >

@@ -11,6 +11,7 @@ import {
   walletTransactions,
   type WalletTransactionFilter,
 } from "./data/walletMockData";
+import { walletPrimaryButtonClass, walletSecondaryButtonClass } from "./styles";
 
 const filterOptions: WalletTransactionFilter[] = ["all", "charge", "use"];
 
@@ -42,7 +43,7 @@ export function WalletHome() {
             type="button"
             variant="unstyled"
             onClick={() => navigate("/wallet/charge")}
-            className="flex h-13 items-center justify-center gap-2 rounded-lg bg-[#014ede] text-[16px] text-white transition-colors hover:bg-[#0142bd]"
+            className="flex h-[56px] w-full items-center justify-center rounded-lg bg-[#014ede] text-[17px] font-semibold text-white transition-colors hover:bg-[#0142bd]"
           >
             충전
           </AppButton>
@@ -50,7 +51,7 @@ export function WalletHome() {
             type="button"
             variant="unstyled"
             onClick={() => navigate("/wallet/payment")}
-            className="flex h-13 items-center justify-center rounded-lg border border-[#e0e0e0] bg-background text-[16px] text-foreground transition-colors hover:bg-blue-50"
+            className={walletSecondaryButtonClass}
           >
             결제
           </AppButton>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/design-system/AppButton";
 import myWalletLogo from "./assets/my-wallet-logo.png";
+import { walletPrimaryButtonClass } from "./styles";
 
 const LOGO_ONLY_DURATION_MS = 1500;
 
@@ -42,7 +43,7 @@ export function WalletSplash() {
           type="button"
           variant="unstyled"
           onClick={() => navigate("/wallet/terms")}
-          className="flex h-[56px] w-full items-center justify-center rounded-lg bg-black text-[17px] font-semibold text-white transition-colors disabled:opacity-40"
+          className={walletPrimaryButtonClass}
         >
           월렛 생성하기
         </AppButton>

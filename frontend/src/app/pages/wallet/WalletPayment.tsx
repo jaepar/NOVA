@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/design-system/AppButton";
 import { MobileLayout } from "../../components/layout/MobileLayout";
+import { walletPrimaryButtonClass, walletSecondaryButtonClass } from "./styles";
 
 const paymentBalance = 12500;
 const qrSize = 29;
@@ -96,7 +97,7 @@ export function WalletPayment() {
           type="button"
           variant="unstyled"
           onClick={() => navigate("/wallet/home")}
-          className="h-[56px] w-full rounded-lg bg-black text-[17px] font-semibold text-white"
+          className={walletPrimaryButtonClass}
         >
           완료
         </AppButton>
@@ -135,7 +136,7 @@ export function WalletPayment() {
             type="button"
             variant="unstyled"
             onClick={() => setQrSeed((seed) => seed + 1)}
-            className="mt-6 flex h-[52px] w-full items-center justify-center gap-3 rounded-[8px] border border-[#e0e0e0] bg-white text-[17px] font-semibold text-[#111111]"
+            className={`mt-6 gap-3 ${walletSecondaryButtonClass}`}
           >
             <RefreshCcw className="h-5 w-5" strokeWidth={2.2} />
             새로고침
