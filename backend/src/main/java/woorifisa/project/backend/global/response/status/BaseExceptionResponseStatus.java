@@ -29,7 +29,16 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     /*
      * wallet
      */
-    WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다.")
+    WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다."),
+
+    /*
+     * banking
+     */
+    BANKING_ACCOUNT_NOT_FOUND("BANK-001", "계좌 정보를 찾을 수 없습니다."),
+    BANKING_TRANSFER_PROCESSING("BANK-002", "이미 처리 중인 이체 요청입니다."),
+    BANKING_CORE_BANKING_COMMUNICATION_FAILED("BANK-003", "코어뱅킹 통신에 실패했습니다."),
+    BANKING_TRANSFER_FAILED("BANK-004", "계좌 이체 처리에 실패했습니다."),
+    BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED("BANK-005", "이체 처리 확인 재시도 대기 중 인터럽트가 발생했습니다.")
     ;
 
     private final boolean success = false;
