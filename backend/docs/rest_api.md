@@ -25,66 +25,70 @@
 
 ## Role Rules
 
-| Role | Meaning |
-|---|---|
+| Role     | Meaning    |
+|----------|------------|
 | `PUBLIC` | 비로그인 호출 가능 |
-| `USER` | 사용자 세션 필요 |
+| `USER`   | 사용자 세션 필요  |
 
 권한 공통 규칙:
+
 - `USER` API는 현재 세션 `userId` 기준으로 본인 데이터만 조회/변경한다.
 
 ## Hold Policy
 
-| API ID | Status | Reason |
-|---|---|---|
-| `HOSPITAL-005` | 구현 예정 | 에이전트 호출 API 경로/입출력 계약 미확정 |
-| `BANK-014` | 구현 예정 | 해외 송금(Cloud) 프로세스 상세 정책 미확정 |
-| `BANK-015` | 구현 예정 | 해외 송금(On-Prem) 프로세스 상세 정책 미확정 |
-| `BANK-016` | 구현 예정 | 해외 송금 이상거래 탐지(On-Prem) 정책/룰셋 미확정 |
+| API ID         | Status | Reason                           |
+|----------------|--------|----------------------------------|
+| `HOSPITAL-005` | 구현 예정  | 에이전트 호출 API 경로/입출력 계약 미확정        |
+| `BANK-014`     | 구현 예정  | 해외 송금(Cloud) 프로세스 상세 정책 미확정      |
+| `BANK-015`     | 구현 예정  | 해외 송금(On-Prem) 프로세스 상세 정책 미확정    |
+| `BANK-016`     | 구현 예정  | 해외 송금 이상거래 탐지(On-Prem) 정책/룰셋 미확정 |
 
 ## API Catalog
 
-| ID             | Name | Method | Path | Auth | Role | Notes |
-|----------------|---|---|---|---|---|---|
-| `AUTH-001`     | 회원가입 | POST | `/auth/signup` | X | PUBLIC | |
-| `AUTH-002`     | 로그인 | POST | `/auth/login` | X | PUBLIC | |
-| `AUTH-003`     | 로그아웃 | POST | `/auth/logout` | O | USER | |
-| `AUTH-004`     | 이메일 인증번호 발송 | POST | `/auth/email-verifications` | X | PUBLIC | |
-| `AUTH-005`     | 이메일 인증번호 확인 | POST | `/auth/email-verifications/confirm` | X | PUBLIC | |
-| `AUTH-006`     | 세션 확인 | GET | `/auth/me` | X | PUBLIC | `JSESSIONID` 기준 로그인 세션 확인 |
-| `USER-001`     | 회원 정보 조회 | GET | `/users` | O | USER | |
-| `USER-002`     | 회원 정보 수정 | PATCH | `/users` | O | USER | |
-| `USER-003`     | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |
-| `USER-004`     | 외국인등록증 신청서 제출 | POST | `/users/alien-registration` | O | USER | |
-| `USER-005`     | 여권 인증 | POST | `/users/verifications/passports` | O | USER | |
-| `USER-006`     | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
-| `USER-007`     | 거소확인 서류 제출 | POST | `/users/verifications/documents` | O | USER | |
-| `USER-008`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
-| `USER-009`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
-| `USER-010`     | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
-| `WALLET-001`   | 월렛 계좌내역 조회 | GET | `/wallet/transactions` | O | USER | |
-| `WALLET-002`   | 월렛 충전 | POST | `/wallet/charges` | O | USER | |
-| `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST | `/wallet/charges/debit` | O | USER | |
-| `JOB-001`      | 구인구직 공고 목록 조회 | GET | `/` | X | PUBLIC | 도메인 prefix 하위 루트 |
-| `JOB-002`      | 구인구직 공고 상세 조회 | GET | `/{job_id}` | X | PUBLIC | 도메인 prefix 하위 경로 |
-| `JOB-003`      | 지원서 제출 | POST | `/{job_id}/applications` | O | USER | 도메인 prefix 하위 경로 |
-| `JOB-004`      | 지원 내역 목록 조회 | GET | `/applications` | O | USER | 도메인 prefix 하위 경로 |
-| `HOSPITAL-001` | 예약 | POST | `/reservations` | O | USER | |
-| `HOSPITAL-002` | 예약 내역 확인 | GET | `/{user_id}/reservations` | O | USER | |
-| `HOSPITAL-003` | 예약 취소 & 변경 | PATCH | `/reservations/{reservation_id}` | O | USER | action enum=`CANCEL`,`CHANGE` |
-| `HOSPITAL-004` | 병원 목록 확인 | GET | `/` | O | USER | day off는 일요일 고정 |
-| `HOSPITAL-005` | 에이전트 호출 | TBD | `TBD` | O | USER | API 경로/계약 미정 |
-| `CS-001`       | 화상 상담 신청 | POST | `/consultations` | O | USER | |
-| `CS-002`       | 대기 고객 목록 조회 | GET | `/consultations?status=WAITING` | X | PUBLIC | |
-| `CS-003`       | 화상 상담 상태 변경 | PATCH | `/consultations/{cs_id}/status` | X | PUBLIC | 상담 내역 저장 여부 논의 |
-| `CS-004`       | 화상 상담 입장 | POST | `/consultations/{cs_id}/join` | O | USER | |
-| `BANK-001`     | 계좌 개설(Cloud) | POST | `/banking` | O | USER | |
-| `BANK-002`     | 계좌 비밀번호 검증(Cloud) | POST | `/banking/{accountId}/password/verify` | O | USER | |
-| `BANK-003`     | 계좌 이체(Cloud) | POST | `/banking/transfers` | O | USER | |
-| `BANK-004`     | 거래 내역 조회(Cloud) | GET | `/banking/{accountId}/transactions` | O | USER | |
-| `BANK-005`     | 거래 내역 메모 수정(Cloud) | PATCH | `/banking/{accountId}/transactions/{transactionId}/memo` | O | USER | |
-| `BANK-006`     | 홈 계좌 정보 조회(Cloud) | GET | `/banking/home` | O | USER | |
-| `BANK-007`     | 해외 송금(Cloud) | TBD | `TBD` | O | USER | 프로세스 정의 중 (추후 작성) |
+| ID             | Name                 | Method | Path                                                     | Auth | Role   | Notes                         |
+|----------------|----------------------|--------|----------------------------------------------------------|------|--------|-------------------------------|
+| `AUTH-001`     | 회원가입                 | POST   | `/auth/signup`                                           | X    | PUBLIC |                               |
+| `AUTH-002`     | 로그인                  | POST   | `/auth/login`                                            | X    | PUBLIC |                               |
+| `AUTH-003`     | 로그아웃                 | POST   | `/auth/logout`                                           | O    | USER   |                               |
+| `AUTH-004`     | 이메일 인증번호 발송          | POST   | `/auth/email-verifications`                              | X    | PUBLIC |                               |
+| `AUTH-005`     | 이메일 인증번호 확인          | POST   | `/auth/email-verifications/confirm`                      | X    | PUBLIC |                               |
+| `AUTH-006`     | 세션 확인                | GET    | `/auth/me`                                               | X    | PUBLIC | `JSESSIONID` 기준 로그인 세션 확인     |
+| `USER-001`     | 회원 정보 조회             | GET    | `/users`                                                 | O    | USER   |                               |
+| `USER-002`     | 회원 정보 수정             | PATCH  | `/users`                                                 | O    | USER   |                               |
+| `USER-003`     | 회원 탈퇴                | POST   | `/users`                                                 | O    | USER   | soft delete                   |
+| `USER-004`     | 외국인등록증 신청서 제출        | POST   | `/users/alien-registration`                              | O    | USER   |                               |
+| `USER-005`     | 여권 인증                | POST   | `/users/verifications/passports`                         | O    | USER   |                               |
+| `USER-006`     | Liveness 얼굴 인증       | POST   | `/users/verifications/liveness`                          | O    | USER   |                               |
+| `USER-011`     | Liveness 결과 조회       | GET    | `/users/verifications/liveness/{sessionId}`              | O    | USER   |                               |
+| `USER-012`     | Liveness 동일인 비교      | POST   | `/users/verifications/liveness/{sessionId}/face-match`   | O    | USER   |                               |
+| `USER-013`     | Liveness 최종 확정       | POST   | `/users/verifications/liveness/{sessionId}/finalize`     | O    | USER   |                               |
+| `USER-007`     | 거소확인 서류 제출           | POST   | `/users/verifications/documents`                         | O    | USER   |                               |
+| `USER-008`     | 인증서 발급               | POST   | `/users/verifications`                                   | O    | USER   |                               |
+| `USER-009`     | 알림 조회                | GET    | `/users/notifications`                                   | O    | USER   |                               |
+| `USER-010`     | 보완 서류 목록 조회          | GET    | `/users/documents`                                       | O    | USER   |                               |
+| `WALLET-001`   | 월렛 계좌내역 조회           | GET    | `/wallet/transactions`                                   | O    | USER   |                               |
+| `WALLET-002`   | 월렛 충전                | POST   | `/wallet/charges`                                        | O    | USER   |                               |
+| `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST   | `/wallet/charges/debit`                                  | O    | USER   |                               |
+| `JOB-001`      | 구인구직 공고 목록 조회        | GET    | `/`                                                      | X    | PUBLIC | 도메인 prefix 하위 루트              |
+| `JOB-002`      | 구인구직 공고 상세 조회        | GET    | `/{job_id}`                                              | X    | PUBLIC | 도메인 prefix 하위 경로              |
+| `JOB-003`      | 지원서 제출               | POST   | `/{job_id}/applications`                                 | O    | USER   | 도메인 prefix 하위 경로              |
+| `JOB-004`      | 지원 내역 목록 조회          | GET    | `/applications`                                          | O    | USER   | 도메인 prefix 하위 경로              |
+| `HOSPITAL-001` | 예약                   | POST   | `/reservations`                                          | O    | USER   |                               |
+| `HOSPITAL-002` | 예약 내역 확인             | GET    | `/{user_id}/reservations`                                | O    | USER   |                               |
+| `HOSPITAL-003` | 예약 취소 & 변경           | PATCH  | `/reservations/{reservation_id}`                         | O    | USER   | action enum=`CANCEL`,`CHANGE` |
+| `HOSPITAL-004` | 병원 목록 확인             | GET    | `/`                                                      | O    | USER   | day off는 일요일 고정               |
+| `HOSPITAL-005` | 에이전트 호출              | TBD    | `TBD`                                                    | O    | USER   | API 경로/계약 미정                  |
+| `CS-001`       | 화상 상담 신청             | POST   | `/consultations`                                         | O    | USER   |                               |
+| `CS-002`       | 대기 고객 목록 조회          | GET    | `/consultations?status=WAITING`                          | X    | PUBLIC |                               |
+| `CS-003`       | 화상 상담 상태 변경          | PATCH  | `/consultations/{cs_id}/status`                          | X    | PUBLIC | 상담 내역 저장 여부 논의                |
+| `CS-004`       | 화상 상담 입장             | POST   | `/consultations/{cs_id}/join`                            | O    | USER   |                               |
+| `BANK-001`     | 계좌 개설(Cloud)         | POST   | `/banking`                                               | O    | USER   |                               |
+| `BANK-002`     | 계좌 비밀번호 검증(Cloud)    | POST   | `/banking/{accountId}/password/verify`                   | O    | USER   |                               |
+| `BANK-003`     | 계좌 이체(Cloud)         | POST   | `/banking/transfers`                                     | O    | USER   |                               |
+| `BANK-004`     | 거래 내역 조회(Cloud)      | GET    | `/banking/{accountId}/transactions`                      | O    | USER   |                               |
+| `BANK-005`     | 거래 내역 메모 수정(Cloud)   | PATCH  | `/banking/{accountId}/transactions/{transactionId}/memo` | O    | USER   |                               |
+| `BANK-006`     | 홈 계좌 정보 조회(Cloud)    | GET    | `/banking/home`                                          | O    | USER   |                               |
+| `BANK-007`     | 해외 송금(Cloud)         | TBD    | `TBD`                                                    | O    | USER   | 프로세스 정의 중 (추후 작성)             |
 
 ## Naming and Contract Notes
 
