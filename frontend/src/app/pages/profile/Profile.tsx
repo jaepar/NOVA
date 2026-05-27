@@ -1,51 +1,53 @@
 import { FileText, Presentation } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '../../components/ui/dialog'
+import { languages } from '../../data/languages'
 import { useMainPageStore } from '../../stores/pageStores'
-
-const profile = {
-  name: '김민정',
-  email: 'minjeong@email.com',
-  birthDate: '2000.05.20',
-  gender: '여성',
-  language: '한국어',
-  hasCertificate: '보유',
-  hasForeignerCard: '보유',
-}
-
-const profileRows = [
-  { label: '생년월일', value: profile.birthDate },
-  { label: '성별', value: profile.gender },
-  { label: '언어 설정', value: profile.language },
-  { label: '인증서 보유 여부', value: profile.hasCertificate },
-  { label: '외국인 등록증 보유 여부', value: profile.hasForeignerCard },
-]
-
-const portfolioItems = [
-  { name: '간호사_이력서.pdf', type: 'pdf' },
-  { name: '자기소개서.docx', type: 'docx' },
-  { name: '포트폴리오_작품집.pptx', type: 'pptx' },
-  { name: '자격증_사본.pdf', type: 'pdf' },
-  { name: '봉사활동_확인서.docx', type: 'docx' },
-]
+import { PortfolioItem, useProfileStore } from '../../stores/profileStore'
 
 const fileStyleByType = {
-  pdf: { icon: FileText, color: 'text-red-500', bg: 'bg-red-50' },
-  docx: { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50' },
-  pptx: { icon: Presentation, color: 'text-green-500', bg: 'bg-green-50' },
+  pdf: { icon: FileText, color: 'text-red-500', bg: 'bg-red-50', label: 'PDF' },
+  docx: { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50', label: 'DOCX' },
+  pptx: { icon: Presentation, color: 'text-green-500', bg: 'bg-green-50', label: 'PPTX' },
 }
 
 export function Profile() {
   const navigate = useNavigate()
   const isLoggedIn = useMainPageStore((state) => state.isLoggedIn)
+  const profile = useProfileStore((state) => state.profile)
+  const portfolioItems = useProfileStore((state) => state.portfolios)
+  const [selectedPortfolio, setSelectedPortfolio] = useState<PortfolioItem | null>(null)
+  const selectedLanguage =
+    languages.find((language) => language.id === profile.languageId)?.name ?? profile.languageId
+  const profileRows = [
+    { label: '생년월일', value: profile.birthDate },
+    { label: '성별', value: profile.gender },
+    { label: '언어 설정', value: selectedLanguage },
+    { label: '인증서 보유 여부', value: profile.hasCertificate },
+    { label: '외국인 등록증 보유 여부', value: profile.hasForeignerCard },
+  ]
+  const selectedPortfolioStyle = selectedPortfolio
+    ? fileStyleByType[selectedPortfolio.type]
+    : fileStyleByType.pdf
+  const SelectedPortfolioIcon = selectedPortfolioStyle.icon
 
   const bottomContent = isLoggedIn ? (
     <div className="space-y-3">
       <Btn_1Col onClick={() => navigate('/mypage/edit')}>회원정보 수정</Btn_1Col>
-      <Btn_1Col variant="outline">회원탈퇴</Btn_1Col>
+      <Btn_1Col variant="outline" onClick={() => navigate('/mypage/withdraw')}>
+        회원탈퇴
+      </Btn_1Col>
     </div>
   ) : (
     <Btn_1Col onClick={() => navigate('/login')}>로그인하기</Btn_1Col>
@@ -101,6 +103,7 @@ export function Profile() {
                     type="button"
                     variant="unstyled"
                     key={portfolio.name}
+                    onClick={() => setSelectedPortfolio(portfolio)}
                     className={`flex w-full items-center gap-3 px-3 py-3 text-left ${
                       index !== portfolioItems.length - 1 ? 'border-b border-border' : ''
                     }`}
@@ -120,6 +123,46 @@ export function Profile() {
           </section>
         </div>
       )}
+
+      <Dialog
+        open={selectedPortfolio !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedPortfolio(null)
+        }}
+      >
+        <DialogContent className="max-w-[342px] rounded-lg p-5">
+          <DialogHeader>
+            <DialogTitle className="text-base">포트폴리오 상세</DialogTitle>
+            <DialogDescription>선택한 파일 정보를 확인합니다.</DialogDescription>
+          </DialogHeader>
+
+          {selectedPortfolio && (
+            <div className="space-y-3 rounded-lg border border-border p-4">
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-md ${selectedPortfolioStyle.bg} ${selectedPortfolioStyle.color}`}
+              >
+                <SelectedPortfolioIcon className="h-5 w-5" />
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between gap-4">
+                  <span className="shrink-0 text-muted-foreground">파일명</span>
+                  <span className="min-w-0 break-all text-right font-medium text-foreground">
+                    {selectedPortfolio.name}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">파일 형식</span>
+                  <span className="font-medium text-foreground">{selectedPortfolioStyle.label}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">업로드일</span>
+                  <span className="font-medium text-foreground">{selectedPortfolio.date}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </MobileLayout>
   )
 }

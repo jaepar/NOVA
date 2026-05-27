@@ -8,19 +8,7 @@ import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { languages } from '../../data/languages'
 import { useMainPageStore } from '../../stores/pageStores'
-
-type PortfolioFileType = 'pdf' | 'docx' | 'pptx'
-
-interface PortfolioItem {
-  name: string
-  date: string
-  type: PortfolioFileType
-}
-
-const initialPortfolios: PortfolioItem[] = [
-  { name: '간호사_이력서.pdf', date: '2024.06.01', type: 'pdf' },
-  { name: '자기소개서.docx', date: '2024.06.01', type: 'docx' },
-]
+import { PortfolioFileType, PortfolioItem, useProfileStore } from '../../stores/profileStore'
 
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,16}$/
 const MAX_PORTFOLIO_FILE_SIZE = 5 * 1024 * 1024
@@ -77,15 +65,19 @@ export function ProfileEdit() {
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const isLoggedIn = useMainPageStore((state) => state.isLoggedIn)
-  const [language, setLanguage] = useState('ko')
+  const profile = useProfileStore((state) => state.profile)
+  const storedPortfolios = useProfileStore((state) => state.portfolios)
+  const updateProfile = useProfileStore((state) => state.updateProfile)
+  const [language, setLanguage] = useState(profile.languageId)
   const [isLanguageSheetOpen, setLanguageSheetOpen] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
+  const [isPasswordInputCompleted, setPasswordInputCompleted] = useState(false)
   const [isCurrentPasswordVisible, setCurrentPasswordVisible] = useState(false)
   const [isPasswordVisible, setPasswordVisible] = useState(false)
   const [isPasswordConfirmVisible, setPasswordConfirmVisible] = useState(false)
-  const [portfolios, setPortfolios] = useState(initialPortfolios)
+  const [portfolios, setPortfolios] = useState<PortfolioItem[]>(() => storedPortfolios)
   const [portfolioError, setPortfolioError] = useState('')
 
   const CurrentPasswordIcon = isCurrentPasswordVisible ? EyeOff : Eye
@@ -100,8 +92,15 @@ export function ProfileEdit() {
   const isPasswordFormatInvalid = password.length > 0 && !PASSWORD_PATTERN.test(password)
   const isSameAsCurrentPassword =
     currentPassword.length > 0 && password.length > 0 && currentPassword === password
+  const shouldShowPasswordConfirmMissing =
+    currentPassword.length > 0 &&
+    password.length > 0 &&
+    passwordConfirm.length === 0 &&
+    isPasswordInputCompleted &&
+    !isPasswordFormatInvalid &&
+    !isSameAsCurrentPassword
   const isPasswordMismatch =
-    password.length > 0 && passwordConfirm.length > 0 && password !== passwordConfirm
+    passwordConfirm.length > 0 && password !== passwordConfirm
   const canSave =
     !isCurrentPasswordMissing &&
     !isPasswordIncomplete &&
@@ -144,8 +143,20 @@ export function ProfileEdit() {
     event.target.value = ''
   }
 
+  const handleSave = () => {
+    if (!canSave) return
+
+    updateProfile({
+      languageId: language,
+      portfolios,
+    })
+    navigate('/mypage')
+  }
+
   const bottomContent = isLoggedIn ? (
-    <Btn_1Col disabled={!canSave}>저장하기</Btn_1Col>
+    <Btn_1Col disabled={!canSave} onClick={handleSave}>
+      저장하기
+    </Btn_1Col>
   ) : (
     <Btn_1Col onClick={() => navigate('/login')}>로그인하기</Btn_1Col>
   )
@@ -217,6 +228,9 @@ export function ProfileEdit() {
                   <CurrentPasswordIcon className="h-5 w-5" />
                 </AppButton>
               </div>
+              {isCurrentPasswordMissing ? (
+                <p className="text-xs text-red-500">현재 비밀번호를 입력해주세요.</p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -225,7 +239,10 @@ export function ProfileEdit() {
                 <input
                   type={isPasswordVisible ? 'text' : 'password'}
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(event) => {
+                    setPassword(event.target.value)
+                    setPasswordInputCompleted(false)
+                  }}
                   placeholder="새 비밀번호 입력"
                   autoComplete="off"
                   className="mt-[6px] w-full rounded-lg border border-border bg-input-background py-3 pl-4 pr-12 transition-all focus:outline-none focus:ring-2 focus:ring-primary"
@@ -241,9 +258,19 @@ export function ProfileEdit() {
                   <PasswordIcon className="h-5 w-5" />
                 </AppButton>
               </div>
-              <p className="text-xs text-muted-foreground">
-                영문, 숫자, 특수문자 포함 8~16자로 입력해주세요.
-              </p>
+              {isPasswordFormatInvalid ? (
+                <p className="text-xs text-red-500">
+                  영문, 숫자, 특수문자 포함 8~16자로 입력해주세요.
+                </p>
+              ) : isSameAsCurrentPassword ? (
+                <p className="text-xs text-red-500">
+                  새 비밀번호는 현재 비밀번호와 다르게 입력해주세요.
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  영문, 숫자, 특수문자 포함 8~16자로 입력해주세요.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -253,6 +280,7 @@ export function ProfileEdit() {
                   type={isPasswordConfirmVisible ? 'text' : 'password'}
                   value={passwordConfirm}
                   onChange={(event) => setPasswordConfirm(event.target.value)}
+                  onFocus={() => setPasswordInputCompleted(password.length > 0)}
                   placeholder="새 비밀번호 확인"
                   autoComplete="off"
                   className="mt-[6px] w-full rounded-lg border border-border bg-input-background py-3 pl-4 pr-12 transition-all focus:outline-none focus:ring-2 focus:ring-primary"
@@ -270,19 +298,9 @@ export function ProfileEdit() {
                   <PasswordConfirmIcon className="h-5 w-5" />
                 </AppButton>
               </div>
-              {isCurrentPasswordMissing ? (
-                <p className="text-xs text-red-500">현재 비밀번호를 입력해주세요.</p>
-              ) : isPasswordIncomplete ? (
+              {shouldShowPasswordConfirmMissing ? (
                 <p className="text-xs text-red-500">
                   새 비밀번호와 새 비밀번호 확인을 모두 입력해주세요.
-                </p>
-              ) : isPasswordFormatInvalid ? (
-                <p className="text-xs text-red-500">
-                  영문, 숫자, 특수문자 포함 8~16자로 입력해주세요.
-                </p>
-              ) : isSameAsCurrentPassword ? (
-                <p className="text-xs text-red-500">
-                  새 비밀번호는 현재 비밀번호와 다르게 입력해주세요.
                 </p>
               ) : isPasswordMismatch ? (
                 <p className="text-xs text-red-500">비밀번호가 일치하지 않습니다.</p>
