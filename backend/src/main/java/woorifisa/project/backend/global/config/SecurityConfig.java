@@ -38,6 +38,7 @@ public class SecurityConfig {
                                 "/users/**",
                                 "/banking/**",
                                 "/hospital/**",
+                                "/auth/logout",
                                 "/auth/me"
                         ).authenticated()
                         .anyRequest().permitAll()
