@@ -21,7 +21,8 @@ public class WalletAccountDebitService {
     private final CoreBankingWalletClient coreBankingWalletClient;
 
     public void debit(String walletChargeRequestId, Long customerId, Long withdrawAccountId, Integer chargeAmount) {
-        DebitWalletAccountRequest debitRequest = DebitWalletAccountRequest.of(
+        // Core Banking에는 지갑 충전 요청 ID를 외부 요청 ID로 넘겨 결과 조회에 재사용한다.
+        DebitWalletAccountRequest debitRequest = createDebitRequest(
                 walletChargeRequestId,
                 customerId,
                 withdrawAccountId,
@@ -29,18 +30,41 @@ public class WalletAccountDebitService {
         );
 
         try {
-            validateDebitSuccess(coreBankingWalletClient.debitWalletAccount(debitRequest));
+            requestAccountDebit(debitRequest);
         } catch (ResourceAccessException exception) {
-            try {
-                // timeout처럼 결과가 불명확한 경우에만 CoreBanking 처리 결과를 조회해 복구한다.
-                validateLookupSuccess(
-                        coreBankingWalletClient.findWalletDebitResult(walletChargeRequestId),
-                        walletChargeRequestId
-                );
-            } catch (RestClientException lookupException) {
-                throw new CustomException(WALLET_DEBIT_FAILED);
-            }
+            // timeout처럼 결과가 불명확한 경우에만 요청 ID로 실제 처리 여부를 조회한다.
+            recoverUnclearDebitResult(walletChargeRequestId);
         } catch (RestClientException exception) {
+            throw new CustomException(WALLET_DEBIT_FAILED);
+        }
+    }
+
+    private DebitWalletAccountRequest createDebitRequest(
+            String walletChargeRequestId,
+            Long customerId,
+            Long withdrawAccountId,
+            Integer chargeAmount
+    ) {
+        return DebitWalletAccountRequest.of(
+                walletChargeRequestId,
+                customerId,
+                withdrawAccountId,
+                chargeAmount
+        );
+    }
+
+    private void requestAccountDebit(DebitWalletAccountRequest debitRequest) {
+        validateDebitSuccess(coreBankingWalletClient.debitWalletAccount(debitRequest));
+    }
+
+    private void recoverUnclearDebitResult(String walletChargeRequestId) {
+        try {
+            // 조회 결과가 성공이면 최초 차감 요청이 성공한 것으로 복구한다.
+            validateLookupSuccess(
+                    coreBankingWalletClient.findWalletDebitResult(walletChargeRequestId),
+                    walletChargeRequestId
+            );
+        } catch (RestClientException lookupException) {
             throw new CustomException(WALLET_DEBIT_FAILED);
         }
     }

@@ -51,8 +51,26 @@ public class WalletService {
 
     public void chargeWallet(Long userId, String idempotencyKey, ChargeWalletRequest request) {
         validateChargeRequest(userId, idempotencyKey, request);
-        Integer chargeAmount = request.chargeAmount();
-        String walletChargeRequestId = createWalletChargeRequestId();
+
+        // 충전에 필요한 wallet, 연결 계좌, 요청 식별자를 한 번에 묶어 이후 흐름에서 공유한다.
+        WalletChargeContext context = createChargeContext(userId, idempotencyKey, request);
+
+        // Redis 멱등성 상태를 먼저 잡아 같은 충전 요청이 중복 실행되지 않게 한다.
+        WalletChargeIdempotencyResult idempotencyResult = startChargeOrGetExisting(context);
+
+        // 이미 처리 중이거나 완료된 요청이면 여기서 예외 또는 성공 반환으로 끝낸다.
+        if (isExistingChargeHandled(idempotencyResult, context)) {
+            return;
+        }
+
+        // 새 요청만 Core Banking 차감과 지갑 DB 반영을 진행한다.
+        executeNewCharge(context);
+
+        // 충전 본처리는 끝났으므로 Redis 완료 기록 실패는 사용자 성공 응답을 막지 않는다.
+        markChargeCompletedBestEffort(context);
+    }
+
+    private WalletChargeContext createChargeContext(Long userId, String idempotencyKey, ChargeWalletRequest request) {
         Wallet wallet = walletRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new CustomException(WALLET_NOT_FOUND));
         AccountRef accountRef = wallet.getUserAccount();
@@ -60,50 +78,85 @@ public class WalletService {
             throw new CustomException(WALLET_ACCOUNT_NOT_FOUND);
         }
 
-        // 같은 사용자의 동일 멱등 키 요청이 처리 중이거나 완료됐는지 먼저 확인한다.
-        WalletChargeIdempotencyResult idempotencyResult = walletChargeIdempotencyService.startOrGet(
+        return new WalletChargeContext(
                 userId,
                 idempotencyKey,
-                walletChargeRequestId,
-                accountRef.getAccountId(),
-                chargeAmount
+                createWalletChargeRequestId(),
+                wallet,
+                accountRef,
+                request.chargeAmount()
         );
+    }
 
+    private WalletChargeIdempotencyResult startChargeOrGetExisting(WalletChargeContext context) {
+        return walletChargeIdempotencyService.startOrGet(
+                context.userId(),
+                context.idempotencyKey(),
+                context.walletChargeRequestId(),
+                context.accountId(),
+                context.chargeAmount()
+        );
+    }
+
+    private boolean isExistingChargeHandled(WalletChargeIdempotencyResult idempotencyResult, WalletChargeContext context) {
         if (idempotencyResult.isProcessing()) {
             throw new CustomException(WALLET_CHARGE_IN_PROGRESS);
         }
-        if (idempotencyResult.isCompleted()) {
-            if (!idempotencyResult.matches(accountRef.getAccountId(), chargeAmount)) {
-                throw new CustomException(WALLET_IDEMPOTENCY_KEY_CONFLICT);
-            }
-            return;
+        if (!idempotencyResult.isCompleted()) {
+            return false;
         }
+        if (!idempotencyResult.matches(context.accountId(), context.chargeAmount())) {
+            throw new CustomException(WALLET_IDEMPOTENCY_KEY_CONFLICT);
+        }
+        return true;
+    }
 
+    private void executeNewCharge(WalletChargeContext context) {
         try {
-            // CoreBanking 계좌 차감이 확정되기 전에는 Cloud 월렛 잔액을 변경하지 않는다.
-            walletAccountDebitService.debit(
-                    walletChargeRequestId,
-                    accountRef.getCustomerId(),
-                    accountRef.getAccountId(),
-                    chargeAmount
-            );
-
-            // 계좌 차감 성공 확인 후 월렛 잔액과 거래내역을 같은 트랜잭션에서 반영한다.
-            walletChargePersistenceService.completeWalletCharge(wallet.getWalletId(), chargeAmount);
+            debitLinkedAccount(context);
+            persistWalletCharge(context);
         } catch (RuntimeException exception) {
-            try {
-                walletChargeIdempotencyService.fail(userId, idempotencyKey);
-            } catch (RuntimeException failException) {
-                log.warn("월렛 충전 실패 후 멱등 키 정리에 실패했습니다. idempotencyKey={}", idempotencyKey, failException);
-            }
+            // 충전이 실패했으면 PROCESSING 키를 지워 같은 요청을 재시도할 수 있게 한다.
+            clearIdempotencyAfterFailedCharge(context);
             throw exception;
         }
+    }
 
+    private void debitLinkedAccount(WalletChargeContext context) {
+        walletAccountDebitService.debit(
+                context.walletChargeRequestId(),
+                context.customerId(),
+                context.accountId(),
+                context.chargeAmount()
+        );
+    }
+
+    private void persistWalletCharge(WalletChargeContext context) {
+        walletChargePersistenceService.completeWalletCharge(context.walletId(), context.chargeAmount());
+    }
+
+    private void clearIdempotencyAfterFailedCharge(WalletChargeContext context) {
         try {
-            // 성공 완료 상태를 저장해 같은 요청의 재시도를 재처리 없이 성공 응답으로 복구한다.
-            walletChargeIdempotencyService.complete(userId, idempotencyKey, walletChargeRequestId, accountRef.getAccountId(), chargeAmount);
+            walletChargeIdempotencyService.fail(context.userId(), context.idempotencyKey());
+        } catch (RuntimeException failException) {
+            log.warn("Failed to clear wallet charge idempotency after charge failure. idempotencyKey={}",
+                    context.idempotencyKey(), failException);
+        }
+    }
+
+    private void markChargeCompletedBestEffort(WalletChargeContext context) {
+        try {
+            // The charge is already committed, so Redis completion is recorded on a best-effort basis.
+            walletChargeIdempotencyService.complete(
+                    context.userId(),
+                    context.idempotencyKey(),
+                    context.walletChargeRequestId(),
+                    context.accountId(),
+                    context.chargeAmount()
+            );
         } catch (RuntimeException exception) {
-            log.warn("월렛 충전 완료 후 멱등 상태 저장에 실패했습니다. walletChargeRequestId={}", walletChargeRequestId, exception);
+            log.warn("Failed to mark wallet charge idempotency as completed. walletChargeRequestId={}",
+                    context.walletChargeRequestId(), exception);
         }
     }
 
@@ -119,8 +172,29 @@ public class WalletService {
         }
     }
 
-    // 충전 요청 ID 생성
     private String createWalletChargeRequestId() {
         return "WCR-" + LocalDate.now().format(REQUEST_DATE_FORMAT) + "-" + UUID.randomUUID();
+    }
+
+    private record WalletChargeContext(
+            Long userId,
+            String idempotencyKey,
+            String walletChargeRequestId,
+            Wallet wallet,
+            AccountRef accountRef,
+            Integer chargeAmount
+    ) {
+
+        private Long walletId() {
+            return wallet.getWalletId();
+        }
+
+        private Long customerId() {
+            return accountRef.getCustomerId();
+        }
+
+        private Long accountId() {
+            return accountRef.getAccountId();
+        }
     }
 }

@@ -19,11 +19,14 @@ public class WalletChargeIdempotencyService {
     private static final String COMPLETED = "COMPLETED";
     private static final String DELIMITER = "\\|";
     private static final String VALUE_DELIMITER = "|";
+    private static final int STATUS_INDEX = 0;
+    private static final int REQUEST_ID_INDEX = 1;
+    private static final int ACCOUNT_ID_INDEX = 2;
+    private static final int AMOUNT_INDEX = 3;
+    private static final int COMPLETED_PART_COUNT = 4;
 
     private final StringRedisTemplate redisTemplate;
 
-    // 처음 요청이면 PROCESSING 저장
-    // 이미 요청이 있으면 기존 상태 조회
     public WalletChargeIdempotencyResult startOrGet(
             Long userId,
             String idempotencyKey,
@@ -33,27 +36,43 @@ public class WalletChargeIdempotencyService {
     ) {
         String key = createRedisKey(userId, idempotencyKey);
 
-        // Redis set-if-absent로 최초 요청만 처리권을 얻고 나머지는 기존 상태를 확인한다.
-        Boolean saved = redisTemplate.opsForValue()
-                // 키가 없으면 저장성공
-                // 키가 이미 있으면 저장실패
-                .setIfAbsent(key, createProcessingValue(walletChargeRequestId, withdrawAccountId, chargeAmount), TTL);
-        if (Boolean.TRUE.equals(saved)) {
+        // Redis에 키가 없을 때만 PROCESSING을 저장해 최초 요청만 처리권을 얻는다.
+        if (tryStartProcessing(key, walletChargeRequestId, withdrawAccountId, chargeAmount)) {
             return WalletChargeIdempotencyResult.started(walletChargeRequestId);
         }
 
-        // 같은 키가 있으면 기존 REDIS 값 읽어서 PROCESSING인지 COMPLETED인지 판단
-        return parse(redisTemplate.opsForValue().get(key));
+        // 이미 키가 있으면 기존 요청의 PROCESSING/COMPLETED 상태를 해석한다.
+        return getExistingResult(key);
     }
 
     public void complete(Long userId, String idempotencyKey, String walletChargeRequestId, Long withdrawAccountId, Integer chargeAmount) {
-        // 월렛 반영까지 끝난 요청은 완료 상태로 바꿔 동일 재요청을 재처리하지 않는다.
+        // 지갑 반영까지 끝난 요청은 COMPLETED로 저장해 같은 재요청을 성공 응답으로 복구한다.
         redisTemplate.opsForValue()
-                .set(createRedisKey(userId, idempotencyKey), createCompletedValue(walletChargeRequestId, withdrawAccountId, chargeAmount), TTL);
+                .set(
+                        createRedisKey(userId, idempotencyKey),
+                        createCompletedValue(walletChargeRequestId, withdrawAccountId, chargeAmount),
+                        TTL
+                );
     }
 
     public void fail(Long userId, String idempotencyKey) {
+        // 본처리 실패 시 PROCESSING 키를 지워 사용자가 같은 요청을 다시 시도할 수 있게 한다.
         redisTemplate.delete(createRedisKey(userId, idempotencyKey));
+    }
+
+    private boolean tryStartProcessing(
+            String key,
+            String walletChargeRequestId,
+            Long withdrawAccountId,
+            Integer chargeAmount
+    ) {
+        Boolean saved = redisTemplate.opsForValue()
+                .setIfAbsent(key, createProcessingValue(walletChargeRequestId, withdrawAccountId, chargeAmount), TTL);
+        return Boolean.TRUE.equals(saved);
+    }
+
+    private WalletChargeIdempotencyResult getExistingResult(String key) {
+        return parse(redisTemplate.opsForValue().get(key));
     }
 
     private String createRedisKey(Long userId, String idempotencyKey) {
@@ -68,41 +87,49 @@ public class WalletChargeIdempotencyService {
         return COMPLETED + VALUE_DELIMITER + walletChargeRequestId + VALUE_DELIMITER + withdrawAccountId + VALUE_DELIMITER + chargeAmount;
     }
 
-    // Redis에 저장된 값을 읽어서 WalletChargeIdempotencyResult 객체로 변환하는 메서드
     private WalletChargeIdempotencyResult parse(String value) {
-        // 레디스 값이 없거나 깨질 때
         if (value == null || value.isBlank()) {
-            // setIfAbsent 실패 직후 TTL 만료 등으로 값이 사라진 경우, 재처리보다 처리 중으로 보아 중복 충전을 막는다.
+            // 상태를 확정할 수 없으면 재처리보다 중복 차단을 우선한다.
             return WalletChargeIdempotencyResult.processing(null);
         }
 
         String[] parts = value.split(DELIMITER, -1);
         if (parts.length < 2) {
-            // Redis 값이 상태 구분자 없이 깨진 경우에도 요청 상태를 확정할 수 없어 처리 중으로 응답한다.
+            // 깨진 값도 완료로 신뢰할 수 없으므로 처리 중으로 본다.
             return WalletChargeIdempotencyResult.processing(null);
         }
 
-        if (PROCESSING.equals(parts[0])) {
-            // 이미 같은 멱등 키 요청이 진행 중이면 기존 요청 식별자를 유지해 처리 중으로 반환한다.
-            return WalletChargeIdempotencyResult.processing(parts[1]);
+        String status = parts[STATUS_INDEX];
+        String walletChargeRequestId = parts[REQUEST_ID_INDEX];
+
+        if (PROCESSING.equals(status)) {
+            return WalletChargeIdempotencyResult.processing(walletChargeRequestId);
+        }
+        if (COMPLETED.equals(status)) {
+            return parseCompletedResult(value, parts);
         }
 
-        if (COMPLETED.equals(parts[0]) && parts.length == 4) {
-            try {
-                return WalletChargeIdempotencyResult.completed(parts[1], Long.valueOf(parts[2]), Integer.valueOf(parts[3]));
-            } catch (NumberFormatException exception) {
-                // 완료 값의 accountId/amount가 숫자로 복원되지 않으면 완료 여부를 신뢰할 수 없어 재처리를 막는다.
-                log.warn("월렛 충전 Redis 값 파싱에 실패했습니다. value={}", value, exception);
-                return WalletChargeIdempotencyResult.processing(parts[1]);
-            }
+        return WalletChargeIdempotencyResult.processing(walletChargeRequestId);
+    }
+
+    private WalletChargeIdempotencyResult parseCompletedResult(String value, String[] parts) {
+        String walletChargeRequestId = parts[REQUEST_ID_INDEX];
+
+        if (parts.length != COMPLETED_PART_COUNT) {
+            // 완료 값의 계좌/금액을 비교할 수 없으면 재처리를 막는다.
+            log.warn("Wallet charge idempotency completed value has invalid format. value={}", value);
+            return WalletChargeIdempotencyResult.processing(walletChargeRequestId);
         }
 
-        // 앞의 조건 통과 못할 시
-        if (COMPLETED.equals(parts[0])) {
-            // 완료 상태지만 필드 수가 맞지 않으면 기존 완료 요청과 현재 요청을 비교할 수 없어 처리 중으로 응답한다.
-            log.warn("월렛 충전 멱등 Redis 완료 값 형식이 올바르지 않습니다. value={}", value);
+        try {
+            return WalletChargeIdempotencyResult.completed(
+                    walletChargeRequestId,
+                    Long.valueOf(parts[ACCOUNT_ID_INDEX]),
+                    Integer.valueOf(parts[AMOUNT_INDEX])
+            );
+        } catch (NumberFormatException exception) {
+            log.warn("Failed to parse wallet charge idempotency completed value. value={}", value, exception);
+            return WalletChargeIdempotencyResult.processing(walletChargeRequestId);
         }
-        // 알 수 없는 상태 값은 재처리보다 보수적으로 처리 중으로 본다.
-        return WalletChargeIdempotencyResult.processing(parts[1]);
     }
 }

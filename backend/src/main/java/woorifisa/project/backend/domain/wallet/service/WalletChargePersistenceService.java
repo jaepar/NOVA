@@ -23,13 +23,19 @@ public class WalletChargePersistenceService {
 
     @Transactional
     public void completeWalletCharge(Long walletId, Integer chargeAmount) {
-        // pessimistic lock으로 월렛을 조회해 충전 확정 중 잔액 경합을 막는다.
-        Wallet wallet = walletRepository.findByIdForUpdate(walletId)
-                .orElseThrow(() -> new CustomException(WALLET_NOT_FOUND));
-
+        // 지갑 잔액과 거래내역은 같은 트랜잭션 안에서 함께 확정한다.
+        Wallet wallet = findWalletForCharge(walletId);
         wallet.charge(chargeAmount);
+        saveChargeTransaction(wallet, chargeAmount);
+    }
 
-        // 사용자 거래내역에 표시할 월렛 충전 입금 내역을 저장한다.
+    private Wallet findWalletForCharge(Long walletId) {
+        // 동시에 여러 충전이 들어와도 잔액 계산이 꼬이지 않도록 쓰기 락으로 조회한다.
+        return walletRepository.findByIdForUpdate(walletId)
+                .orElseThrow(() -> new CustomException(WALLET_NOT_FOUND));
+    }
+
+    private void saveChargeTransaction(Wallet wallet, Integer chargeAmount) {
         walletTransactionRepository.save(WalletTransaction.builder()
                 .wallet(wallet)
                 .transactionFlow(TransactionFlow.DEPOSIT)
