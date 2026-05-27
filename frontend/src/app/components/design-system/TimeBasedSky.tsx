@@ -1,38 +1,38 @@
-import { useEffect } from 'react';
-import { create } from 'zustand';
+import { useEffect } from 'react'
+import { create } from 'zustand'
 
-type TimeOfDay = 'morning' | 'sunset' | 'night';
+type TimeOfDay = 'morning' | 'sunset' | 'night'
 
 const useTimeBasedSkyStore = create<{
-  timeOfDay: TimeOfDay;
-  setTimeOfDay: (next: TimeOfDay) => void;
+  timeOfDay: TimeOfDay
+  setTimeOfDay: (next: TimeOfDay) => void
 }>((set) => ({
   timeOfDay: 'morning',
   setTimeOfDay: (next) => set({ timeOfDay: next }),
-}));
+}))
 
 export function TimeBasedSky() {
-  const timeOfDay = useTimeBasedSkyStore((state) => state.timeOfDay);
-  const setTimeOfDay = useTimeBasedSkyStore((state) => state.setTimeOfDay);
+  const timeOfDay = useTimeBasedSkyStore((state) => state.timeOfDay)
+  const setTimeOfDay = useTimeBasedSkyStore((state) => state.setTimeOfDay)
 
   useEffect(() => {
     const updateTimeOfDay = () => {
-      const hour = new Date().getHours();
+      const hour = new Date().getHours()
 
       if (hour >= 6 && hour < 17) {
-        setTimeOfDay('morning');
+        setTimeOfDay('morning')
       } else if (hour >= 17 && hour < 19) {
-        setTimeOfDay('sunset');
+        setTimeOfDay('sunset')
       } else {
-        setTimeOfDay('night');
+        setTimeOfDay('night')
       }
-    };
+    }
 
-    updateTimeOfDay();
-    const interval = setInterval(updateTimeOfDay, 60000); // 1분마다 체크
+    updateTimeOfDay()
+    const interval = setInterval(updateTimeOfDay, 60000) // 1분마다 체크
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(interval)
+  }, [])
 
   const skyConfig = {
     morning: {
@@ -66,20 +66,18 @@ export function TimeBasedSky() {
         </>
       ),
     },
-  };
+  }
 
-  const config = skyConfig[timeOfDay];
+  const config = skyConfig[timeOfDay]
 
-  return (
-    null
-  );
+  return null
 }
 
 interface CloudProps {
-  delay: number;
-  duration: number;
-  top: string;
-  size: 'sm' | 'md' | 'lg';
+  delay: number
+  duration: number
+  top: string
+  size: 'sm' | 'md' | 'lg'
 }
 
 function Cloud({ delay, duration, top, size }: CloudProps) {
@@ -87,9 +85,9 @@ function Cloud({ delay, duration, top, size }: CloudProps) {
     sm: { width: 'w-16', height: 'h-8', circles: [8, 10, 8] },
     md: { width: 'w-20', height: 'h-10', circles: [10, 12, 10] },
     lg: { width: 'w-24', height: 'h-12', circles: [12, 14, 12] },
-  };
+  }
 
-  const config = sizeConfig[size];
+  const config = sizeConfig[size]
 
   return (
     <div
@@ -130,5 +128,5 @@ function Cloud({ delay, duration, top, size }: CloudProps) {
         ></div>
       </div>
     </div>
-  );
+  )
 }

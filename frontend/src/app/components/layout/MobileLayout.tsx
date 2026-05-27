@@ -1,25 +1,25 @@
-import { ReactNode } from 'react';
-import { FixedHeader } from './FixedHeader';
-import { CloseFixedHeader } from './CloseFixedHeader';
-import { TitleOnlyFixedHeader } from './TitleOnlyFixedHeader';
-import { FloatingBottom } from './FloatingBottom';
+import { ReactNode } from 'react'
+import { FixedHeader } from './FixedHeader'
+import { CloseFixedHeader } from './CloseFixedHeader'
+import { TitleOnlyFixedHeader } from './TitleOnlyFixedHeader'
+import { FloatingBottom } from './FloatingBottom'
 
 interface MobileLayoutProps {
-  title: string;
-  children: ReactNode;
-  bottomContent?: ReactNode;
-  bottomBackgroundColor?: string;
-  headerBackgroundColor?: string;
-  headerTextColor?: string;
-  headerType?: 'back' | 'close' | 'none';
-  showBackButton?: boolean;
-  showCloseButton?: boolean;
-  onBack?: () => void;
-  backPath?: string;
-  onClose?: () => void;
-  closePath?: string;
-  headerLeftContent?: ReactNode;
-  headerRightContent?: ReactNode;
+  title: string
+  children: ReactNode
+  bottomContent?: ReactNode
+  bottomBackgroundColor?: string
+  headerBackgroundColor?: string
+  headerTextColor?: string
+  headerType?: 'back' | 'close' | 'none'
+  showBackButton?: boolean
+  showCloseButton?: boolean
+  onBack?: () => void
+  backPath?: string
+  onClose?: () => void
+  closePath?: string
+  headerLeftContent?: ReactNode
+  headerRightContent?: ReactNode
 }
 
 export function MobileLayout({
@@ -37,7 +37,7 @@ export function MobileLayout({
   onClose,
   closePath,
   headerLeftContent,
-  headerRightContent
+  headerRightContent,
 }: MobileLayoutProps) {
   const effectiveHeaderType: 'back' | 'close' | 'none' =
     headerType === 'none'
@@ -48,7 +48,7 @@ export function MobileLayout({
             !headerLeftContent &&
             !headerRightContent)
         ? 'close'
-        : 'back';
+        : 'back'
 
   return (
     <div className="h-full w-full bg-background flex flex-col overflow-hidden">
@@ -87,10 +87,8 @@ export function MobileLayout({
       </main>
 
       {bottomContent && (
-        <FloatingBottom backgroundColor={bottomBackgroundColor}>
-          {bottomContent}
-        </FloatingBottom>
+        <FloatingBottom backgroundColor={bottomBackgroundColor}>{bottomContent}</FloatingBottom>
       )}
     </div>
-  );
+  )
 }

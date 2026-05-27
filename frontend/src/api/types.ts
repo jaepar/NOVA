@@ -6,31 +6,31 @@
 
 // 기본 API 응답 타입
 export interface ApiResponse<T = any> {
-  success: boolean;
-  data: T;
-  message?: string;
+  success: boolean
+  data: T
+  message?: string
 }
 
 // 페이지네이션 응답 타입
 export interface PaginatedResponse<T> {
-  success: boolean;
-  data: T[];
+  success: boolean
+  data: T[]
   pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }
 
 // 에러 응답 타입
 export interface ApiError {
-  success: false;
+  success: false
   error: {
-    code: string;
-    message: string;
-    details?: any;
-  };
+    code: string
+    message: string
+    details?: any
+  }
 }
 
 /**

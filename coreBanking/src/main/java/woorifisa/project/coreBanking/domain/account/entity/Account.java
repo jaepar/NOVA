@@ -61,4 +61,12 @@ public class Account extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "bank_code", nullable = false)
     private BankCode bankCode;
+
+    public void debit(Integer amount) {
+        if (amount == null || amount <= 0 || balance < amount) {
+            throw new IllegalArgumentException("Invalid debit amount.");
+        }
+
+        this.balance -= amount;
+    }
 }

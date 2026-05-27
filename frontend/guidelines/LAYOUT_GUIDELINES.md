@@ -1,25 +1,29 @@
 # 레이아웃 가이드
 
 ## 1) 프레임 정책 (필수)
+
 - 기준 프레임: `390 x 844`
 - 프레임 기준 요소: `#root`
-- 뷰포트가 기준보다 작으면 비율 유지 축소
-- 뷰포트가 기준보다 커도 `390x844` 고정 (확대 금지)
+- 데스크탑 브라우저(`>768px`)에서는 `390x844` 프레임을 중앙 고정으로 유지
+- 모바일/앱 브라우저(`<=768px`)에서는 기기 뷰포트 크기에 맞춰 `#root`를 확장
+- 모바일/앱 브라우저에서는 스케일 축소를 적용하지 않음(`--app-scale: 1`)
 - 프레임 외부 영역은 별도 배경색으로 앱 영역과 구분
 
 ## 2) 현재 구현 기준
+
 - `src/main.tsx`
-  - 로드/리사이즈 시 `--app-scale` 계산
-  - `scale = min(windowWidth/390, windowHeight/844, 1)`
+  - 브레이크포인트: `768px`
+  - `<=768px`: `--app-width/--app-height`를 뷰포트 크기로 설정, `--app-scale: 1`
+  - `>768px`: `--app-width: 390px`, `--app-height: 844px`, `--app-scale = min(windowWidth/390, windowHeight/844, 1)`
 - `src/styles/theme.css`
-  - `#root` 고정 크기:
-    - `--app-width: 390px`
-    - `--app-height: 844px`
+  - `#root` 크기는 CSS 변수(`--app-width`, `--app-height`)로 제어
   - `#root`에 `transform: scale(var(--app-scale))` 적용
   - `body`에서 중앙 정렬 및 외부 배경 영역 처리
 
 ## 3) 레이아웃 구성 규칙
+
 - 모든 페이지는 `MobileLayout`을 사용한다.
+- 예외 없이 모든 페이지가 동일 레이아웃 규격을 따른다.
 - 상단 영역은 `MobileLayout`의 `headerType` 규칙으로 사용한다.
   - `headerType="back"`: 뒤로가기 헤더 (`FixedHeader`)
   - `headerType="close"`: 닫기 헤더 (`CloseFixedHeader`)
@@ -35,22 +39,54 @@
 - 긴 페이지에서 본문이 헤더 뒤로 스크롤되는 동작은 정상이다.
 - 페이지별 프레임 제한(`max-w-[390px] mx-auto`) 중복 선언 금지
 
+
+## 3.1) Main 페이지 조립/분리 규칙
+
+- `src/app/pages/Main.tsx`는 레이아웃 조립 파일로 유지한다.
+- Main 페이지의 신규 섹션/카드/배너/시트 콘텐츠는 `src/app/pages/main/` 하위 별도 컴포넌트로 분리한다.
+- `Main.tsx`에서는 분리된 컴포넌트를 import 하여 배치만 수행한다.
+- Main 관련 타입은 `src/app/pages/main/types.ts`에 정의해 중복 선언을 피한다.
 ## 4) 간격 규칙
+
 - 좌우 기본 패딩: `px-5` (20px)
 - 헤더/본문/하단 간격은 공통 레이아웃 컴포넌트 기준으로 유지
 - 특별한 사유 없이 페이지별 간격 예외를 만들지 않는다
 
 ## 5) 반응형 점검 체크리스트
-- [ ] `390x844`에서 1:1 렌더링
-- [ ] 기준 이하에서 비율 유지 축소
-- [ ] 기준 이상에서 `390x844` 고정
+
+- [ ] 데스크탑(`>768px`)에서 `390x844` 중앙 고정 프레임 유지
+- [ ] 모바일/앱 브라우저(`<=768px`)에서 기기 뷰포트 크기로 렌더링
+- [ ] 모바일/앱 브라우저에서 `--app-scale: 1` 유지
 - [ ] 프레임 외부 배경 구분 확인
 - [ ] 헤더/하단 고정 영역 정렬 이상 없음
 
 ## 6) 동기화 정책
+
 프레임/레이아웃 정책 변경 시 아래를 함께 갱신한다.
+
 - `frontend/AGENTS.md`
 - `frontend/guidelines/DESIGN_SYSTEM.md`
 - `frontend/guidelines/LAYOUT_GUIDELINES.md`
 - `frontend/src/main.tsx`
 - `frontend/src/styles/theme.css`
+
+## 7) 공통 상태 페이지 레이아웃
+
+- `Loading`, `Success`, `Failed`는 `CenteredTaskContent` 기반 중앙 정렬 레이아웃을 사용한다.
+- 상태 페이지 본문에서 개별 `px-*` 패딩을 임의로 추가하지 않는다.
+- 본문 텍스트는 `task`, `description` 파라미터로 주입한다.
+
+## 8) 약관 동의 레이아웃/이동 규칙
+
+- 약관 메인/상세/캐러셀은 공통 컴포넌트 기반으로 구성한다.
+- 신규 진입 시 상태 초기화, 복귀 시 상태 유지 규칙을 따른다.
+- 캐러셀 페이지는 `1/n` 표기와 좌우 이동을 제공한다.
+- 단건 상세 페이지는 캐러셀이 아니며 페이지 수를 표시하지 않는다.
+- 카테고리 캐러셀 재진입 시 시작 페이지는 항상 1페이지다.
+
+## 헤더 뒤로가기 정책 (스텝형 플로우 필수)
+
+- 스텝형 플로우(예: 인증서 발급)에서는 `navigate(-1)`을 뒤로가기 기본 동작으로 사용하지 않는다.
+- 각 스텝 페이지는 `MobileLayout`의 `backPath`를 명시하고, 현재 스텝 기준 이전 스텝 경로로 이동해야 한다.
+- 히스토리 기반 이동이 필요한 예외 케이스는 `onBack`을 사용하되, 예외 사유를 PR 설명에 반드시 남긴다.
+- 템플릿 기반 페이지(`Failed` 등)도 스텝형 플로우에 포함될 경우 `backPath`를 받아 동일 정책을 따른다.

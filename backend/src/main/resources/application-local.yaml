@@ -2,6 +2,8 @@ server:
   port: 8000
   servlet:
     context-path: /
+    session:
+      timeout: 30m
 
 spring:
   datasource:
@@ -29,15 +31,40 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT:465}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+
 logging:
   level:
     root: info
     org.hibernate.SQL: debug
 
-app:
-  core-banking:
-    base-url: ${ONPREM_GATEWAY_BASE_URL}
-  government:
-    base-url: ${ONPREM_GATEWAY_BASE_URL}
+#app:
+#  core-banking:
+#    base-url: ${CORE_BANKING_BASE_URL}
+#  government:
+#    base-url: ${GOVERMENT_DB_URL}
 #  ai:
 #    base-url: ${AI_BASE_URL}
+
+cloud:
+  aws:
+    s3:
+      region: ap-northeast-2
+      bucket: ${AWS_S3_BUCKET}
+      base-url: ${AWS_S3_BASE_URL}

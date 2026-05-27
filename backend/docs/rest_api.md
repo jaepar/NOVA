@@ -49,8 +49,9 @@
 | `AUTH-001`     | 회원가입 | POST | `/auth/signup` | X | PUBLIC | |
 | `AUTH-002`     | 로그인 | POST | `/auth/login` | X | PUBLIC | |
 | `AUTH-003`     | 로그아웃 | POST | `/auth/logout` | O | USER | |
-| `AUTH-004`     | 이메일 인증번호 발송 | POST | `/users/email-verifications` | X | PUBLIC | |
-| `AUTH-005`     | 이메일 인증번호 확인 | POST | `/users/email-verifications/confirm` | X | PUBLIC | |
+| `AUTH-004`     | 이메일 인증번호 발송 | POST | `/auth/email-verifications` | X | PUBLIC | |
+| `AUTH-005`     | 이메일 인증번호 확인 | POST | `/auth/email-verifications/confirm` | X | PUBLIC | |
+| `AUTH-006`     | 세션 확인 | GET | `/auth/me` | X | PUBLIC | `JSESSIONID` 기준 로그인 세션 확인 |
 | `USER-001`     | 회원 정보 조회 | GET | `/users` | O | USER | |
 | `USER-002`     | 회원 정보 수정 | PATCH | `/users` | O | USER | |
 | `USER-003`     | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |

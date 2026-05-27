@@ -1,7 +1,7 @@
 interface TitleOnlyFixedHeaderProps {
-  title: string;
-  backgroundColor?: string;
-  textColor?: string;
+  title: string
+  backgroundColor?: string
+  textColor?: string
 }
 
 export function TitleOnlyFixedHeader({
@@ -23,9 +23,11 @@ export function TitleOnlyFixedHeader({
         style={{ height: 'var(--app-header-height)' }}
       >
         <div className="w-10" />
-        <h1 className="flex-1 text-center text-[20px]" style={{ color: textColor }}>{title}</h1>
+        <h1 className="flex-1 text-center text-[20px]" style={{ color: textColor }}>
+          {title}
+        </h1>
         <div className="w-10" />
       </div>
     </header>
-  );
+  )
 }

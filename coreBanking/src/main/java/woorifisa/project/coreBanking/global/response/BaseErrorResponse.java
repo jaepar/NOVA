@@ -9,7 +9,7 @@ import woorifisa.project.coreBanking.global.response.status.ResponseStatus;
 public class BaseErrorResponse implements ResponseStatus {
 
     private final boolean success;
-    private final int code;
+    private final String code;
     private final String message;
     private final Object data;
 
@@ -33,7 +33,7 @@ public class BaseErrorResponse implements ResponseStatus {
     }
 
     @Override
-    public int getCode() {
+    public String getCode() {
         return code;
     }
 
