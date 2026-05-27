@@ -52,9 +52,7 @@ class BankingControllerTest {
                         .content("""
                                 {
                                   "withdrawAccountId": 2001,
-                                  "depositBankCode": "032",
-                                  "depositAccountNumber": "1122261925003",
-                                  "depositAccountHolderName": "박재하",
+                                  "depositAccountId": 2002,
                                   "transferAmount": 5000,
                                   "withdrawMemo": "박재하",
                                   "depositMemo": "박재하"

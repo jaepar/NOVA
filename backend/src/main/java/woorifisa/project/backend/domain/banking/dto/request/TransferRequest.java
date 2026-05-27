@@ -7,12 +7,8 @@ import jakarta.validation.constraints.Positive;
 public record TransferRequest(
         @NotNull
         Long withdrawAccountId,         // 출금될 계좌(계좌 이체 시 사용자 계좌)
-        @NotBlank
-        String depositBankCode,         // 상대방 은행 코드
-        @NotBlank
-        String depositAccountNumber,    // 상대방 계좌 번호
-        @NotBlank
-        String depositAccountHolderName,
+        @NotNull
+        Long depositAccountId,          // 상대방 계좌 ID
         @NotNull
         @Positive
         Integer transferAmount,

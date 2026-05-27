@@ -60,12 +60,13 @@ class BankingServiceTest {
     void transferSuccess() {
         Long userId = 1L;
         String idempotencyKey = "key-1";
-        TransferRequest request = new TransferRequest(2001L, "032", "1122261925003", "박재하", 5000, "박재하", "박재하");
+        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
                 .customerId(1001L)
                 .accountId(2001L)
+                .accountNumber("1122261925001")
                 .hasAccount(true)
                 .build();
         when(valueOperations.get("banking:transfer:result:key-1")).thenReturn(null);
@@ -78,8 +79,8 @@ class BankingServiceTest {
         ArgumentCaptor<CoreBankingTransferRequest> captor = ArgumentCaptor.forClass(CoreBankingTransferRequest.class);
         verify(coreBankingTransferClient).transfer(captor.capture());
         CoreBankingTransferRequest coreRequest = captor.getValue();
-        assertThat(coreRequest.customerId()).isEqualTo(1001L);
-        assertThat(coreRequest.withdrawAccountId()).isEqualTo(2001L);
+        assertThat(coreRequest.withdrawAccountNumber()).isEqualTo("1122261925001");
+        assertThat(coreRequest.depositAccountId()).isEqualTo(2002L);
         assertThat(coreRequest.externalRequestId()).isEqualTo(idempotencyKey);
         verify(stringRedisTemplate).delete("banking:transfer:processing:key-1");
     }
@@ -91,7 +92,7 @@ class BankingServiceTest {
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(false);
 
         assertThatThrownBy(() -> bankingService.transfer(1L, "key-1",
-                new TransferRequest(2001L, "032", "1122261925003", "박재하", 5000, "박재하", "박재하")))
+                new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하")))
                 .isInstanceOf(CustomException.class)
                 .extracting("exceptionStatus")
                 .isEqualTo(BANKING_TRANSFER_PROCESSING);
@@ -107,7 +108,7 @@ class BankingServiceTest {
         bankingService.transfer(
                 1L,
                 "key-1",
-                new TransferRequest(2001L, "032", "1122261925003", "박재하", 5000, "박재하", "박재하")
+                new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하")
         );
 
         verify(coreBankingTransferClient, never()).transfer(any());
@@ -118,12 +119,13 @@ class BankingServiceTest {
     void transferSuccessWhenLookupExistsAfterFailure() {
         Long userId = 1L;
         String idempotencyKey = "key-lookup-exists";
-        TransferRequest request = new TransferRequest(2001L, "032", "1122261925003", "박재하", 5000, "박재하", "박재하");
+        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
                 .customerId(1001L)
                 .accountId(2001L)
+                .accountNumber("1122261925001")
                 .hasAccount(true)
                 .build();
 
@@ -146,12 +148,13 @@ class BankingServiceTest {
     void transferRetryWhenLookupNotExists() {
         Long userId = 1L;
         String idempotencyKey = "key-retry";
-        TransferRequest request = new TransferRequest(2001L, "032", "1122261925003", "박재하", 5000, "박재하", "박재하");
+        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
                 .customerId(1001L)
                 .accountId(2001L)
+                .accountNumber("1122261925001")
                 .hasAccount(true)
                 .build();
 
