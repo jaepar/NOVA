@@ -79,7 +79,7 @@ class BankingServiceTest {
         ArgumentCaptor<CoreBankingTransferRequest> captor = ArgumentCaptor.forClass(CoreBankingTransferRequest.class);
         verify(coreBankingTransferClient).transfer(captor.capture());
         CoreBankingTransferRequest coreRequest = captor.getValue();
-        assertThat(coreRequest.withdrawAccountNumber()).isEqualTo("1122261925001");
+        assertThat(coreRequest.withdrawAccountId()).isEqualTo(2001L);
         assertThat(coreRequest.depositAccountId()).isEqualTo(2002L);
         assertThat(coreRequest.externalRequestId()).isEqualTo(idempotencyKey);
         verify(stringRedisTemplate).delete("banking:transfer:processing:key-1");

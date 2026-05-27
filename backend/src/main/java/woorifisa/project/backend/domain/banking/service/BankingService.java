@@ -55,7 +55,7 @@ public class BankingService {
 
             CoreBankingTransferRequest coreBankingTransferRequest = CoreBankingTransferRequest.of(
                     createExternalRequestId(idempotencyKey),
-                    accountRef.getAccountNumber(),
+                    accountRef.getAccountId(),
                     request
             );
 

@@ -4,16 +4,16 @@ import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 
 public record CoreBankingTransferRequest(
         String externalRequestId,
-        String withdrawAccountNumber,
+        Long withdrawAccountId,
         Long depositAccountId,
         Integer transferAmount,
         String withdrawMemo,
         String depositMemo
 ) {
-    public static CoreBankingTransferRequest of(String externalRequestId, String withdrawAccountNumber, TransferRequest request) {
+    public static CoreBankingTransferRequest of(String externalRequestId, Long withdrawAccountId, TransferRequest request) {
         return new CoreBankingTransferRequest(
                 externalRequestId,
-                withdrawAccountNumber,
+                withdrawAccountId,
                 request.depositAccountId(),
                 request.transferAmount(),
                 request.withdrawMemo(),
