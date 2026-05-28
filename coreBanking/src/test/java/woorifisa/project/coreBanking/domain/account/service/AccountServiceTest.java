@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_PASSWORD_VERIFY_NOT_MATCHED;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_RECIPIENT_LOOKUP_ACCOUNT_NOT_FOUND;
 
 class AccountServiceTest {
@@ -49,5 +50,33 @@ class AccountServiceTest {
         assertThatThrownBy(() -> accountService.lookupRecipient(new RecipientLookupRequest("BUSAN", "1122261925003")))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ACCOUNT_RECIPIENT_LOOKUP_ACCOUNT_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("계좌 비밀번호가 일치하면 검증에 성공한다")
+    void verifyAccountPasswordSuccess() {
+        Account account = Account.builder()
+                .accountId(1L)
+                .password("1234")
+                .build();
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+
+        accountService.verifyAccountPassword(new woorifisa.project.coreBanking.domain.account.dto.request.AccountPasswordVerifyRequest(1L, "1234"));
+    }
+
+    @Test
+    @DisplayName("계좌 비밀번호가 일치하지 않으면 예외를 반환한다")
+    void verifyAccountPasswordNotMatched() {
+        Account account = Account.builder()
+                .accountId(1L)
+                .password("1234")
+                .build();
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+
+        assertThatThrownBy(() -> accountService.verifyAccountPassword(
+                new woorifisa.project.coreBanking.domain.account.dto.request.AccountPasswordVerifyRequest(1L, "9999")
+        ))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ACCOUNT_PASSWORD_VERIFY_NOT_MATCHED.getMessage());
     }
 }

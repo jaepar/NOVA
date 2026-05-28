@@ -120,6 +120,7 @@ flowchart TD
 ### Do
 - 계약 우선: FE-BE, BE-AI(FastAPI), BE-CoreBanking 간 API 스펙을 먼저 고정하고 구현한다.
 - 계좌이체 UX에 필요한 수취인명 조회는 `backend -> coreBanking` 서버 간 API 계약으로 처리한다.
+- 계좌이체 전 계좌 비밀번호 검증은 `backend -> coreBanking` 서버 간 API 계약으로 처리한다.
 - 장애 격리: Core Banking 연동 실패 시 재시도 정책과 보상 흐름을 명시한다.
 - 감사 추적: 인증/이체/계좌개설 단계는 모두 추적 가능한 이벤트 로그를 남기고, 로그는 롤링 파일 형식으로 생성/보관한다.
 - 다국어 UX를 고려해 메시지 키 기반 응답을 우선한다.

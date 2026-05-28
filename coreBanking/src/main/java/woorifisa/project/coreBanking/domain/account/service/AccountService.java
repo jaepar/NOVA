@@ -3,6 +3,7 @@ package woorifisa.project.coreBanking.domain.account.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import woorifisa.project.coreBanking.domain.account.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.coreBanking.domain.account.dto.request.RecipientLookupRequest;
 import woorifisa.project.coreBanking.domain.account.dto.response.RecipientLookupResponse;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
@@ -12,6 +13,8 @@ import woorifisa.project.coreBanking.global.exception.CustomException;
 
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_RECIPIENT_LOOKUP_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_RECIPIENT_LOOKUP_INVALID_REQUEST;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_PASSWORD_VERIFY_ACCOUNT_NOT_FOUND;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_PASSWORD_VERIFY_NOT_MATCHED;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,16 @@ public class AccountService {
                 .orElseThrow(() -> new CustomException(ACCOUNT_RECIPIENT_LOOKUP_ACCOUNT_NOT_FOUND));
 
         return RecipientLookupResponse.of(account.getCustomer().getName());
+    }
+
+    @Transactional(readOnly = true)
+    public void verifyAccountPassword(AccountPasswordVerifyRequest request) {
+        Account account = accountRepository.findById(request.accountId())
+                .orElseThrow(() -> new CustomException(ACCOUNT_PASSWORD_VERIFY_ACCOUNT_NOT_FOUND));
+
+        if (!account.getPassword().equals(request.accountPassword())) {
+            throw new CustomException(ACCOUNT_PASSWORD_VERIFY_NOT_MATCHED);
+        }
     }
 
     private BankCode resolveBankCode(String bankCode) {

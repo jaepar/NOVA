@@ -21,7 +21,7 @@ coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.
 | ID | Name | Method | Path | Auth | Role | Notes |
 |---|---|---|---|---|---|---|
 | `CB-001` | 계좌 개설(On-Prem) | POST | `/core-banking` | O | AUTHORIZED | |
-| `CB-002` | 계좌 비밀번호 검증(On-Prem) | POST | `/core-banking/{accountId}/password/verify` | O | AUTHORIZED | |
+| `CB-002` | 계좌 비밀번호 검증(On-Prem) | POST | `/accounts/password/verify` | O | AUTHORIZED | account.password 일치 검증 |
 | `CB-003` | 계좌 이체(On-Prem) | POST | `/account-transactions/transfers` | O | AUTHORIZED | `externalRequestId` 기반 멱등 처리 |
 | `CB-004` | 이체 처리 결과 조회(On-Prem) | GET | `/account-transactions/requests/{externalRequestId}` | O | AUTHORIZED | 이체/월렛충전 공통 외부 요청 ID 기반 결과 조회 |
 | `CB-005` | 거래 내역 조회(On-Prem) | GET | `/core-banking/{accountId}/transactions` | O | AUTHORIZED | |
@@ -49,6 +49,29 @@ Request
 {
   "bankCode": "BUSAN",
   "accountNumber": "1122261925003"
+}
+```
+
+## CB-002 계좌 비밀번호 검증(On-Prem)
+
+- Method: `POST`
+- Path: `/accounts/password/verify`
+- Auth: `O` (`AUTHORIZED`)
+
+Request
+```json
+{
+  "accountId": 1,
+  "accountPassword": "1234"
+}
+```
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다."
 }
 ```
 
