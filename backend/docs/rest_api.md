@@ -93,6 +93,7 @@
 - 예약 리소스는 `hospital/reservations`로 고정한다.
 - `wallet_transaction.transaction_flow`는 `DEPOSIT | WITHDRAWAL`만 사용한다.
 - `application.status`는 `PASSED | FAILED | READ | UNREAD`만 사용한다.
+- `WALLET-004` 응답의 `nextStep`은 `CREATE_ACCOUNT | WALLET_TERMS | WALLET_HOME`만 사용한다.
 
 ## Docs Sync Rule
 

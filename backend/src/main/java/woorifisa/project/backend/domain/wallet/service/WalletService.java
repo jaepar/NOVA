@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.banking.repository.BankingRepository;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
@@ -20,9 +21,6 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 @RequiredArgsConstructor
 public class WalletService {
 
-    // 프론트 분기용 상태값
-    private static final String ACCOUNT_REQUIRED = "ACCOUNT_REQUIRED";
-
     private final WalletRepository walletRepository;
     private final BankingRepository bankingRepository;
     private final WalletTransactionRepository walletTransactionRepository;
@@ -38,21 +36,12 @@ public class WalletService {
 
     @Transactional(readOnly = true)
     public WalletStatusResponse findWalletStatus(Long userId) {
-        return walletRepository.findByUser_UserId(userId)
-                .map(WalletStatusResponse::from)
-                .orElseGet(() -> findCreatableWalletStatus(userId));
-    }
+        if (walletRepository.findByUser_UserId(userId).isPresent()) {
+            return new WalletStatusResponse(WalletNextStep.WALLET_HOME);
+        }
 
-    private WalletStatusResponse findCreatableWalletStatus(Long userId) {
         return bankingRepository.findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(userId)
-                .map(WalletStatusResponse::from)
-                .orElseGet(() -> new WalletStatusResponse(
-                        false,
-                        false,
-                        null,
-                        null,
-                        null,
-                        ACCOUNT_REQUIRED
-                ));
+                .map(accountRef -> new WalletStatusResponse(WalletNextStep.WALLET_TERMS))
+                .orElseGet(() -> new WalletStatusResponse(WalletNextStep.CREATE_ACCOUNT));
     }
 }

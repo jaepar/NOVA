@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionItem;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
@@ -82,12 +83,7 @@ class WalletControllerTest {
     void walletStatus() throws Exception {
         Long userId = 1L;
         WalletStatusResponse response = new WalletStatusResponse(
-                false,
-                true,
-                null,
-                null,
-                2001L,
-                null
+                WalletNextStep.WALLET_TERMS
         );
 
         when(walletService.findWalletStatus(any())).thenReturn(response);
@@ -103,12 +99,12 @@ class WalletControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value(20000))
-                .andExpect(jsonPath("$.data.hasWallet").value(false))
-                .andExpect(jsonPath("$.data.canCreateWallet").value(true))
-                .andExpect(jsonPath("$.data.requiresTermsAgreement").doesNotExist())
+                .andExpect(jsonPath("$.data.nextStep").value("WALLET_TERMS"))
+                .andExpect(jsonPath("$.data.hasWallet").doesNotExist())
+                .andExpect(jsonPath("$.data.canCreateWallet").doesNotExist())
                 .andExpect(jsonPath("$.data.walletId").doesNotExist())
                 .andExpect(jsonPath("$.data.balance").doesNotExist())
-                .andExpect(jsonPath("$.data.linkedAccountId").value(2001))
+                .andExpect(jsonPath("$.data.linkedAccountId").doesNotExist())
                 .andExpect(jsonPath("$.data.reason").doesNotExist());
     }
 }

@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.BankingRepository;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
@@ -81,15 +82,11 @@ class WalletServiceTest {
     }
 
     @Test
-    @DisplayName("월렛이 있으면 월렛 홈 화면에 필요한 상태를 반환한다")
+    @DisplayName("월렛이 있으면 월렛 홈 이동 상태를 반환한다")
     void walletFound() {
         Long userId = 1L;
-        AccountRef accountRef = AccountRef.builder()
-                .accountId(2001L)
-                .build();
         Wallet wallet = Wallet.builder()
                 .walletId(10L)
-                .userAccount(accountRef)
                 .balance(12500)
                 .build();
 
@@ -97,16 +94,11 @@ class WalletServiceTest {
 
         WalletStatusResponse response = walletService.findWalletStatus(userId);
 
-        assertThat(response.hasWallet()).isTrue();
-        assertThat(response.canCreateWallet()).isFalse();
-        assertThat(response.walletId()).isEqualTo(10L);
-        assertThat(response.balance()).isEqualTo(12500);
-        assertThat(response.linkedAccountId()).isEqualTo(2001L);
-        assertThat(response.reason()).isNull();
+        assertThat(response.nextStep()).isEqualTo(WalletNextStep.WALLET_HOME);
     }
 
     @Test
-    @DisplayName("월렛이 없고 임시 제한 계좌가 있으면 월렛 생성 가능 상태를 반환한다")
+    @DisplayName("월렛이 없고 임시 제한 계좌가 있으면 월렛 약관 이동 상태를 반환한다")
     void canCreate() {
         Long userId = 1L;
         AccountRef accountRef = AccountRef.builder()
@@ -118,16 +110,11 @@ class WalletServiceTest {
 
         WalletStatusResponse response = walletService.findWalletStatus(userId);
 
-        assertThat(response.hasWallet()).isFalse();
-        assertThat(response.canCreateWallet()).isTrue();
-        assertThat(response.walletId()).isNull();
-        assertThat(response.balance()).isNull();
-        assertThat(response.linkedAccountId()).isEqualTo(2001L);
-        assertThat(response.reason()).isNull();
+        assertThat(response.nextStep()).isEqualTo(WalletNextStep.WALLET_TERMS);
     }
 
     @Test
-    @DisplayName("월렛과 임시 제한 계좌가 없으면 계좌 개설 필요 상태를 반환한다")
+    @DisplayName("월렛과 임시 제한 계좌가 없으면 계좌 개설 이동 상태를 반환한다")
     void accountRequired() {
         Long userId = 1L;
 
@@ -136,12 +123,7 @@ class WalletServiceTest {
 
         WalletStatusResponse response = walletService.findWalletStatus(userId);
 
-        assertThat(response.hasWallet()).isFalse();
-        assertThat(response.canCreateWallet()).isFalse();
-        assertThat(response.walletId()).isNull();
-        assertThat(response.balance()).isNull();
-        assertThat(response.linkedAccountId()).isNull();
-        assertThat(response.reason()).isEqualTo("ACCOUNT_REQUIRED");
+        assertThat(response.nextStep()).isEqualTo(WalletNextStep.CREATE_ACCOUNT);
     }
 
     private WalletTransaction walletTransaction(Long walletTransactionId, Wallet wallet, TransactionFlow transactionFlow, String counterparty, Integer amount, LocalDateTime createdAt) {
