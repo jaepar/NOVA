@@ -25,19 +25,8 @@ public class BaseResponse<T> implements ResponseStatus {
         this.data = data;
     }
 
-    public BaseResponse(T data, String message) {
-        this.success = true;
-        this.code = SUCCESS.getCode();
-        this.message = message;
-        this.data = data;
-    }
-
     public static <T> BaseResponse<T> ok(T data) {
         return new BaseResponse<>(data);
-    }
-
-    public static <T> BaseResponse<T> ok(T data, String message) {
-        return new BaseResponse<>(data, message);
     }
 
     @Override

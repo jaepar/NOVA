@@ -29,14 +29,14 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     /*
      * wallet
      */
-    WALLET_CHARGE_INVALID_REQUEST("WALLET_CHARGE-001", "월렛 충전 요청이 올바르지 않습니다."),
-    WALLET_INVALID_CHARGE_AMOUNT("WALLET_CHARGE-002", "월렛 충전 금액이 올바르지 않습니다."),
-    WALLET_NOT_FOUND("WALLET_CHARGE-003", "월렛을 찾을 수 없습니다."),
-    WALLET_ACCOUNT_NOT_FOUND("WALLET_CHARGE-004", "출금 계좌를 찾을 수 없습니다."),
-    WALLET_DEBIT_FAILED("WALLET_CHARGE-005", "계좌 차감이 실패했습니다."),
-    WALLET_CHARGE_IN_PROGRESS("WALLET_CHARGE-006", "월렛 충전 요청이 처리 중입니다."),
-    WALLET_IDEMPOTENCY_KEY_REQUIRED("WALLET_CHARGE-007", "Idempotency-Key가 필요합니다."),
-    WALLET_IDEMPOTENCY_KEY_CONFLICT("WALLET_CHARGE-008", "동일한 Idempotency-Key로 다른 요청을 처리할 수 없습니다."),
+    WALLET_INVALID_CHARGE_AMOUNT("WALLET_CHARGE-001", "월렛 충전 금액이 올바르지 않습니다."),
+    WALLET_NOT_FOUND("WALLET_CHARGE-002", "월렛을 찾을 수 없습니다."),
+    WALLET_ACCOUNT_NOT_FOUND("WALLET_CHARGE-003", "출금 계좌를 찾을 수 없습니다."),
+    WALLET_DEBIT_FAILED("WALLET_CHARGE-004", "계좌 차감이 실패했습니다."),
+    WALLET_CHARGE_IN_PROGRESS("WALLET_CHARGE-005", "월렛 충전 요청이 처리 중입니다."),
+    WALLET_IDEMPOTENCY_KEY_REQUIRED("WALLET_CHARGE-006", "Idempotency-Key가 필요합니다."),
+    WALLET_DEBIT_COMMUNICATION_FAILED("WALLET_CHARGE-007", "코어뱅킹 통신에 실패했습니다."),
+    WALLET_DEBIT_LOOKUP_RETRY_INTERRUPTED("WALLET_CHARGE-008", "결과 확인 재시도 대기 중 인터럽트가 발생했습니다."),
 
     /*
      * banking

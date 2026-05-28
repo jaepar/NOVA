@@ -9,7 +9,7 @@ import woorifisa.project.backend.global.response.BaseErrorResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BAD_REQUEST;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_IDEMPOTENCY_KEY_CONFLICT;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CHARGE_IN_PROGRESS;
 
 class GlobalControllerAdviceTest {
 
@@ -19,12 +19,12 @@ class GlobalControllerAdviceTest {
     @DisplayName("커스텀 예외는 공통 에러 응답으로 변환한다")
     void customException() {
         BaseErrorResponse response = globalControllerAdvice.handleCustomException(
-                new CustomException(WALLET_IDEMPOTENCY_KEY_CONFLICT)
+                new CustomException(WALLET_CHARGE_IN_PROGRESS)
         );
 
         assertThat(response.getSuccess()).isFalse();
-        assertThat(response.getCode()).isEqualTo("WALLET_CHARGE-008");
-        assertThat(response.getMessage()).isEqualTo(WALLET_IDEMPOTENCY_KEY_CONFLICT.getMessage());
+        assertThat(response.getCode()).isEqualTo(WALLET_CHARGE_IN_PROGRESS.getCode());
+        assertThat(response.getMessage()).isEqualTo(WALLET_CHARGE_IN_PROGRESS.getMessage());
     }
 
     @Test
