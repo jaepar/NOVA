@@ -26,26 +26,37 @@ import woorifisa.project.backend.global.entity.BaseEntity;
 @Table(name = "document")
 public class Document extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "document_id")
-    private Long documentId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "document_id")
+	private Long documentId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "document_type", nullable = false)
-    private DocumentType documentType;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "document_type", nullable = false)
+	private DocumentType documentType;
 
-    @Column(name = "file_url", columnDefinition = "TEXT", nullable = false)
-    private String fileUrl;
+	@Column(name = "file_url", columnDefinition = "TEXT", nullable = false)
+	private String fileUrl;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private DocumentStatus status;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "status", nullable = false)
+	private DocumentStatus status;
 
-    @Column(name = "missing", columnDefinition = "TEXT")
-    private String missing;
+	@Column(name = "missing", columnDefinition = "TEXT")
+	private String missing;
+
+	public void updateSubmission(String fileUrl, DocumentStatus status) {
+		this.fileUrl = fileUrl;
+		this.status = status;
+		this.missing = null;
+	}
+
+	public void changeStatus(String fileUrl, DocumentStatus status) {  // 추후 관리자 호출에 의해 사용
+		this.fileUrl = fileUrl;
+		this.status = status;
+	}
 }

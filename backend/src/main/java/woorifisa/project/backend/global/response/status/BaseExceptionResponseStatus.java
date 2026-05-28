@@ -32,6 +32,17 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다."),
 
     /**
+     * user
+     */
+    USER_NOT_FOUND("USER-001", "사용자 정보를 찾을 수 없습니다."),
+    INVALID_DOCUMENT_FILE("USER-002", "PDF 파일만 업로드할 수 있습니다."),
+    DOCUMENT_UPLOAD_FAILED("USER-003", "문서 업로드에 실패했습니다."),
+    INITIAL_DOCUMENT_BOTH_REQUIRED("USER-004", "최초 업로드 시 두 개의 문서를 모두 제출해야 합니다."),
+    REUPLOAD_ONLY_REJECTED_ALLOWED("USER-005", "보완 업로드는 반려된 문서만 제출할 수 있습니다."),
+    REUPLOAD_TARGET_REQUIRED("USER-006", "보완 업로드할 반려 문서 파일이 필요합니다."),
+    REUPLOAD_ALL_REJECTED_REQUIRED("USER-007", "두 문서가 모두 반려된 경우 두 개의 문서를 모두 제출해야 합니다."),
+
+    /**
      * banking
      */
     BANKING_ACCOUNT_NOT_FOUND("BANK-001", "계좌 정보를 찾을 수 없습니다."),

@@ -25,22 +25,23 @@
 
 ## Role Rules
 
-| Role | Meaning |
-|---|---|
+| Role     | Meaning    |
+|----------|------------|
 | `PUBLIC` | 비로그인 호출 가능 |
 | `USER` | 사용자 세션 필요 |
 
 권한 공통 규칙:
+
 - `USER` API는 현재 세션 `userId` 기준으로 본인 데이터만 조회/변경한다.
 
 ## Hold Policy
 
-| API ID | Status | Reason |
-|---|---|---|
-| `HOSPITAL-005` | 구현 예정 | 에이전트 호출 API 경로/입출력 계약 미확정 |
-| `BANK-014` | 구현 예정 | 해외 송금(Cloud) 프로세스 상세 정책 미확정 |
-| `BANK-015` | 구현 예정 | 해외 송금(On-Prem) 프로세스 상세 정책 미확정 |
-| `BANK-016` | 구현 예정 | 해외 송금 이상거래 탐지(On-Prem) 정책/룰셋 미확정 |
+| API ID         | Status | Reason                           |
+|----------------|--------|----------------------------------|
+| `HOSPITAL-005` | 구현 예정  | 에이전트 호출 API 경로/입출력 계약 미확정        |
+| `BANK-014`     | 구현 예정  | 해외 송금(Cloud) 프로세스 상세 정책 미확정      |
+| `BANK-015`     | 구현 예정  | 해외 송금(On-Prem) 프로세스 상세 정책 미확정    |
+| `BANK-016`     | 구현 예정  | 해외 송금 이상거래 탐지(On-Prem) 정책/룰셋 미확정 |
 
 ## API Catalog
 
@@ -55,13 +56,12 @@
 | `USER-001`     | 회원 정보 조회 | GET | `/users` | O | USER | |
 | `USER-002`     | 회원 정보 수정 | PATCH | `/users` | O | USER | |
 | `USER-003`     | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |
-| `USER-004`     | 외국인등록증 신청서 제출 | POST | `/users/alien-registration` | O | USER | |
+| `USER-004`     | 서류 제출 | POST   | `/users/documents` | O | USER | 최초 업로드는 2개 필수, 재업로드는 반려(REJECTED) 문서만 허용(2개 반려 시 2개 모두 필수) |
 | `USER-005`     | 여권 인증 | POST | `/users/verifications/passports` | O | USER | |
 | `USER-006`     | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
-| `USER-007`     | 거소확인 서류 제출 | POST | `/users/verifications/documents` | O | USER | |
-| `USER-008`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
-| `USER-009`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
-| `USER-010`     | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
+| `USER-007`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
+| `USER-008`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
+| `USER-009`      | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
 | `WALLET-001`   | 월렛 계좌내역 조회 | GET | `/wallet/transactions` | O | USER | |
 | `WALLET-002`   | 월렛 충전 | POST | `/wallet/charges` | O | USER | |
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST | `/wallet/charges/debit` | O | USER | |
