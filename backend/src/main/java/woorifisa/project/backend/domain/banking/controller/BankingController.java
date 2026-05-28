@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
-import woorifisa.project.backend.domain.banking.dto.request.RecipientLookupRequest;
+import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
-import woorifisa.project.backend.domain.banking.dto.response.RecipientLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
@@ -34,12 +34,13 @@ public class BankingController {
         return BaseResponse.ok(null);
     }
 
-    // 수취인 조회
-    @PostMapping("/recipients/lookup")
-    public BaseResponse<RecipientLookupResponse> lookupRecipient(
-            @Valid @RequestBody RecipientLookupRequest request
+    // 이체 사전 조회(사용자 계좌 + 수취인)
+    @PostMapping("/transfers/preview")
+    public BaseResponse<TransferPreviewResponse> previewTransfer(
+            @AuthenticationPrincipal SessionUserPrincipal principal,
+            @Valid @RequestBody TransferPreviewRequest request
     ) {
-        return BaseResponse.ok(bankingService.lookupRecipient(request));
+        return BaseResponse.ok(bankingService.previewTransfer(principal.userId(), request));
     }
 
     // 계좌 비밀번호 검증
