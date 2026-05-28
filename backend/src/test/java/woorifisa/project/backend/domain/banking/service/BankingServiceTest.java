@@ -71,6 +71,7 @@ class BankingServiceTest {
                 .customerId(1001L)
                 .accountId(2001L)
                 .accountNumber("1122261925001")
+                .balance(10000)
                 .hasAccount(true)
                 .build();
         when(valueOperations.get("banking:transfer:result:key-1")).thenReturn(null);
@@ -86,6 +87,7 @@ class BankingServiceTest {
         assertThat(coreRequest.withdrawAccountId()).isEqualTo(2001L);
         assertThat(coreRequest.depositAccountId()).isEqualTo(2002L);
         assertThat(coreRequest.externalRequestId()).isEqualTo(idempotencyKey);
+        assertThat(accountRef.getBalance()).isEqualTo(5000);
         verify(stringRedisTemplate).delete("banking:transfer:processing:key-1");
     }
 
@@ -130,6 +132,7 @@ class BankingServiceTest {
                 .customerId(1001L)
                 .accountId(2001L)
                 .accountNumber("1122261925001")
+                .balance(10000)
                 .hasAccount(true)
                 .build();
 
@@ -145,6 +148,7 @@ class BankingServiceTest {
 
         verify(coreBankingTransferClient, times(1)).transfer(any());
         verify(coreBankingTransferClient, times(2)).existsTransferRequest(idempotencyKey);
+        assertThat(accountRef.getBalance()).isEqualTo(5000);
     }
 
     @Test
@@ -159,6 +163,7 @@ class BankingServiceTest {
                 .customerId(1001L)
                 .accountId(2001L)
                 .accountNumber("1122261925001")
+                .balance(10000)
                 .hasAccount(true)
                 .build();
 
@@ -174,6 +179,7 @@ class BankingServiceTest {
 
         verify(coreBankingTransferClient, times(2)).transfer(any());
         verify(coreBankingTransferClient, times(2)).existsTransferRequest(idempotencyKey);
+        assertThat(accountRef.getBalance()).isEqualTo(5000);
     }
 
     @Test

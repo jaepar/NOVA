@@ -3,6 +3,7 @@ package woorifisa.project.backend.domain.banking.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
@@ -37,6 +38,7 @@ public class BankingService {
     private final StringRedisTemplate stringRedisTemplate;
     private final CoreBankingTransferClient coreBankingTransferClient;
 
+    @Transactional
     public void transfer(Long userId, String idempotencyKey, TransferRequest request) {
         // 프론트에서 전달받은 멱등키로 redis key 생성
         String resultKey = formatResultKey(idempotencyKey);
@@ -67,6 +69,8 @@ public class BankingService {
 
             // Core Banking 한테 계좌 이체 요청
             transferWithRecovery(coreBankingTransferRequest);
+            // 계좌 이체 시 cloud에 있는 db의 account_ref 잔액도 차감하여 데이터 동기화
+            accountRef.debit(request.transferAmount());
             stringRedisTemplate.opsForValue().set(resultKey, TRANSFER_DONE_VALUE, RESULT_TTL);
         } finally {
             stringRedisTemplate.delete(processingKey);
