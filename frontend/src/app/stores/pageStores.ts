@@ -3,11 +3,15 @@ import { create } from 'zustand'
 interface MainPageState {
   isMenuOpen: boolean
   isLoggedIn: boolean
+  isAuthChecked: boolean
+  userId: number | null
   hasAccount: boolean
   hasUnreadNotifications: boolean
   isCertificateSheetOpen: boolean
   setMenuOpen: (open: boolean) => void
   setLoggedIn: (loggedIn: boolean) => void
+  setAuthenticated: (userId: number) => void
+  clearAuth: () => void
   setHasAccount: (hasAccount: boolean) => void
   setHasUnreadNotifications: (hasUnread: boolean) => void
   setCertificateSheetOpen: (open: boolean) => void
@@ -17,15 +21,24 @@ interface MainPageState {
 export const useMainPageStore = create<MainPageState>((set) => ({
   isMenuOpen: false,
   isLoggedIn: false,
+  isAuthChecked: false,
+  userId: null,
   hasAccount: false,
   hasUnreadNotifications: true,
   isCertificateSheetOpen: false,
   setMenuOpen: (open) => set({ isMenuOpen: open }),
-  setLoggedIn: (loggedIn) => set({ isLoggedIn: loggedIn }),
+  setLoggedIn: (loggedIn) =>
+    set((state) => ({
+      isLoggedIn: loggedIn,
+      isAuthChecked: true,
+      userId: loggedIn ? state.userId : null,
+    })),
+  setAuthenticated: (userId) => set({ isLoggedIn: true, isAuthChecked: true, userId }),
+  clearAuth: () => set({ isLoggedIn: false, isAuthChecked: true, userId: null }),
   setHasAccount: (hasAccount) => set({ hasAccount }),
   setHasUnreadNotifications: (hasUnreadNotifications) => set({ hasUnreadNotifications }),
   setCertificateSheetOpen: (isCertificateSheetOpen) => set({ isCertificateSheetOpen }),
-  logout: () => set({ isLoggedIn: false, hasAccount: false }),
+  logout: () => set({ isLoggedIn: false, isAuthChecked: true, userId: null, hasAccount: false }),
 }))
 
 interface Step1PageState {

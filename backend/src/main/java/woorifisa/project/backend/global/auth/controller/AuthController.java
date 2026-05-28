@@ -1,6 +1,7 @@
 package woorifisa.project.backend.global.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,6 +41,15 @@ public class AuthController {
             HttpServletRequest httpRequest
     ) {
         return BaseResponse.ok(authService.login(request, httpRequest));
+    }
+
+    @PostMapping("/logout")
+    public BaseResponse<Void> logout(
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
+    ) {
+        authService.logout(httpRequest, httpResponse);
+        return BaseResponse.ok(null);
     }
 
     // 새로고침 시 세션 유효성 검증하는 API

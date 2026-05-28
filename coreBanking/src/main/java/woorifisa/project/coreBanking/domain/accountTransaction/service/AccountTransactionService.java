@@ -11,6 +11,7 @@ import static woorifisa.project.coreBanking.global.response.status.BaseResponseS
 import org.springframework.dao.DataIntegrityViolationException;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.account.repository.AccountRepository;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransferAccountRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionFlow;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
@@ -20,6 +21,10 @@ import static woorifisa.project.coreBanking.global.response.status.BaseResponseS
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INVALID_REQUEST;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_NOT_FOUND;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSFER_CONFLICT;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSFER_DEPOSIT_ACCOUNT_NOT_FOUND;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSFER_INSUFFICIENT_BALANCE;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSFER_WITHDRAW_ACCOUNT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -32,9 +37,10 @@ public class AccountTransactionService {
 
     @Transactional(readOnly = true)
     public AccountTransactionRequestLookupResponse findRequestResult(String externalRequestId) {
-        return accountTransactionRepository.findByExternalRequestId(externalRequestId)
-                .map(AccountTransactionRequestLookupResponse::from)
-                .orElseThrow(() -> new CustomException(ACCOUNT_TRANSACTION_NOT_FOUND));
+        if (!accountTransactionRepository.existsByExternalRequestId(externalRequestId)) {
+            throw new CustomException(ACCOUNT_TRANSACTION_NOT_FOUND);
+        }
+        return AccountTransactionRequestLookupResponse.of(externalRequestId);
     }
 
     @Transactional
@@ -84,6 +90,65 @@ public class AccountTransactionService {
 
     }
 
+    @Transactional
+    public void transfer(TransferAccountRequest request) {
+        // 거래 고유 식별자가 테이블에 이미 있다면(계좌 이체 로직을 이미 처리한 것) 성공 응답
+        if (accountTransactionRepository.existsByExternalRequestId(request.externalRequestId())) {
+            return;
+        }
+
+        // 출금 계좌를 찾는 로직 -> 해당 계좌에 Lock을 걸음
+        Account withdrawAccount = accountRepository.findByAccountId(request.withdrawAccountId())
+                .orElseThrow(() -> new CustomException(ACCOUNT_TRANSFER_WITHDRAW_ACCOUNT_NOT_FOUND));
+
+        // 출금 계좌 락 대기 중 다른 요청이 동일 externalRequestId를 먼저 처리했을 수 있어, 락 획득 직후 멱등성 재확인
+        if (accountTransactionRepository.existsByExternalRequestId(request.externalRequestId())) {
+            return;
+        }
+
+        // 입금 계좌 db 조회
+        Account depositAccount = accountRepository.findById(request.depositAccountId())
+                .orElseThrow(() -> new CustomException(ACCOUNT_TRANSFER_DEPOSIT_ACCOUNT_NOT_FOUND));
+
+        // 이체 금액이 출금 계좌 잔액보다 큰 경우
+        if (withdrawAccount.getBalance() < request.transferAmount()) {
+            throw new CustomException(ACCOUNT_TRANSFER_INSUFFICIENT_BALANCE);
+        }
+
+        try {
+            // 출금 계좌의 거래 내역 저장
+            accountTransactionRepository.save(AccountTransaction.builder()
+                    .account(withdrawAccount)
+                    .transactionFlow(TransactionFlow.WITHDRAWAL)
+                    .transactionType(TransactionType.ACCOUNT_TRANSFER)
+                    .counterParty(depositAccount.getCustomer().getName())
+                    .amount(request.transferAmount())
+                    .memo(request.withdrawMemo())
+                    .externalRequestId(request.externalRequestId())
+                    .build());
+
+            // 입금 계좌의 거래 내역 저장
+            accountTransactionRepository.save(AccountTransaction.builder()
+                    .account(depositAccount)
+                    .transactionFlow(TransactionFlow.DEPOSIT)
+                    .transactionType(TransactionType.ACCOUNT_TRANSFER)
+                    .counterParty(withdrawAccount.getCustomer().getName())
+                    .amount(request.transferAmount())
+                    .memo(request.depositMemo())
+                    .externalRequestId(request.externalRequestId())
+                    .build());
+        } catch (DataIntegrityViolationException exception) {
+            // 동시 요청으로 다른 트랜잭션이 먼저 같은 externalRequestId를 저장한 경우 발생하는 예외 처리
+            if (accountTransactionRepository.existsByExternalRequestId(request.externalRequestId())) {
+                return;
+            }
+            throw new CustomException(ACCOUNT_TRANSFER_CONFLICT);
+        }
+
+        withdrawAccount.debit(request.transferAmount());
+        depositAccount.credit(request.transferAmount());
+    }
+
     private boolean isInvalidRequest(DebitWalletAccountRequest request) {
         return request.walletChargeRequestId() == null
                 || request.walletChargeRequestId().isBlank()
@@ -92,5 +157,4 @@ public class AccountTransactionService {
                 || request.chargeAmount() == null
                 || request.chargeAmount() <= 0;
     }
-
 }
