@@ -10,9 +10,26 @@ public enum BaseResponseStatus implements ResponseStatus {
     INTERNAL_SERVER_ERROR("50000", "서버 내부 오류입니다."),
 
     /**
+     * account
+     */
+    ACCOUNT_DEBIT_INVALID_AMOUNT("ACCOUNT-001", "출금 금액이 올바르지 않습니다."),
+    ACCOUNT_DEBIT_INSUFFICIENT_BALANCE("ACCOUNT-002", "출금 계좌 잔액이 부족합니다."),
+    ACCOUNT_CREDIT_INVALID_AMOUNT("ACCOUNT-003", "입금 금액이 올바르지 않습니다."),
+    ACCOUNT_RECIPIENT_LOOKUP_INVALID_REQUEST("ACCOUNT-004", "수취인 조회 요청이 올바르지 않습니다."),
+    ACCOUNT_RECIPIENT_LOOKUP_ACCOUNT_NOT_FOUND("ACCOUNT-005", "수취 계좌를 찾을 수 없습니다."),
+    ACCOUNT_PASSWORD_VERIFY_ACCOUNT_NOT_FOUND("ACCOUNT-006", "계좌 정보를 찾을 수 없습니다."),
+    ACCOUNT_PASSWORD_VERIFY_NOT_MATCHED("ACCOUNT-007", "계좌 비밀번호가 일치하지 않습니다."),
+
+    /**
      * accountTransaction
      */
     ACCOUNT_TRANSACTION_NOT_FOUND("ACCOUNT_TRANSACTION-001", "거래 처리 내역을 찾을 수 없습니다."),
+    ACCOUNT_TRANSFER_INVALID_REQUEST("ACCOUNT_TRANSFER-001", "계좌 이체 요청이 올바르지 않습니다."),
+    ACCOUNT_TRANSFER_WITHDRAW_ACCOUNT_NOT_FOUND("ACCOUNT_TRANSFER-002", "출금 계좌를 찾을 수 없습니다."),
+    ACCOUNT_TRANSFER_DEPOSIT_ACCOUNT_NOT_FOUND("ACCOUNT_TRANSFER-003", "입금 계좌를 찾을 수 없습니다."),
+    ACCOUNT_TRANSFER_DEPOSIT_ACCOUNT_HOLDER_MISMATCH("ACCOUNT_TRANSFER-004", "입금 계좌 예금주 정보가 일치하지 않습니다."),
+    ACCOUNT_TRANSFER_INSUFFICIENT_BALANCE("ACCOUNT_TRANSFER-005", "출금 계좌 잔액이 부족합니다."),
+    ACCOUNT_TRANSFER_CONFLICT("ACCOUNT_TRANSFER-006", "계좌 이체 요청 처리 중 충돌이 발생했습니다."),
 
 
     /**
