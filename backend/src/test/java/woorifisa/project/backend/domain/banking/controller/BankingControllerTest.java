@@ -92,4 +92,30 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.code").value("20000"))
                 .andExpect(jsonPath("$.data.recipientName").value("백민정"));
     }
+
+    @Test
+    @DisplayName("계좌 비밀번호 검증 요청을 처리한다")
+    void verifyAccountPasswordSuccess() throws Exception {
+        Long userId = 1L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+        doNothing().when(bankingService).verifyAccountPassword(any(), any());
+
+        mockMvc.perform(post("/banking/password/verify")
+                        .with(authentication(authToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "accountId": 1,
+                                  "accountPassword": "1234"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data").doesNotExist());
+    }
 }

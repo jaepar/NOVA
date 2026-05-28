@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.RecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
@@ -184,5 +185,24 @@ class BankingServiceTest {
         var response = bankingService.lookupRecipient(new RecipientLookupRequest("busan", "1122261925003"));
 
         assertThat(response.recipientName()).isEqualTo("백민정");
+    }
+
+    @Test
+    @DisplayName("본인 계좌 비밀번호 검증 요청을 코어뱅킹으로 전달한다")
+    void verifyAccountPasswordSuccess() {
+        Long userId = 1L;
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(2001L)
+                .hasAccount(true)
+                .build();
+
+        when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        doNothing().when(coreBankingTransferClient).verifyAccountPassword(any());
+
+        bankingService.verifyAccountPassword(userId, new AccountPasswordVerifyRequest(2001L, "1234"));
+
+        verify(coreBankingTransferClient).verifyAccountPassword(any());
     }
 }
