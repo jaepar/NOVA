@@ -29,7 +29,7 @@ class RestCoreBankingWalletClientTest {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         RestCoreBankingWalletClient client = new RestCoreBankingWalletClient(builder, "http://core-banking.test");
-        CoreBankingWalletDebitRequest request = CoreBankingWalletDebitRequest.of(
+        CoreBankingWalletDebitRequest request = new CoreBankingWalletDebitRequest(
                 "WCR-20260514-0001",
                 1001L,
                 2001L,
@@ -57,7 +57,7 @@ class RestCoreBankingWalletClientTest {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         RestCoreBankingWalletClient client = new RestCoreBankingWalletClient(builder, "http://core-banking.test");
-        CoreBankingWalletDebitRequest request = CoreBankingWalletDebitRequest.of(
+        CoreBankingWalletDebitRequest request = new CoreBankingWalletDebitRequest(
                 "WCR-20260514-0001",
                 1001L,
                 2001L,
@@ -87,7 +87,7 @@ class RestCoreBankingWalletClientTest {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         RestCoreBankingWalletClient client = new RestCoreBankingWalletClient(builder, "http://core-banking.test");
-        CoreBankingWalletDebitRequest request = CoreBankingWalletDebitRequest.of(
+        CoreBankingWalletDebitRequest request = new CoreBankingWalletDebitRequest(
                 "WCR-20260514-0001",
                 1001L,
                 2001L,
