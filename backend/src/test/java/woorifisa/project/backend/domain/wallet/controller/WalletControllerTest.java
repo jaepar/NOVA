@@ -16,6 +16,7 @@ import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionIte
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
+import woorifisa.project.backend.domain.wallet.service.WalletStatusService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 
 import java.time.LocalDateTime;
@@ -37,6 +38,9 @@ class WalletControllerTest {
 
     @MockitoBean
     private WalletService walletService;
+
+    @MockitoBean
+    private WalletStatusService walletStatusService;
 
     @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
@@ -86,7 +90,7 @@ class WalletControllerTest {
                 WalletNextStep.WALLET_TERMS
         );
 
-        when(walletService.findWalletStatus(any())).thenReturn(response);
+        when(walletStatusService.findWalletStatus(any())).thenReturn(response);
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 new SessionUserPrincipal(userId),
                 null,
