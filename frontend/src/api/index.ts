@@ -26,3 +26,5 @@ export type {
   SessionCheckResponse,
   SignupRequest,
 } from './endpoints/auth';
+export { walletApi } from './endpoints/wallet';
+export type { WalletNextStep, WalletStatusResponse } from './endpoints/wallet';

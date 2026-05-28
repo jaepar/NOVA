@@ -11,7 +11,7 @@ export type WalletTransactionFilter = 'all' | 'charge' | 'use'
 
 export const walletBalance = 3220000
 
-export const walletTransactions: WalletTransaction[] = [
+const baseWalletTransactions: WalletTransaction[] = [
   {
     id: 'tx-20260110',
     month: '2026년 1월',
@@ -60,6 +60,46 @@ export const walletTransactions: WalletTransaction[] = [
     title: 'CU 역삼센터점',
     amount: -15000,
   },
+]
+
+const mockMerchants = [
+  '월렛 충전',
+  '스타벅스 강남역점',
+  '파리바게뜨 역삼점',
+  '신분당선 강남역',
+  'CU 역삼센터점',
+  'GS25 논현타워점',
+  '올리브영 역삼점',
+  '배달의민족',
+  '메가커피 선릉점',
+  '공항철도',
+]
+
+function createMockTransaction(index: number): WalletTransaction {
+  const day = 28 - (index % 26)
+  const monthNumber = index < 18 ? 1 : 12
+  const month = monthNumber === 1 ? '2026년 1월' : '2025년 12월'
+  const isCharge = index % 4 === 0
+  const amount = isCharge
+    ? [10000, 20000, 30000, 50000][index % 4]
+    : -[2600, 4800, 9800, 12500, 15000, 30000][index % 6]
+
+  return {
+    id: `tx-mock-${index}`,
+    month,
+    date: `${monthNumber}월 ${day}일`,
+    time: `${String(9 + (index % 12)).padStart(2, '0')}:${String((index * 7) % 60).padStart(
+      2,
+      '0',
+    )}:${String((index * 13) % 60).padStart(2, '0')}`,
+    title: mockMerchants[index % mockMerchants.length],
+    amount,
+  }
+}
+
+export const walletTransactions: WalletTransaction[] = [
+  ...baseWalletTransactions,
+  ...Array.from({ length: 30 }, (_, index) => createMockTransaction(index + 1)),
 ]
 
 export const walletTransactionFilterLabels: Record<WalletTransactionFilter, string> = {
