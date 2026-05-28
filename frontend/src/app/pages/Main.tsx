@@ -76,7 +76,7 @@ export function Main() {
           </section>
 
           <section>
-            <MainJobBanner />
+            <MainJobBanner onClick={() => navigate('/jobs')} />
           </section>
 
           <MainServiceGrid services={services} onServiceClick={handleServiceClick} />
