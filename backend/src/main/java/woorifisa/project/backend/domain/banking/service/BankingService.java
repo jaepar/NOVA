@@ -3,8 +3,10 @@ package woorifisa.project.backend.domain.banking.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.RecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.response.RecipientLookupResponse;
@@ -82,6 +84,15 @@ public class BankingService {
         }
 
         return RecipientLookupResponse.of(recipientName);
+    }
+
+    public void verifyAccountPassword(Long userId, AccountPasswordVerifyRequest request) {
+        bankingRepository.findByUser_UserIdAndAccountId(userId, request.accountId())
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
+        coreBankingTransferClient.verifyAccountPassword(
+                CoreBankingPasswordVerifyRequest.of(request.accountId(), request.accountPassword())
+        );
     }
 
     // ProcessingKey 생성 메서드
