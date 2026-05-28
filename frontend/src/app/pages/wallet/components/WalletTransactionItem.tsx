@@ -1,9 +1,9 @@
-import type { WalletTransaction } from "../data/walletMockData";
+import type { WalletTransaction } from '../data/walletMockData'
 
 interface WalletTransactionItemProps {
-  transaction: WalletTransaction;
-  showMonth: boolean;
-  isLast: boolean;
+  transaction: WalletTransaction
+  showMonth: boolean
+  isLast: boolean
 }
 
 export function WalletTransactionItem({
@@ -11,10 +11,10 @@ export function WalletTransactionItem({
   showMonth,
   isLast,
 }: WalletTransactionItemProps) {
-  const isDeposit = transaction.amount > 0;
-  const formattedAmount = `${isDeposit ? "+" : "-"}${Math.abs(
-    transaction.amount,
-  ).toLocaleString("ko-KR")}원`;
+  const isDeposit = transaction.amount > 0
+  const formattedAmount = `${isDeposit ? '+' : '-'}${Math.abs(transaction.amount).toLocaleString(
+    'ko-KR'
+  )}원`
 
   return (
     <div>
@@ -24,7 +24,7 @@ export function WalletTransactionItem({
         </h3>
       )}
 
-      <div className={`px-4 py-[17px] ${isLast ? "" : "border-b border-border"}`}>
+      <div className={`px-4 py-[17px] ${isLast ? '' : 'border-b border-border'}`}>
         <div className="mb-2 flex items-center gap-2 text-[15px] leading-6 text-muted-foreground">
           <span>{transaction.date}</span>
           <span>·</span>
@@ -37,7 +37,7 @@ export function WalletTransactionItem({
           </p>
           <p
             className={`shrink-0 text-[18px] font-semibold leading-7 ${
-              isDeposit ? "text-[#014ede]" : "text-foreground"
+              isDeposit ? 'text-[#014ede]' : 'text-foreground'
             }`}
           >
             {formattedAmount}
@@ -45,5 +45,5 @@ export function WalletTransactionItem({
         </div>
       </div>
     </div>
-  );
+  )
 }

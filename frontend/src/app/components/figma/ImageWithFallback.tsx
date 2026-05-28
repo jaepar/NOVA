@@ -12,7 +12,7 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
         didError: false,
         setDidError: (next) => set({ didError: next }),
       })),
-    [],
+    []
   )
   const didError = useStore(errorStore, (state) => state.didError)
   const setDidError = useStore(errorStore, (state) => state.setDidError)

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/design-system/AppButton";
@@ -11,15 +11,17 @@ import {
   walletTransactions,
   type WalletTransactionFilter,
 } from "./data/walletMockData";
-import { walletPrimaryButtonClass, walletSecondaryButtonClass } from "./styles";
+import { walletSecondaryButtonClass } from "./styles";
+import { useWalletStore } from "./stores/walletStore";
 
 const filterOptions: WalletTransactionFilter[] = ["all", "charge", "use"];
 
 export function WalletHome() {
   const navigate = useNavigate();
-  const [selectedFilter, setSelectedFilter] =
-    useState<WalletTransactionFilter>("all");
-  const [filterOpen, setFilterOpen] = useState(false);
+  const selectedFilter = useWalletStore((state) => state.selectedFilter);
+  const filterOpen = useWalletStore((state) => state.filterOpen);
+  const setSelectedFilter = useWalletStore((state) => state.setSelectedFilter);
+  const setFilterOpen = useWalletStore((state) => state.setFilterOpen);
 
   const filteredTransactions = useMemo(() => {
     if (selectedFilter === "charge") {

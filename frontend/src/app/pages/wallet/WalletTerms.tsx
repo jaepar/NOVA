@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/design-system/AppButton";
@@ -6,12 +6,20 @@ import { MobileLayout } from "../../components/layout/MobileLayout";
 import { WalletAgreementItem } from "./components/WalletAgreementItem";
 import { walletTerms } from "./data/walletTerms";
 import { walletPrimaryButtonClass } from "./styles";
+import { useWalletStore } from "./stores/walletStore";
 
 export function WalletTerms() {
   const navigate = useNavigate();
-  const [checkedTermIds, setCheckedTermIds] = useState<string[]>([]);
-  const [expandedTermId, setExpandedTermId] = useState("");
-  const [agreementsOpen, setAgreementsOpen] = useState(true);
+  const checkedTermIds = useWalletStore((state) => state.checkedTermIds);
+  const expandedTermId = useWalletStore((state) => state.expandedTermId);
+  const agreementsOpen = useWalletStore((state) => state.agreementsOpen);
+  const toggleTerm = useWalletStore((state) => state.toggleTerm);
+  const toggleAllRequiredTerms = useWalletStore(
+    (state) => state.toggleAllRequiredTerms,
+  );
+  const toggleExpandedTerm = useWalletStore((state) => state.toggleExpandedTerm);
+  const setAgreementsOpen = useWalletStore((state) => state.setAgreementsOpen);
+  const resetTermsFlow = useWalletStore((state) => state.resetTermsFlow);
 
   const requiredTermIds = useMemo(
     () => walletTerms.filter((term) => term.required).map((term) => term.id),
@@ -22,24 +30,13 @@ export function WalletTerms() {
     checkedTermIds.includes(id),
   );
 
-  const toggleTerm = (termId: string) => {
-    setCheckedTermIds((current) =>
-      current.includes(termId)
-        ? current.filter((id) => id !== termId)
-        : [...current, termId],
-    );
-  };
-
   const toggleAllTerms = () => {
-    setCheckedTermIds(allRequiredChecked ? [] : requiredTermIds);
-  };
-
-  const toggleExpandedTerm = (termId: string) => {
-    setExpandedTermId((current) => (current === termId ? "" : termId));
+    toggleAllRequiredTerms(requiredTermIds);
   };
 
   const handleAgree = () => {
     if (!allRequiredChecked) return;
+    resetTermsFlow();
     navigate("/wallet/home");
   };
 

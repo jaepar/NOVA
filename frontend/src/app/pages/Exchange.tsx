@@ -1,5 +1,5 @@
-import { MobileLayout } from '../components/layout/MobileLayout';
-import { BottomNav } from '../components/layout/BottomNav';
+import { MobileLayout } from '../components/layout/MobileLayout'
+import { BottomNav } from '../components/layout/BottomNav'
 
 export function Exchange() {
   return (
@@ -14,6 +14,5 @@ export function Exchange() {
       </MobileLayout>
       <BottomNav />
     </>
-  );
+  )
 }
-

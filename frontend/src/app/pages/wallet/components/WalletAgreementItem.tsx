@@ -1,14 +1,14 @@
-import { Check, ChevronRight } from "lucide-react";
-import { AppButton } from "../../../components/design-system/AppButton";
-import type { WalletTerm } from "../data/walletTerms";
+import { Check, ChevronRight } from 'lucide-react'
+import { AppButton } from '../../../components/design-system/AppButton'
+import type { WalletTerm } from '../data/walletTerms'
 
 interface WalletAgreementItemProps {
-  term: WalletTerm;
-  checked: boolean;
-  expanded: boolean;
-  showDivider: boolean;
-  onToggleCheck: () => void;
-  onToggleExpanded: () => void;
+  term: WalletTerm
+  checked: boolean
+  expanded: boolean
+  showDivider: boolean
+  onToggleCheck: () => void
+  onToggleExpanded: () => void
 }
 
 export function WalletAgreementItem({
@@ -20,7 +20,7 @@ export function WalletAgreementItem({
   onToggleExpanded,
 }: WalletAgreementItemProps) {
   return (
-    <section className={showDivider ? "border-b border-border" : ""}>
+    <section className={showDivider ? 'border-b border-border' : ''}>
       <div className="flex min-h-[58px] items-center gap-2 px-3">
         <AppButton
           type="button"
@@ -54,7 +54,7 @@ export function WalletAgreementItem({
           </span>
           <ChevronRight
             className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
-              expanded ? "rotate-90" : ""
+              expanded ? 'rotate-90' : ''
             }`}
           />
         </AppButton>
@@ -70,5 +70,5 @@ export function WalletAgreementItem({
         </div>
       )}
     </section>
-  );
+  )
 }

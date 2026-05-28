@@ -1,9 +1,10 @@
 import { RefreshCcw } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/design-system/AppButton";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { walletPrimaryButtonClass, walletSecondaryButtonClass } from "./styles";
+import { useWalletStore } from "./stores/walletStore";
 
 const paymentBalance = 12500;
 const qrSize = 29;
@@ -87,7 +88,14 @@ function WalletQrCode({ seed }: { seed: number }) {
 
 export function WalletPayment() {
   const navigate = useNavigate();
-  const [qrSeed, setQrSeed] = useState(1);
+  const qrSeed = useWalletStore((state) => state.qrSeed);
+  const refreshQrSeed = useWalletStore((state) => state.refreshQrSeed);
+  const resetQrSeed = useWalletStore((state) => state.resetQrSeed);
+
+  const handleDone = () => {
+    resetQrSeed();
+    navigate("/wallet/home");
+  };
 
   return (
     <MobileLayout
@@ -96,7 +104,7 @@ export function WalletPayment() {
         <AppButton
           type="button"
           variant="unstyled"
-          onClick={() => navigate("/wallet/home")}
+          onClick={handleDone}
           className={walletPrimaryButtonClass}
         >
           완료
@@ -135,7 +143,7 @@ export function WalletPayment() {
           <AppButton
             type="button"
             variant="unstyled"
-            onClick={() => setQrSeed((seed) => seed + 1)}
+            onClick={refreshQrSeed}
             className={`mt-6 gap-3 ${walletSecondaryButtonClass}`}
           >
             <RefreshCcw className="h-5 w-5" strokeWidth={2.2} />

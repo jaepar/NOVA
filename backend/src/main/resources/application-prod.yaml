@@ -2,6 +2,8 @@ server:
   port: 9000
   servlet:
     context-path: /
+    session:
+      timeout: 30m
 
 spring:
   datasource:
@@ -23,6 +25,26 @@ spring:
     compose:
       enabled: false
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:true}
+
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT:465}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+
 logging:
   level:
     root: info
@@ -35,3 +57,10 @@ app:
     base-url: ${ONPREM_GATEWAY_BASE_URL}
   ai:
     base-url: ${AI_BASE_URL}
+
+cloud:
+  aws:
+    s3:
+      region: ap-northeast-2
+      bucket: ${AWS_S3_BUCKET:nova-bank-bucket}
+      base-url: ${AWS_S3_BASE_URL:https://nova-bank-bucket.s3.ap-northeast-2.amazonaws.com}
