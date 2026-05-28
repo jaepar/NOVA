@@ -2,6 +2,7 @@ package woorifisa.project.backend.domain.wallet.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -12,6 +13,7 @@ import woorifisa.project.backend.global.exception.CustomException;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INSUFFICIENT_BALANCE;
 
 @Component
 public class RestCoreBankingWalletClient implements CoreBankingWalletClient {
@@ -33,6 +35,7 @@ public class RestCoreBankingWalletClient implements CoreBankingWalletClient {
                     .uri("/account-transactions/wallet")
                     .body(request)
                     .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {})
                     .body(new ParameterizedTypeReference<>() {
                     });
 
@@ -40,11 +43,17 @@ public class RestCoreBankingWalletClient implements CoreBankingWalletClient {
                 throw new CustomException(WALLET_DEBIT_COMMUNICATION_FAILED);
             }
             if (!response.success()) {
-                throw new CustomException(WALLET_DEBIT_FAILED);
+                throw new CustomException(isInsufficientBalance(response.code())
+                        ? WALLET_INSUFFICIENT_BALANCE
+                        : WALLET_DEBIT_FAILED);
             }
         } catch (RestClientException exception) {
             throw new CustomException(WALLET_DEBIT_COMMUNICATION_FAILED);
         }
+    }
+
+    private boolean isInsufficientBalance(String code) {
+        return "WALLET_ACCOUNT_DEBIT-003".equals(code);
     }
 
     @Override
