@@ -1,16 +1,16 @@
-package woorifisa.project.backend.domain.wallet.dto.request;
+package woorifisa.project.backend.domain.wallet.dto.corebanking.request;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DebitWalletAccountRequestTest {
+class CoreBankingWalletDebitRequestTest {
 
     @Test
     @DisplayName("CoreBanking 계좌 차감 요청 필드를 보관한다")
     void success() {
-        DebitWalletAccountRequest request = DebitWalletAccountRequest.of(
+        CoreBankingWalletDebitRequest request = CoreBankingWalletDebitRequest.of(
                 "WCR-20260514-0001",
                 1001L,
                 2001L,

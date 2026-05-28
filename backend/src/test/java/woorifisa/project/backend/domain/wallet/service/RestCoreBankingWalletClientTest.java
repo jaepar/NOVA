@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.wallet.client;
+package woorifisa.project.backend.domain.wallet.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -6,9 +6,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
-import woorifisa.project.backend.domain.wallet.dto.request.DebitWalletAccountRequest;
-import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitLookupResponse;
-import woorifisa.project.backend.domain.wallet.dto.response.WalletDebitResponse;
+import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
+import woorifisa.project.backend.global.exception.CustomException;
 
 import java.net.SocketTimeoutException;
 
@@ -20,16 +19,17 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
 
-class CoreBankingWalletClientTest {
+class RestCoreBankingWalletClientTest {
 
     @Test
     @DisplayName("CoreBanking 월렛 계좌 차감 API를 호출한다")
     void debit() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-        CoreBankingWalletClient client = new CoreBankingWalletClient(builder, "http://core-banking.test");
-        DebitWalletAccountRequest request = DebitWalletAccountRequest.of(
+        RestCoreBankingWalletClient client = new RestCoreBankingWalletClient(builder, "http://core-banking.test");
+        CoreBankingWalletDebitRequest request = CoreBankingWalletDebitRequest.of(
                 "WCR-20260514-0001",
                 1001L,
                 2001L,
@@ -46,11 +46,38 @@ class CoreBankingWalletClientTest {
                         }
                         """, MediaType.APPLICATION_JSON));
 
-        WalletDebitResponse response = client.debitWalletAccount(request);
+        client.debitWalletAccount(request);
 
-        assertThat(response.success()).isTrue();
-        assertThat(response.code()).isEqualTo("20000");
-        assertThat(response.message()).isEqualTo("OK");
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("CoreBanking 월렛 계좌 차감 실패 응답이면 도메인 예외를 던진다")
+    void debitFailed() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        RestCoreBankingWalletClient client = new RestCoreBankingWalletClient(builder, "http://core-banking.test");
+        CoreBankingWalletDebitRequest request = CoreBankingWalletDebitRequest.of(
+                "WCR-20260514-0001",
+                1001L,
+                2001L,
+                10000
+        );
+
+        server.expect(requestTo("http://core-banking.test/account-transactions/wallet"))
+                .andExpect(method(POST))
+                .andRespond(withSuccess("""
+                        {
+                          "success": false,
+                          "code": "40000",
+                          "message": "FAIL"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.debitWalletAccount(request))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_DEBIT_FAILED));
+
         server.verify();
     }
 
@@ -59,8 +86,8 @@ class CoreBankingWalletClientTest {
     void timeout() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-        CoreBankingWalletClient client = new CoreBankingWalletClient(builder, "http://core-banking.test");
-        DebitWalletAccountRequest request = DebitWalletAccountRequest.of(
+        RestCoreBankingWalletClient client = new RestCoreBankingWalletClient(builder, "http://core-banking.test");
+        CoreBankingWalletDebitRequest request = CoreBankingWalletDebitRequest.of(
                 "WCR-20260514-0001",
                 1001L,
                 2001L,
@@ -78,11 +105,11 @@ class CoreBankingWalletClientTest {
     }
 
     @Test
-    @DisplayName("CoreBanking 차감 요청 결과 조회 API를 호출한다")
+    @DisplayName("CoreBanking 차감 요청 결과 조회가 성공하면 true를 반환한다")
     void lookup() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-        CoreBankingWalletClient client = new CoreBankingWalletClient(builder, "http://core-banking.test");
+        RestCoreBankingWalletClient client = new RestCoreBankingWalletClient(builder, "http://core-banking.test");
 
         server.expect(requestTo("http://core-banking.test/account-transactions/requests/WCR-20260514-0001"))
                 .andExpect(method(GET))
@@ -97,11 +124,8 @@ class CoreBankingWalletClientTest {
                         }
                         """, MediaType.APPLICATION_JSON));
 
-        WalletDebitLookupResponse response = client.findWalletDebitResult("WCR-20260514-0001");
+        assertThat(client.existsWalletDebitRequest("WCR-20260514-0001")).isTrue();
 
-        assertThat(response.success()).isTrue();
-        assertThat(response.code()).isEqualTo("20000");
-        assertThat(response.data().externalRequestId()).isEqualTo("WCR-20260514-0001");
         server.verify();
     }
 }
