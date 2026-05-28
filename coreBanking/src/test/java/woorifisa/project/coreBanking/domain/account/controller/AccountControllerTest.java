@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import woorifisa.project.coreBanking.domain.account.dto.request.RecipientLookupRequest;
+import woorifisa.project.coreBanking.domain.account.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.coreBanking.domain.account.dto.response.RecipientLookupResponse;
 import woorifisa.project.coreBanking.domain.account.service.AccountService;
 import woorifisa.project.coreBanking.global.exception.handler.GlobalControllerAdvice;
@@ -46,5 +47,24 @@ class AccountControllerTest {
                 .andExpect(jsonPath("$.data.recipientName").value("백민정"));
 
         verify(accountService).lookupRecipient(any(RecipientLookupRequest.class));
+    }
+
+    @Test
+    @DisplayName("계좌 비밀번호 검증 요청을 서비스로 전달한다")
+    void verifyAccountPasswordSuccess() throws Exception {
+        mockMvc.perform(post("/accounts/password/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "accountId": 1,
+                                  "accountPassword": "1234"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data").doesNotExist());
+
+        verify(accountService).verifyAccountPassword(any(AccountPasswordVerifyRequest.class));
     }
 }
