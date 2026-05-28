@@ -34,10 +34,12 @@ public class UserService {
 
 		boolean hasUploadHistory = documentRepository.existsByUser(user);  // 서류를 제출한 사용자인지 확인
 		if (!hasUploadHistory) {
+			// 문서(외국인 등록증 신청서, 거소 확인서)를 처음 등록하는 경우
 			uploadInitialDocuments(user, residenceVerificationPdf, alienRegistrationApplicationPdf);
 			return;
 		}
 
+		// 문서를 보완해야하는 경우(다시 제출하는 경우)
 		uploadCorrectionDocuments(user, residenceVerificationPdf, alienRegistrationApplicationPdf);
 	}
 
@@ -45,15 +47,15 @@ public class UserService {
 		MultipartFile alienRegistrationApplicationPdf) {
 		// 최초 업로드
 		if (!isUploadedFile(residenceVerificationPdf) || !isUploadedFile(alienRegistrationApplicationPdf)) {
-			// 두 서류 모두 누락됐다면
+			// 두 서류 중 하나라도 누락됐다면
 			throw new CustomException(INITIAL_DOCUMENT_BOTH_REQUIRED);
 		}
 
 		// 대기 상태로 저장
 		saveDocuments(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT, residenceVerificationPdf,
-			DocumentStatus.PENDING);
+			DocumentStatus.PENDING);	// 거소 확인 서류
 		saveDocuments(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT, alienRegistrationApplicationPdf,
-			DocumentStatus.PENDING);
+			DocumentStatus.PENDING);	// 외국인 등록증 신청서류
 	}
 
 	private void uploadCorrectionDocuments(User user, MultipartFile residenceVerificationPdf,
@@ -73,6 +75,7 @@ public class UserService {
 		}
 
 		if (hasResidenceUpload) {
+			// 보완해야 될 문서에 대해서 서류를 등록했는지 여부 검사
 			validateRejectedTarget(residenceRejected);
 			saveDocuments(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT, residenceVerificationPdf,
 				DocumentStatus.MODIFIED);
@@ -102,6 +105,7 @@ public class UserService {
 		validatePdfFile(file);
 		String fileUrl = userDocumentS3Uploader.upload(user.getUserId(), file, documentType, status);  // 업로드 주소
 
+		//  해당 유저가 이미 같은 종류의 Document를 가지고 있으면 가장 최근 Document를 가져오고, 없으면 새 Document 객체 생성
 		Document document = documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
 			.orElseGet(() -> Document.builder()
 				.user(user)
