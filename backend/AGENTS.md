@@ -118,7 +118,7 @@ flowchart TD
 - 금융 거래 확정 로직은 서비스 계층에서만 처리한다.
 - 금융 원장 상태와 비금융 상태 모두 AI(FastAPI) 및 클라우드 애플리케이션 계층에서 직접 수정하지 않는다.
 - 금융 원장 상태 변경은 클라우드 banking 도메인에서 온프레미스 Core Banking Gateway/Server로 요청을 전달한 뒤, 온프레미스 Core Banking에서만 최종 반영한다.
-- 수취인 조회는 클라우드 `banking` API에서 처리하되, 예금주명 검증 데이터는 coreBanking 연동 API 응답을 기준으로 한다.
+- 이체 사전 조회는 클라우드 `banking` API에서 처리하되, 내 계좌 정보는 `account_ref` 조회를 사용하고 수취인 예금주명은 coreBanking 연동 API 응답을 기준으로 한다.
 - 계좌 비밀번호 검증은 클라우드 `banking` API에서 본인 계좌 소유 확인 후 coreBanking 검증 API 응답을 기준으로 처리한다.
 
 ## Logging Policy

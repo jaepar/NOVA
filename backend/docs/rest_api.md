@@ -85,7 +85,7 @@
 | `BANK-005`     | 거래 내역 메모 수정(Cloud) | PATCH | `/banking/{accountId}/transactions/{transactionId}/memo` | O | USER | |
 | `BANK-006`     | 홈 계좌 정보 조회(Cloud) | GET | `/banking/home` | O | USER | |
 | `BANK-007`     | 해외 송금(Cloud) | TBD | `TBD` | O | USER | 프로세스 정의 중 (추후 작성) |
-| `BANK-008`     | 수취인 조회(Cloud) | POST | `/banking/recipients/lookup` | O | USER | coreBanking 수취인 조회 연동 |
+| `BANK-008`     | 이체 사전 조회(Cloud) | POST | `/banking/transfers/preview` | O | USER | 내 계좌(account_ref) + 수취인(coreBanking) 통합 조회 |
 
 ## Naming and Contract Notes
 
@@ -103,17 +103,35 @@
 - 요청/응답 계약 변경
 - 보류(`Hold`) 상태 변경
 
-## BANK-008 수취인 조회(Cloud)
+## BANK-008 이체 사전 조회(Cloud)
 
 - Method: `POST`
-- Path: `/banking/recipients/lookup`
+- Path: `/banking/transfers/preview`
 - Auth: `O` (USER 세션 필수)
 
 Request
 ```json
 {
-  "bankCode": "BUSAN",
-  "accountNumber": "1122261925003"
+  "recipientBankCode": "BUSAN",
+  "recipientAccountNumber": "1122261925003"
+}
+```
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "myAccount": {
+      "accountName": "우리SUPER주거래통장",
+      "accountNumber": "1002867390781"
+    },
+    "recipient": {
+      "recipientName": "백민정"
+    }
+  }
 }
 ```
 
@@ -137,17 +155,5 @@ Response (200)
   "success": true,
   "code": 20000,
   "message": "요청에 성공했습니다."
-}
-```
-
-Response (200)
-```json
-{
-  "success": true,
-  "code": 20000,
-  "message": "요청에 성공했습니다.",
-  "data": {
-    "recipientName": "백민정"
-  }
 }
 ```
