@@ -79,7 +79,7 @@
 | `CS-003`       | 화상 상담 상태 변경 | PATCH | `/consultations/{cs_id}/status` | X | PUBLIC | 상담 내역 저장 여부 논의 |
 | `CS-004`       | 화상 상담 입장 | POST | `/consultations/{cs_id}/join` | O | USER | |
 | `BANK-001`     | 계좌 개설(Cloud) | POST | `/banking` | O | USER | |
-| `BANK-002`     | 계좌 비밀번호 검증(Cloud) | POST | `/banking/{accountId}/password/verify` | O | USER | |
+| `BANK-002`     | 계좌 비밀번호 검증(Cloud) | POST | `/banking/password/verify` | O | USER | backend -> coreBanking 검증 연동 |
 | `BANK-003`     | 계좌 이체(Cloud) | POST | `/banking/transfers` | O | USER | |
 | `BANK-004`     | 거래 내역 조회(Cloud) | GET | `/banking/{accountId}/transactions` | O | USER | |
 | `BANK-005`     | 거래 내역 메모 수정(Cloud) | PATCH | `/banking/{accountId}/transactions/{transactionId}/memo` | O | USER | |
@@ -114,6 +114,29 @@ Request
 {
   "bankCode": "BUSAN",
   "accountNumber": "1122261925003"
+}
+```
+
+## BANK-002 계좌 비밀번호 검증(Cloud)
+
+- Method: `POST`
+- Path: `/banking/password/verify`
+- Auth: `O` (USER 세션 필수)
+
+Request
+```json
+{
+  "accountId": 1,
+  "accountPassword": "1234"
+}
+```
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다."
 }
 ```
 
