@@ -66,8 +66,8 @@ class BankingControllerTest {
     }
 
     @Test
-    @DisplayName("수취인 조회 요청을 처리하고 수취인명을 반환한다")
-    void lookupRecipientSuccess() throws Exception {
+    @DisplayName("이체 사전 조회 요청을 처리하고 내 계좌/수취인 정보를 반환한다")
+    void previewTransferSuccess() throws Exception {
         Long userId = 1L;
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 new SessionUserPrincipal(userId),
@@ -75,22 +75,30 @@ class BankingControllerTest {
                 AuthorityUtils.NO_AUTHORITIES
         );
 
-        when(bankingService.lookupRecipient(any()))
-                .thenReturn(new woorifisa.project.backend.domain.banking.dto.response.RecipientLookupResponse("백민정"));
+        when(bankingService.previewTransfer(any(), any()))
+                .thenReturn(
+                        woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse.of(
+                                "우리SUPER주거래통장",
+                                "1002867390781",
+                                "백민정"
+                        )
+                );
 
-        mockMvc.perform(post("/banking/recipients/lookup")
+        mockMvc.perform(post("/banking/transfers/preview")
                         .with(authentication(authToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "bankCode": "BUSAN",
-                                  "accountNumber": "1122261925003"
+                                  "recipientBankCode": "BUSAN",
+                                  "recipientAccountNumber": "1122261925003"
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data.recipientName").value("백민정"));
+                .andExpect(jsonPath("$.data.myAccount.accountName").value("우리SUPER주거래통장"))
+                .andExpect(jsonPath("$.data.myAccount.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.recipient.recipientName").value("백민정"));
     }
 
     @Test

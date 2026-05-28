@@ -12,7 +12,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
-import woorifisa.project.backend.domain.banking.dto.request.RecipientLookupRequest;
+import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.BankingRepository;
@@ -177,14 +177,27 @@ class BankingServiceTest {
     }
 
     @Test
-    @DisplayName("수취인 조회 시 코어뱅킹 응답의 recipientName을 반환한다")
-    void lookupRecipientSuccess() {
+    @DisplayName("이체 사전 조회 시 내 계좌 정보와 수취인명을 함께 반환한다")
+    void previewTransferSuccess() {
+        Long userId = 1L;
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(2001L)
+                .accountName("우리SUPER주거래통장")
+                .accountNumber("1002867390781")
+                .hasAccount(true)
+                .build();
+        when(bankingRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+                .thenReturn(Optional.of(accountRef));
         when(coreBankingTransferClient.lookupRecipient(any()))
                 .thenReturn(new CoreBankingRecipientLookupResponse("백민정"));
 
-        var response = bankingService.lookupRecipient(new RecipientLookupRequest("busan", "1122261925003"));
+        var response = bankingService.previewTransfer(userId, new TransferPreviewRequest("BUSAN", "1122261925003"));
 
-        assertThat(response.recipientName()).isEqualTo("백민정");
+        assertThat(response.myAccount().accountName()).isEqualTo("우리SUPER주거래통장");
+        assertThat(response.myAccount().accountNumber()).isEqualTo("1002867390781");
+        assertThat(response.recipient().recipientName()).isEqualTo("백민정");
     }
 
     @Test
