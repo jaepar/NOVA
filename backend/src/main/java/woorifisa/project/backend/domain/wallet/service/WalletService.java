@@ -1,11 +1,11 @@
 package woorifisa.project.backend.domain.wallet.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
-import woorifisa.project.backend.domain.wallet.dto.WalletChargeIdempotencyResult;
+import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
@@ -14,31 +14,35 @@ import woorifisa.project.backend.domain.wallet.repository.WalletRepository;
 import woorifisa.project.backend.domain.wallet.repository.WalletTransactionRepository;
 import woorifisa.project.backend.global.exception.CustomException;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.Duration;
 import java.util.List;
-import java.util.UUID;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ACCOUNT_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CHARGE_IN_PROGRESS;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CHARGE_INVALID_REQUEST;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_IDEMPOTENCY_KEY_CONFLICT;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_IDEMPOTENCY_KEY_REQUIRED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INVALID_CHARGE_AMOUNT;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CHARGE_IN_PROGRESS;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_LOOKUP_RETRY_INTERRUPTED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_NOT_FOUND;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WalletService {
 
-    private static final DateTimeFormatter REQUEST_DATE_FORMAT = DateTimeFormatter.BASIC_ISO_DATE;
+    // processingKey: 동일 멱등키에 대한 중복 요청을 막는 락 역할 (진행 중 차단)
+    // resultKey: 이미 완료된 요청의 결과를 캐싱해 재요청 시 즉시 반환
+    private static final String CHARGE_PROCESSING_KEY = "wallet:charge:processing:%s";
+    private static final String CHARGE_RESULT_KEY = "wallet:charge:result:%s";
+    private static final String PROCESSING_VALUE = "1";
+    private static final String DONE_VALUE = "DONE";
+    private static final Duration PROCESSING_TTL = Duration.ofMinutes(5);
+    private static final Duration RESULT_TTL = Duration.ofMinutes(10);
+    private static final long DEBIT_LOOKUP_RETRY_DELAY_MILLIS = 1000L;
 
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
-    private final WalletAccountDebitService walletAccountDebitService;
     private final WalletChargePersistenceService walletChargePersistenceService;
-    private final WalletChargeIdempotencyService walletChargeIdempotencyService;
+    private final CoreBankingWalletClient coreBankingWalletClient;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Transactional(readOnly = true)
     public WalletTransactionsResponse findWalletTransactions(Long userId) {
@@ -50,151 +54,112 @@ public class WalletService {
     }
 
     public void chargeWallet(Long userId, String idempotencyKey, ChargeWalletRequest request) {
-        validateChargeRequest(userId, idempotencyKey, request);
-
-        // 충전에 필요한 wallet, 연결 계좌, 요청 식별자를 한 번에 묶어 이후 흐름에서 공유한다.
-        WalletChargeContext context = createChargeContext(userId, idempotencyKey, request);
-
-        // Redis 멱등성 상태를 먼저 잡아 같은 충전 요청이 중복 실행되지 않게 한다.
-        WalletChargeIdempotencyResult idempotencyResult = startChargeOrGetExisting(context);
-
-        // 이미 처리 중이거나 완료된 요청이면 여기서 예외 또는 성공 반환으로 끝낸다.
-        if (isExistingChargeHandled(idempotencyResult, context)) {
-            return;
-        }
-
-        // 새 요청만 Core Banking 차감과 지갑 DB 반영을 진행한다.
-        executeNewCharge(context);
-
-        // 충전 본처리는 끝났으므로 Redis 완료 기록 실패는 사용자 성공 응답을 막지 않는다.
-        markChargeCompletedBestEffort(context);
-    }
-
-    private WalletChargeContext createChargeContext(Long userId, String idempotencyKey, ChargeWalletRequest request) {
-        Wallet wallet = walletRepository.findByUser_UserId(userId)
-                .orElseThrow(() -> new CustomException(WALLET_NOT_FOUND));
-        AccountRef accountRef = wallet.getUserAccount();
-        if (accountRef == null) {
-            throw new CustomException(WALLET_ACCOUNT_NOT_FOUND);
-        }
-
-        return new WalletChargeContext(
-                userId,
-                idempotencyKey,
-                createWalletChargeRequestId(),
-                wallet,
-                accountRef,
-                request.chargeAmount()
-        );
-    }
-
-    private WalletChargeIdempotencyResult startChargeOrGetExisting(WalletChargeContext context) {
-        return walletChargeIdempotencyService.startOrGet(
-                context.userId(),
-                context.idempotencyKey(),
-                context.walletChargeRequestId(),
-                context.accountId(),
-                context.chargeAmount()
-        );
-    }
-
-    private boolean isExistingChargeHandled(WalletChargeIdempotencyResult idempotencyResult, WalletChargeContext context) {
-        if (idempotencyResult.isProcessing()) {
-            throw new CustomException(WALLET_CHARGE_IN_PROGRESS);
-        }
-        if (!idempotencyResult.isCompleted()) {
-            return false;
-        }
-        if (!idempotencyResult.matches(context.accountId(), context.chargeAmount())) {
-            throw new CustomException(WALLET_IDEMPOTENCY_KEY_CONFLICT);
-        }
-        return true;
-    }
-
-    private void executeNewCharge(WalletChargeContext context) {
-        try {
-            debitLinkedAccount(context);
-            persistWalletCharge(context);
-        } catch (RuntimeException exception) {
-            // 충전이 실패했으면 PROCESSING 키를 지워 같은 요청을 재시도할 수 있게 한다.
-            clearIdempotencyAfterFailedCharge(context);
-            throw exception;
-        }
-    }
-
-    private void debitLinkedAccount(WalletChargeContext context) {
-        walletAccountDebitService.debit(
-                context.walletChargeRequestId(),
-                context.customerId(),
-                context.accountId(),
-                context.chargeAmount()
-        );
-    }
-
-    private void persistWalletCharge(WalletChargeContext context) {
-        walletChargePersistenceService.completeWalletCharge(context.walletId(), context.chargeAmount());
-    }
-
-    private void clearIdempotencyAfterFailedCharge(WalletChargeContext context) {
-        try {
-            walletChargeIdempotencyService.fail(context.userId(), context.idempotencyKey());
-        } catch (RuntimeException failException) {
-            log.warn("Failed to clear wallet charge idempotency after charge failure. idempotencyKey={}",
-                    context.idempotencyKey(), failException);
-        }
-    }
-
-    private void markChargeCompletedBestEffort(WalletChargeContext context) {
-        try {
-            // The charge is already committed, so Redis completion is recorded on a best-effort basis.
-            walletChargeIdempotencyService.complete(
-                    context.userId(),
-                    context.idempotencyKey(),
-                    context.walletChargeRequestId(),
-                    context.accountId(),
-                    context.chargeAmount()
-            );
-        } catch (RuntimeException exception) {
-            log.warn("Failed to mark wallet charge idempotency as completed. walletChargeRequestId={}",
-                    context.walletChargeRequestId(), exception);
-        }
-    }
-
-    private void validateChargeRequest(Long userId, String idempotencyKey, ChargeWalletRequest request) {
+        // 헤더 누락 시 Spring 기본 400 대신 커스텀 응답을 내려주기 위해 서비스에서 검증
         if (idempotencyKey == null || idempotencyKey.isBlank()) {
             throw new CustomException(WALLET_IDEMPOTENCY_KEY_REQUIRED);
         }
-        if (userId == null || request == null) {
-            throw new CustomException(WALLET_CHARGE_INVALID_REQUEST);
+
+        // 이미 완료된 멱등키면 결과 캐시가 있으므로 재처리 없이 즉시 반환
+        String resultKey = formatResultKey(idempotencyKey);
+        if (stringRedisTemplate.opsForValue().get(resultKey) != null) {
+            return;
         }
-        if (request.chargeAmount() == null || request.chargeAmount() <= 0) {
-            throw new CustomException(WALLET_INVALID_CHARGE_AMOUNT);
+
+        // processingKey가 없을 때(acquired=true)만 락 획득 → 진행 중 중복 요청 차단
+        String processingKey = formatProcessingKey(idempotencyKey);
+        Boolean acquired = stringRedisTemplate.opsForValue()
+                .setIfAbsent(processingKey, PROCESSING_VALUE, PROCESSING_TTL);
+        if (!Boolean.TRUE.equals(acquired)) {
+            throw new CustomException(WALLET_CHARGE_IN_PROGRESS);
+        }
+
+        try {
+            Wallet wallet = walletRepository.findByUser_UserId(userId)
+                    .orElseThrow(() -> new CustomException(WALLET_NOT_FOUND));
+            AccountRef accountRef = wallet.getUserAccount();
+            if (accountRef == null || !accountRef.getHasAccount()) {
+                throw new CustomException(WALLET_ACCOUNT_NOT_FOUND);
+            }
+
+            // 멱등키를 external_request_id로 그대로 사용해 코어뱅킹 측 중복 처리도 방지
+            CoreBankingWalletDebitRequest debitRequest = new CoreBankingWalletDebitRequest(
+                    idempotencyKey,
+                    accountRef.getCustomerId(),
+                    accountRef.getAccountId(),
+                    request.chargeAmount()
+            );
+
+            // 코어뱅킹 차감 요청 (통신 장애 시 결과 조회로 복구 시도)
+            debitWithRecovery(idempotencyKey, debitRequest);
+            // 차감 확정 후 월렛 잔액·거래내역 반영 (별도 트랜잭션)
+            walletChargePersistenceService.completeWalletCharge(wallet.getWalletId(), request.chargeAmount());
+            // 완료 마킹 - 이후 동일 멱등키 재요청 시 즉시 반환하기 위해 결과 캐시 저장
+            stringRedisTemplate.opsForValue().set(resultKey, DONE_VALUE, RESULT_TTL);
+        } finally {
+            // 성공·실패 관계없이 processingKey 해제해서 다음 요청이 락 획득 가능하도록
+            stringRedisTemplate.delete(processingKey);
         }
     }
 
-    private String createWalletChargeRequestId() {
-        return "WCR-" + LocalDate.now().format(REQUEST_DATE_FORMAT) + "-" + UUID.randomUUID();
+    private String formatProcessingKey(String idempotencyKey) {
+        return String.format(CHARGE_PROCESSING_KEY, idempotencyKey);
     }
 
-    private record WalletChargeContext(
-            Long userId,
-            String idempotencyKey,
-            String walletChargeRequestId,
-            Wallet wallet,
-            AccountRef accountRef,
-            Integer chargeAmount
-    ) {
+    private String formatResultKey(String idempotencyKey) {
+        return String.format(CHARGE_RESULT_KEY, idempotencyKey);
+    }
 
-        private Long walletId() {
-            return wallet.getWalletId();
+    // 코어뱅킹 차감 요청 + 장애 허용 (통신 장애 시 결과 조회 + 전체 2차 재시도)
+    private void debitWithRecovery(String idempotencyKey, CoreBankingWalletDebitRequest request) {
+        // 1차 시도
+        if (attemptDebitOrRecover(idempotencyKey, request)) {
+            return;
         }
-
-        private Long customerId() {
-            return accountRef.getCustomerId();
+        // 2차 시도
+        if (attemptDebitOrRecover(idempotencyKey, request)) {
+            return;
         }
+        throw new CustomException(WALLET_DEBIT_COMMUNICATION_FAILED);
+    }
 
-        private Long accountId() {
-            return accountRef.getAccountId();
+    // 차감 요청 시도 → 통신 장애면 결과 조회로 처리 여부 확인, 그 외 실패는 그대로 예외 전파
+    private boolean attemptDebitOrRecover(String idempotencyKey, CoreBankingWalletDebitRequest request) {
+        try {
+            coreBankingWalletClient.debitWalletAccount(request);
+            return true;
+        } catch (CustomException exception) {
+            if (!isDebitCommunicationFailure(exception)) {
+                // 잔액 부족 등 정상 실패는 그대로 프론트에 응답
+                throw exception;
+            }
+            // 통신 장애면 external_request_id 조회로 처리 완료 여부 확인
+            return isDebitRequestExistsWithRetry(idempotencyKey);
+        }
+    }
+
+    // 차감 시 발생하는 에러가 네트워크(통신) 에러인지 확인
+    private boolean isDebitCommunicationFailure(CustomException exception) {
+        return exception.getExceptionStatus() != null
+                && WALLET_DEBIT_COMMUNICATION_FAILED.getCode()
+                .equals(exception.getExceptionStatus().getCode());
+    }
+
+    // 차감 처리 결과 확인 API 요청 (1초 대기 후 재조회)
+    private boolean isDebitRequestExistsWithRetry(String idempotencyKey) {
+        if (coreBankingWalletClient.existsWalletDebitRequest(idempotencyKey)) {
+            return true;
+        }
+        waitBeforeDebitLookupRetry();
+        return coreBankingWalletClient.existsWalletDebitRequest(idempotencyKey);
+    }
+
+    // 차감 처리 결과 재확인을 위한 대기
+    private void waitBeforeDebitLookupRetry() {
+        try {
+            Thread.sleep(DEBIT_LOOKUP_RETRY_DELAY_MILLIS);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new CustomException(WALLET_DEBIT_LOOKUP_RETRY_INTERRUPTED);
         }
     }
 }
