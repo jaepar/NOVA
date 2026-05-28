@@ -7,7 +7,11 @@ interface CameraCapturePageProps {
   bottomContent?: ReactNode
   onClose?: () => void
   closePath?: string
+  headerBackgroundColor?: string
+  headerTextColor?: string
   bottomBackgroundColor?: string
+  contentBackgroundColor?: string
+  contentTextColor?: string
 }
 
 export function CameraCapturePage({
@@ -16,7 +20,11 @@ export function CameraCapturePage({
   bottomContent,
   onClose,
   closePath,
+  headerBackgroundColor = '#000000',
+  headerTextColor = '#ffffff',
   bottomBackgroundColor = '#000000',
+  contentBackgroundColor = '#000000',
+  contentTextColor = '#ffffff',
 }: CameraCapturePageProps) {
   return (
     <MobileLayout
@@ -24,12 +32,17 @@ export function CameraCapturePage({
       headerType="close"
       onClose={onClose}
       closePath={closePath}
-      headerBackgroundColor="#000000"
-      headerTextColor="#ffffff"
+      headerBackgroundColor={headerBackgroundColor}
+      headerTextColor={headerTextColor}
       bottomBackgroundColor={bottomBackgroundColor}
       bottomContent={bottomContent}
     >
-      <div className="min-h-full -mx-5 -mb-32 px-5 pb-32 bg-black text-white">{children}</div>
+      <div
+        className="min-h-full -mx-5 -mb-32 px-5 pb-32"
+        style={{ backgroundColor: contentBackgroundColor, color: contentTextColor }}
+      >
+        {children}
+      </div>
     </MobileLayout>
   )
 }

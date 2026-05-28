@@ -28,3 +28,4 @@ export type {
   SignupRequest,
 } from './endpoints/auth';
 export type { LivenessSessionResponse } from './endpoints/certificate';
+export type { PassportOcrResult, PassportOcrField, PassportOcrRawResponse } from './endpoints/certificate';
