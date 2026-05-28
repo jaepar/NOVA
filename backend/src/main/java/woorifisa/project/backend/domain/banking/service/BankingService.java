@@ -7,9 +7,9 @@ import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBank
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
-import woorifisa.project.backend.domain.banking.dto.request.RecipientLookupRequest;
-import woorifisa.project.backend.domain.banking.dto.response.RecipientLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.BankingRepository;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -73,17 +73,23 @@ public class BankingService {
         }
     }
 
-    public RecipientLookupResponse lookupRecipient(RecipientLookupRequest request) {
-        // 코어 뱅킹으로 요청
+    public TransferPreviewResponse previewTransfer(Long userId, TransferPreviewRequest request) {
+        AccountRef myAccount = bankingRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId)
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
         String recipientName = coreBankingTransferClient.lookupRecipient(
-                        CoreBankingRecipientLookupRequest.of(request.bankCode(), request.accountNumber()))
+                        CoreBankingRecipientLookupRequest.of(request.recipientBankCode(), request.recipientAccountNumber()))
                 .recipientName();
 
         if (recipientName == null || recipientName.isBlank()) {
             throw new CustomException(BANKING_RECIPIENT_NOT_FOUND);
         }
 
-        return RecipientLookupResponse.of(recipientName);
+        return TransferPreviewResponse.of(
+                myAccount.getAccountName(),
+                myAccount.getAccountNumber(),
+                recipientName
+        );
     }
 
     public void verifyAccountPassword(Long userId, AccountPasswordVerifyRequest request) {
