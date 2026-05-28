@@ -2,6 +2,7 @@ package woorifisa.project.backend.domain.banking.service;
 
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
 
 public interface CoreBankingTransferClient {
@@ -14,4 +15,7 @@ public interface CoreBankingTransferClient {
 
     // 수취인 조회
     CoreBankingRecipientLookupResponse lookupRecipient(CoreBankingRecipientLookupRequest request);
+
+    // 계좌 비밀번호 검증
+    void verifyAccountPassword(CoreBankingPasswordVerifyRequest request);
 }
