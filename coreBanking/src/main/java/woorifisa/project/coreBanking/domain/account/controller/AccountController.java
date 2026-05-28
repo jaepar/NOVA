@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import woorifisa.project.coreBanking.domain.account.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.coreBanking.domain.account.dto.request.RecipientLookupRequest;
 import woorifisa.project.coreBanking.domain.account.dto.response.RecipientLookupResponse;
 import woorifisa.project.coreBanking.domain.account.service.AccountService;
@@ -24,5 +25,14 @@ public class AccountController {
             @Valid @RequestBody RecipientLookupRequest request
     ) {
         return BaseResponse.ok(accountService.lookupRecipient(request));
+    }
+
+    // 계좌 비밀번호 검증
+    @PostMapping("/password/verify")
+    public BaseResponse<Void> verifyAccountPassword(
+            @Valid @RequestBody AccountPasswordVerifyRequest request
+    ) {
+        accountService.verifyAccountPassword(request);
+        return BaseResponse.ok(null);
     }
 }
