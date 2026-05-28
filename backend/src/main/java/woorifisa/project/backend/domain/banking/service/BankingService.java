@@ -3,8 +3,11 @@ package woorifisa.project.backend.domain.banking.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.request.RecipientLookupRequest;
+import woorifisa.project.backend.domain.banking.dto.response.RecipientLookupResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.BankingRepository;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -15,6 +18,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -65,6 +69,19 @@ public class BankingService {
         } finally {
             stringRedisTemplate.delete(processingKey);
         }
+    }
+
+    public RecipientLookupResponse lookupRecipient(RecipientLookupRequest request) {
+        // 코어 뱅킹으로 요청
+        String recipientName = coreBankingTransferClient.lookupRecipient(
+                        CoreBankingRecipientLookupRequest.of(request.bankCode(), request.accountNumber()))
+                .recipientName();
+
+        if (recipientName == null || recipientName.isBlank()) {
+            throw new CustomException(BANKING_RECIPIENT_NOT_FOUND);
+        }
+
+        return RecipientLookupResponse.of(recipientName);
     }
 
     // ProcessingKey 생성 메서드
