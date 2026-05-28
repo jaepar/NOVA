@@ -90,7 +90,7 @@ public class WalletService {
             );
 
             // 코어뱅킹 차감 요청 (통신 장애 시 결과 조회로 복구 시도)
-            debitWithRecovery(idempotencyKey, debitRequest);
+            debitWithRecovery(debitRequest);
             // 차감 확정 후 월렛 잔액·거래내역 반영 (별도 트랜잭션)
             walletChargePersistenceService.completeWalletCharge(wallet.getWalletId(), request.chargeAmount());
             // 완료 마킹 - 이후 동일 멱등키 재요청 시 즉시 반환하기 위해 결과 캐시 저장
@@ -110,20 +110,20 @@ public class WalletService {
     }
 
     // 코어뱅킹 차감 요청 + 장애 허용 (통신 장애 시 결과 조회 + 전체 2차 재시도)
-    private void debitWithRecovery(String idempotencyKey, CoreBankingWalletDebitRequest request) {
+    private void debitWithRecovery(CoreBankingWalletDebitRequest request) {
         // 1차 시도
-        if (attemptDebitOrRecover(idempotencyKey, request)) {
+        if (attemptDebitOrRecover(request)) {
             return;
         }
         // 2차 시도
-        if (attemptDebitOrRecover(idempotencyKey, request)) {
+        if (attemptDebitOrRecover(request)) {
             return;
         }
         throw new CustomException(WALLET_DEBIT_COMMUNICATION_FAILED);
     }
 
     // 차감 요청 시도 → 통신 장애면 결과 조회로 처리 여부 확인, 그 외 실패는 그대로 예외 전파
-    private boolean attemptDebitOrRecover(String idempotencyKey, CoreBankingWalletDebitRequest request) {
+    private boolean attemptDebitOrRecover(CoreBankingWalletDebitRequest request) {
         try {
             coreBankingWalletClient.debitWalletAccount(request);
             return true;
@@ -133,7 +133,7 @@ public class WalletService {
                 throw exception;
             }
             // 통신 장애면 external_request_id 조회로 처리 완료 여부 확인
-            return isDebitRequestExistsWithRetry(idempotencyKey);
+            return isDebitRequestExistsWithRetry(request.walletChargeRequestId());
         }
     }
 
