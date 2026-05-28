@@ -10,6 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.request.RecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.BankingRepository;
@@ -24,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -52,7 +55,7 @@ class BankingServiceTest {
                 stringRedisTemplate,
                 coreBankingTransferClient
         );
-        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
     @Test
@@ -170,5 +173,16 @@ class BankingServiceTest {
 
         verify(coreBankingTransferClient, times(2)).transfer(any());
         verify(coreBankingTransferClient, times(2)).existsTransferRequest(idempotencyKey);
+    }
+
+    @Test
+    @DisplayName("수취인 조회 시 코어뱅킹 응답의 recipientName을 반환한다")
+    void lookupRecipientSuccess() {
+        when(coreBankingTransferClient.lookupRecipient(any()))
+                .thenReturn(new CoreBankingRecipientLookupResponse("백민정"));
+
+        var response = bankingService.lookupRecipient(new RecipientLookupRequest("busan", "1122261925003"));
+
+        assertThat(response.recipientName()).isEqualTo("백민정");
     }
 }
