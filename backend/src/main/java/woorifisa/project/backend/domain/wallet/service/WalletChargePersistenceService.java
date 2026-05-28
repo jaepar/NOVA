@@ -26,6 +26,7 @@ public class WalletChargePersistenceService {
         // 지갑 잔액과 거래내역은 같은 트랜잭션 안에서 함께 확정한다.
         Wallet wallet = findWalletForCharge(walletId);
         wallet.charge(chargeAmount);
+        wallet.getUserAccount().debit(chargeAmount);
         saveChargeTransaction(wallet, chargeAmount);
     }
 

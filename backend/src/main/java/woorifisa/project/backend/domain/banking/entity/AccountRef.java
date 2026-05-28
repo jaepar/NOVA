@@ -52,4 +52,10 @@ public class AccountRef extends BaseEntity {
 
     @Column(name = "has_limit", nullable = false)
     private Boolean hasLimit;
+
+    public void debit(Integer amount) {
+        if (this.balance != null) {
+            this.balance -= amount;
+        }
+    }
 }
