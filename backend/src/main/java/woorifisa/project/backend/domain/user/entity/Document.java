@@ -55,8 +55,9 @@ public class Document extends BaseEntity {
 		this.missing = null;
 	}
 
-	public void changeStatus(String fileUrl, DocumentStatus status) {  // 추후 관리자 호출에 의해 사용
+	public void changeStatus(String fileUrl, DocumentStatus status, String missing) {
 		this.fileUrl = fileUrl;
 		this.status = status;
+		this.missing = missing;
 	}
 }
