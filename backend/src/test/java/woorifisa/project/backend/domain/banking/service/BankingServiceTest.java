@@ -17,6 +17,7 @@ import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.BankingRepository;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.util.Optional;
@@ -45,7 +46,7 @@ class BankingServiceTest {
     @Mock
     private ValueOperations<String, String> valueOperations;
     @Mock
-    private CoreBankingTransferClient coreBankingTransferClient;
+    private CoreBankingClient coreBankingClient;
 
     private BankingService bankingService;
 
@@ -54,7 +55,7 @@ class BankingServiceTest {
         bankingService = new BankingService(
                 bankingRepository,
                 stringRedisTemplate,
-                coreBankingTransferClient
+                coreBankingClient
         );
         lenient().when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
     }
@@ -77,12 +78,12 @@ class BankingServiceTest {
         when(valueOperations.get("banking:transfer:result:key-1")).thenReturn(null);
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
         when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
-        doNothing().when(coreBankingTransferClient).transfer(any());
+        doNothing().when(coreBankingClient).transfer(any());
 
         bankingService.transfer(userId, idempotencyKey, request);
 
         ArgumentCaptor<CoreBankingTransferRequest> captor = ArgumentCaptor.forClass(CoreBankingTransferRequest.class);
-        verify(coreBankingTransferClient).transfer(captor.capture());
+        verify(coreBankingClient).transfer(captor.capture());
         CoreBankingTransferRequest coreRequest = captor.getValue();
         assertThat(coreRequest.withdrawAccountId()).isEqualTo(2001L);
         assertThat(coreRequest.depositAccountId()).isEqualTo(2002L);
@@ -103,7 +104,38 @@ class BankingServiceTest {
                 .extracting("exceptionStatus")
                 .isEqualTo(BANKING_TRANSFER_PROCESSING);
 
-        verify(coreBankingTransferClient, never()).transfer(any());
+        verify(coreBankingClient, never()).transfer(any());
+    }
+
+    @Test
+    @DisplayName("같은 출금 계좌가 이미 처리중이면 예외를 반환한다")
+    void transferProcessingByAccountLock() {
+        Long userId = 1L;
+        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하");
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .customerId(1001L)
+                .accountId(2001L)
+                .accountNumber("1122261925001")
+                .balance(10000)
+                .hasAccount(true)
+                .build();
+
+        when(valueOperations.get("banking:transfer:result:key-acc-lock")).thenReturn(null);
+        when(valueOperations.setIfAbsent("banking:transfer:processing:key-acc-lock", "1", java.time.Duration.ofMinutes(5)))
+                .thenReturn(true);
+        when(valueOperations.setIfAbsent("account:debit:processing:2001", "1", java.time.Duration.ofMinutes(5)))
+                .thenReturn(false);
+        when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+
+        assertThatThrownBy(() -> bankingService.transfer(userId, "key-acc-lock", request))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(BANKING_TRANSFER_PROCESSING);
+
+        verify(coreBankingClient, never()).transfer(any());
+        verify(stringRedisTemplate).delete("banking:transfer:processing:key-acc-lock");
     }
 
     @Test
@@ -117,7 +149,7 @@ class BankingServiceTest {
                 new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하")
         );
 
-        verify(coreBankingTransferClient, never()).transfer(any());
+        verify(coreBankingClient, never()).transfer(any());
     }
 
     @Test
@@ -139,15 +171,15 @@ class BankingServiceTest {
         when(valueOperations.get("banking:transfer:result:key-lookup-exists")).thenReturn(null);
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
         when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
-        doThrow(new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED)).when(coreBankingTransferClient).transfer(any());
-        when(coreBankingTransferClient.existsTransferRequest(idempotencyKey))
+        doThrow(new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED)).when(coreBankingClient).transfer(any());
+        when(coreBankingClient.existsTransferRequest(idempotencyKey))
                 .thenReturn(false)
                 .thenReturn(true);
 
         bankingService.transfer(userId, idempotencyKey, request);
 
-        verify(coreBankingTransferClient, times(1)).transfer(any());
-        verify(coreBankingTransferClient, times(2)).existsTransferRequest(idempotencyKey);
+        verify(coreBankingClient, times(1)).transfer(any());
+        verify(coreBankingClient, times(2)).existsTransferRequest(idempotencyKey);
         assertThat(accountRef.getBalance()).isEqualTo(5000);
     }
 
@@ -172,13 +204,13 @@ class BankingServiceTest {
         when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
         doThrow(new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED))
                 .doNothing()
-                .when(coreBankingTransferClient).transfer(any());
-        when(coreBankingTransferClient.existsTransferRequest(idempotencyKey)).thenReturn(false);
+                .when(coreBankingClient).transfer(any());
+        when(coreBankingClient.existsTransferRequest(idempotencyKey)).thenReturn(false);
 
         bankingService.transfer(userId, idempotencyKey, request);
 
-        verify(coreBankingTransferClient, times(2)).transfer(any());
-        verify(coreBankingTransferClient, times(2)).existsTransferRequest(idempotencyKey);
+        verify(coreBankingClient, times(2)).transfer(any());
+        verify(coreBankingClient, times(2)).existsTransferRequest(idempotencyKey);
         assertThat(accountRef.getBalance()).isEqualTo(5000);
     }
 
@@ -196,7 +228,7 @@ class BankingServiceTest {
                 .build();
         when(bankingRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
                 .thenReturn(Optional.of(accountRef));
-        when(coreBankingTransferClient.lookupRecipient(any()))
+        when(coreBankingClient.lookupRecipient(any()))
                 .thenReturn(new CoreBankingRecipientLookupResponse("백민정"));
 
         var response = bankingService.previewTransfer(userId, new TransferPreviewRequest("BUSAN", "1122261925003"));
@@ -218,10 +250,10 @@ class BankingServiceTest {
                 .build();
 
         when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
-        doNothing().when(coreBankingTransferClient).verifyAccountPassword(any());
+        doNothing().when(coreBankingClient).verifyAccountPassword(any());
 
         bankingService.verifyAccountPassword(userId, new AccountPasswordVerifyRequest(2001L, "1234"));
 
-        verify(coreBankingTransferClient).verifyAccountPassword(any());
+        verify(coreBankingClient).verifyAccountPassword(any());
     }
 }

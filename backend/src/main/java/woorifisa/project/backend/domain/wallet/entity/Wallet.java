@@ -15,6 +15,9 @@ import lombok.NoArgsConstructor;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.global.entity.BaseEntity;
+import woorifisa.project.backend.global.exception.CustomException;
+
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INVALID_CHARGE_AMOUNT;
 
 @Getter
 @Entity
@@ -39,4 +42,11 @@ public class Wallet extends BaseEntity {
 
     @Column(name = "balance", nullable = false)
     private Integer balance;
+
+    public void charge(Integer amount) {
+        if (amount == null || amount <= 0 || balance == null || balance > Integer.MAX_VALUE - amount) {
+            throw new CustomException(WALLET_INVALID_CHARGE_AMOUNT);
+        }
+        this.balance += amount;
+    }
 }
