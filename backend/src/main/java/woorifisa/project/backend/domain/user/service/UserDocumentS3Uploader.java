@@ -45,8 +45,8 @@ public class UserDocumentS3Uploader {
 		}
 	}
 
-	public String renameStatus(Long userId, DocumentType documentType, DocumentStatus prev,
-		DocumentStatus now) {  // 관리자가 호출할 메서드
+	// 관리자가 호출할 메서드
+	public String renameStatus(Long userId, DocumentType documentType, DocumentStatus prev, DocumentStatus now) {
 		String prevKey = buildKey(userId, documentType, prev);  // 이전 상태
 		String currentKey = buildKey(userId, documentType, now);  // 갱신된 상태
 		String bucket = s3Properties.s3().bucket();
@@ -70,6 +70,22 @@ public class UserDocumentS3Uploader {
 		} catch (RuntimeException e) {
 			log.error("S3 rename failed. userId={}, from={}, to={}, reason={}",
 				userId, prevKey, currentKey, e.getMessage(), e);
+			throw new CustomException(DOCUMENT_UPLOAD_FAILED);
+		}
+	}
+
+	public void deleteByStatus(Long userId, DocumentType documentType, DocumentStatus status) {
+		String key = buildKey(userId, documentType, status);
+		String bucket = s3Properties.s3().bucket();
+
+		try {
+			s3Client.deleteObject(DeleteObjectRequest.builder()
+				.bucket(bucket)
+				.key(key)
+				.build());
+		} catch (RuntimeException e) {
+			log.error("S3 document delete failed. userId={}, key={}, reason={}",
+				userId, key, e.getMessage(), e);
 			throw new CustomException(DOCUMENT_UPLOAD_FAILED);
 		}
 	}
