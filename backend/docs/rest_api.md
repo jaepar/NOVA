@@ -66,6 +66,7 @@
 | `WALLET-001`   | 월렛 계좌내역 조회 | GET | `/wallet/transactions` | O | USER | |
 | `WALLET-002`   | 월렛 충전 | POST | `/wallet/charges` | O | USER | |
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST | `/wallet/charges/debit` | O | USER | |
+| `WALLET-004`   | 월렛 상태 조회 | GET | `/wallet/status` | O | USER | 월렛 페이지 화면 분기용 |
 | `JOB-001`      | 구인구직 공고 목록 조회 | GET | `/` | X | PUBLIC | 도메인 prefix 하위 루트 |
 | `JOB-002`      | 구인구직 공고 상세 조회 | GET | `/{job_id}` | X | PUBLIC | 도메인 prefix 하위 경로 |
 | `JOB-003`      | 지원서 제출 | POST | `/{job_id}/applications` | O | USER | 도메인 prefix 하위 경로 |
@@ -94,6 +95,7 @@
 - 예약 리소스는 `hospital/reservations`로 고정한다.
 - `wallet_transaction.transaction_flow`는 `DEPOSIT | WITHDRAWAL`만 사용한다.
 - `application.status`는 `PASSED | FAILED | READ | UNREAD`만 사용한다.
+- `WALLET-004` 응답의 `nextStep`은 `CREATE_ACCOUNT | WALLET_TERMS | WALLET_HOME`만 사용한다.
 
 ## Docs Sync Rule
 
