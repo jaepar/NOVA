@@ -5,6 +5,7 @@ import { AppButton } from "../../components/design-system/AppButton";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { WalletAccountCard } from "./components/WalletAccountCard";
 import { WalletAmountChip } from "./components/WalletAmountChip";
+import { walletPrimaryButtonClass } from "./styles";
 import { useWalletStore } from "./stores/walletStore";
 
 const quickAmounts = [10000, 30000, 50000];
@@ -168,7 +169,7 @@ export function WalletCharge() {
                 isSubmitting
               }
               onClick={handleConfirm}
-              className="h-[56px] w-full rounded-lg bg-black text-[17px] font-semibold text-white transition-colors disabled:opacity-40"
+              className={walletPrimaryButtonClass}
             >
               확인
             </AppButton>
@@ -303,7 +304,7 @@ export function WalletCharge() {
               type="button"
               variant="unstyled"
               onClick={handleSuccessConfirm}
-              className="mt-6 h-[52px] w-full rounded-[12px] bg-black text-[16px] font-semibold text-white"
+              className={`mt-6 ${walletPrimaryButtonClass}`}
             >
               확인
             </AppButton>

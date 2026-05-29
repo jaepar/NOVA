@@ -1,0 +1,204 @@
+package woorifisa.project.backend.global.corebanking.client;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRequestLookupResponse;
+import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
+import woorifisa.project.backend.domain.wallet.dto.corebanking.response.CoreBankingBaseResponse;
+import woorifisa.project.backend.domain.wallet.dto.corebanking.response.CoreBankingWalletDebitLookupResponse;
+import woorifisa.project.backend.global.exception.CustomException;
+import woorifisa.project.backend.global.response.BaseResponse;
+import woorifisa.project.backend.global.response.status.ResponseStatus;
+
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INSUFFICIENT_BALANCE;
+
+@Component
+@RequiredArgsConstructor
+public class RestCoreBankingClient implements CoreBankingClient {
+    private final RestClient.Builder restClientBuilder;
+
+    @Value("${app.core-banking.base-url}")
+    private String coreBankingBaseUrl;
+
+    @Override
+    public void transfer(CoreBankingTransferRequest request) {
+        try {
+            BaseResponse<Void> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .post()
+                    .uri("/account-transactions/transfers")
+                    .body(request)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+            if (!response.getSuccess()) {
+                throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
+            }
+        } catch (RestClientException exception) {
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+        }
+    }
+
+    @Override
+    public boolean existsTransferRequest(String externalRequestId) {
+        try {
+            BaseResponse<CoreBankingRequestLookupResponse> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .get()
+                    .uri("/account-transactions/requests/{externalRequestId}", externalRequestId)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            return response != null
+                    && response.getSuccess()
+                    && response.getData() != null
+                    && externalRequestId.equals(response.getData().externalRequestId());
+        } catch (RestClientException exception) {
+            return false;
+        }
+    }
+
+    @Override
+    public CoreBankingRecipientLookupResponse lookupRecipient(CoreBankingRecipientLookupRequest request) {
+        try {
+            BaseResponse<CoreBankingRecipientLookupResponse> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .post()
+                    .uri("/accounts/recipients/lookup")
+                    .body(request)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+            if (!response.getSuccess()) {
+                throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
+            }
+            if (response.getData() == null || response.getData().recipientName() == null || response.getData().recipientName().isBlank()) {
+                throw new CustomException(BANKING_RECIPIENT_NOT_FOUND);
+            }
+            return response.getData();
+        } catch (RestClientException exception) {
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+        }
+    }
+
+    @Override
+    public void verifyAccountPassword(CoreBankingPasswordVerifyRequest request) {
+        try {
+            BaseResponse<Void> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .post()
+                    .uri("/accounts/password/verify")
+                    .body(request)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+            if (!response.getSuccess()) {
+                throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
+            }
+        } catch (RestClientException exception) {
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+        }
+    }
+
+    @Override
+    public void debitWalletAccount(CoreBankingWalletDebitRequest request) {
+        try {
+            CoreBankingBaseResponse<Void> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .post()
+                    .uri("/account-transactions/wallet")
+                    .body(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+                    })
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null) {
+                throw new CustomException(WALLET_DEBIT_COMMUNICATION_FAILED);
+            }
+            if (!response.success()) {
+                throw new CustomException(isInsufficientBalance(response.code())
+                        ? WALLET_INSUFFICIENT_BALANCE
+                        : WALLET_DEBIT_FAILED);
+            }
+        } catch (RestClientException exception) {
+            throw new CustomException(WALLET_DEBIT_COMMUNICATION_FAILED);
+        }
+    }
+
+    @Override
+    public boolean existsWalletDebitRequest(String externalRequestId) {
+        try {
+            CoreBankingBaseResponse<CoreBankingWalletDebitLookupResponse> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .get()
+                    .uri("/account-transactions/requests/{externalRequestId}", externalRequestId)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            return response != null
+                    && response.success()
+                    && response.data() != null
+                    && externalRequestId.equals(response.data().externalRequestId());
+        } catch (RestClientException exception) {
+            return false;
+        }
+    }
+
+    private boolean isInsufficientBalance(String code) {
+        return "WALLET_ACCOUNT_DEBIT-003".equals(code);
+    }
+
+    private ResponseStatus toResponseStatus(String code, String message) {
+        return new ResponseStatus() {
+            @Override
+            public boolean getSuccess() {
+                return false;
+            }
+
+            @Override
+            public String getCode() {
+                return code;
+            }
+
+            @Override
+            public String getMessage() {
+                return message;
+            }
+        };
+    }
+}
