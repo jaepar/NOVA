@@ -1,0 +1,300 @@
+.nova-liveness-surface .amplify-face-liveness-detector,
+.nova-liveness-surface .amplify-liveness-detector,
+.nova-liveness-surface .amplify-liveness-check,
+.nova-liveness-surface .amplify-liveness-camera-module,
+.nova-liveness-surface .amplify-liveness-camera-module-wrapper,
+.nova-liveness-surface .amplify-liveness-start-screen,
+.nova-liveness-surface .amplify-liveness-start-screen-mobile,
+.nova-liveness-surface .amplify-liveness-overlay,
+.nova-liveness-surface .amplify-liveness-module {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
+}
+
+.nova-liveness-surface .amplify-face-liveness-detector {
+  border-radius: 0;
+  overflow: visible;
+}
+
+.nova-liveness-surface {
+  --nova-camera-frame-y: 20px;
+  --nova-camera-frame-gap-bottom: 14px;
+  --nova-placeholder-y-offset: 24px;
+}
+
+/* 카메라 선택/주의 문구 숨김 */
+.nova-liveness-surface .amplify-liveness-start-screen-camera-select,
+.nova-liveness-surface .amplify-liveness-start-screen-warning {
+  display: none !important;
+}
+
+/* 카메라 렌더링 전 상태 문구(권한 대기/인증 준비) 규격 통일 */
+.nova-liveness-surface .amplify-liveness-start-screen-camera-waiting,
+.nova-liveness-surface .amplify-liveness-connecting-loader {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  width: 100% !important;
+  min-height: 480px !important;
+  height: 480px !important;
+  gap: 16px !important;
+  padding: 0 20px !important;
+  box-sizing: border-box !important;
+}
+
+.nova-liveness-surface .amplify-liveness-start-screen-camera-waiting .amplify-text,
+.nova-liveness-surface .amplify-liveness-connecting-loader .amplify-text {
+  font-size: 16px !important;
+  line-height: 1.45 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  color: #111827 !important;
+  margin: 0 !important;
+  text-align: center !important;
+}
+
+.nova-liveness-surface .amplify-liveness-start-screen-camera-waiting .amplify-loader,
+.nova-liveness-surface .amplify-liveness-connecting-loader .amplify-loader {
+  margin: 0 !important;
+}
+
+/* 연결 대기 스피너/문구는 표시 유지 */
+
+/* 라이브니스 진행 중 기본 REC 표시/취소(X) 버튼 숨김 */
+.nova-liveness-surface .amplify-liveness-recording-icon-container,
+.nova-liveness-surface .amplify-liveness-recording-icon,
+.nova-liveness-surface .amplify-liveness-cancel-container,
+.nova-liveness-surface .amplify-liveness-cancel-button {
+  display: none !important;
+}
+
+/* 광과민성 안내 포함 기본 안내는 표시 유지 */
+
+/* SDK 기본 시작 버튼은 표시 유지 */
+
+/* 링크 버튼 */
+.nova-liveness-surface .amplify-button[data-variation='link'] {
+  color: #111111;
+}
+
+/* 토스트 스타일 (레퍼런스 디자인) */
+.nova-liveness-surface .amplify-liveness-toast {
+  border-radius: 12px;
+  background: #ffffff !important;
+  color: #111111 !important;
+  padding: 0 !important;
+  max-width: none !important;
+}
+
+/* 라이브니스 전 과정 토스트를 카메라 레이아웃 아래로 배치 */
+.nova-liveness-surface .amplify-liveness-check,
+.nova-liveness-surface .amplify-liveness-camera-module {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.nova-liveness-surface .amplify-liveness-toast__container,
+.nova-liveness-surface [class*='liveness-toast__container'] {
+  position: static !important;
+  order: 99 !important;
+  width: auto !important;
+  margin: 12px auto 0 !important;
+}
+
+/* 힌트 오버레이(얼굴을 원 안 중앙에...)도 카메라 아래로 강제 이동 */
+.nova-liveness-surface .amplify-liveness-hint,
+.nova-liveness-surface .amplify-liveness-hint--mobile,
+.nova-liveness-surface [class*='liveness-hint'] {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  order: 99 !important;
+  margin: 12px auto 0 !important;
+  width: auto !important;
+  max-width: calc(100% - 32px) !important;
+}
+
+.nova-liveness-surface .amplify-liveness-toast__message,
+.nova-liveness-surface .amplify-liveness-toast .amplify-text,
+.nova-liveness-surface .amplify-liveness-toast span,
+.nova-liveness-surface [class*='liveness-toast'] .amplify-text {
+  background: #ffffff !important;
+  color: #111111 !important;
+  font-size: 14px !important;
+  padding: 10px;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 라이브니스 진행 안내 문구를 토스트 박스 규격과 통일 */
+.nova-liveness-surface .amplify-liveness-hint,
+.nova-liveness-surface .amplify-liveness-hint--mobile {
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  color: #111111 !important;
+  padding: 0 !important;
+  max-width: none !important;
+}
+
+.nova-liveness-surface .amplify-liveness-hint__text {
+  color: #111111 !important;
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 오버레이 레이어에 절대배치되는 힌트/토스트를 일반 문서 흐름으로 강제 */
+.nova-liveness-surface [class*='liveness-hint'],
+.nova-liveness-surface [class*='liveness-toast'] {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  margin-top: 12px !important;
+}
+
+/* 기본 안내/힌트 UI는 표시 유지 */
+/* SDK 기본 힌트/토스트 오버레이는 숨기고, 커스텀 하단 토스트로 대체 */
+.nova-liveness-surface .amplify-liveness-hint,
+.nova-liveness-surface .amplify-liveness-hint--mobile,
+.nova-liveness-surface .amplify-liveness-toast__container,
+.nova-liveness-surface [class*='liveness-hint'],
+.nova-liveness-surface [class*='liveness-toast'] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.nova-liveness-guidance-toast {
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  margin: 10px auto 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111111;
+  font-size: 14px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* 실패/오류 안내 UI 가독성 개선 */
+.nova-liveness-surface .amplify-liveness-error,
+.nova-liveness-surface .amplify-alert {
+  display: block !important;
+  border-radius: 12px !important;
+  border: 1px solid #fca5a5 !important;
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  box-shadow: none !important;
+}
+
+.nova-liveness-surface .amplify-liveness-error *,
+.nova-liveness-surface .amplify-alert * {
+  color: #b91c1c !important;
+}
+
+/* 카메라 모듈 */
+.nova-liveness-surface .amplify-liveness-camera-module {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* progress bar(매치 인디케이터)를 카메라 상단으로 올림 */
+.nova-liveness-surface .amplify-liveness-instruction-overlay {
+  position: absolute !important;
+  top: -130px !important;  /*음수로 조정*/
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 6 !important;
+  display: flex !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+}
+
+.nova-liveness-surface .amplify-liveness-match-indicator {
+  width: min(70%, 200px) !important;
+  margin: 0 auto !important;
+}
+
+/* 카메라 원형 프리뷰 */
+.nova-liveness-surface .amplify-liveness-video-anchor {
+  position: relative !important;
+  width: min(78vw, 320px) !important;
+  height: min(78vw, 320px) !important;
+  margin: var(--nova-camera-frame-y) auto var(--nova-camera-frame-gap-bottom) !important;
+  border-radius: 9999px !important;
+  overflow: hidden !important;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+}
+
+.nova-liveness-surface .amplify-liveness-video-anchor video,
+.nova-liveness-surface .amplify-liveness-video {
+  border-radius: 9999px !important;
+  object-fit: cover !important;
+}
+
+/* SDK 기본 마스크형 타원 캔버스는 숨김 */
+.nova-liveness-surface .amplify-liveness-oval-canvas {
+  display: none !important;
+}
+
+/* 색상 오버레이/채움 레이어 제거 */
+.nova-liveness-surface .amplify-liveness-freshness-canvas,
+.nova-liveness-surface .amplify-liveness-overlay-opaque {
+  display: none !important;
+}
+
+/* 타원 라인만 표시되는 커스텀 가이드 */
+.nova-liveness-surface .amplify-liveness-video-anchor::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34%;
+  height: 46%;
+  transform: translate(-50%, -50%);
+  border: 3px solid rgba(255, 255, 255, 0.92);
+  border-radius: 9999px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+
+/* 실패/오류 후 재촬영 대기용 빈 카메라 프레임 */
+.nova-liveness-placeholder {
+  position: relative;
+  width: min(78vw, 320px);
+  height: min(78vw, 320px);
+  margin: calc(var(--nova-camera-frame-y) + var(--nova-placeholder-y-offset)) auto var(--nova-camera-frame-gap-bottom);
+  border-radius: 9999px;
+  background: #f3f4f6;
+  border: 2px solid rgba(17, 17, 17, 0.2);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.1);
+}
+
+.nova-liveness-placeholder__oval {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34%;
+  height: 46%;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(17, 17, 17, 0.2);
+  border-radius: 9999px;
+}

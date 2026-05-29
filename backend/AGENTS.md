@@ -113,6 +113,7 @@ flowchart TD
 - API prefix는 `/{도메인 이름}`를 기본으로 한다.
 - 공통 응답은 `global/response` 래퍼 규칙을 유지한다.
 - 비즈니스 예외는 `global/exception` 계층을 사용한다.
+- Core Banking REST 연동 인터페이스/구현은 `global/corebanking/client` 단일 컴포넌트로 관리하고, `banking`/`wallet` 서비스는 해당 글로벌 클라이언트만 주입받아 사용한다.
 - 컨트롤러에서 엔티티 직접 반환 금지, DTO 변환 필수.
 - 삭제는 DELETE 메서드 대신 POST 기반 soft delete(`has_delete=true`)로 처리한다.
 - 금융 거래 확정 로직은 서비스 계층에서만 처리한다.

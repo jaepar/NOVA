@@ -12,7 +12,8 @@ import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewReque
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
-import woorifisa.project.backend.domain.banking.repository.BankingRepository;
+import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
+import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.time.Duration;
@@ -26,17 +27,21 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 @Service
 @RequiredArgsConstructor
 public class BankingService {
-
-    private static final String TRANSFER_PROCESSING_KEY = "banking:transfer:processing:%s";
+    // 동일 멱등키 이체 요청의 완료 결과를 재사용하기 위한 캐시 키
     private static final String TRANSFER_RESULT_KEY = "banking:transfer:result:%s";
+    // 동일 멱등키 이체 요청의 중복 진행을 막는 처리중 락 키 (같은 멱등키 재요청/중복 처리 차단)
+    private static final String TRANSFER_PROCESSING_KEY = "banking:transfer:processing:%s";
+    // 같은 출금 계좌(accountId)의 동시 차감을 막는 계좌 단위 락 키 (다른 멱등키라도 같은 출금 계좌 동시 처리 차단)
+    private static final String ACCOUNT_DEBIT_PROCESSING_KEY = "account:debit:processing:%s";
     private static final String TRANSFER_DONE_VALUE = "DONE";
+    private static final String PROCESSING_VALUE = "1";
     private static final Duration PROCESSING_TTL = Duration.ofMinutes(5);
     private static final Duration RESULT_TTL = Duration.ofMinutes(10);
     private static final long REQUEST_LOOKUP_RETRY_DELAY_MILLIS = 1000L;
 
-    private final BankingRepository bankingRepository;
+    private final AccountRefRepository accountRefRepository;
     private final StringRedisTemplate stringRedisTemplate;
-    private final CoreBankingTransferClient coreBankingTransferClient;
+    private final CoreBankingClient coreBankingClient;
 
     @Transactional
     public void transfer(Long userId, String idempotencyKey, TransferRequest request) {
@@ -50,7 +55,7 @@ public class BankingService {
 
         // processingKey는 지금 누가 처리 중인지 락을 거는 역할 -> 진행 중 중복 차단
         String processingKey = formatProcessingKey(idempotencyKey);
-        Boolean acquired = stringRedisTemplate.opsForValue().setIfAbsent(processingKey, "1", PROCESSING_TTL);
+        Boolean acquired = stringRedisTemplate.opsForValue().setIfAbsent(processingKey, PROCESSING_VALUE, PROCESSING_TTL);
         // acquired(true) : processingKey가 없음 / acquired(false) : processingKey가 이미 있음
         if (!Boolean.TRUE.equals(acquired)) {
             // 이미 같은 키에 대해서 처리 중이므로 예외 처리
@@ -58,30 +63,42 @@ public class BankingService {
         }
 
         try {
-            AccountRef accountRef = bankingRepository.findByUser_UserIdAndAccountId(userId, request.withdrawAccountId())
+            // 같은 계좌의 동일 이체를 막기 위한 락을 거는 로직
+            AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountId(userId, request.withdrawAccountId())
                     .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+            String accountProcessingKey = formatAccountProcessingKey(accountRef.getAccountId());
+            Boolean accountLockAcquired = stringRedisTemplate.opsForValue()
+                    .setIfAbsent(accountProcessingKey, PROCESSING_VALUE, PROCESSING_TTL);
+            if (!Boolean.TRUE.equals(accountLockAcquired)) {
+                throw new CustomException(BANKING_TRANSFER_PROCESSING);
+            }
 
-            CoreBankingTransferRequest coreBankingTransferRequest = CoreBankingTransferRequest.of(
-                    createExternalRequestId(idempotencyKey),
-                    accountRef.getAccountId(),
-                    request
-            );
+            try {
+                // 이체 처리는 계좌에 대한 락을 얻은 뒤 처리
+                CoreBankingTransferRequest coreBankingTransferRequest = CoreBankingTransferRequest.of(
+                        createExternalRequestId(idempotencyKey),
+                        accountRef.getAccountId(),
+                        request
+                );
 
-            // Core Banking 한테 계좌 이체 요청
-            transferWithRecovery(coreBankingTransferRequest);
-            // 계좌 이체 시 cloud에 있는 db의 account_ref 잔액도 차감하여 데이터 동기화
-            accountRef.debit(request.transferAmount());
-            stringRedisTemplate.opsForValue().set(resultKey, TRANSFER_DONE_VALUE, RESULT_TTL);
+                // Core Banking 한테 계좌 이체 요청
+                transferWithRecovery(coreBankingTransferRequest);
+                // 계좌 이체 시 cloud에 있는 db의 account_ref 잔액도 차감하여 데이터 동기화
+                accountRef.debit(request.transferAmount());
+                stringRedisTemplate.opsForValue().set(resultKey, TRANSFER_DONE_VALUE, RESULT_TTL);
+            } finally {
+                stringRedisTemplate.delete(accountProcessingKey);
+            }
         } finally {
             stringRedisTemplate.delete(processingKey);
         }
     }
 
     public TransferPreviewResponse previewTransfer(Long userId, TransferPreviewRequest request) {
-        AccountRef myAccount = bankingRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId)
+        AccountRef myAccount = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId)
                 .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
 
-        String recipientName = coreBankingTransferClient.lookupRecipient(
+        String recipientName = coreBankingClient.lookupRecipient(
                         CoreBankingRecipientLookupRequest.of(request.recipientBankCode(), request.recipientAccountNumber()))
                 .recipientName();
 
@@ -97,10 +114,10 @@ public class BankingService {
     }
 
     public void verifyAccountPassword(Long userId, AccountPasswordVerifyRequest request) {
-        bankingRepository.findByUser_UserIdAndAccountId(userId, request.accountId())
+        accountRefRepository.findByUser_UserIdAndAccountId(userId, request.accountId())
                 .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
 
-        coreBankingTransferClient.verifyAccountPassword(
+        coreBankingClient.verifyAccountPassword(
                 CoreBankingPasswordVerifyRequest.of(request.accountId(), request.accountPassword())
         );
     }
@@ -113,6 +130,10 @@ public class BankingService {
     // ResultKey 생성 메서드
     private String formatResultKey(String idempotencyKey) {
         return String.format(TRANSFER_RESULT_KEY, idempotencyKey);
+    }
+
+    private String formatAccountProcessingKey(Long accountId) {
+        return String.format(ACCOUNT_DEBIT_PROCESSING_KEY, accountId);
     }
 
     // external_request_id 생성 메서드 (멱등키 그대로 사용)
@@ -139,7 +160,7 @@ public class BankingService {
     // 재시도 로직
     private boolean attemptTransferOrRecover(CoreBankingTransferRequest request) {
         try {
-            coreBankingTransferClient.transfer(request);
+            coreBankingClient.transfer(request);
             return true;
         } catch (CustomException exception) {
             if (!isCoreBankingCommunicationFailure(exception)) {
@@ -160,11 +181,11 @@ public class BankingService {
 
     // 이체 처리 결과 확인 API 요청
     private boolean isTransferRequestExistsWithRetry(String externalRequestId) {
-        if (coreBankingTransferClient.existsTransferRequest(externalRequestId)) {
+        if (coreBankingClient.existsTransferRequest(externalRequestId)) {
             return true;
         }
         waitBeforeRequestLookupRetry();
-        return coreBankingTransferClient.existsTransferRequest(externalRequestId);
+        return coreBankingClient.existsTransferRequest(externalRequestId);
     }
 
     // 이체 처리 결과 재확인 하기 위해 몇 초 대기

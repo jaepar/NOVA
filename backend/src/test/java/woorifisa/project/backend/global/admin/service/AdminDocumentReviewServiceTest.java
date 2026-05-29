@@ -43,17 +43,25 @@ class AdminDocumentReviewServiceTest {
 	@DisplayName("관리자 심사 시 PENDING 문서를 APPROVED로 변경하고 S3 상태를 변경한다")
 	void reviewPendingDocumentToApproved() {
 		Long userId = 1L;
-		User user = User.builder().userId(userId).build();
+		User user = User.builder().userId(userId).hasCertificate(false).build();
 		Document latestResidence = Document.builder()
 			.user(user)
 			.documentType(DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)
 			.status(DocumentStatus.PENDING)
 			.fileUrl("https://s3/documents/1_RESIDENCE_VERIFICATION_DOCUMENT_PENDING.pdf")
 			.build();
+		Document latestAlienApproved = Document.builder()
+			.user(user)
+			.documentType(DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT)
+			.status(DocumentStatus.APPROVED)
+			.fileUrl("https://s3/documents/1_ALIEN_REGISTRATION_SUPPORTING_DOCUMENT_APPROVED.pdf")
+			.build();
 
 		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT))
 			.thenReturn(Optional.of(latestResidence));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT))
+			.thenReturn(Optional.of(latestAlienApproved));
 		when(userDocumentS3Uploader.renameStatus(
 			userId,
 			DocumentType.RESIDENCE_VERIFICATION_DOCUMENT,
@@ -65,6 +73,7 @@ class AdminDocumentReviewServiceTest {
 
 		assertThat(latestResidence.getStatus()).isEqualTo(DocumentStatus.APPROVED);
 		assertThat(latestResidence.getMissing()).isNull();
+		assertThat(user.getHasCertificate()).isTrue();
 		verify(documentRepository).save(latestResidence);
 	}
 
