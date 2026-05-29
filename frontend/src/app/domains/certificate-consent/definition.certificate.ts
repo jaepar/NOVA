@@ -1,6 +1,6 @@
-import type { ConsentDefinition } from './spec'
+import type { ConsentDefinition } from '../spec'
 
-export const certificateConsentDefinitionSample: ConsentDefinition = {
+export const certificateConsentDefinition: ConsentDefinition = {
   domain: 'certificate',
   version: 'v1',
   categories: [
