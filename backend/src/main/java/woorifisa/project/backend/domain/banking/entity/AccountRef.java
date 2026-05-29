@@ -1,5 +1,7 @@
 package woorifisa.project.backend.domain.banking.entity;
 
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,6 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.global.entity.BaseEntity;
+import woorifisa.project.backend.global.exception.CustomException;
 
 @Getter
 @Entity
@@ -54,8 +57,9 @@ public class AccountRef extends BaseEntity {
     private Boolean hasLimit;
 
     public void debit(Integer amount) {
-        if (this.balance != null) {
-            this.balance -= amount;
+        if (balance == null || amount == null || amount <= 0 || balance < amount) {
+            throw new CustomException(BANKING_TRANSFER_FAILED);
         }
+        this.balance -= amount;
     }
 }

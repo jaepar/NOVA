@@ -1,6 +1,8 @@
 package woorifisa.project.backend.global.auth.service;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +41,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_PASSWORD_FORMAT;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_CONFIRM_NOT_MATCHED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_NOT_MATCHED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.UNAUTHORIZED_SESSION;
 
 @Slf4j
 @Service
@@ -103,6 +107,17 @@ public class AuthService {
         HttpSession session = httpRequest.getSession();
         session.setAttribute("userId", user.getUserId());
         return LoginResponse.from(user.getUserId());
+    }
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            throw new CustomException(UNAUTHORIZED_SESSION);
+        }
+
+        session.invalidate();
+        expireSessionCookie(request, response);
+        SecurityContextHolder.clearContext();
     }
 
     public void sendEmailVerificationCode(String email) {
@@ -189,6 +204,15 @@ public class AuthService {
 
     private String formatCooldownKey(String email) {
         return String.format(EMAIL_VERIFICATION_COOLDOWN_KEY, email);
+    }
+
+    private void expireSessionCookie(HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookie = new Cookie("JSESSIONID", null);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(request.isSecure());
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 
     private String createVerificationCode() {

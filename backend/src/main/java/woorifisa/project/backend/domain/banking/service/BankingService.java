@@ -3,8 +3,14 @@ package woorifisa.project.backend.domain.banking.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.BankingRepository;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -15,6 +21,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +38,7 @@ public class BankingService {
     private final StringRedisTemplate stringRedisTemplate;
     private final CoreBankingTransferClient coreBankingTransferClient;
 
+    @Transactional
     public void transfer(Long userId, String idempotencyKey, TransferRequest request) {
         // 프론트에서 전달받은 멱등키로 redis key 생성
         String resultKey = formatResultKey(idempotencyKey);
@@ -61,10 +69,40 @@ public class BankingService {
 
             // Core Banking 한테 계좌 이체 요청
             transferWithRecovery(coreBankingTransferRequest);
+            // 계좌 이체 시 cloud에 있는 db의 account_ref 잔액도 차감하여 데이터 동기화
+            accountRef.debit(request.transferAmount());
             stringRedisTemplate.opsForValue().set(resultKey, TRANSFER_DONE_VALUE, RESULT_TTL);
         } finally {
             stringRedisTemplate.delete(processingKey);
         }
+    }
+
+    public TransferPreviewResponse previewTransfer(Long userId, TransferPreviewRequest request) {
+        AccountRef myAccount = bankingRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId)
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
+        String recipientName = coreBankingTransferClient.lookupRecipient(
+                        CoreBankingRecipientLookupRequest.of(request.recipientBankCode(), request.recipientAccountNumber()))
+                .recipientName();
+
+        if (recipientName == null || recipientName.isBlank()) {
+            throw new CustomException(BANKING_RECIPIENT_NOT_FOUND);
+        }
+
+        return TransferPreviewResponse.of(
+                myAccount.getAccountName(),
+                myAccount.getAccountNumber(),
+                recipientName
+        );
+    }
+
+    public void verifyAccountPassword(Long userId, AccountPasswordVerifyRequest request) {
+        bankingRepository.findByUser_UserIdAndAccountId(userId, request.accountId())
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
+        coreBankingTransferClient.verifyAccountPassword(
+                CoreBankingPasswordVerifyRequest.of(request.accountId(), request.accountPassword())
+        );
     }
 
     // ProcessingKey 생성 메서드

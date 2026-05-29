@@ -10,6 +10,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.BankingRepository;
@@ -24,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -52,7 +56,7 @@ class BankingServiceTest {
                 stringRedisTemplate,
                 coreBankingTransferClient
         );
-        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
     @Test
@@ -67,6 +71,7 @@ class BankingServiceTest {
                 .customerId(1001L)
                 .accountId(2001L)
                 .accountNumber("1122261925001")
+                .balance(10000)
                 .hasAccount(true)
                 .build();
         when(valueOperations.get("banking:transfer:result:key-1")).thenReturn(null);
@@ -82,6 +87,7 @@ class BankingServiceTest {
         assertThat(coreRequest.withdrawAccountId()).isEqualTo(2001L);
         assertThat(coreRequest.depositAccountId()).isEqualTo(2002L);
         assertThat(coreRequest.externalRequestId()).isEqualTo(idempotencyKey);
+        assertThat(accountRef.getBalance()).isEqualTo(5000);
         verify(stringRedisTemplate).delete("banking:transfer:processing:key-1");
     }
 
@@ -126,6 +132,7 @@ class BankingServiceTest {
                 .customerId(1001L)
                 .accountId(2001L)
                 .accountNumber("1122261925001")
+                .balance(10000)
                 .hasAccount(true)
                 .build();
 
@@ -141,6 +148,7 @@ class BankingServiceTest {
 
         verify(coreBankingTransferClient, times(1)).transfer(any());
         verify(coreBankingTransferClient, times(2)).existsTransferRequest(idempotencyKey);
+        assertThat(accountRef.getBalance()).isEqualTo(5000);
     }
 
     @Test
@@ -155,6 +163,7 @@ class BankingServiceTest {
                 .customerId(1001L)
                 .accountId(2001L)
                 .accountNumber("1122261925001")
+                .balance(10000)
                 .hasAccount(true)
                 .build();
 
@@ -170,5 +179,49 @@ class BankingServiceTest {
 
         verify(coreBankingTransferClient, times(2)).transfer(any());
         verify(coreBankingTransferClient, times(2)).existsTransferRequest(idempotencyKey);
+        assertThat(accountRef.getBalance()).isEqualTo(5000);
+    }
+
+    @Test
+    @DisplayName("이체 사전 조회 시 내 계좌 정보와 수취인명을 함께 반환한다")
+    void previewTransferSuccess() {
+        Long userId = 1L;
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(2001L)
+                .accountName("우리SUPER주거래통장")
+                .accountNumber("1002867390781")
+                .hasAccount(true)
+                .build();
+        when(bankingRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+                .thenReturn(Optional.of(accountRef));
+        when(coreBankingTransferClient.lookupRecipient(any()))
+                .thenReturn(new CoreBankingRecipientLookupResponse("백민정"));
+
+        var response = bankingService.previewTransfer(userId, new TransferPreviewRequest("BUSAN", "1122261925003"));
+
+        assertThat(response.myAccount().accountName()).isEqualTo("우리SUPER주거래통장");
+        assertThat(response.myAccount().accountNumber()).isEqualTo("1002867390781");
+        assertThat(response.recipient().recipientName()).isEqualTo("백민정");
+    }
+
+    @Test
+    @DisplayName("본인 계좌 비밀번호 검증 요청을 코어뱅킹으로 전달한다")
+    void verifyAccountPasswordSuccess() {
+        Long userId = 1L;
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(2001L)
+                .hasAccount(true)
+                .build();
+
+        when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        doNothing().when(coreBankingTransferClient).verifyAccountPassword(any());
+
+        bankingService.verifyAccountPassword(userId, new AccountPasswordVerifyRequest(2001L, "1234"));
+
+        verify(coreBankingTransferClient).verifyAccountPassword(any());
     }
 }
