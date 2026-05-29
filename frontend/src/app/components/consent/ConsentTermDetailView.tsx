@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
+﻿import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CloseButtonTemplate } from '../../pages/common/CloseButtonTemplate'
-import { ConsentDefinition, findTerm } from '../../domains/certificate-consent/spec'
-import { getAgreedTermIds, markTermAgreed } from '../../domains/certificate-consent/storage'
+import { ConsentDefinition, findTerm } from '../../domains/spec'
+import { getAgreedTermIds, markTermAgreed } from '../../domains/storage'
 
 interface ConsentTermDetailViewProps {
   definition: ConsentDefinition
@@ -56,3 +56,4 @@ export function ConsentTermDetailView({
     </CloseButtonTemplate>
   )
 }
+
