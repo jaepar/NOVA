@@ -1,7 +1,9 @@
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Keypad, type KeypadPressEvent } from "secure-keypad";
 import { AppButton } from "../../components/design-system/AppButton";
+import { BottomSheet } from "../../components/layout/BottomSheet";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { WalletAccountCard } from "./components/WalletAccountCard";
 import { WalletAmountChip } from "./components/WalletAmountChip";
@@ -12,6 +14,9 @@ const quickAmounts = [10000, 30000, 50000];
 const walletBalance = 3220000;
 const chargeLimitAmount = 10000000;
 const inputLimitAmount = 999999999;
+const accountPasswordLength = 4;
+const passwordSheetCloseDurationMs = 320;
+const chargeCompletionLoadingMs = 700;
 const chargeLimitMessage = "1회 충전 금액은 10,000,000원까지만 가능합니다.";
 
 function onlyDigits(value: string) {
@@ -21,12 +26,17 @@ function onlyDigits(value: string) {
 export function WalletCharge() {
   const navigate = useNavigate();
   const amountMirrorRef = useRef<HTMLSpanElement>(null);
+  const completionTimerIdsRef = useRef<number[]>([]);
+  const [isPasswordSheetOpen, setIsPasswordSheetOpen] = useState(false);
+  const [isCompletionLoading, setIsCompletionLoading] = useState(false);
   const amount = useWalletStore((state) => state.chargeAmount);
+  const accountPassword = useWalletStore((state) => state.chargeAccountPassword);
   const feedback = useWalletStore((state) => state.chargeFeedback);
   const success = useWalletStore((state) => state.chargeSuccess);
   const isSubmitting = useWalletStore((state) => state.isChargeSubmitting);
   const amountInputWidth = useWalletStore((state) => state.amountInputWidth);
   const setAmount = useWalletStore((state) => state.setChargeAmount);
+  const setAccountPassword = useWalletStore((state) => state.setChargeAccountPassword);
   const setFeedback = useWalletStore((state) => state.setChargeFeedback);
   const setSuccess = useWalletStore((state) => state.setChargeSuccess);
   const setIsSubmitting = useWalletStore((state) => state.setChargeSubmitting);
@@ -41,6 +51,7 @@ export function WalletCharge() {
   );
   const amountInputValue = numericAmount <= 0 ? amount : formattedAmount;
   const isChargeLimitExceeded = numericAmount > chargeLimitAmount;
+  const isAccountPasswordComplete = accountPassword.length === accountPasswordLength;
   const balanceAfterCharge = success ? walletBalance + success.amount : 0;
   const formattedBalanceAfterCharge = balanceAfterCharge.toLocaleString("ko-KR");
   const chargedAtText =
@@ -65,6 +76,12 @@ export function WalletCharge() {
 
     setAmountInputWidth(amountMirrorRef.current?.offsetWidth ?? 0);
   }, [amountInputValue, numericAmount]);
+
+  useEffect(() => {
+    return () => {
+      completionTimerIdsRef.current.forEach((timerId) => window.clearTimeout(timerId));
+    };
+  }, []);
 
   const updateAmount = (nextAmount: string) => {
     setSuccess(null);
@@ -101,7 +118,33 @@ export function WalletCharge() {
     updateAmount(nextAmount);
   };
 
-  const requestCharge = async () => {
+  const handleKeypadPress = (event: KeypadPressEvent) => {
+    if (event.type !== "num" || typeof event.value !== "number") {
+      return;
+    }
+
+    if (accountPassword.length >= accountPasswordLength) {
+      return;
+    }
+
+    setSuccess(null);
+    setFeedback(null);
+    setAccountPassword(`${accountPassword}${event.value}`.slice(0, accountPasswordLength));
+  };
+
+  const handleBackspacePassword = () => {
+    setSuccess(null);
+    setFeedback(null);
+    setAccountPassword(accountPassword.slice(0, -1));
+  };
+
+  const handleClearPassword = () => {
+    setSuccess(null);
+    setFeedback(null);
+    setAccountPassword("");
+  };
+
+  const validateChargeAmount = () => {
     if (numericAmount <= 0) {
       throw new Error("충전 금액을 입력해주세요.");
     }
@@ -109,9 +152,39 @@ export function WalletCharge() {
     if (numericAmount > chargeLimitAmount) {
       throw new Error(chargeLimitMessage);
     }
+  };
+
+  const requestCharge = async () => {
+    validateChargeAmount();
+
+    if (!isAccountPasswordComplete) {
+      throw new Error("계좌비밀번호 4자리를 입력해주세요.");
+    }
 
     // TODO: 백엔드 충전 API 연결 시 이 함수 내부를 실제 요청으로 교체합니다.
     await Promise.resolve();
+  };
+
+  const openPasswordSheet = () => {
+    try {
+      validateChargeAmount();
+      setFeedback(null);
+      setAccountPassword("");
+      setIsPasswordSheetOpen(true);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "잠시 후 다시 시도해주세요.";
+
+      setFeedback({
+        type: "error",
+        message,
+      });
+    }
+  };
+
+  const closePasswordSheet = () => {
+    setIsPasswordSheetOpen(false);
+    setAccountPassword("");
   };
 
   const handleConfirm = async () => {
@@ -124,10 +197,26 @@ export function WalletCharge() {
 
     try {
       await requestCharge();
-      setSuccess({
-        amount: numericAmount,
-        chargedAt: new Date(),
-      });
+      const chargedAmount = numericAmount;
+
+      setIsPasswordSheetOpen(false);
+      setAccountPassword("");
+
+      const loadingTimerId = window.setTimeout(() => {
+        setIsCompletionLoading(true);
+
+        const successTimerId = window.setTimeout(() => {
+          setIsCompletionLoading(false);
+          setSuccess({
+            amount: chargedAmount,
+            chargedAt: new Date(),
+          });
+        }, chargeCompletionLoadingMs);
+
+        completionTimerIdsRef.current.push(successTimerId);
+      }, passwordSheetCloseDurationMs);
+
+      completionTimerIdsRef.current.push(loadingTimerId);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "잠시 후 다시 시도해주세요.";
@@ -168,7 +257,7 @@ export function WalletCharge() {
                 isChargeLimitExceeded ||
                 isSubmitting
               }
-              onClick={handleConfirm}
+              onClick={openPasswordSheet}
               className={walletPrimaryButtonClass}
             >
               확인
@@ -244,6 +333,73 @@ export function WalletCharge() {
           <WalletAccountCard />
         </div>
       </MobileLayout>
+
+      <BottomSheet
+        isOpen={isPasswordSheetOpen}
+        onClose={closePasswordSheet}
+        title=""
+        disableScroll
+      >
+        <div className="space-y-5">
+          <div>
+            <h2 className="text-[20px] font-semibold leading-7 text-[#111111]">
+              계좌 비밀번호
+            </h2>
+            <p className="mt-3 text-[15px] leading-6 text-[#666666]">
+              충전을 완료하려면 계좌 비밀번호를 입력해주세요.
+            </p>
+            <div
+              className="mt-5 flex h-12 items-center justify-center gap-3 rounded-[10px] bg-[#f6f7f9]"
+              aria-label={`계좌비밀번호 ${accountPassword.length}자리 입력됨`}
+            >
+              {Array.from({ length: accountPasswordLength }).map((_, index) => (
+                <span
+                  key={index}
+                  className={`h-3 w-3 rounded-full ${
+                    index < accountPassword.length ? "bg-[#111111]" : "bg-[#d8dbe2]"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {feedback && (
+            <div
+              role="alert"
+              className="rounded-xl bg-[#fff2f2] px-4 py-3 text-center text-[14px] font-medium text-[#d92d20]"
+            >
+              {feedback.message}
+            </div>
+          )}
+
+          <div className="wallet-secure-keypad overflow-hidden rounded-[14px]">
+            <Keypad
+              shuffleKey
+              mixedKey
+              pressCooldown={120}
+              onPress={handleKeypadPress}
+              onBackspaceClick={handleBackspacePassword}
+              onClearClick={handleClearPassword}
+              onOkClick={handleConfirm}
+            />
+          </div>
+        </div>
+      </BottomSheet>
+
+      {isCompletionLoading && (
+        <div
+          className="fixed inset-0 z-50 mx-auto flex h-full w-full max-w-[var(--app-width)] items-center justify-center bg-black/35 px-5"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex w-full max-w-[260px] flex-col items-center rounded-[18px] bg-white px-6 py-7 shadow-[0_16px_40px_rgba(0,0,0,0.18)]">
+            <div className="h-9 w-9 animate-spin rounded-full border-[3px] border-[#d8dbe2] border-t-[#111111]" />
+            <p className="mt-4 text-[16px] font-semibold text-[#111111]">
+              충전 처리 중
+            </p>
+          </div>
+        </div>
+      )}
 
       {success && (
         <div

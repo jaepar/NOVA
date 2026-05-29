@@ -15,6 +15,7 @@ interface WalletState {
   selectedFilter: WalletTransactionFilter;
   filterOpen: boolean;
   chargeAmount: string;
+  chargeAccountPassword: string;
   chargeFeedback: ChargeFeedback | null;
   chargeSuccess: ChargeSuccess | null;
   isChargeSubmitting: boolean;
@@ -26,6 +27,7 @@ interface WalletState {
   setSelectedFilter: (selectedFilter: WalletTransactionFilter) => void;
   setFilterOpen: (filterOpen: boolean | ((current: boolean) => boolean)) => void;
   setChargeAmount: (chargeAmount: string) => void;
+  setChargeAccountPassword: (chargeAccountPassword: string) => void;
   setChargeFeedback: (chargeFeedback: ChargeFeedback | null) => void;
   setChargeSuccess: (chargeSuccess: ChargeSuccess | null) => void;
   setChargeSubmitting: (isChargeSubmitting: boolean) => void;
@@ -45,6 +47,7 @@ export const useWalletStore = create<WalletState>((set) => ({
   selectedFilter: "all",
   filterOpen: false,
   chargeAmount: "",
+  chargeAccountPassword: "",
   chargeFeedback: null,
   chargeSuccess: null,
   isChargeSubmitting: false,
@@ -60,6 +63,7 @@ export const useWalletStore = create<WalletState>((set) => ({
         typeof filterOpen === "function" ? filterOpen(state.filterOpen) : filterOpen,
     })),
   setChargeAmount: (chargeAmount) => set({ chargeAmount }),
+  setChargeAccountPassword: (chargeAccountPassword) => set({ chargeAccountPassword }),
   setChargeFeedback: (chargeFeedback) => set({ chargeFeedback }),
   setChargeSuccess: (chargeSuccess) => set({ chargeSuccess }),
   setChargeSubmitting: (isChargeSubmitting) => set({ isChargeSubmitting }),
@@ -68,6 +72,7 @@ export const useWalletStore = create<WalletState>((set) => ({
   resetChargeFlow: () =>
     set({
       chargeAmount: "",
+      chargeAccountPassword: "",
       chargeFeedback: null,
       chargeSuccess: null,
       isChargeSubmitting: false,
