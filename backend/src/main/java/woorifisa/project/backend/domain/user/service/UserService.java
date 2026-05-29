@@ -103,6 +103,17 @@ public class UserService {
 
 	private void saveDocuments(User user, DocumentType documentType, MultipartFile file, DocumentStatus status) {
 		validatePdfFile(file);
+
+		if (status == DocumentStatus.MODIFIED) {
+			documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
+				.filter(document -> document.getStatus() == DocumentStatus.REJECTED)
+				.ifPresent(document -> userDocumentS3Uploader.deleteByStatus(
+					user.getUserId(),
+					documentType,
+					DocumentStatus.REJECTED
+				));
+		}
+
 		String fileUrl = userDocumentS3Uploader.upload(user.getUserId(), file, documentType, status);  // 업로드 주소
 
 		//  해당 유저가 이미 같은 종류의 Document를 가지고 있으면 가장 최근 Document를 가져오고, 없으면 새 Document 객체 생성

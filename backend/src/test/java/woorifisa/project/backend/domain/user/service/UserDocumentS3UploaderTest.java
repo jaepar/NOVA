@@ -71,4 +71,15 @@ class UserDocumentS3UploaderTest {
 		assertThat(deleteCaptor.getValue().key())
 			.isEqualTo("documents/7_RESIDENCE_VERIFICATION_DOCUMENT_PENDING.pdf");
 	}
+
+	@Test
+	@DisplayName("상태 기반 삭제 시 사용자, 문서타입, 상태 키로 삭제한다")
+	void deleteByStatus() {
+		uploader.deleteByStatus(7L, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT, DocumentStatus.REJECTED);
+
+		ArgumentCaptor<DeleteObjectRequest> deleteCaptor = ArgumentCaptor.forClass(DeleteObjectRequest.class);
+		verify(s3Client).deleteObject(deleteCaptor.capture());
+		assertThat(deleteCaptor.getValue().key())
+			.isEqualTo("documents/7_RESIDENCE_VERIFICATION_DOCUMENT_REJECTED.pdf");
+	}
 }

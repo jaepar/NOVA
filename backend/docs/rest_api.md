@@ -62,6 +62,7 @@
 | `USER-007`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
 | `USER-008`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
 | `USER-009`      | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
+| `USER-010`      | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED` |
 | `WALLET-001`   | 월렛 계좌내역 조회 | GET | `/wallet/transactions` | O | USER | |
 | `WALLET-002`   | 월렛 충전 | POST | `/wallet/charges` | O | USER | |
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST | `/wallet/charges/debit` | O | USER | |

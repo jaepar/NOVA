@@ -43,6 +43,14 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     REUPLOAD_ALL_REJECTED_REQUIRED("USER-007", "두 문서가 모두 반려된 경우 두 개의 문서를 모두 제출해야 합니다."),
 
     /**
+     * admin
+     */
+    DOCUMENT_NOT_FOUND("ADMIN-001", "심사 대상 문서를 찾을 수 없습니다."),
+    INVALID_DOCUMENT_TYPE("ADMIN-002", "유효하지 않은 문서 타입입니다."),
+    INVALID_DOCUMENT_REVIEW_STATUS("ADMIN-003", "유효하지 않은 서류 심사 상태입니다."),
+    DOCUMENT_REVIEW_SOURCE_STATUS_INVALID("ADMIN-004", "심사 가능한 문서 상태가 아닙니다."),
+
+    /**
      * banking
      */
     BANKING_ACCOUNT_NOT_FOUND("BANK-001", "계좌 정보를 찾을 수 없습니다."),
