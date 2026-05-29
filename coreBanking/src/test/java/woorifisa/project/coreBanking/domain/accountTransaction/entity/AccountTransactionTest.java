@@ -22,13 +22,13 @@ class AccountTransactionTest {
     }
 
     @Test
-    @DisplayName("외부 요청 식별자 유니크 제약을 선언한다")
-    void externalRequestIdIsUnique() {
+    @DisplayName("외부 요청 식별자 + 거래 흐름 복합 유니크 제약을 선언한다")
+    void externalRequestIdAndTransactionFlowAreUnique() {
         Table table = AccountTransaction.class.getAnnotation(Table.class);
 
         assertThat(table).isNotNull();
         assertThat(Arrays.stream(table.uniqueConstraints())
                 .map(UniqueConstraint::name))
-                .contains("uk_account_transaction_external_request_id");
+                .contains("uk_account_transaction_external_request_id_flow");
     }
 }
