@@ -10,20 +10,23 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionItem;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
+import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,11 +58,7 @@ class WalletControllerTest {
         );
 
         when(walletService.findWalletTransactions(any())).thenReturn(response);
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                new SessionUserPrincipal(userId),
-                null,
-                AuthorityUtils.NO_AUTHORITIES
-        );
+        UsernamePasswordAuthenticationToken authToken = authToken(userId);
 
         mockMvc.perform(get("/wallet/transactions")
                         .with(authentication(authToken))
@@ -74,5 +73,35 @@ class WalletControllerTest {
                 .andExpect(jsonPath("$.data.transactions[0].counterparty").value("이마트24 강남역점"))
                 .andExpect(jsonPath("$.data.transactions[0].amount").value(2500))
                 .andExpect(jsonPath("$.data.transactions[0].createdAt").value("2025-05-24T14:22:00"));
+    }
+
+    @Test
+    @DisplayName("세션 사용자 기준 월렛 생성 요청을 처리한다")
+    void createWallet() throws Exception {
+        Long userId = 1L;
+        UsernamePasswordAuthenticationToken authToken = authToken(userId);
+
+        mockMvc.perform(post("/wallet")
+                        .with(authentication(authToken))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "termsAgreed": true
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value(20000));
+
+        verify(walletService).createWallet(any(), any());
+    }
+
+    private UsernamePasswordAuthenticationToken authToken(Long userId) {
+        return new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
     }
 }

@@ -7,6 +7,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import woorifisa.project.backend.domain.banking.entity.AccountRef;
+import woorifisa.project.backend.domain.banking.repository.BankingRepository;
+import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
 import woorifisa.project.backend.domain.wallet.entity.WalletTransaction;
@@ -21,8 +25,13 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_TERMS_REQUIRED;
 
 @ExtendWith(MockitoExtension.class)
 class WalletServiceTest {
@@ -32,6 +41,9 @@ class WalletServiceTest {
 
     @Mock
     private WalletTransactionRepository walletTransactionRepository;
+
+    @Mock
+    private BankingRepository bankingRepository;
 
     @InjectMocks
     private WalletService walletService;
@@ -72,6 +84,68 @@ class WalletServiceTest {
                 .isInstanceOf(CustomException.class)
                 .extracting("exceptionStatus")
                 .isEqualTo(WALLET_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("약관에 동의하면 임시 제한 계좌를 연결해 월렛을 생성한다")
+    void createWallet() {
+        Long userId = 1L;
+        User user = User.builder().userId(userId).build();
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(20L)
+                .user(user)
+                .hasAccount(true)
+                .hasLimit(true)
+                .build();
+        when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.empty());
+        when(bankingRepository.findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(userId))
+                .thenReturn(Optional.of(accountRef));
+
+        walletService.createWallet(userId, new WalletCreateRequest(true));
+
+        verify(walletRepository).save(org.mockito.ArgumentMatchers.argThat(wallet ->
+                wallet.getUser().equals(user)
+                        && wallet.getUserAccount().equals(accountRef)
+                        && wallet.getBalance() == 0));
+    }
+
+    @Test
+    @DisplayName("이미 월렛이 있으면 새로 생성하지 않는다")
+    void createWalletAlreadyExists() {
+        Wallet wallet = Wallet.builder()
+                .walletId(10L)
+                .balance(30000)
+                .build();
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet));
+
+        walletService.createWallet(1L, new WalletCreateRequest(true));
+
+        verify(bankingRepository, never()).findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(any());
+        verify(walletRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("약관에 동의하지 않으면 월렛을 생성하지 않는다")
+    void createWalletTermsRequired() {
+        assertThatThrownBy(() -> walletService.createWallet(1L, new WalletCreateRequest(false)))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_TERMS_REQUIRED));
+
+        verify(walletRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("연결할 임시 제한 계좌가 없으면 월렛을 생성하지 않는다")
+    void createWalletAccountRequired() {
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.empty());
+        when(bankingRepository.findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(1L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> walletService.createWallet(1L, new WalletCreateRequest(true)))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_ACCOUNT_NOT_FOUND));
+
+        verify(walletRepository, never()).save(any());
     }
 
     private WalletTransaction walletTransaction(Long walletTransactionId, Wallet wallet, TransactionFlow transactionFlow, String counterparty, Integer amount, LocalDateTime createdAt) {
