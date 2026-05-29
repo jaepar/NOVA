@@ -5,6 +5,9 @@ interface SignupContentProps {
   className?: string;
 }
 
-export function SignupContent({ children, className = "" }: SignupContentProps) {
-  return <div className={`pt-8 ${className}`.trim()}>{children}</div>;
+export function SignupContent({
+  children,
+  className = "",
+}: SignupContentProps) {
+  return <div className={`pt-2 ${className}`.trim()}>{children}</div>;
 }
