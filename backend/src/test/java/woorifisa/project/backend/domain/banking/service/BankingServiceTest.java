@@ -15,7 +15,7 @@ import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerif
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
-import woorifisa.project.backend.domain.banking.repository.BankingRepository;
+import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -40,7 +40,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 class BankingServiceTest {
 
     @Mock
-    private BankingRepository bankingRepository;
+    private AccountRefRepository accountRefRepository;
     @Mock
     private StringRedisTemplate stringRedisTemplate;
     @Mock
@@ -53,7 +53,7 @@ class BankingServiceTest {
     @BeforeEach
     void setUp() {
         bankingService = new BankingService(
-                bankingRepository,
+                accountRefRepository,
                 stringRedisTemplate,
                 coreBankingClient
         );
@@ -77,7 +77,7 @@ class BankingServiceTest {
                 .build();
         when(valueOperations.get("banking:transfer:result:key-1")).thenReturn(null);
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
-        when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
         doNothing().when(coreBankingClient).transfer(any());
 
         bankingService.transfer(userId, idempotencyKey, request);
@@ -127,7 +127,7 @@ class BankingServiceTest {
                 .thenReturn(true);
         when(valueOperations.setIfAbsent("account:debit:processing:2001", "1", java.time.Duration.ofMinutes(5)))
                 .thenReturn(false);
-        when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
 
         assertThatThrownBy(() -> bankingService.transfer(userId, "key-acc-lock", request))
                 .isInstanceOf(CustomException.class)
@@ -170,7 +170,7 @@ class BankingServiceTest {
 
         when(valueOperations.get("banking:transfer:result:key-lookup-exists")).thenReturn(null);
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
-        when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
         doThrow(new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED)).when(coreBankingClient).transfer(any());
         when(coreBankingClient.existsTransferRequest(idempotencyKey))
                 .thenReturn(false)
@@ -201,7 +201,7 @@ class BankingServiceTest {
 
         when(valueOperations.get("banking:transfer:result:key-retry")).thenReturn(null);
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
-        when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
         doThrow(new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED))
                 .doNothing()
                 .when(coreBankingClient).transfer(any());
@@ -226,7 +226,7 @@ class BankingServiceTest {
                 .accountNumber("1002867390781")
                 .hasAccount(true)
                 .build();
-        when(bankingRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
                 .thenReturn(Optional.of(accountRef));
         when(coreBankingClient.lookupRecipient(any()))
                 .thenReturn(new CoreBankingRecipientLookupResponse("백민정"));
@@ -249,7 +249,7 @@ class BankingServiceTest {
                 .hasAccount(true)
                 .build();
 
-        when(bankingRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
         doNothing().when(coreBankingClient).verifyAccountPassword(any());
 
         bankingService.verifyAccountPassword(userId, new AccountPasswordVerifyRequest(2001L, "1234"));

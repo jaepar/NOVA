@@ -2,23 +2,11 @@ package woorifisa.project.backend.domain.wallet.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
-import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
-import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionItem;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
-import woorifisa.project.backend.domain.wallet.service.WalletStatusService;
-import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
 
@@ -31,18 +19,6 @@ import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.SUCCESS;
 
 class WalletControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockitoBean
-    private WalletService walletService;
-
-    @MockitoBean
-    private WalletStatusService walletStatusService;
-
-    @MockitoBean
-    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
     @DisplayName("세션 사용자 기준 월렛 잔액과 거래내역을 조회한다")
@@ -80,31 +56,19 @@ class WalletControllerTest {
 
     @Test
     @DisplayName("세션 사용자 기준 월렛 상태를 조회한다")
-    void walletStatus() throws Exception {
-        Long userId = 1L;
-        WalletStatusResponse response = new WalletStatusResponse(
-                WalletNextStep.WALLET_TERMS
-        );
+    void walletStatus() {
+        WalletService walletService = mock(WalletService.class);
+        WalletController walletController = new WalletController(walletService);
+        SessionUserPrincipal principal = new SessionUserPrincipal(1L);
+        WalletStatusResponse serviceResponse = new WalletStatusResponse(WalletNextStep.WALLET_TERMS);
+        when(walletService.findWalletStatus(1L)).thenReturn(serviceResponse);
 
-        when(walletStatusService.findWalletStatus(any())).thenReturn(response);
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                new SessionUserPrincipal(userId),
-                null,
-                AuthorityUtils.NO_AUTHORITIES
-        );
+        BaseResponse<WalletStatusResponse> response = walletController.findWalletStatus(principal);
 
-        mockMvc.perform(get("/wallet/status")
-                        .with(authentication(authToken))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value(20000))
-                .andExpect(jsonPath("$.data.nextStep").value("WALLET_TERMS"))
-                .andExpect(jsonPath("$.data.hasWallet").doesNotExist())
-                .andExpect(jsonPath("$.data.canCreateWallet").doesNotExist())
-                .andExpect(jsonPath("$.data.walletId").doesNotExist())
-                .andExpect(jsonPath("$.data.balance").doesNotExist())
-                .andExpect(jsonPath("$.data.linkedAccountId").doesNotExist())
-                .andExpect(jsonPath("$.data.reason").doesNotExist());
+        verify(walletService).findWalletStatus(1L);
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
+        assertThat(response.getData()).isEqualTo(serviceResponse);
     }
 }

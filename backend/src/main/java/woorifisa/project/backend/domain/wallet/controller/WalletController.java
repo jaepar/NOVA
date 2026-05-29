@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
-import woorifisa.project.backend.domain.wallet.service.WalletStatusService;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
-import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
-import woorifisa.project.backend.domain.wallet.service.WalletService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
 
@@ -25,7 +22,6 @@ import woorifisa.project.backend.global.response.BaseResponse;
 public class WalletController {
 
     private final WalletService walletService;
-    private final WalletStatusService walletStatusService;
 
     @GetMapping("/transactions")
     public BaseResponse<WalletTransactionsResponse> findWalletTransactions(
@@ -34,13 +30,6 @@ public class WalletController {
         return BaseResponse.ok(walletService.findWalletTransactions(principal.userId()));
     }
 
-    @GetMapping("/status")
-    public BaseResponse<WalletStatusResponse> findWalletStatus(
-            @AuthenticationPrincipal SessionUserPrincipal principal
-    ) {
-        return BaseResponse.ok(walletStatusService.findWalletStatus(principal.userId()));
-    }
-  
     @PostMapping("/charges")
     public BaseResponse<Void> chargeWallet(
             @AuthenticationPrincipal SessionUserPrincipal principal,
@@ -49,5 +38,12 @@ public class WalletController {
     ) {
         walletService.chargeWallet(principal.userId(), idempotencyKey, request);
         return BaseResponse.ok(null);
+    }
+
+    @GetMapping("/status")
+    public BaseResponse<WalletStatusResponse> findWalletStatus(
+            @AuthenticationPrincipal SessionUserPrincipal principal
+    ) {
+        return BaseResponse.ok(walletService.findWalletStatus(principal.userId()));
     }
 }
