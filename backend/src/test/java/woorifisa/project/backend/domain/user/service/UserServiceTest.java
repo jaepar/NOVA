@@ -133,6 +133,36 @@ class UserServiceTest {
 	}
 
 	@Test
+	@DisplayName("보완 업로드 시 기존 반려 문서의 S3 객체를 삭제한 뒤 MODIFIED로 업로드한다")
+	void reuploadDeletesRejectedObjectBeforeModifiedUpload() {
+		Long userId = 1L;
+		User user = User.builder().userId(userId).build();
+		MockMultipartFile residencePdf = new MockMultipartFile("residenceVerificationPdf", "residence.pdf", "application/pdf", "residence".getBytes());
+		MockMultipartFile alienPdf = new MockMultipartFile("alienRegistrationApplicationPdf", "alien.pdf", "application/pdf", "alien".getBytes());
+
+		Document latestResidence = Document.builder().user(user).documentType(DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)
+			.status(DocumentStatus.REJECTED).fileUrl("old").build();
+		Document latestAlien = Document.builder().user(user).documentType(DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT)
+			.status(DocumentStatus.REJECTED).fileUrl("old").build();
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(documentRepository.existsByUser(user)).thenReturn(true);
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT))
+			.thenReturn(Optional.of(latestResidence));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT))
+			.thenReturn(Optional.of(latestAlien));
+		when(userDocumentS3Uploader.upload(userId, residencePdf, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT, DocumentStatus.MODIFIED))
+			.thenReturn("https://s3/documents/1_RESIDENCE_VERIFICATION_DOCUMENT_MODIFIED.pdf");
+		when(userDocumentS3Uploader.upload(userId, alienPdf, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT, DocumentStatus.MODIFIED))
+			.thenReturn("https://s3/documents/1_ALIEN_REGISTRATION_SUPPORTING_DOCUMENT_MODIFIED.pdf");
+
+		userService.uploadDocuments(userId, residencePdf, alienPdf);
+
+		verify(userDocumentS3Uploader).deleteByStatus(userId, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT, DocumentStatus.REJECTED);
+		verify(userDocumentS3Uploader).deleteByStatus(userId, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT, DocumentStatus.REJECTED);
+	}
+
+	@Test
 	@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
 	void userNotFound() {
 		Long userId = 1L;
