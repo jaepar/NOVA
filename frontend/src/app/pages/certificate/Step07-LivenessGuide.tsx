@@ -8,10 +8,12 @@ export function LivenessGuide() {
 
   return (
     <MobileLayout
-      title="비대면 실명확인"
+      title="비대면 신원확인"
       backPath="/certificate/step-06"
       bottomContent={
-        <Btn_1Col onClick={() => navigate('/certificate/step-08')}>동의하고 촬영하기</Btn_1Col>
+        <Btn_1Col onClick={() => navigate('/certificate/step-08')}>
+          동의하고 촬영하기
+        </Btn_1Col>
       }
     >
       <div className="space-y-5 pb-2">
@@ -24,10 +26,10 @@ export function LivenessGuide() {
         </section>
 
         <section className="rounded-2xl bg-secondary p-5">
-          <div className="rounded-2xl border-2 border-dashed border-blue-200 min-h-[300px] flex flex-col items-center justify-center gap-4 px-6">
-            <div className="w-24 h-1 rounded-full bg-blue-300/70" />
-            <div className="w-40 h-40 rounded-full border-2 border-blue-300 flex items-center justify-center">
-              <ScanFace className="w-16 h-16 text-blue-400" />
+          <div className="min-h-[300px] rounded-2xl border-2 border-dashed border-blue-200 px-6 flex flex-col items-center justify-center gap-4">
+            <div className="h-1 w-24 rounded-full bg-blue-300/70" />
+            <div className="h-40 w-40 rounded-full border-2 border-blue-300 flex items-center justify-center">
+              <ScanFace className="h-16 w-16 text-blue-400" />
             </div>
             <p className="text-sm text-muted-foreground">얼굴 촬영 가이드 영역</p>
           </div>
@@ -35,26 +37,27 @@ export function LivenessGuide() {
 
         <section className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center shrink-0">
-              <ScanFace className="w-4 h-4" />
+            <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
+              <ScanFace className="h-4 w-4" />
             </div>
-            <p className="text-sm leading-relaxed">얼굴을 영역 안에 맞추고 정면을 바라봐 주세요</p>
+            <p className="text-sm leading-relaxed">얼굴을 안내 영역에 맞추고 정면을 바라봐 주세요.</p>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center shrink-0">
-              <Lightbulb className="w-4 h-4" />
+            <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
+              <Lightbulb className="h-4 w-4" />
             </div>
-            <p className="text-sm leading-relaxed">너무 밝거나 어둡지 않은 곳에서 진행해 주세요</p>
+            <p className="text-sm leading-relaxed">너무 밝거나 어둡지 않은 곳에서 진행해 주세요.</p>
           </div>
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-50 text-primary flex items-center justify-center shrink-0">
-              <Camera className="w-4 h-4" />
+            <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
+              <Camera className="h-4 w-4" />
             </div>
             <p className="text-sm leading-relaxed">
-              모바일 전면 카메라를 켠 상태에서 얼굴 가까이로 이동해 주세요
+              모바일 화면 카메라를 켠 상태에서 얼굴 가까이로 이동해 주세요.
             </p>
           </div>
         </section>
+
       </div>
     </MobileLayout>
   )
