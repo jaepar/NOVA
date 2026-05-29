@@ -91,12 +91,14 @@
 | `BANK-007`     | 해외 송금(Cloud)         | TBD    | `TBD`                                                    | O    | USER   | 프로세스 정의 중 (추후 작성)             |
 | `BANK-008`     | 이체 사전 조회(Cloud) | POST | `/banking/transfers/preview` | O | USER | 내 계좌(account_ref) + 수취인(coreBanking) 통합 조회 |
 
+
 ## Naming and Contract Notes
 
 - 경로 세그먼트는 소문자-kebab-case 또는 복수형 리소스 명사를 사용한다.
 - 예약 리소스는 `hospital/reservations`로 고정한다.
 - `wallet_transaction.transaction_flow`는 `DEPOSIT | WITHDRAWAL`만 사용한다.
 - `application.status`는 `PASSED | FAILED | READ | UNREAD`만 사용한다.
+- `WALLET-004` 응답의 `nextStep`은 `CREATE_ACCOUNT | WALLET_TERMS | WALLET_HOME`만 사용한다.
 
 ## Docs Sync Rule
 

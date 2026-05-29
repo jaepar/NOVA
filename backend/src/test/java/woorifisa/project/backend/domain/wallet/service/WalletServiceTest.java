@@ -6,7 +6,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
+import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
 import woorifisa.project.backend.domain.wallet.entity.WalletTransaction;
@@ -40,6 +43,7 @@ class WalletServiceTest {
 
     private final WalletRepository walletRepository = mock(WalletRepository.class);
     private final WalletTransactionRepository walletTransactionRepository = mock(WalletTransactionRepository.class);
+    private final AccountRefRepository accountRefRepository = mock(AccountRefRepository.class);
     private final CoreBankingClient coreBankingClient = mock(CoreBankingClient.class);
     private final StringRedisTemplate stringRedisTemplate = mock(StringRedisTemplate.class);
 
@@ -49,9 +53,52 @@ class WalletServiceTest {
     private final WalletService walletService = new WalletService(
             walletRepository,
             walletTransactionRepository,
+            accountRefRepository,
             coreBankingClient,
             stringRedisTemplate
     );
+
+    @Test
+    @DisplayName("월렛이 있으면 월렛 홈 이동 상태를 반환한다")
+    void walletFound() {
+        Long userId = 1L;
+        Wallet wallet = Wallet.builder()
+                .walletId(10L)
+                .balance(12500)
+                .build();
+
+        when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.of(wallet));
+
+        WalletStatusResponse response = walletService.findWalletStatus(userId);
+
+        assertThat(response.nextStep()).isEqualTo(WalletNextStep.WALLET_HOME);
+    }
+
+    @Test
+    @DisplayName("월렛이 없고 임시 제한 계좌가 있으면 월렛 약관 이동 상태를 반환한다")
+    void canCreate() {
+        Long userId = 1L;
+
+        when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.empty());
+        when(accountRefRepository.existsByUser_UserIdAndHasAccountTrue(userId)).thenReturn(true);
+
+        WalletStatusResponse response = walletService.findWalletStatus(userId);
+
+        assertThat(response.nextStep()).isEqualTo(WalletNextStep.WALLET_TERMS);
+    }
+
+    @Test
+    @DisplayName("월렛과 임시 제한 계좌가 없으면 계좌 개설 이동 상태를 반환한다")
+    void accountRequired() {
+        Long userId = 1L;
+
+        when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.empty());
+        when(accountRefRepository.existsByUser_UserIdAndHasAccountTrue(userId)).thenReturn(false);
+
+        WalletStatusResponse response = walletService.findWalletStatus(userId);
+
+        assertThat(response.nextStep()).isEqualTo(WalletNextStep.CREATE_ACCOUNT);
+    }
 
     @Test
     @DisplayName("사용자의 월렛 잔액과 거래내역을 최신순으로 조회한다")

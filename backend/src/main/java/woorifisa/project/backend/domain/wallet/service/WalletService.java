@@ -5,8 +5,11 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
+import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
 import woorifisa.project.backend.domain.wallet.entity.WalletTransaction;
@@ -44,6 +47,7 @@ public class WalletService {
 
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
+    private final AccountRefRepository accountRefRepository;
     private final CoreBankingClient coreBankingClient;
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -113,6 +117,23 @@ public class WalletService {
             // 성공·실패 관계없이 processingKey 해제해서 다음 요청이 락 획득 가능하도록
             stringRedisTemplate.delete(processingKey);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public WalletStatusResponse findWalletStatus(Long userId) {
+        // 사용자의 월렛 소유 여부 체크
+        if (walletRepository.findByUser_UserId(userId).isPresent()) {
+            // 월렛이 있을 경우
+            return new WalletStatusResponse(WalletNextStep.WALLET_HOME);
+        }
+
+        // 계좌는 있는데, 월렛은 없음 -> 약관동의 필요(월렛 생성)
+        if (accountRefRepository.existsByUser_UserIdAndHasAccountTrue(userId)) {
+            return new WalletStatusResponse(WalletNextStep.WALLET_TERMS);
+        }
+
+        // 월렛도 없고 계좌도 없는 경우 계좌 생성 필요
+        return new WalletStatusResponse(WalletNextStep.CREATE_ACCOUNT);
     }
 
     private String formatProcessingKey(String idempotencyKey) {

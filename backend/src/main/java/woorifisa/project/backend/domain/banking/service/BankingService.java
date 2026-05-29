@@ -12,7 +12,7 @@ import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewReque
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
-import woorifisa.project.backend.domain.banking.repository.BankingRepository;
+import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -39,7 +39,7 @@ public class BankingService {
     private static final Duration RESULT_TTL = Duration.ofMinutes(10);
     private static final long REQUEST_LOOKUP_RETRY_DELAY_MILLIS = 1000L;
 
-    private final BankingRepository bankingRepository;
+    private final AccountRefRepository accountRefRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final CoreBankingClient coreBankingClient;
 
@@ -64,7 +64,7 @@ public class BankingService {
 
         try {
             // 같은 계좌의 동일 이체를 막기 위한 락을 거는 로직
-            AccountRef accountRef = bankingRepository.findByUser_UserIdAndAccountId(userId, request.withdrawAccountId())
+            AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountId(userId, request.withdrawAccountId())
                     .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
             String accountProcessingKey = formatAccountProcessingKey(accountRef.getAccountId());
             Boolean accountLockAcquired = stringRedisTemplate.opsForValue()
@@ -95,7 +95,7 @@ public class BankingService {
     }
 
     public TransferPreviewResponse previewTransfer(Long userId, TransferPreviewRequest request) {
-        AccountRef myAccount = bankingRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId)
+        AccountRef myAccount = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId)
                 .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
 
         String recipientName = coreBankingClient.lookupRecipient(
@@ -114,7 +114,7 @@ public class BankingService {
     }
 
     public void verifyAccountPassword(Long userId, AccountPasswordVerifyRequest request) {
-        bankingRepository.findByUser_UserIdAndAccountId(userId, request.accountId())
+        accountRefRepository.findByUser_UserIdAndAccountId(userId, request.accountId())
                 .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
 
         coreBankingClient.verifyAccountPassword(

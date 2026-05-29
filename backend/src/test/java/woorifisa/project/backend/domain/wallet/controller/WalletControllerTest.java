@@ -2,7 +2,9 @@ package woorifisa.project.backend.domain.wallet.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
@@ -50,5 +52,23 @@ class WalletControllerTest {
         assertThat(response.getSuccess()).isTrue();
         assertThat(response.getCode()).isEqualTo("20000");
         assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
+    }
+
+    @Test
+    @DisplayName("세션 사용자 기준 월렛 상태를 조회한다")
+    void walletStatus() {
+        WalletService walletService = mock(WalletService.class);
+        WalletController walletController = new WalletController(walletService);
+        SessionUserPrincipal principal = new SessionUserPrincipal(1L);
+        WalletStatusResponse serviceResponse = new WalletStatusResponse(WalletNextStep.WALLET_TERMS);
+        when(walletService.findWalletStatus(1L)).thenReturn(serviceResponse);
+
+        BaseResponse<WalletStatusResponse> response = walletController.findWalletStatus(principal);
+
+        verify(walletService).findWalletStatus(1L);
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
+        assertThat(response.getData()).isEqualTo(serviceResponse);
     }
 }
