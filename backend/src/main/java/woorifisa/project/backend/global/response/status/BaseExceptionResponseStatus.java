@@ -31,8 +31,7 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
      */
     WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다."),
     WALLET_ACCOUNT_NOT_FOUND("WALLET-002", "월렛에 연결할 계좌 정보를 찾을 수 없습니다."),
-    WALLET_TERMS_REQUIRED("WALLET-003", "월렛 약관 동의가 필요합니다.")
-    ;
+    WALLET_TERMS_REQUIRED("WALLET-003", "월렛 약관 동의가 필요합니다.");
 
     private final boolean success = false;
     private final String code;
