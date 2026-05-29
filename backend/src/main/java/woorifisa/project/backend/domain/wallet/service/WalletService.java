@@ -239,7 +239,7 @@ public class WalletService {
     }
 
     private void createNewWallet(Long userId) {
-        AccountRef accountRef = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(userId)
+        AccountRef accountRef = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrue(userId)
                 .orElseThrow(() -> new CustomException(WALLET_ACCOUNT_NOT_FOUND));
         Wallet wallet = Wallet.builder()
                 .user(accountRef.getUser())

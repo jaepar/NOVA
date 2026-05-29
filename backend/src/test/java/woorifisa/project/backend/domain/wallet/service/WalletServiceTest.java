@@ -339,7 +339,7 @@ class WalletServiceTest {
                 .hasLimit(true)
                 .build();
         when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.empty());
-        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(userId))
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrue(userId))
                 .thenReturn(Optional.of(accountRef));
 
         walletService.createWallet(userId, new WalletCreateRequest(true));
@@ -363,7 +363,7 @@ class WalletServiceTest {
                 .isInstanceOfSatisfying(CustomException.class,
                         exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_ALREADY_EXISTS));
 
-        verify(accountRefRepository, never()).findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(any());
+        verify(accountRefRepository, never()).findFirstByUser_UserIdAndHasAccountTrue(any());
         verify(walletRepository, never()).save(any());
     }
 
@@ -381,7 +381,7 @@ class WalletServiceTest {
     @DisplayName("연결할 임시 제한 계좌가 없으면 월렛을 생성하지 않는다")
     void createWalletAccountRequired() {
         when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.empty());
-        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(1L))
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrue(1L))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> walletService.createWallet(1L, new WalletCreateRequest(true)))
@@ -403,7 +403,7 @@ class WalletServiceTest {
                 .hasLimit(true)
                 .build();
         when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.empty());
-        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(userId))
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrue(userId))
                 .thenReturn(Optional.of(accountRef));
         doThrow(new DataIntegrityViolationException("duplicate key"))
                 .when(walletRepository).save(any(Wallet.class));
