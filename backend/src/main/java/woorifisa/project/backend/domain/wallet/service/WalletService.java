@@ -1,6 +1,7 @@
 package woorifisa.project.backend.domain.wallet.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
@@ -36,9 +37,8 @@ public class WalletService {
         return WalletTransactionsResponse.from(wallet, transactions);
     }
 
-    @Transactional
     public void createWallet(Long userId, WalletCreateRequest request) {
-        if (request == null || !Boolean.TRUE.equals(request.termsAgreed())) {
+        if (!Boolean.TRUE.equals(request.termsAgreed())) {
             throw new CustomException(WALLET_TERMS_REQUIRED);
         }
 
@@ -46,6 +46,14 @@ public class WalletService {
             return;
         }
 
+        try {
+            createNewWallet(userId);
+        } catch (DataIntegrityViolationException ignored) {
+            // 동시 요청으로 이미 생성된 경우 무시
+        }
+    }
+
+    private void createNewWallet(Long userId) {
         AccountRef accountRef = bankingRepository.findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(userId)
                 .orElseThrow(() -> new CustomException(WALLET_ACCOUNT_NOT_FOUND));
         Wallet wallet = Wallet.builder()
