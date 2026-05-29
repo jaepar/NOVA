@@ -80,12 +80,12 @@ public class UserDocumentS3Uploader {
 
 		try {
 			s3Client.deleteObject(DeleteObjectRequest.builder()
-				.bucket(bucket)
-				.key(key)
-				.build());
+					.bucket(bucket)
+					.key(key)
+					.build());
 		} catch (RuntimeException e) {
 			log.error("S3 document delete failed. userId={}, key={}, reason={}",
-				userId, key, e.getMessage(), e);
+					userId, key, e.getMessage(), e);
 			throw new CustomException(DOCUMENT_UPLOAD_FAILED);
 		}
 	}

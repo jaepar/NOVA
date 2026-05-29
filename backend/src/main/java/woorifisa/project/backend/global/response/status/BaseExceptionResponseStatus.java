@@ -29,11 +29,18 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     /**
      * wallet
      */
-    WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다."),
-    WALLET_ACCOUNT_NOT_FOUND("WALLET-002", "월렛에 연결할 계좌 정보를 찾을 수 없습니다."),
-    WALLET_TERMS_REQUIRED("WALLET-003", "월렛 약관 동의가 필요합니다."),
-    WALLET_ALREADY_EXISTS("WALLET-004", "이미 월렛을 보유하고 있습니다."),
-    WALLET_CREATE_FAILED("WALLET-005", "월렛 생성에 실패했습니다."),
+    WALLET_INVALID_CHARGE_AMOUNT("WALLET-001", "월렛 충전 금액이 올바르지 않습니다."),
+    WALLET_NOT_FOUND("WALLET-002", "월렛을 찾을 수 없습니다."),
+    WALLET_ACCOUNT_NOT_FOUND("WALLET-003", "출금 계좌를 찾을 수 없습니다."),
+    WALLET_DEBIT_FAILED("WALLET-004", "계좌 차감에 실패했습니다."),
+    WALLET_CHARGE_IN_PROGRESS("WALLET-005", "월렛 충전 요청이 처리 중입니다."),
+    WALLET_IDEMPOTENCY_KEY_REQUIRED("WALLET-006", "Idempotency-Key가 필요합니다."),
+    WALLET_DEBIT_COMMUNICATION_FAILED("WALLET-007", "코어뱅킹 통신에 실패했습니다."),
+    WALLET_DEBIT_LOOKUP_RETRY_INTERRUPTED("WALLET-008", "결과 확인 재시도 대기 중 인터럽트가 발생했습니다."),
+    WALLET_INSUFFICIENT_BALANCE("WALLET-009", "계좌 잔액이 부족합니다."),
+    WALLET_TERMS_REQUIRED("WALLET-010", "월렛 약관 동의가 필요합니다."),
+    WALLET_ALREADY_EXISTS("WALLET-011", "이미 월렛을 보유하고 있습니다."),
+    WALLET_CREATE_FAILED("WALLET-012", "월렛 생성에 실패했습니다."),
 
     /**
      * user
@@ -41,10 +48,11 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     USER_NOT_FOUND("USER-001", "사용자 정보를 찾을 수 없습니다."),
     INVALID_DOCUMENT_FILE("USER-002", "PDF 파일만 업로드할 수 있습니다."),
     DOCUMENT_UPLOAD_FAILED("USER-003", "문서 업로드에 실패했습니다."),
-    INITIAL_DOCUMENT_BOTH_REQUIRED("USER-004", "최초 업로드 시 두 개의 문서를 모두 제출해야 합니다."),
-    REUPLOAD_ONLY_REJECTED_ALLOWED("USER-005", "보완 업로드는 반려된 문서만 제출할 수 있습니다."),
-    REUPLOAD_TARGET_REQUIRED("USER-006", "보완 업로드할 반려 문서 파일이 필요합니다."),
-    REUPLOAD_ALL_REJECTED_REQUIRED("USER-007", "두 문서가 모두 반려된 경우 두 개의 문서를 모두 제출해야 합니다."),
+    DOCUMENT_DELETE_FAILED("USER-004", "문서 삭제에 실패했습니다."),
+    INITIAL_DOCUMENT_BOTH_REQUIRED("USER-005", "최초 업로드 시 두 개의 문서를 모두 제출해야 합니다."),
+    REUPLOAD_ONLY_REJECTED_ALLOWED("USER-006", "보완 업로드는 반려된 문서만 제출할 수 있습니다."),
+    REUPLOAD_TARGET_REQUIRED("USER-007", "보완 업로드할 반려 문서 파일이 필요합니다."),
+    REUPLOAD_ALL_REJECTED_REQUIRED("USER-008", "두 문서가 모두 반려된 경우 두 개의 문서를 모두 제출해야 합니다."),
 
     /**
      * admin

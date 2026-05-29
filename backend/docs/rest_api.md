@@ -61,12 +61,13 @@
 | `USER-006`     | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
 | `USER-007`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
 | `USER-008`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
-| `USER-009`      | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
-| `USER-010`      | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED` |
+| `USER-009`     | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
+| `USER-010`     | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED` |
 | `WALLET-001`   | 월렛 계좌내역 조회 | GET | `/wallet/transactions` | O | USER | |
 | `WALLET-002`   | 월렛 충전 | POST | `/wallet/charges` | O | USER | |
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST | `/wallet/charges/debit` | O | USER | |
-| `WALLET-004`   | 월렛 생성 | POST | `/wallet` | O | USER | |
+| `WALLET-004`   | 월렛 상태 조회 | GET | `/wallet/status` | O | USER | 월렛 페이지 화면 분기용 |
+| `WALLET-005`   | 월렛 생성 | POST | `/wallet` | O | USER | |
 | `JOB-001`      | 구인구직 공고 목록 조회 | GET | `/` | X | PUBLIC | 도메인 prefix 하위 루트 |
 | `JOB-002`      | 구인구직 공고 상세 조회 | GET | `/{job_id}` | X | PUBLIC | 도메인 prefix 하위 경로 |
 | `JOB-003`      | 지원서 제출 | POST | `/{job_id}/applications` | O | USER | 도메인 prefix 하위 경로 |

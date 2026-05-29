@@ -7,11 +7,13 @@ import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import java.util.Optional;
 
 @Repository
-public interface BankingRepository extends JpaRepository<AccountRef, Long> {
+public interface AccountRefRepository extends JpaRepository<AccountRef, Long> {
 
     // 사용자의 계좌 중 계좌가 등록되어 있고 한도 계좌인 첫 번째 항목을 반환한다.
     Optional<AccountRef> findFirstByUser_UserIdAndHasAccountTrueAndHasLimitTrue(Long userId);
-  
+
+    boolean existsByUser_UserIdAndHasAccountTrue(Long userId);
+
     // 현재 로그인 사용자(userId)가 가진 출금계좌(accountId)인지 확인하면서 계좌 참조를 찾는 조회 메서드
     Optional<AccountRef> findByUser_UserIdAndAccountId(Long userId, Long accountId);
 
