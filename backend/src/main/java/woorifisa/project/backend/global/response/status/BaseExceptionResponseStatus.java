@@ -29,7 +29,7 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     /**
      * wallet
      */
-    WALLET_INVALID_CHARGE_AMOUNT("WALLET_CHARGE-001", "월렛 충전 금액이 올바르지 않습니다."),
+	WALLET_INVALID_CHARGE_AMOUNT("WALLET_CHARGE-001", "월렛 충전 금액이 올바르지 않습니다."),
     WALLET_NOT_FOUND("WALLET_CHARGE-002", "월렛을 찾을 수 없습니다."),
     WALLET_ACCOUNT_NOT_FOUND("WALLET_CHARGE-003", "출금 계좌를 찾을 수 없습니다."),
     WALLET_DEBIT_FAILED("WALLET_CHARGE-004", "계좌 차감에 실패했습니다."),
@@ -50,6 +50,8 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     REUPLOAD_ONLY_REJECTED_ALLOWED("USER-006", "보완 업로드는 반려된 문서만 제출할 수 있습니다."),
     REUPLOAD_TARGET_REQUIRED("USER-007", "보완 업로드할 반려 문서 파일이 필요합니다."),
     REUPLOAD_ALL_REJECTED_REQUIRED("USER-008", "두 문서가 모두 반려된 경우 두 개의 문서를 모두 제출해야 합니다."),
+	KYC_OUTPUT_BUCKET_NOT_CONFIGURED("USER-011", "KYC Liveness S3 버킷 설정이 필요합니다."),
+	LIVENESS_REFERENCE_IMAGE_NOT_FOUND("USER-012", "Liveness 결과에서 참조 이미지를 찾을 수 없습니다."),
 
     /**
      * admin

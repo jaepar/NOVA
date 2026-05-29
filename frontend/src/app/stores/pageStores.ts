@@ -213,6 +213,20 @@ export const useStep5PassportCaptureStore = create<Step5PassportCaptureState>((s
     }),
 }))
 
+interface LivenessFlowState {
+  sessionId: string | null
+  expiresAt: string | null
+  setSession: (sessionId: string, expiresAt: string) => void
+  resetSession: () => void
+}
+
+export const useLivenessFlowStore = create<LivenessFlowState>((set) => ({
+  sessionId: null,
+  expiresAt: null,
+  setSession: (sessionId, expiresAt) => set({ sessionId, expiresAt }),
+  resetSession: () => set({ sessionId: null, expiresAt: null }),
+}))
+
 interface Step10TermsPageState {
   checkedTermIds: string[]
   openCategoryIds: string[]
