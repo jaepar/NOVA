@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +25,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "wallet")
+@Table(name = "wallet", uniqueConstraints = @UniqueConstraint(columnNames = "user_id"))
 public class Wallet extends BaseEntity {
 
     @Id

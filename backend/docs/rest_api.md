@@ -31,6 +31,7 @@
 | `USER` | 사용자 세션 필요 |
 
 권한 공통 규칙:
+
 - `USER` API는 현재 세션 `userId` 기준으로 본인 데이터만 조회/변경한다.
 
 ## Hold Policy
@@ -69,6 +70,8 @@
 | `WALLET-001`   | 월렛 계좌내역 조회           | GET    | `/wallet/transactions`                                   | O    | USER   |                               |
 | `WALLET-002`   | 월렛 충전                | POST   | `/wallet/charges`                                        | O    | USER   |                               |
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST   | `/wallet/charges/debit`                                  | O    | USER   |                               |
+| `WALLET-004`   | 월렛 상태 조회 | GET | `/wallet/status` | O | USER | 월렛 페이지 화면 분기용 |
+| `WALLET-005`   | 월렛 생성 | POST | `/wallet` | O | USER | |
 | `JOB-001`      | 구인구직 공고 목록 조회        | GET    | `/`                                                      | X    | PUBLIC | 도메인 prefix 하위 루트              |
 | `JOB-002`      | 구인구직 공고 상세 조회        | GET    | `/{job_id}`                                              | X    | PUBLIC | 도메인 prefix 하위 경로              |
 | `JOB-003`      | 지원서 제출               | POST   | `/{job_id}/applications`                                 | O    | USER   | 도메인 prefix 하위 경로              |
@@ -90,7 +93,6 @@
 | `BANK-006`     | 홈 계좌 정보 조회(Cloud)    | GET    | `/banking/home`                                          | O    | USER   |                               |
 | `BANK-007`     | 해외 송금(Cloud)         | TBD    | `TBD`                                                    | O    | USER   | 프로세스 정의 중 (추후 작성)             |
 | `BANK-008`     | 이체 사전 조회(Cloud) | POST | `/banking/transfers/preview` | O | USER | 내 계좌(account_ref) + 수취인(coreBanking) 통합 조회 |
-
 
 ## Naming and Contract Notes
 

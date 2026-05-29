@@ -4,12 +4,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
+import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
 import woorifisa.project.backend.domain.wallet.entity.WalletTransaction;
@@ -27,17 +31,20 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ACCOUNT_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ALREADY_EXISTS;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CREATE_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CHARGE_IN_PROGRESS;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_IDEMPOTENCY_KEY_REQUIRED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_TERMS_REQUIRED;
 
 class WalletServiceTest {
 
@@ -318,6 +325,92 @@ class WalletServiceTest {
                 eq("1"),
                 any(Duration.class)
         )).thenReturn(true);
+    }
+
+    @Test
+    @DisplayName("약관에 동의하면 임시 제한 계좌를 연결해 월렛을 생성한다")
+    void createWallet() {
+        Long userId = 1L;
+        User user = User.builder().userId(userId).build();
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(20L)
+                .user(user)
+                .hasAccount(true)
+                .hasLimit(true)
+                .build();
+        when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.empty());
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrue(userId))
+                .thenReturn(Optional.of(accountRef));
+
+        walletService.createWallet(userId, new WalletCreateRequest(true));
+
+        verify(walletRepository).save(org.mockito.ArgumentMatchers.argThat(wallet ->
+                wallet.getUser().equals(user)
+                        && wallet.getUserAccount().equals(accountRef)
+                        && wallet.getBalance() == 0));
+    }
+
+    @Test
+    @DisplayName("이미 월렛이 있으면 커스텀 예외를 던진다")
+    void createWalletAlreadyExists() {
+        Wallet wallet = Wallet.builder()
+                .walletId(10L)
+                .balance(30000)
+                .build();
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet));
+
+        assertThatThrownBy(() -> walletService.createWallet(1L, new WalletCreateRequest(true)))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_ALREADY_EXISTS));
+
+        verify(accountRefRepository, never()).findFirstByUser_UserIdAndHasAccountTrue(any());
+        verify(walletRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("약관에 동의하지 않으면 월렛을 생성하지 않는다")
+    void createWalletTermsRequired() {
+        assertThatThrownBy(() -> walletService.createWallet(1L, new WalletCreateRequest(false)))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_TERMS_REQUIRED));
+
+        verify(walletRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("연결할 임시 제한 계좌가 없으면 월렛을 생성하지 않는다")
+    void createWalletAccountRequired() {
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.empty());
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrue(1L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> walletService.createWallet(1L, new WalletCreateRequest(true)))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_ACCOUNT_NOT_FOUND));
+
+        verify(walletRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("월렛 저장 중 무결성 예외가 발생하면 월렛 생성 실패 예외를 던진다")
+    void createWalletFailed() {
+        Long userId = 1L;
+        User user = User.builder().userId(userId).build();
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(20L)
+                .user(user)
+                .hasAccount(true)
+                .hasLimit(true)
+                .build();
+        when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.empty());
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrue(userId))
+                .thenReturn(Optional.of(accountRef));
+        doThrow(new DataIntegrityViolationException("duplicate key"))
+                .when(walletRepository).save(any(Wallet.class));
+
+        assertThatThrownBy(() -> walletService.createWallet(userId, new WalletCreateRequest(true)))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_CREATE_FAILED));
     }
 
     private WalletTransaction walletTransaction(Long walletTransactionId, Wallet wallet, TransactionFlow transactionFlow, String counterparty, Integer amount, LocalDateTime createdAt) {

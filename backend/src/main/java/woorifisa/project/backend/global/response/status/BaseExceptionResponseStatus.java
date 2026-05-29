@@ -38,6 +38,9 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     WALLET_DEBIT_COMMUNICATION_FAILED("WALLET_CHARGE-007", "코어뱅킹 통신에 실패했습니다."),
     WALLET_DEBIT_LOOKUP_RETRY_INTERRUPTED("WALLET_CHARGE-008", "결과 확인 재시도 대기 중 인터럽트가 발생했습니다."),
     WALLET_INSUFFICIENT_BALANCE("WALLET_CHARGE-009", "계좌 잔액이 부족합니다."),
+    WALLET_TERMS_REQUIRED("WALLET-010", "월렛 약관 동의가 필요합니다."),
+    WALLET_ALREADY_EXISTS("WALLET-011", "이미 월렛을 보유하고 있습니다."),
+    WALLET_CREATE_FAILED("WALLET-012", "월렛 생성에 실패했습니다."),
 
     /**
      * user
@@ -50,8 +53,8 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     REUPLOAD_ONLY_REJECTED_ALLOWED("USER-006", "보완 업로드는 반려된 문서만 제출할 수 있습니다."),
     REUPLOAD_TARGET_REQUIRED("USER-007", "보완 업로드할 반려 문서 파일이 필요합니다."),
     REUPLOAD_ALL_REJECTED_REQUIRED("USER-008", "두 문서가 모두 반려된 경우 두 개의 문서를 모두 제출해야 합니다."),
-	KYC_OUTPUT_BUCKET_NOT_CONFIGURED("USER-011", "KYC Liveness S3 버킷 설정이 필요합니다."),
-	LIVENESS_REFERENCE_IMAGE_NOT_FOUND("USER-012", "Liveness 결과에서 참조 이미지를 찾을 수 없습니다."),
+    KYC_OUTPUT_BUCKET_NOT_CONFIGURED("USER-011", "KYC Liveness S3 버킷 설정이 필요합니다."),
+    LIVENESS_REFERENCE_IMAGE_NOT_FOUND("USER-012", "Liveness 결과에서 참조 이미지를 찾을 수 없습니다."),
 
     /**
      * admin

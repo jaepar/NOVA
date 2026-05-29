@@ -2,9 +2,11 @@ package woorifisa.project.backend.domain.wallet.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
+import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
@@ -23,11 +25,14 @@ import java.time.Duration;
 import java.util.List;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ACCOUNT_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ALREADY_EXISTS;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CREATE_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_IDEMPOTENCY_KEY_REQUIRED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CHARGE_IN_PROGRESS;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_LOOKUP_RETRY_INTERRUPTED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_TERMS_REQUIRED;
 
 @Service
 @RequiredArgsConstructor
@@ -214,5 +219,34 @@ public class WalletService {
                 .counterparty(WALLET_CHARGE_COUNTERPARTY)
                 .amount(chargeAmount)
                 .build());
+    }
+
+    @Transactional
+    public void createWallet(Long userId, WalletCreateRequest request) {
+        if (!Boolean.TRUE.equals(request.termsAgreed())) {
+            throw new CustomException(WALLET_TERMS_REQUIRED);
+        }
+
+        if (walletRepository.findByUser_UserId(userId).isPresent()) {
+            throw new CustomException(WALLET_ALREADY_EXISTS);
+        }
+
+        try {
+            createNewWallet(userId);
+        } catch (DataIntegrityViolationException ignored) {
+            throw new CustomException(WALLET_CREATE_FAILED);
+        }
+    }
+
+    private void createNewWallet(Long userId) {
+        AccountRef accountRef = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrue(userId)
+                .orElseThrow(() -> new CustomException(WALLET_ACCOUNT_NOT_FOUND));
+        Wallet wallet = Wallet.builder()
+                .user(accountRef.getUser())
+                .userAccount(accountRef)
+                .balance(0)
+                .build();
+
+        walletRepository.save(wallet);
     }
 }
