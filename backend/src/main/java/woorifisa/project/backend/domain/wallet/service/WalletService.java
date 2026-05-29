@@ -17,6 +17,8 @@ import woorifisa.project.backend.global.exception.CustomException;
 import java.util.List;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ACCOUNT_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ALREADY_EXISTS;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CREATE_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_TERMS_REQUIRED;
 
@@ -37,19 +39,20 @@ public class WalletService {
         return WalletTransactionsResponse.from(wallet, transactions);
     }
 
+    @Transactional
     public void createWallet(Long userId, WalletCreateRequest request) {
         if (!Boolean.TRUE.equals(request.termsAgreed())) {
             throw new CustomException(WALLET_TERMS_REQUIRED);
         }
 
         if (walletRepository.findByUser_UserId(userId).isPresent()) {
-            return;
+            throw new CustomException(WALLET_ALREADY_EXISTS);
         }
 
         try {
             createNewWallet(userId);
         } catch (DataIntegrityViolationException ignored) {
-            // 동시 요청으로 이미 생성된 경우 무시
+            throw new CustomException(WALLET_CREATE_FAILED);
         }
     }
 
