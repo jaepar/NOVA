@@ -12,4 +12,7 @@ public interface BankingRepository extends JpaRepository<AccountRef, Long> {
     // 현재 로그인 사용자(userId)가 가진 출금계좌(accountId)인지 확인하면서 계좌 참조를 찾는 조회 메서드
     Optional<AccountRef> findByUser_UserIdAndAccountId(Long userId, Long accountId);
 
+    // 사용자의 대표 계좌 1건을 계좌 참조 ID 오름차순으로 조회
+    Optional<AccountRef> findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(Long userId);
+
 }

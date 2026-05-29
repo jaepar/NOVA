@@ -15,6 +15,10 @@ public enum BaseResponseStatus implements ResponseStatus {
     ACCOUNT_DEBIT_INVALID_AMOUNT("ACCOUNT-001", "출금 금액이 올바르지 않습니다."),
     ACCOUNT_DEBIT_INSUFFICIENT_BALANCE("ACCOUNT-002", "출금 계좌 잔액이 부족합니다."),
     ACCOUNT_CREDIT_INVALID_AMOUNT("ACCOUNT-003", "입금 금액이 올바르지 않습니다."),
+    ACCOUNT_RECIPIENT_LOOKUP_INVALID_REQUEST("ACCOUNT-004", "수취인 조회 요청이 올바르지 않습니다."),
+    ACCOUNT_RECIPIENT_LOOKUP_ACCOUNT_NOT_FOUND("ACCOUNT-005", "수취 계좌를 찾을 수 없습니다."),
+    ACCOUNT_PASSWORD_VERIFY_ACCOUNT_NOT_FOUND("ACCOUNT-006", "계좌 정보를 찾을 수 없습니다."),
+    ACCOUNT_PASSWORD_VERIFY_NOT_MATCHED("ACCOUNT-007", "계좌 비밀번호가 일치하지 않습니다."),
 
     /**
      * accountTransaction

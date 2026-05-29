@@ -13,7 +13,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.global.exception.CustomException;
 import woorifisa.project.backend.global.entity.BaseEntity;
+
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
 
 @Getter
 @Entity
@@ -54,8 +57,9 @@ public class AccountRef extends BaseEntity {
     private Boolean hasLimit;
 
     public void debit(Integer amount) {
-        if (this.balance != null) {
-            this.balance -= amount;
+        if (balance == null || amount == null || amount <= 0 || balance < amount) {
+            throw new CustomException(BANKING_TRANSFER_FAILED);
         }
+        this.balance -= amount;
     }
 }
