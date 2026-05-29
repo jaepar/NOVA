@@ -38,7 +38,7 @@ erDiagram
     BIGINT user_id FK
     ENUM document_type "ALIEN_REGISTRATION_SUPPORTING_DOCUMENT | RESIDENCE_VERIFICATION_DOCUMENT"
     TEXT file_url
-    ENUM status "PENDING | APPROVED | REJECTED"
+    ENUM status "PENDING | APPROVED | REJECTED | MODIFIED"
     TEXT missing
     TIMESTAMP created_at
     TIMESTAMP updated_at
@@ -196,7 +196,7 @@ erDiagram
 | `hospital.type` | `INTERNAL_MEDICINE`, `ORTHOPEDICS`, `DENTAL`, `OTHER` |
 | `cs.cs_type` | `PRODUCT_SUBSCRIPTION`, `ACCOUNT_MAINTENANCE` |
 | `document.document_type` | `ALIEN_REGISTRATION_SUPPORTING_DOCUMENT`, `RESIDENCE_VERIFICATION_DOCUMENT` |
-| `document.status` | `PENDING`, `APPROVED`, `REJECTED` |
+| `document.status` | `PENDING`, `APPROVED`, `REJECTED`, `MODIFIED` |
 | `notification.type` | `SUPPLEMENT_DOCUMENT`, `RESIDENCE_CARD_PERIOD` |
 | `cs.cs_status` | `PENDING(false)`, `COMPLETED(true)` |
 

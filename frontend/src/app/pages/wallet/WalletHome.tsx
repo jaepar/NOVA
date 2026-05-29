@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/design-system/AppButton";
@@ -11,9 +11,11 @@ import {
   walletTransactions,
   type WalletTransactionFilter,
 } from "./data/walletMockData";
+import { walletSecondaryButtonClass } from "./styles";
 import { useWalletStore } from "./stores/walletStore";
 
 const filterOptions: WalletTransactionFilter[] = ["all", "charge", "use"];
+const TRANSACTION_PAGE_SIZE = 8;
 
 export function WalletHome() {
   const navigate = useNavigate();
@@ -21,6 +23,8 @@ export function WalletHome() {
   const filterOpen = useWalletStore((state) => state.filterOpen);
   const setSelectedFilter = useWalletStore((state) => state.setSelectedFilter);
   const setFilterOpen = useWalletStore((state) => state.setFilterOpen);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = useState(TRANSACTION_PAGE_SIZE);
 
   const filteredTransactions = useMemo(() => {
     if (selectedFilter === "charge") {
@@ -34,6 +38,40 @@ export function WalletHome() {
     return walletTransactions;
   }, [selectedFilter]);
 
+  const visibleTransactions = useMemo(
+    () => filteredTransactions.slice(0, visibleCount),
+    [filteredTransactions, visibleCount],
+  );
+
+  const hasMoreTransactions = visibleCount < filteredTransactions.length;
+
+  useEffect(() => {
+    setVisibleCount(TRANSACTION_PAGE_SIZE);
+  }, [selectedFilter]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+
+    if (!target || !hasMoreTransactions) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((count) =>
+            Math.min(count + TRANSACTION_PAGE_SIZE, filteredTransactions.length),
+          );
+        }
+      },
+      { rootMargin: "120px 0px" },
+    );
+
+    observer.observe(target);
+
+    return () => observer.disconnect();
+  }, [filteredTransactions.length, hasMoreTransactions]);
+
   return (
     <MobileLayout title="월렛">
       <div className="space-y-6 pt-6">
@@ -44,7 +82,7 @@ export function WalletHome() {
             type="button"
             variant="unstyled"
             onClick={() => navigate("/wallet/charge")}
-            className="flex h-13 items-center justify-center gap-2 rounded-lg bg-[#014ede] text-[16px] text-white transition-colors hover:bg-[#0142bd]"
+            className="flex h-[56px] w-full items-center justify-center rounded-lg bg-[#014ede] text-[17px] font-semibold text-white transition-colors hover:bg-[#0142bd]"
           >
             충전
           </AppButton>
@@ -52,7 +90,7 @@ export function WalletHome() {
             type="button"
             variant="unstyled"
             onClick={() => navigate("/wallet/payment")}
-            className="flex h-13 items-center justify-center rounded-lg border border-[#e0e0e0] bg-background text-[16px] text-foreground transition-colors hover:bg-blue-50"
+            className={walletSecondaryButtonClass}
           >
             결제
           </AppButton>
@@ -104,16 +142,16 @@ export function WalletHome() {
           </div>
 
           <div className="overflow-hidden rounded-xl border border-border bg-background">
-            {filteredTransactions.length > 0 ? (
-              filteredTransactions.map((transaction, index) => (
+            {visibleTransactions.length > 0 ? (
+              visibleTransactions.map((transaction, index) => (
                 <WalletTransactionItem
                   key={transaction.id}
                   transaction={transaction}
                   showMonth={
                     index === 0 ||
-                    filteredTransactions[index - 1].month !== transaction.month
+                    visibleTransactions[index - 1].month !== transaction.month
                   }
-                  isLast={index === filteredTransactions.length - 1}
+                  isLast={index === visibleTransactions.length - 1 && !hasMoreTransactions}
                 />
               ))
             ) : (
@@ -122,6 +160,15 @@ export function WalletHome() {
               </p>
             )}
           </div>
+
+          {visibleTransactions.length > 0 && (
+            <div
+              ref={loadMoreRef}
+              className="flex h-12 items-center justify-center text-sm text-muted-foreground"
+            >
+              {hasMoreTransactions ? "불러오는 중" : "마지막 내역입니다"}
+            </div>
+          )}
         </section>
       </div>
     </MobileLayout>
