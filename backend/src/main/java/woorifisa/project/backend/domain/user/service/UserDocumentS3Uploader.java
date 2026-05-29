@@ -74,22 +74,6 @@ public class UserDocumentS3Uploader {
 		}
 	}
 
-	public void deleteByStatus(Long userId, DocumentType documentType, DocumentStatus status) {
-		String key = buildKey(userId, documentType, status);
-		String bucket = s3Properties.s3().bucket();
-
-		try {
-			s3Client.deleteObject(DeleteObjectRequest.builder()
-				.bucket(bucket)
-				.key(key)
-				.build());
-		} catch (RuntimeException e) {
-			log.error("S3 document delete failed. userId={}, key={}, reason={}",
-				userId, key, e.getMessage(), e);
-			throw new CustomException(DOCUMENT_UPLOAD_FAILED);
-		}
-	}
-
 	private String buildKey(Long userId, DocumentType documentType, DocumentStatus status) {
 		return "documents/" + userId + "_" + documentType.name() + "_" + status.name() + ".pdf";
 	}
