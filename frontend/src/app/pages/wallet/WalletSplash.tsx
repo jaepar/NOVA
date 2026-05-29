@@ -108,6 +108,11 @@ export function WalletSplash() {
     navigate("/certificate/step-01");
   };
 
+  const handleLater = () => {
+    setIsAccountRequiredOpen(false);
+    navigate("/main");
+  };
+
   return (
     <main className="flex h-full w-full flex-col items-center justify-center bg-white px-5">
       <div
@@ -172,7 +177,7 @@ export function WalletSplash() {
             <AppButton
               type="button"
               variant="unstyled"
-              onClick={() => setIsAccountRequiredOpen(false)}
+              onClick={handleLater}
               className={walletSecondaryButtonClass}
             >
               나중에
