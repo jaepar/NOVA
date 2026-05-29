@@ -2,37 +2,31 @@ package woorifisa.project.backend.domain.wallet.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionItem;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
-import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.SUCCESS;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
