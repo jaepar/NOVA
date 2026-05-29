@@ -39,6 +39,7 @@ export function PassportCameraCapture() {
   const setMode = useStep5PassportCaptureStore((state) => state.setMode)
   const setCapturedImage = useStep5PassportCaptureStore((state) => state.setCapturedImage)
   const setCameraError = useStep5PassportCaptureStore((state) => state.setCameraError)
+  const setParsedPassportData = useStep5PassportCaptureStore((state) => state.setParsedPassportData)
   const reset = useStep5PassportCaptureStore((state) => state.reset)
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
@@ -57,7 +58,6 @@ export function PassportCameraCapture() {
     reset()
     return () => {
       stopCamera()
-      reset()
     }
   }, [reset])
 
@@ -108,6 +108,24 @@ export function PassportCameraCapture() {
     }))
   }
 
+  const handleMoveToStep06 = () => {
+    setParsedPassportData({
+      docType: editableOcrValues['종류'] ?? '',
+      nationalityCode: editableOcrValues['국가 코드'] ?? '',
+      passportNumber: editableOcrValues['여권번호'] ?? '',
+      surname: editableOcrValues['성'] ?? '',
+      givenNames: editableOcrValues['이름'] ?? '',
+      birthDate: editableOcrValues['생년월일'] ?? '',
+      sex: editableOcrValues['성별'] ?? '',
+      country: editableOcrValues['국적'] ?? '',
+      issuingCountryCode: editableOcrValues['국가 코드'] ?? '',
+      authority: editableOcrValues['발행 관청'] ?? '',
+      issueDate: editableOcrValues['발급일'] ?? '',
+      expiryDate: editableOcrValues['기간만료일'] ?? '',
+    })
+    navigate('/certificate/step-06')
+  }
+
   if (mode === 'review') {
     return (
       <MobileLayout
@@ -123,7 +141,7 @@ export function PassportCameraCapture() {
               setCapturedImage(null)
               setMode('live')
             }}
-            onRightClick={() => navigate('/certificate/step-06')}
+            onRightClick={handleMoveToStep06}
           />
         }
       >
