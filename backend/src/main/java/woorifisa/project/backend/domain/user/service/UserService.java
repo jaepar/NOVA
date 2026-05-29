@@ -104,6 +104,7 @@ public class UserService {
 	private void saveDocuments(User user, DocumentType documentType, MultipartFile file, DocumentStatus status) {
 		validatePdfFile(file);
 
+		// 보완 문서 업로드 시 기존 반려(REJECTED) 파일을 먼저 s3에서 제거
 		if (status == DocumentStatus.MODIFIED) {
 			documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
 				.filter(document -> document.getStatus() == DocumentStatus.REJECTED)
