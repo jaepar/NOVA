@@ -48,6 +48,11 @@ public class AdminService {
 		String reviewedMissing = targetStatus == DocumentStatus.APPROVED ? null : missing;
 		document.changeStatus(updatedFileUrl, targetStatus, reviewedMissing);
 		documentRepository.save(document);
+
+		// 해당 유저의 서류 2개가 모두 APPROVED 상태라면, 인증서 발급
+		if (targetStatus == DocumentStatus.APPROVED) {
+			updateCertificateIfAllDocumentsApproved(user);
+		}
 	}
 
 	private DocumentType parseDocumentType(String rawDocumentType) {
@@ -56,9 +61,9 @@ public class AdminService {
 		}
 
 		return switch (rawDocumentType) {
-			case "ALIEN_REGISTRATION_SUPPORTING_DOCUMENT" ->
+			case "ALIEN_REGISTRATION_APPLICATION", "ALIEN_REGISTRATION_SUPPORTING_DOCUMENT" ->
 				DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT;
-			case "RESIDENCE_VERIFICATION_DOCUMENT" ->
+			case "RESIDENCE_PROOF", "RESIDENCE_VERIFICATION_DOCUMENT" ->
 				DocumentType.RESIDENCE_VERIFICATION_DOCUMENT;
 			default -> throw new CustomException(INVALID_DOCUMENT_TYPE);
 		};
@@ -80,5 +85,20 @@ public class AdminService {
 		if (sourceStatus != DocumentStatus.PENDING && sourceStatus != DocumentStatus.MODIFIED) {
 			throw new CustomException(DOCUMENT_REVIEW_SOURCE_STATUS_INVALID);
 		}
+	}
+
+	private void updateCertificateIfAllDocumentsApproved(User user) {
+		boolean alienApproved = isLatestApproved(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT);
+		boolean residenceApproved = isLatestApproved(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT);
+
+		if (alienApproved && residenceApproved) {
+			user.issueCertificate();
+		}
+	}
+
+	private boolean isLatestApproved(User user, DocumentType documentType) {
+		return documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
+			.map(document -> document.getStatus() == DocumentStatus.APPROVED)
+			.orElse(false);
 	}
 }
