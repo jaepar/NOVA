@@ -30,6 +30,7 @@ coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.
 | `CB-008` | 해외 송금(On-Prem) | TBD | `TBD` | O | AUTHORIZED | 명세 상세 확정 후 반영 |
 | `CB-009` | 해외 송금 이상거래 탐지(On-Prem) | TBD | `TBD` | O | AUTHORIZED | FDS 연동 정책/룰셋 확정 후 반영 |
 | `CB-010` | 수취인 조회(On-Prem) | POST | `/accounts/recipients/lookup` | O | AUTHORIZED | 은행코드+계좌번호로 예금주명 조회 |
+| `CB-011` | 고객 생성(On-Prem) | POST | `/customers` | O | AUTHORIZED | `userId`,`name`,`email` 기반 고객 생성 |
 
 ## CB-001 계좌 개설(On-Prem)
 
@@ -73,6 +74,35 @@ Response (200)
     "bankCode": "WOORI",
     "accountNumber": "1002-312-345678"
   }
+}
+```
+
+Notes
+- `customer.backend_user_id`는 nullable이다.
+- NOVA 사용자 연동 고객은 `userId`를 저장하고, 타행/외부 유입 고객은 `backend_user_id` 없이 저장될 수 있다.
+
+## CB-011 고객 생성(On-Prem)
+
+- Method: `POST`
+- Path: `/customers`
+- Auth: `O` (`AUTHORIZED`)
+
+Request
+```json
+{
+  "userId": 2,
+  "name": "PARK JAEHA",
+  "email": "abc@gmail.com"
+}
+```
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": null
 }
 ```
 

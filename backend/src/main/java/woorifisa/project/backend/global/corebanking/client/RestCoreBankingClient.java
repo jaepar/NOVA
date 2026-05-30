@@ -1,12 +1,14 @@
 package woorifisa.project.backend.global.corebanking.client;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
@@ -26,6 +28,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INSUFFICIENT_BALANCE;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class RestCoreBankingClient implements CoreBankingClient {
     private final RestClient.Builder restClientBuilder;
@@ -176,6 +179,38 @@ public class RestCoreBankingClient implements CoreBankingClient {
                     && externalRequestId.equals(response.data().externalRequestId());
         } catch (RestClientException exception) {
             return false;
+        }
+    }
+
+    @Override
+    public void createCustomer(CoreBankingCreateCustomerRequest request) {
+        try {
+            log.info("[core_banking_customer:create_requested] userId={}, name={}, email={}",
+                    request.userId(), request.name(), request.email());
+            BaseResponse<Void> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .post()
+                    .uri("/customers")
+                    .body(request)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null) {
+                log.error("[core_banking_customer:create_failed] reason=null_response userId={}", request.userId());
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+            if (!response.getSuccess()) {
+                log.error("[core_banking_customer:create_failed] reason=unsuccessful_response userId={}, code={}, message={}",
+                        request.userId(), response.getCode(), response.getMessage());
+                throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
+            }
+            log.info("[core_banking_customer:create_completed] userId={}", request.userId());
+        } catch (RestClientException exception) {
+            log.error("[core_banking_customer:create_failed] reason=rest_client_exception userId={}, message={}",
+                    request.userId(), exception.getMessage(), exception);
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
         }
     }
 

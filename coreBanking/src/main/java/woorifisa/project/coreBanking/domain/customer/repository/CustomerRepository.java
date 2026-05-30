@@ -7,4 +7,5 @@ import woorifisa.project.coreBanking.domain.customer.entity.Customer;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 	Optional<Customer> findByNameAndEmail(String name, String email);
+	boolean existsByBackendUserId(Long backendUserId);
 }
