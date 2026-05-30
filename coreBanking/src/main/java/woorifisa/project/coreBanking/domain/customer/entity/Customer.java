@@ -29,6 +29,9 @@ public class Customer extends BaseEntity {
 	@Column(name = "customer_id")
 	private Long customerId;
 
+	@Column(name = "backend_user_id", unique = true)
+	private Long backendUserId;
+
 	@Column(name = "name", length = 100, nullable = false)
 	private String name;
 
@@ -45,14 +48,14 @@ public class Customer extends BaseEntity {
 	private String job;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "purpose", nullable = false)
+	@Column(name = "purpose")
 	private CustomerPurpose purpose;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "source", nullable = false)
+	@Column(name = "source")
 	private FundSource source;
 
-	@Column(name = "has_foreign_tax", nullable = false)
+	@Column(name = "has_foreign_tax")
 	private Boolean hasForeignTax;
 
 	public void updateProfile(
