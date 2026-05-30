@@ -16,11 +16,6 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
 public class S3Config {
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
     public S3Client s3Client(S3Properties s3Properties) {
         S3ClientBuilder builder = S3Client.builder()
                 .region(Region.of(s3Properties.s3().region()));
