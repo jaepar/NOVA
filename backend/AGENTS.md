@@ -113,11 +113,14 @@ flowchart TD
 - API prefix는 `/{도메인 이름}`를 기본으로 한다.
 - 공통 응답은 `global/response` 래퍼 규칙을 유지한다.
 - 비즈니스 예외는 `global/exception` 계층을 사용한다.
+- Core Banking REST 연동 인터페이스/구현은 `global/corebanking/client` 단일 컴포넌트로 관리하고, `banking`/`wallet` 서비스는 해당 글로벌 클라이언트만 주입받아 사용한다.
 - 컨트롤러에서 엔티티 직접 반환 금지, DTO 변환 필수.
 - 삭제는 DELETE 메서드 대신 POST 기반 soft delete(`has_delete=true`)로 처리한다.
 - 금융 거래 확정 로직은 서비스 계층에서만 처리한다.
 - 금융 원장 상태와 비금융 상태 모두 AI(FastAPI) 및 클라우드 애플리케이션 계층에서 직접 수정하지 않는다.
 - 금융 원장 상태 변경은 클라우드 banking 도메인에서 온프레미스 Core Banking Gateway/Server로 요청을 전달한 뒤, 온프레미스 Core Banking에서만 최종 반영한다.
+- 이체 사전 조회는 클라우드 `banking` API에서 처리하되, 내 계좌 정보는 `account_ref` 조회를 사용하고 수취인 예금주명은 coreBanking 연동 API 응답을 기준으로 한다.
+- 계좌 비밀번호 검증은 클라우드 `banking` API에서 본인 계좌 소유 확인 후 coreBanking 검증 API 응답을 기준으로 처리한다.
 
 ## Logging Policy
 

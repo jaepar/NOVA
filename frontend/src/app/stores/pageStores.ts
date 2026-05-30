@@ -201,9 +201,24 @@ interface Step5PassportCaptureState {
   mode: 'live' | 'review'
   capturedImage: string | null
   cameraError: string | null
+  parsedPassportData: {
+    docType: string
+    nationalityCode: string
+    passportNumber: string
+    surname: string
+    givenNames: string
+    birthDate: string
+    sex: string
+    country: string
+    issuingCountryCode: string
+    authority: string
+    issueDate: string
+    expiryDate: string
+  } | null
   setMode: (mode: 'live' | 'review') => void
   setCapturedImage: (capturedImage: string | null) => void
   setCameraError: (cameraError: string | null) => void
+  setParsedPassportData: (parsedPassportData: Step5PassportCaptureState['parsedPassportData']) => void
   reset: () => void
 }
 
@@ -211,15 +226,32 @@ export const useStep5PassportCaptureStore = create<Step5PassportCaptureState>((s
   mode: 'live',
   capturedImage: null,
   cameraError: null,
+  parsedPassportData: null,
   setMode: (mode) => set({ mode }),
   setCapturedImage: (capturedImage) => set({ capturedImage }),
   setCameraError: (cameraError) => set({ cameraError }),
+  setParsedPassportData: (parsedPassportData) => set({ parsedPassportData }),
   reset: () =>
     set({
       mode: 'live',
       capturedImage: null,
       cameraError: null,
+      parsedPassportData: null,
     }),
+}))
+
+interface LivenessFlowState {
+  sessionId: string | null
+  expiresAt: string | null
+  setSession: (sessionId: string, expiresAt: string) => void
+  resetSession: () => void
+}
+
+export const useLivenessFlowStore = create<LivenessFlowState>((set) => ({
+  sessionId: null,
+  expiresAt: null,
+  setSession: (sessionId, expiresAt) => set({ sessionId, expiresAt }),
+  resetSession: () => set({ sessionId: null, expiresAt: null }),
 }))
 
 interface Step10TermsPageState {

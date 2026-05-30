@@ -33,15 +33,18 @@ dependencies {
 	// S3
 	implementation platform('software.amazon.awssdk:bom:2.26.21')
 	implementation 'software.amazon.awssdk:s3'
-	// redis
+	implementation 'software.amazon.awssdk:rekognition'
+
+    // redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	// SMTP
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
-		// Spring Security
-		implementation 'org.springframework.boot:spring-boot-starter-security'
-		testImplementation 'org.springframework.security:spring-security-test'
-		implementation 'org.springframework.security:spring-security-crypto'
-	}
+
+	// Spring Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	testImplementation 'org.springframework.security:spring-security-test'
+	implementation 'org.springframework.security:spring-security-crypto'
+}
 
 tasks.named('test') {
 	useJUnitPlatform()

@@ -29,7 +29,7 @@ function maskSensitiveData(data: unknown) {
   return maskedData
 }
 
-// Request Interceptor - 요청 전 처리
+// Request Interceptor - 요청 전 처리 -> application/json or multipart/form-data 분기 처리
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const isFormData = config.data instanceof FormData

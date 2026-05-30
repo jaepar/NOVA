@@ -1,4 +1,4 @@
-import type { ConsentDefinition } from "../certificate-consent/spec";
+﻿import type { ConsentDefinition } from "../spec";
 
 export const signupConsentDefinition: ConsentDefinition = {
   domain: "certificate",
@@ -52,3 +52,4 @@ export const signupConsentDefinition: ConsentDefinition = {
     },
   ],
 };
+
