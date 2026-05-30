@@ -90,22 +90,25 @@ class AccountServiceTest {
 	}
 
 	@Test
-	@DisplayName("계좌 개설 성공 시 계좌를 저장하고 accountId를 반환한다")
+	@DisplayName("계좌 개설 성공 시 계좌를 저장하고 생성 계좌 정보를 반환한다")
 	void createAccountSuccess() {
 		CreateAccountRequest request = new CreateAccountRequest(
-			1001L,
 			AccountType.DEMAND_DEPOSIT.name(),
 			"우리 SUPER주거래 통장",
-			new CreateAccountRequest.CustomerInfo("PARK JAEHA", "abcdef@gmail.com", "서울특별시 광진구 능동로 120",
-				"건국대학교 기숙사 101호"),
+			new CreateAccountRequest.CustomerInfo(
+				"PARK JAEHA",
+				"abcdef@gmail.com",
+				"서울특별시 광진구 능동로 120",
+				"건국대학교 기숙사 101호"
+			),
 			"STUDENT",
 			new CreateAccountRequest.TransactionInfo("SALARY_AND_LIVING_EXPENSES", "EARNED_AND_PENSION_INCOME"),
-			new CreateAccountRequest.TaxInfo(false),
+			false,
 			"1234"
 		);
 
 		Customer customer = Customer.builder().customerId(1001L).name("PARK JAEHA").build();
-		when(customerRepository.findById(1001L)).thenReturn(Optional.of(customer));
+		when(customerRepository.findByNameAndEmail("PARK JAEHA", "abcdef@gmail.com")).thenReturn(Optional.of(customer));
 		when(passwordEncoder.encode("1234")).thenReturn("$2a$10$encoded");
 		when(accountRepository.existsByAccountNumber(any())).thenReturn(false);
 		when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> {
@@ -127,6 +130,9 @@ class AccountServiceTest {
 		var response = accountService.createAccount(request);
 
 		assertThat(response.accountId()).isEqualTo(2001L);
+		assertThat(response.customerId()).isEqualTo(1001L);
+		assertThat(response.accountName()).isEqualTo("우리 SUPER주거래 통장");
+		assertThat(response.accountNumber()).hasSize(13);
 		verify(passwordEncoder).encode("1234");
 		verify(accountRepository).save(any(Account.class));
 	}
@@ -135,17 +141,20 @@ class AccountServiceTest {
 	@DisplayName("계좌 개설 시 고객이 없으면 예외를 반환한다")
 	void createAccountCustomerNotFound() {
 		CreateAccountRequest request = new CreateAccountRequest(
-			9999L,
 			AccountType.DEMAND_DEPOSIT.name(),
 			"우리 SUPER주거래 통장",
-			new CreateAccountRequest.CustomerInfo("PARK JAEHA", "abcdef@gmail.com", "서울특별시 광진구 능동로 120",
-				"건국대학교 기숙사 101호"),
+			new CreateAccountRequest.CustomerInfo(
+				"PARK JAEHA",
+				"abcdef@gmail.com",
+				"서울특별시 광진구 능동로 120",
+				"건국대학교 기숙사 101호"
+			),
 			"STUDENT",
 			new CreateAccountRequest.TransactionInfo("SALARY_AND_LIVING_EXPENSES", "EARNED_AND_PENSION_INCOME"),
-			new CreateAccountRequest.TaxInfo(false),
+			false,
 			"1234"
 		);
-		when(customerRepository.findById(9999L)).thenReturn(Optional.empty());
+		when(customerRepository.findByNameAndEmail("PARK JAEHA", "abcdef@gmail.com")).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> accountService.createAccount(request))
 			.isInstanceOf(CustomException.class)
@@ -156,7 +165,6 @@ class AccountServiceTest {
 	@DisplayName("동일 고객 + 동일 상품명 계좌가 이미 있으면 ACCOUNT_EXIST 예외를 반환한다")
 	void createAccountDuplicateProduct() {
 		CreateAccountRequest request = new CreateAccountRequest(
-			1001L,
 			AccountType.DEMAND_DEPOSIT.name(),
 			"우리 SUPER주거래 통장",
 			new CreateAccountRequest.CustomerInfo(
@@ -170,10 +178,12 @@ class AccountServiceTest {
 				"SALARY_AND_LIVING_EXPENSES",
 				"EARNED_AND_PENSION_INCOME"
 			),
-			new CreateAccountRequest.TaxInfo(false),
+			false,
 			"1234"
 		);
 
+		when(customerRepository.findByNameAndEmail("PARK JAEHA", "abcdef@gmail.com"))
+			.thenReturn(Optional.of(Customer.builder().customerId(1001L).build()));
 		when(accountRepository.existsByAccountNameAndCustomer_CustomerId("우리 SUPER주거래 통장", 1001L)).thenReturn(true);
 
 		assertThatThrownBy(() -> accountService.createAccount(request)).isInstanceOf(CustomException.class).hasMessage(

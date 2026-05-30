@@ -107,26 +107,31 @@ public class AccountService {
 
 	@Transactional
 	public CreateAccountResponse createAccount(CreateAccountRequest request) {
+		// Customer의 이름과 email로 Customer 객체 조회
+		Customer customer = customerRepository.findByNameAndEmail(
+				request.customerInfo().name(),
+				request.customerInfo().email()
+			)
+			.orElseThrow(() -> new CustomException(CUSTOMER_NOT_FOUND));
+
 		log.info(
 			"[account_create:requested] customerId={}, accountType={}, hasForeignTax={}",
-			request.customerId(),
+			customer.getCustomerId(),
 			request.accountType(),
-			request.taxInfo().hasForeignTax()
+			request.hasForeignTax()
 		);
 
 		boolean accountExists = accountRepository.existsByAccountNameAndCustomer_CustomerId(request.accountName(),
-			request.customerId());
+			customer.getCustomerId());
 		if (accountExists) {  // 이미 동일한 상품을 가입했다면 계좌 생성 불가
 			log.warn(
 				"[account_create:rejected_duplicate_product] customerId={}, accountName={}",
-				request.customerId(),
+				customer.getCustomerId(),
 				request.accountName()
 			);
 			throw new CustomException(ACCOUNT_EXIST);
 		}
 
-		Customer customer = customerRepository.findById(request.customerId())
-			.orElseThrow(() -> new CustomException(CUSTOMER_NOT_FOUND));
 		log.info("[account_create:validated_customer] customerId={}", customer.getCustomerId());
 
 		// Customer 정보 업데이트
@@ -138,7 +143,7 @@ public class AccountService {
 			request.job(),
 			resolvePurpose(request.transactionInfo().purpose()),
 			resolveSource(request.transactionInfo().source()),
-			request.taxInfo().hasForeignTax()
+			request.hasForeignTax()
 		);
 		log.info("[account_create:updated_customer_profile] customerId={}", customer.getCustomerId());
 
@@ -169,7 +174,12 @@ public class AccountService {
 			customer.getCustomerId(),
 			maskAccountNumber(rawAccountNumber)
 		);
-		return CreateAccountResponse.of(result.getAccountId());
+		return CreateAccountResponse.of(
+			result.getAccountId(),
+			customer.getCustomerId(),
+			result.getAccountName(),
+			result.getAccountNumber()
+		);
 	}
 
 	private String maskAccountNumber(String raw13) {  // 계좌 번호 마스킹
