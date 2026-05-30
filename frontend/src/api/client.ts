@@ -32,6 +32,13 @@ function maskSensitiveData(data: unknown) {
 // Request Interceptor - 요청 전 처리
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    const isFormData = config.data instanceof FormData
+    if (isFormData) {
+      delete config.headers['Content-Type']
+    } else if (!config.headers['Content-Type']) {
+      config.headers['Content-Type'] = 'application/json'
+    }
+
     // 요청 로깅 (개발 환경에서만)
     if (import.meta.env.DEV) {
       console.log('API Request:', {
