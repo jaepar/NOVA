@@ -15,6 +15,7 @@ import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -56,6 +57,68 @@ class BankingControllerTest {
                                   "transferAmount": 5000,
                                   "withdrawMemo": "박재하",
                                   "depositMemo": "박재하"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("이체 사전 조회 요청을 처리하고 내 계좌/수취인 정보를 반환한다")
+    void previewTransferSuccess() throws Exception {
+        Long userId = 1L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.previewTransfer(any(), any()))
+                .thenReturn(
+                        woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse.of(
+                                "우리SUPER주거래통장",
+                                "1002867390781",
+                                "백민정"
+                        )
+                );
+
+        mockMvc.perform(post("/banking/transfers/preview")
+                        .with(authentication(authToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "recipientBankCode": "BUSAN",
+                                  "recipientAccountNumber": "1122261925003"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data.myAccount.accountName").value("우리SUPER주거래통장"))
+                .andExpect(jsonPath("$.data.myAccount.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.recipient.recipientName").value("백민정"));
+    }
+
+    @Test
+    @DisplayName("계좌 비밀번호 검증 요청을 처리한다")
+    void verifyAccountPasswordSuccess() throws Exception {
+        Long userId = 1L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+        doNothing().when(bankingService).verifyAccountPassword(any(), any());
+
+        mockMvc.perform(post("/banking/password/verify")
+                        .with(authentication(authToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "accountId": 1,
+                                  "accountPassword": "1234"
                                 }
                                 """))
                 .andExpect(status().isOk())

@@ -24,31 +24,54 @@ import woorifisa.project.coreBanking.global.entity.BaseEntity;
 @Table(name = "customer")
 public class Customer extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "customer_id")
-    private Long customerId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "customer_id")
+	private Long customerId;
 
-    @Column(name = "name", length = 100, nullable = false)
-    private String name;
+	@Column(name = "name", length = 100, nullable = false)
+	private String name;
 
-    @Column(name = "email", length = 100, nullable = false)
-    private String email;
+	@Column(name = "email", length = 100, nullable = false)
+	private String email;
 
-    @Column(name = "address", length = 100)
-    private String address;
+	@Column(name = "address", length = 100)
+	private String address;
 
-    @Column(name = "job", length = 50)
-    private String job;
+	@Column(name = "address_detail", length = 100)
+	private String addressDetail;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "purpose", nullable = false)
-    private CustomerPurpose purpose;
+	@Column(name = "job", length = 50)
+	private String job;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "source", nullable = false)
-    private FundSource source;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "purpose", nullable = false)
+	private CustomerPurpose purpose;
 
-    @Column(name = "has_foreign_tax", nullable = false)
-    private Boolean hasForeignTax;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "source", nullable = false)
+	private FundSource source;
+
+	@Column(name = "has_foreign_tax", nullable = false)
+	private Boolean hasForeignTax;
+
+	public void updateProfile(
+		String name,
+		String email,
+		String address,
+		String addressDetail,
+		String job,
+		CustomerPurpose purpose,
+		FundSource source,
+		Boolean hasForeignTax
+	) {
+		this.name = name;
+		this.email = email;
+		this.address = address;
+		this.addressDetail = addressDetail;
+		this.job = job;
+		this.purpose = purpose;
+		this.source = source;
+		this.hasForeignTax = hasForeignTax;
+	}
 }

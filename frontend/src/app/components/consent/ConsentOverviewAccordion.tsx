@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react'
 import { AppButton } from '../design-system/AppButton'
-import { ConsentDefinition, getRequiredTermIds } from '../../domains/certificate-consent/spec'
+import { ConsentDefinition, getRequiredTermIds } from '../../domains/spec'
 import {
   getAgreedTermIds,
   getOpenCategoryIds,
@@ -10,7 +10,7 @@ import {
   setAgreedTermIds,
   setCategoryCursor,
   setOpenCategoryIds,
-} from '../../domains/certificate-consent/storage'
+} from '../../domains/storage'
 
 interface ConsentOverviewAccordionProps {
   definition: ConsentDefinition
@@ -210,3 +210,4 @@ export function ConsentOverviewAccordion({
     </div>
   )
 }
+
