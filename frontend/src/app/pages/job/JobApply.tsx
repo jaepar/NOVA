@@ -1,11 +1,18 @@
 import { useMemo, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
-import { CheckCircle2, ChevronDown, FileText, Plus } from 'lucide-react'
+import { CheckCircle2, Eye, FileText, Plus, X } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { CommonInputGroup } from '../../components/design-system/CommonInputGroup'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select'
 import { jobPostings, portfolioFiles } from '../../domains/job/mock'
 import type { PortfolioFile } from '../../domains/job/types'
 
@@ -20,6 +27,83 @@ function createNewPortfolioFile(file: File, index: number): PortfolioFile {
   }
 }
 
+function formatPhoneNumber(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+
+  if (digits.length <= 3) {
+    return digits
+  }
+
+  if (digits.length <= 7) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`
+  }
+
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+}
+
+function PortfolioFilePreviewModal({
+  file,
+  onClose,
+}: {
+  file: PortfolioFile
+  onClose: () => void
+}) {
+  return (
+    <div className="absolute inset-0 z-[80] flex items-center justify-center overflow-hidden bg-black/65 px-7 py-8">
+      <div className="flex max-h-[calc(100%-64px)] w-full flex-col rounded-xl bg-background p-4 shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+        <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <FileText className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="truncate text-[17px] font-semibold text-[#111827]">{file.fileName}</h2>
+              <p className="text-sm text-muted-foreground">{file.createdAt}</p>
+            </div>
+          </div>
+          <AppButton
+            type="button"
+            variant="unstyled"
+            onClick={onClose}
+            className="rounded-lg p-1 hover:bg-secondary"
+          >
+            <X className="h-6 w-6" />
+          </AppButton>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-white px-7 py-6">
+          <div className="mb-5 text-center text-[20px] font-semibold text-[#111827]">이력서</div>
+          <div className="mb-5 flex items-start justify-between gap-5">
+            <div>
+              <h3 className="mb-3 text-[14px] font-semibold">기본 정보</h3>
+              <ul className="space-y-2 text-[12px] leading-5 text-[#111827]">
+                <li>이름 : 홍길동</li>
+                <li>생년월일 : 1995.05.20</li>
+                <li>연락처 : 010-1234-5678</li>
+                <li>이메일 : honggildong@email.com</li>
+              </ul>
+            </div>
+            <div className="h-20 w-20 rounded-full bg-gradient-to-b from-[#e5e7eb] to-[#c7ccd5]" />
+          </div>
+
+          {[
+            ['학력', '2014.03 ~ 2018.02        OO대학교 간호학과 (학사)'],
+            ['경력', '2018.03 ~ 2020.02        OO병원 내과병동 간호사'],
+            ['자격증', '간호사 면허증 · BLS Provider'],
+            ['자기소개', '환자 중심의 간호를 실천하고 책임감 있는 자세로 업무에 임해왔습니다.'],
+            ['포트폴리오', '수술실 신규 간호사 교육 프로그램 개선 참여'],
+          ].map(([title, content]) => (
+            <section key={title} className="border-t border-border py-4">
+              <h3 className="mb-2 text-[13px] font-semibold text-[#111827]">{title}</h3>
+              <p className="text-[12px] leading-5 text-[#111827]">{content}</p>
+            </section>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function JobApply() {
   const navigate = useNavigate()
   const { jobId } = useParams()
@@ -27,10 +111,12 @@ export function JobApply() {
   const job = jobPostings.find((item) => item.jobId === Number(jobId)) ?? jobPostings[0]
   const [name, setName] = useState('조우재')
   const [email, setEmail] = useState('woo jae.cho@example.com'.replace(' ', ''))
-  const [phone, setPhone] = useState('010-1234-5678')
+  const [countryCode, setCountryCode] = useState('+82')
+  const [phone, setPhone] = useState('')
   const [recommender, setRecommender] = useState('')
   const [files, setFiles] = useState<PortfolioFile[]>(portfolioFiles)
   const [selectedFileIds, setSelectedFileIds] = useState<number[]>([portfolioFiles[0].fileId])
+  const [previewFile, setPreviewFile] = useState<PortfolioFile | null>(null)
 
   const canSubmit = useMemo(() => name.trim().length > 0 && email.trim().length > 0, [email, name])
 
@@ -54,7 +140,8 @@ export function JobApply() {
   }
 
   return (
-    <MobileLayout
+    <div className="relative h-full w-full">
+      <MobileLayout
       title="지원하기"
       backPath={`/jobs/${job.jobId}`}
       bottomContent={
@@ -74,19 +161,28 @@ export function JobApply() {
           <CommonInputGroup label="이메일" type="email" value={email} onChange={setEmail} />
 
           <div className="flex flex-col gap-2">
-            <label>연락처</label>
-            <div className="grid grid-cols-[86px_1fr] gap-3">
-              <AppButton
-                type="button"
-                variant="unstyled"
-                className="mt-[6px] flex h-[50px] items-center justify-center gap-2 rounded-lg border border-border bg-input-background text-[16px]"
-              >
-                +82
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </AppButton>
+            <label>연락처 (선택 사항)</label>
+            <div className="grid grid-cols-[94px_1fr] gap-3">
+              <Select value={countryCode} onValueChange={setCountryCode}>
+                <SelectTrigger
+                  aria-label="국가번호 선택"
+                  className="mt-[6px] !h-[50px] w-full rounded-lg border-border bg-input-background px-3 text-[16px] shadow-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="start" className="rounded-xl">
+                  <SelectItem value="+82">+82</SelectItem>
+                  <SelectItem value="+1">+1</SelectItem>
+                  <SelectItem value="+81">+81</SelectItem>
+                  <SelectItem value="+86">+86</SelectItem>
+                  <SelectItem value="+84">+84</SelectItem>
+                </SelectContent>
+              </Select>
               <input
                 value={phone}
-                onChange={(event) => setPhone(event.target.value)}
+                placeholder="010-1234-5678"
+                inputMode="tel"
+                onChange={(event) => setPhone(formatPhoneNumber(event.target.value))}
                 className="mt-[6px] h-[50px] w-full rounded-lg border border-border bg-input-background px-4 text-[16px] focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -131,8 +227,27 @@ export function JobApply() {
                     <span className="block truncate text-[17px] font-semibold text-[#111827]">
                       {file.fileName}
                     </span>
-                    <span className="block text-sm text-muted-foreground">
-                      {file.createdAt}  ·  {file.version}
+                    <span className="block text-sm text-muted-foreground">{file.createdAt}</span>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        setPreviewFile(file)
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key !== 'Enter' && event.key !== ' ') {
+                          return
+                        }
+
+                        event.preventDefault()
+                        event.stopPropagation()
+                        setPreviewFile(file)
+                      }}
+                      className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+                    >
+                      <Eye className="h-4 w-4" />
+                      보기
                     </span>
                   </span>
                   {isSelected ? (
@@ -164,6 +279,11 @@ export function JobApply() {
           </div>
         </section>
       </div>
-    </MobileLayout>
+      </MobileLayout>
+
+      {previewFile && (
+        <PortfolioFilePreviewModal file={previewFile} onClose={() => setPreviewFile(null)} />
+      )}
+    </div>
   )
 }
