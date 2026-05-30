@@ -53,7 +53,7 @@ class WalletControllerTest {
                         TransactionFlow.WITHDRAWAL,
                         "emart24 gangnam",
                         2500,
-                        LocalDateTime.of(2025, 5, 24, 14, 22)
+                        LocalDateTime.of(2025, 5, 24, 14, 22, 0, 123456000)
                 )),
                 1,
                 20,
