@@ -25,7 +25,6 @@ function onlyDigits(value: string) {
 
 export function WalletCharge() {
   const navigate = useNavigate();
-  const amountMirrorRef = useRef<HTMLSpanElement>(null);
   const completionTimerIdsRef = useRef<number[]>([]);
   const [isPasswordSheetOpen, setIsPasswordSheetOpen] = useState(false);
   const [isCompletionLoading, setIsCompletionLoading] = useState(false);
@@ -34,13 +33,11 @@ export function WalletCharge() {
   const feedback = useWalletStore((state) => state.chargeFeedback);
   const success = useWalletStore((state) => state.chargeSuccess);
   const isSubmitting = useWalletStore((state) => state.isChargeSubmitting);
-  const amountInputWidth = useWalletStore((state) => state.amountInputWidth);
   const setAmount = useWalletStore((state) => state.setChargeAmount);
   const setAccountPassword = useWalletStore((state) => state.setChargeAccountPassword);
   const setFeedback = useWalletStore((state) => state.setChargeFeedback);
   const setSuccess = useWalletStore((state) => state.setChargeSuccess);
   const setIsSubmitting = useWalletStore((state) => state.setChargeSubmitting);
-  const setAmountInputWidth = useWalletStore((state) => state.setAmountInputWidth);
   const clearChargeAmount = useWalletStore((state) => state.clearChargeAmount);
   const resetChargeFlow = useWalletStore((state) => state.resetChargeFlow);
 
@@ -69,13 +66,8 @@ export function WalletCharge() {
       .trim() ?? "";
 
   useLayoutEffect(() => {
-    if (numericAmount <= 0) {
-      setAmountInputWidth(0);
-      return;
-    }
-
-    setAmountInputWidth(amountMirrorRef.current?.offsetWidth ?? 0);
-  }, [amountInputValue, numericAmount]);
+    document.getElementById("secure-keypad-styles")?.remove();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -276,14 +268,20 @@ export function WalletCharge() {
                 <label className="sr-only" htmlFor="wallet-charge-amount">
                   충전 금액
                 </label>
-                <div className="relative flex min-w-0 flex-1 items-baseline gap-0">
-                  <span
-                    ref={amountMirrorRef}
-                    aria-hidden="true"
-                    className="pointer-events-none invisible absolute whitespace-pre text-[28px] font-semibold leading-9"
-                  >
-                    {amountInputValue || "0"}
-                  </span>
+                <div className="relative flex h-9 min-w-0 flex-1 items-center gap-0">
+                  {numericAmount > 0 && (
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-0 top-0 flex h-9 items-center"
+                    >
+                      <span className="text-[25px] font-extrabold leading-none text-[#111111]">
+                        {amountInputValue}
+                      </span>
+                      <span className="ml-0.5 text-[25px] font-semibold leading-none text-[#111111]">
+                        원
+                      </span>
+                    </div>
+                  )}
                   <input
                     id="wallet-charge-amount"
                     inputMode="numeric"
@@ -292,30 +290,31 @@ export function WalletCharge() {
                     placeholder="충전할 금액을 입력해주세요."
                     style={
                       numericAmount > 0
-                        ? { width: `${amountInputWidth}px` }
+                        ? {
+                            fontSize: "25px",
+                            fontWeight: 800,
+                          }
                         : undefined
                     }
-                    className={`min-w-0 bg-transparent font-semibold leading-9 text-[#111111] outline-none placeholder:font-normal placeholder:text-[#999999] ${
-                      numericAmount > 0 ? "flex-none text-[28px]" : "flex-1 text-[19px]"
+                    className={`min-w-0 flex-1 bg-transparent leading-9 outline-none placeholder:font-normal placeholder:text-[#999999] ${
+                      numericAmount > 0
+                        ? "text-[25px] font-extrabold text-transparent caret-[#111111]"
+                        : "text-[19px] font-semibold text-[#111111]"
                     }`}
                   />
-                  {numericAmount > 0 && (
-                    <span className="shrink-0 text-[23px] font-semibold leading-none text-[#111111]">
-                      원
-                    </span>
-                  )}
                 </div>
-                {numericAmount > 0 && (
-                  <AppButton
-                    type="button"
-                    variant="unstyled"
-                    aria-label="충전 금액 지우기"
-                    onClick={clearChargeAmount}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#bfc1c8] text-white"
-                  >
-                    <X className="h-4 w-4" />
-                  </AppButton>
-                )}
+                <AppButton
+                  type="button"
+                  variant="unstyled"
+                  aria-label="충전 금액 지우기"
+                  onClick={clearChargeAmount}
+                  disabled={numericAmount <= 0}
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#bfc1c8] text-white ${
+                    numericAmount > 0 ? "" : "invisible pointer-events-none"
+                  }`}
+                >
+                  <X className="h-4 w-4" />
+                </AppButton>
               </div>
             </div>
 

@@ -82,7 +82,7 @@ export function WalletHome() {
             type="button"
             variant="unstyled"
             onClick={() => navigate("/wallet/charge")}
-            className="flex h-[56px] w-full items-center justify-center rounded-lg bg-[#014ede] text-[17px] font-semibold text-white transition-colors hover:bg-[#0142bd]"
+            className="flex h-[48px] w-full items-center justify-center rounded-lg bg-[#014ede] text-[14px] font-semibold text-white transition-colors hover:bg-[#0142bd] disabled:opacity-40"
           >
             충전
           </AppButton>
