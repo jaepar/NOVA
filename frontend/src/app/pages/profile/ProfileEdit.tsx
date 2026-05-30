@@ -1,6 +1,6 @@
 import { ChangeEvent, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, ChevronDown, Eye, EyeOff, FileText, Plus, Presentation, Trash2 } from 'lucide-react'
+import { Check, ChevronDown, Eye, EyeOff, FileText, Plus, Trash2 } from 'lucide-react'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
@@ -27,12 +27,6 @@ const fileStyleByType = {
     color: 'text-blue-500',
     bg: 'bg-blue-50',
     label: 'DOCX',
-  },
-  pptx: {
-    icon: Presentation,
-    color: 'text-green-500',
-    bg: 'bg-green-50',
-    label: 'PPTX',
   },
 }
 
@@ -153,13 +147,9 @@ export function ProfileEdit() {
     navigate('/mypage')
   }
 
-  const bottomContent = isLoggedIn ? (
-    <Btn_1Col disabled={!canSave} onClick={handleSave}>
-      저장하기
-    </Btn_1Col>
-  ) : (
+  const bottomContent = !isLoggedIn ? (
     <Btn_1Col onClick={() => navigate('/login')}>로그인하기</Btn_1Col>
-  )
+  ) : undefined
 
   return (
     <MobileLayout
@@ -174,7 +164,7 @@ export function ProfileEdit() {
           description="프로필 정보를 확인하려면 먼저 로그인해주세요."
         />
       ) : (
-        <div className="space-y-8 pb-2 pt-3">
+        <div className="-mb-32 space-y-6 pb-3 pt-3">
           <section className="space-y-3">
             <p className="text-xs text-muted-foreground">
               변경 가능한 정보만 수정할 수 있습니다.
@@ -382,6 +372,12 @@ export function ProfileEdit() {
             <p className="text-xs text-muted-foreground">
               PDF, DOCX 파일만 업로드 가능합니다. 최대 5MB
             </p>
+          </section>
+
+          <section>
+            <Btn_1Col disabled={!canSave} onClick={handleSave}>
+              저장하기
+            </Btn_1Col>
           </section>
         </div>
       )}

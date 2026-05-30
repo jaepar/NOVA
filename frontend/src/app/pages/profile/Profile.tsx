@@ -1,8 +1,9 @@
-import { FileText, Presentation } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { Btn_2Col } from '../../components/design-system/Btn_2Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import {
@@ -19,7 +20,6 @@ import { PortfolioItem, useProfileStore } from '../../stores/profileStore'
 const fileStyleByType = {
   pdf: { icon: FileText, color: 'text-red-500', bg: 'bg-red-50', label: 'PDF' },
   docx: { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50', label: 'DOCX' },
-  pptx: { icon: Presentation, color: 'text-green-500', bg: 'bg-green-50', label: 'PPTX' },
 }
 
 export function Profile() {
@@ -42,16 +42,9 @@ export function Profile() {
     : fileStyleByType.pdf
   const SelectedPortfolioIcon = selectedPortfolioStyle.icon
 
-  const bottomContent = isLoggedIn ? (
-    <div className="space-y-3">
-      <Btn_1Col onClick={() => navigate('/mypage/edit')}>회원정보 수정</Btn_1Col>
-      <Btn_1Col variant="outline" onClick={() => navigate('/mypage/withdraw')}>
-        회원탈퇴
-      </Btn_1Col>
-    </div>
-  ) : (
+  const bottomContent = !isLoggedIn ? (
     <Btn_1Col onClick={() => navigate('/login')}>로그인하기</Btn_1Col>
-  )
+  ) : undefined
 
   return (
     <MobileLayout
@@ -66,7 +59,7 @@ export function Profile() {
           description="프로필 정보를 확인하려면 먼저 로그인해주세요."
         />
       ) : (
-        <div className="space-y-4 pb-16 pt-3">
+        <div className="-mb-28 flex min-h-full flex-col gap-4 pb-5 pt-3">
           <section className="rounded-lg border border-border p-4">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
@@ -91,35 +84,52 @@ export function Profile() {
             ))}
           </section>
 
-          <section className="space-y-3 rounded-lg border border-border p-4">
+          <section className="flex min-h-[320px] shrink-0 flex-col gap-3 rounded-lg border border-border p-4">
             <h3 className="text-sm font-semibold text-foreground">포트폴리오 목록</h3>
-            <div className="overflow-hidden rounded-lg border border-border">
-              {portfolioItems.map((portfolio, index) => {
-                const fileStyle = fileStyleByType[portfolio.type as keyof typeof fileStyleByType]
-                const FileIcon = fileStyle.icon
+            {portfolioItems.length === 0 ? (
+              <div className="flex flex-1 items-center justify-center">
+                <p className="text-xs text-muted-foreground">등록된 포트폴리오가 없어요.</p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-border">
+                {portfolioItems.map((portfolio, index) => {
+                  const fileStyle = fileStyleByType[portfolio.type as keyof typeof fileStyleByType]
+                  const FileIcon = fileStyle.icon
 
-                return (
-                  <AppButton
-                    type="button"
-                    variant="unstyled"
-                    key={portfolio.name}
-                    onClick={() => setSelectedPortfolio(portfolio)}
-                    className={`flex w-full items-center gap-3 px-3 py-3 text-left ${
-                      index !== portfolioItems.length - 1 ? 'border-b border-border' : ''
-                    }`}
-                  >
-                    <span
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${fileStyle.bg} ${fileStyle.color}`}
+                  return (
+                    <AppButton
+                      type="button"
+                      variant="unstyled"
+                      key={portfolio.name}
+                      onClick={() => setSelectedPortfolio(portfolio)}
+                      className={`flex w-full items-center gap-3 px-3 py-3 text-left ${
+                        index !== portfolioItems.length - 1 ? 'border-b border-border' : ''
+                      }`}
                     >
-                      <FileIcon className="h-5 w-5" />
-                    </span>
-                    <span className="min-w-0 truncate text-xs font-medium text-foreground">
-                      {portfolio.name}
-                    </span>
-                  </AppButton>
-                )
-              })}
-            </div>
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${fileStyle.bg} ${fileStyle.color}`}
+                      >
+                        <FileIcon className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 truncate text-xs font-medium text-foreground">
+                        {portfolio.name}
+                      </span>
+                    </AppButton>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+
+          <section className="pt-2">
+            <Btn_2Col
+              leftLabel="회원탈퇴"
+              rightLabel="회원정보 수정"
+              leftVariant="outline"
+              rightVariant="primary"
+              onLeftClick={() => navigate('/mypage/withdraw')}
+              onRightClick={() => navigate('/mypage/edit')}
+            />
           </section>
         </div>
       )}
