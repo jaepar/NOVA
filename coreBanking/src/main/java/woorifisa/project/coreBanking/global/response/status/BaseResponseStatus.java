@@ -13,6 +13,7 @@ public enum BaseResponseStatus implements ResponseStatus {
 	 * customer
 	 */
 	CUSTOMER_NOT_FOUND("CUSTOMER-001", "고객 정보를 찾을 수 없습니다."),
+	CUSTOMER_ALREADY_EXISTS("CUSTOMER-002", "이미 생성된 고객입니다."),
 
 	/**
 	 * account
