@@ -46,9 +46,9 @@ function PortfolioPreviewModal({
   }
 
   return (
-    <div className="absolute inset-0 z-[80] flex items-center justify-center bg-black/65 px-7">
-      <div className="w-full rounded-xl bg-background p-4 shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
-        <div className="mb-4 flex items-start justify-between gap-3">
+    <div className="absolute inset-0 z-[80] flex items-center justify-center overflow-hidden bg-black/65 px-7 py-8">
+      <div className="flex max-h-[calc(100%-64px)] w-full flex-col rounded-xl bg-background p-4 shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+        <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
           <div>
             <h2 className="text-[20px] font-semibold text-[#111827]">{application.openingTitle}</h2>
             <div className="mt-3 flex items-center gap-3">
@@ -73,7 +73,7 @@ function PortfolioPreviewModal({
           </AppButton>
         </div>
 
-        <div className="rounded-lg border border-border bg-white px-7 py-6">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-white px-7 py-6">
           <div className="mb-5 text-center text-[20px] font-semibold text-[#111827]">이력서</div>
           <div className="mb-5 flex items-start justify-between gap-5">
             <div>
@@ -102,7 +102,7 @@ function PortfolioPreviewModal({
           ))}
         </div>
 
-        <div className="mt-3 flex items-center justify-between">
+        <div className="mt-3 flex shrink-0 items-center justify-between">
           <AppButton
             type="button"
             variant="unstyled"
