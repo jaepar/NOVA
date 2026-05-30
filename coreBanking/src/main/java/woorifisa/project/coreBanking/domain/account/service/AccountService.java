@@ -90,6 +90,7 @@ public class AccountService {
 
 	private String generateUniqueAccountNumber() {  // 계좌 번호 생성 메서드
 		for (int retry = 0; retry < 10; retry++) {  // 충돌시 재시도 횟수
+			//
 			String serial8 = String.format("%08d", ThreadLocalRandom.current().nextInt(0, 100_000_000));
 			String raw13 = AccountNumberGenerator.raw13(serial8);
 
@@ -128,6 +129,7 @@ public class AccountService {
 			.orElseThrow(() -> new CustomException(CUSTOMER_NOT_FOUND));
 		log.info("[account_create:validated_customer] customerId={}", customer.getCustomerId());
 
+		// Customer 정보 업데이트
 		customer.updateProfile(
 			request.customerInfo().name(),
 			request.customerInfo().email(),
@@ -140,6 +142,7 @@ public class AccountService {
 		);
 		log.info("[account_create:updated_customer_profile] customerId={}", customer.getCustomerId());
 
+		// 계좌 번호 생성
 		String rawAccountNumber = generateUniqueAccountNumber();
 		Account account = Account.builder()
 			.customer(customer)

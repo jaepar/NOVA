@@ -1,7 +1,7 @@
 package woorifisa.project.coreBanking.domain.account.service;
 
 public class AccountNumberGenerator {
-	private static final String FIXED_PREFIX = "1002"; // S=1, YYY=002
+	private static final String FIXED_PREFIX = "1080"; // S=1, YYY=080: 외환 거래 계좌 식별번호(입출금)
 
 	public static String raw13(String serial8) {
 		String c = modularCheckDigit(FIXED_PREFIX + serial8); // TODO: 금결원 확정식으로 교체
