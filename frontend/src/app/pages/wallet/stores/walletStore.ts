@@ -8,12 +8,14 @@ type ChargeFeedback = {
 
 type ChargeSuccess = {
   amount: number;
+  balanceAfterCharge: number | null;
   chargedAt: Date;
 };
 
 interface WalletState {
   selectedFilter: WalletTransactionFilter;
   filterOpen: boolean;
+  walletBalance: number | null;
   chargeAmount: string;
   chargeAccountPassword: string;
   chargeFeedback: ChargeFeedback | null;
@@ -26,6 +28,7 @@ interface WalletState {
   agreementsOpen: boolean;
   setSelectedFilter: (selectedFilter: WalletTransactionFilter) => void;
   setFilterOpen: (filterOpen: boolean | ((current: boolean) => boolean)) => void;
+  setWalletBalance: (walletBalance: number) => void;
   setChargeAmount: (chargeAmount: string) => void;
   setChargeAccountPassword: (chargeAccountPassword: string) => void;
   setChargeFeedback: (chargeFeedback: ChargeFeedback | null) => void;
@@ -46,6 +49,7 @@ interface WalletState {
 export const useWalletStore = create<WalletState>((set) => ({
   selectedFilter: "all",
   filterOpen: false,
+  walletBalance: null,
   chargeAmount: "",
   chargeAccountPassword: "",
   chargeFeedback: null,
@@ -62,6 +66,7 @@ export const useWalletStore = create<WalletState>((set) => ({
       filterOpen:
         typeof filterOpen === "function" ? filterOpen(state.filterOpen) : filterOpen,
     })),
+  setWalletBalance: (walletBalance) => set({ walletBalance }),
   setChargeAmount: (chargeAmount) => set({ chargeAmount }),
   setChargeAccountPassword: (chargeAccountPassword) => set({ chargeAccountPassword }),
   setChargeFeedback: (chargeFeedback) => set({ chargeFeedback }),

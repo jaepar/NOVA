@@ -30,4 +30,12 @@ export type {
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportOcrResult, PassportOcrField, PassportOcrRawResponse } from './endpoints/certificate';
 export { walletApi } from './endpoints/wallet';
-export type { WalletCreateRequest, WalletNextStep, WalletStatusResponse } from './endpoints/wallet';
+export type {
+  ChargeWalletRequest,
+  WalletCreateRequest,
+  WalletNextStep,
+  WalletStatusResponse,
+  WalletTransactionFlow,
+  WalletTransactionResponse,
+  WalletTransactionsResponse,
+} from './endpoints/wallet';

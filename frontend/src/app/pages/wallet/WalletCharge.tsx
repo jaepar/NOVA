@@ -1,7 +1,9 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { AxiosError } from "axios";
 import { Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { KeypadPressEvent } from "secure-keypad";
+import { walletApi } from "../../../api";
 import { AppButton } from "../../components/design-system/AppButton";
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { MobileLayout } from "../../components/layout/MobileLayout";
@@ -11,7 +13,7 @@ import { walletPrimaryButtonClass } from "./styles";
 import { useWalletStore } from "./stores/walletStore";
 
 const quickAmounts = [10000, 30000, 50000];
-const walletBalance = 3220000;
+const chargeMinimumAmount = 1000;
 const chargeLimitAmount = 10000000;
 const inputLimitAmount = 999999999;
 const accountPasswordLength = 4;
@@ -31,11 +33,30 @@ function onlyDigits(value: string) {
   return value.replace(/\D/g, "");
 }
 
+function getApiErrorMessage(error: unknown) {
+  if (error instanceof AxiosError) {
+    const responseData = error.response?.data;
+
+    if (
+      responseData &&
+      typeof responseData === "object" &&
+      "message" in responseData &&
+      typeof responseData.message === "string"
+    ) {
+      return responseData.message;
+    }
+  }
+
+  return error instanceof Error ? error.message : "잠시 후 다시 시도해주세요.";
+}
+
 export function WalletCharge() {
   const navigate = useNavigate();
   const completionTimerIdsRef = useRef<number[]>([]);
   const [isPasswordSheetOpen, setIsPasswordSheetOpen] = useState(false);
   const [isCompletionLoading, setIsCompletionLoading] = useState(false);
+  const [chargeFailureMessage, setChargeFailureMessage] = useState<string | null>(null);
+  const [chargeFailedAt, setChargeFailedAt] = useState<Date | null>(null);
   const amount = useWalletStore((state) => state.chargeAmount);
   const accountPassword = useWalletStore((state) => state.chargeAccountPassword);
   const feedback = useWalletStore((state) => state.chargeFeedback);
@@ -46,6 +67,7 @@ export function WalletCharge() {
   const setFeedback = useWalletStore((state) => state.setChargeFeedback);
   const setSuccess = useWalletStore((state) => state.setChargeSuccess);
   const setIsSubmitting = useWalletStore((state) => state.setChargeSubmitting);
+  const setWalletBalance = useWalletStore((state) => state.setWalletBalance);
   const clearChargeAmount = useWalletStore((state) => state.clearChargeAmount);
   const resetChargeFlow = useWalletStore((state) => state.resetChargeFlow);
 
@@ -57,11 +79,26 @@ export function WalletCharge() {
   const amountInputValue = numericAmount <= 0 ? amount : formattedAmount;
   const isChargeLimitExceeded = numericAmount > chargeLimitAmount;
   const isAccountPasswordComplete = accountPassword.length === accountPasswordLength;
-  const balanceAfterCharge = success ? walletBalance + success.amount : 0;
-  const formattedBalanceAfterCharge = balanceAfterCharge.toLocaleString("ko-KR");
+  const formattedBalanceAfterCharge =
+    success?.balanceAfterCharge !== null && success?.balanceAfterCharge !== undefined
+      ? success.balanceAfterCharge.toLocaleString("ko-KR")
+      : "확인 중";
   const chargedAtText =
     success?.chargedAt
       .toLocaleString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+      .replace(/\. /g, ". ")
+      .replace(".", ".")
+      .trim() ?? "";
+  const chargeFailedAtText =
+    chargeFailedAt
+      ?.toLocaleString("ko-KR", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -76,8 +113,16 @@ export function WalletCharge() {
   useEffect(() => {
     return () => {
       completionTimerIdsRef.current.forEach((timerId) => window.clearTimeout(timerId));
+      resetChargeFlow();
     };
-  }, []);
+  }, [resetChargeFlow]);
+
+  const wait = (durationMs: number) =>
+    new Promise<void>((resolve) => {
+      const timerId = window.setTimeout(resolve, durationMs);
+
+      completionTimerIdsRef.current.push(timerId);
+    });
 
   const updateAmount = (nextAmount: string) => {
     setSuccess(null);
@@ -145,6 +190,10 @@ export function WalletCharge() {
       throw new Error("충전 금액을 입력해주세요.");
     }
 
+    if (numericAmount < chargeMinimumAmount) {
+      throw new Error("최소 충전 금액은 1,000원입니다.");
+    }
+
     if (numericAmount > chargeLimitAmount) {
       throw new Error(chargeLimitMessage);
     }
@@ -157,8 +206,16 @@ export function WalletCharge() {
       throw new Error("계좌비밀번호 4자리를 입력해주세요.");
     }
 
-    // TODO: 백엔드 충전 API 연결 시 이 함수 내부를 실제 요청으로 교체합니다.
-    await Promise.resolve();
+    await walletApi.charge({ chargeAmount: numericAmount });
+
+    try {
+      const response = await walletApi.transactions();
+
+      setWalletBalance(response.balance);
+      return response.balance;
+    } catch {
+      return null;
+    }
   };
 
   const openPasswordSheet = () => {
@@ -168,8 +225,7 @@ export function WalletCharge() {
       setAccountPassword("");
       setIsPasswordSheetOpen(true);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "잠시 후 다시 시도해주세요.";
+      const message = getApiErrorMessage(error);
 
       setFeedback({
         type: "error",
@@ -190,39 +246,59 @@ export function WalletCharge() {
 
     setIsSubmitting(true);
     setFeedback(null);
+    setChargeFailureMessage(null);
+    setChargeFailedAt(null);
 
     try {
-      await requestCharge();
-      const chargedAmount = numericAmount;
+      validateChargeAmount();
 
-      setIsPasswordSheetOpen(false);
-      setAccountPassword("");
-
-      const loadingTimerId = window.setTimeout(() => {
-        setIsCompletionLoading(true);
-
-        const successTimerId = window.setTimeout(() => {
-          setIsCompletionLoading(false);
-          setSuccess({
-            amount: chargedAmount,
-            chargedAt: new Date(),
-          });
-        }, chargeCompletionLoadingMs);
-
-        completionTimerIdsRef.current.push(successTimerId);
-      }, passwordSheetCloseDurationMs);
-
-      completionTimerIdsRef.current.push(loadingTimerId);
+      if (!isAccountPasswordComplete) {
+        throw new Error("계좌비밀번호 4자리를 입력해주세요.");
+      }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "잠시 후 다시 시도해주세요.";
+      const message = getApiErrorMessage(error);
 
       setFeedback({
         type: "error",
-        message: `충전에 실패했습니다. ${message}`,
+        message,
       });
       setIsSubmitting(false);
+      return;
     }
+
+    const chargedAmount = numericAmount;
+
+    setIsPasswordSheetOpen(false);
+    setAccountPassword("");
+
+    await wait(passwordSheetCloseDurationMs);
+    setIsCompletionLoading(true);
+
+    try {
+      const balanceAfterCharge = await requestCharge();
+
+      await wait(chargeCompletionLoadingMs);
+
+      setSuccess({
+        amount: chargedAmount,
+        balanceAfterCharge,
+        chargedAt: new Date(),
+      });
+    } catch (error) {
+      const message = getApiErrorMessage(error);
+
+      await wait(chargeCompletionLoadingMs);
+      setChargeFailureMessage(`충전에 실패했습니다. ${message}`);
+      setChargeFailedAt(new Date());
+      setIsSubmitting(false);
+    } finally {
+      setIsCompletionLoading(false);
+    }
+  };
+
+  const handleFailureConfirm = () => {
+    setChargeFailureMessage(null);
+    setChargeFailedAt(null);
   };
 
   const handleSuccessConfirm = () => {
@@ -402,6 +478,51 @@ export function WalletCharge() {
             <p className="mt-4 text-[16px] font-semibold text-[#111111]">
               충전 처리 중
             </p>
+          </div>
+        </div>
+      )}
+
+      {chargeFailureMessage && (
+        <div
+          className="fixed inset-0 z-50 mx-auto flex h-full w-full max-w-[var(--app-width)] items-end bg-black/35"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="wallet-charge-failure-title"
+        >
+          <div className="w-full rounded-t-[24px] bg-white px-5 pb-5 pt-6 shadow-[0_-12px_32px_rgba(0,0,0,0.16)]">
+            <div className="mx-auto mb-7 h-1 w-10 rounded-full bg-[#d7d7d7]" />
+
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f04438] text-white">
+                <X className="h-5 w-5" strokeWidth={2.4} />
+              </div>
+              <div>
+                <h2
+                  id="wallet-charge-failure-title"
+                  className="text-[18px] font-semibold leading-6 text-[#111111]"
+                >
+                  충전 실패
+                </h2>
+                <p className="mt-1 text-[14px] font-medium leading-5 text-[#8c8c8c]">
+                  {chargeFailedAtText}
+                </p>
+              </div>
+            </div>
+
+            <div className="my-6 h-px bg-[#eeeeee]" />
+
+            <p className="rounded-xl bg-[#fff2f2] px-4 py-3 text-[14px] font-medium leading-6 text-[#d92d20]">
+              {chargeFailureMessage}
+            </p>
+
+            <AppButton
+              type="button"
+              variant="unstyled"
+              onClick={handleFailureConfirm}
+              className={`mt-6 ${walletPrimaryButtonClass}`}
+            >
+              확인
+            </AppButton>
           </div>
         </div>
       )}

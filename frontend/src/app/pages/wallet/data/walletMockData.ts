@@ -1,5 +1,8 @@
+import type { WalletTransactionFlow } from "../../../../api";
+
 export type WalletTransaction = {
   id: string
+  transactionFlow: WalletTransactionFlow
   month: string
   date: string
   time: string
@@ -14,6 +17,7 @@ export const walletBalance = 3220000
 const baseWalletTransactions: WalletTransaction[] = [
   {
     id: 'tx-20260110',
+    transactionFlow: 'DEPOSIT',
     month: '2026년 1월',
     date: '1월 10일',
     time: '20:09:41',
@@ -22,6 +26,7 @@ const baseWalletTransactions: WalletTransaction[] = [
   },
   {
     id: 'tx-20260109',
+    transactionFlow: 'WITHDRAWAL',
     month: '2026년 1월',
     date: '1월 9일',
     time: '11:02:29',
@@ -30,6 +35,7 @@ const baseWalletTransactions: WalletTransaction[] = [
   },
   {
     id: 'tx-20260107',
+    transactionFlow: 'WITHDRAWAL',
     month: '2026년 1월',
     date: '1월 7일',
     time: '12:00:32',
@@ -38,6 +44,7 @@ const baseWalletTransactions: WalletTransaction[] = [
   },
   {
     id: 'tx-20260106',
+    transactionFlow: 'DEPOSIT',
     month: '2026년 1월',
     date: '1월 6일',
     time: '15:30:11',
@@ -46,6 +53,7 @@ const baseWalletTransactions: WalletTransaction[] = [
   },
   {
     id: 'tx-20260105',
+    transactionFlow: 'WITHDRAWAL',
     month: '2026년 1월',
     date: '1월 5일',
     time: '09:15:07',
@@ -54,6 +62,7 @@ const baseWalletTransactions: WalletTransaction[] = [
   },
   {
     id: 'tx-20260103',
+    transactionFlow: 'WITHDRAWAL',
     month: '2026년 1월',
     date: '1월 3일',
     time: '16:45:23',
@@ -86,6 +95,7 @@ function createMockTransaction(index: number): WalletTransaction {
 
   return {
     id: `tx-mock-${index}`,
+    transactionFlow: isCharge ? 'DEPOSIT' : 'WITHDRAWAL',
     month,
     date: `${monthNumber}월 ${day}일`,
     time: `${String(9 + (index % 12)).padStart(2, '0')}:${String((index * 7) % 60).padStart(

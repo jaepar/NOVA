@@ -1,12 +1,12 @@
 import { RefreshCcw } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { walletApi } from "../../../api";
 import { AppButton } from "../../components/design-system/AppButton";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { walletPrimaryButtonClass, walletSecondaryButtonClass } from "./styles";
 import { useWalletStore } from "./stores/walletStore";
 
-const paymentBalance = 12500;
 const qrSize = 29;
 
 function isFinderPattern(row: number, col: number, startRow: number, startCol: number) {
@@ -89,13 +89,27 @@ function WalletQrCode({ seed }: { seed: number }) {
 export function WalletPayment() {
   const navigate = useNavigate();
   const qrSeed = useWalletStore((state) => state.qrSeed);
+  const walletBalance = useWalletStore((state) => state.walletBalance);
   const refreshQrSeed = useWalletStore((state) => state.refreshQrSeed);
   const resetQrSeed = useWalletStore((state) => state.resetQrSeed);
+  const setWalletBalance = useWalletStore((state) => state.setWalletBalance);
+
+  const loadWalletTransactions = async () => {
+    try {
+      const response = await walletApi.transactions();
+
+      setWalletBalance(response.balance);
+    } catch {}
+  };
 
   const handleDone = () => {
     resetQrSeed();
     navigate("/wallet/home");
   };
+
+  useEffect(() => {
+    loadWalletTransactions();
+  }, []);
 
   return (
     <MobileLayout
@@ -135,7 +149,7 @@ export function WalletPayment() {
               현재 잔액
             </p>
             <p className="mt-2 text-[38px] font-bold leading-[46px] tracking-[-0.02em] text-[#111111]">
-              {paymentBalance.toLocaleString("ko-KR")}
+              {walletBalance === null ? "-" : walletBalance.toLocaleString("ko-KR")}
               <span className="ml-1 text-[24px] font-semibold">원</span>
             </p>
           </div>
@@ -150,6 +164,7 @@ export function WalletPayment() {
             새로고침
           </AppButton>
         </section>
+
       </div>
     </MobileLayout>
   );
