@@ -10,17 +10,20 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionItem;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
+import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -40,7 +43,7 @@ class WalletControllerTest {
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
-    @DisplayName("세션 사용자 기준 월렛 잔액과 거래내역을 조회한다")
+    @DisplayName("passes requested page and size to wallet transaction lookup")
     void success() throws Exception {
         Long userId = 1L;
         WalletTransactionsResponse response = new WalletTransactionsResponse(
@@ -48,13 +51,16 @@ class WalletControllerTest {
                 List.of(new WalletTransactionItem(
                         102L,
                         TransactionFlow.WITHDRAWAL,
-                        "이마트24 강남역점",
+                        "emart24 gangnam",
                         2500,
                         LocalDateTime.of(2025, 5, 24, 14, 22)
-                ))
+                )),
+                1,
+                20,
+                true
         );
 
-        when(walletService.findWalletTransactions(any())).thenReturn(response);
+        when(walletService.findWalletTransactions(nullable(Long.class), anyInt(), anyInt())).thenReturn(response);
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 new SessionUserPrincipal(userId),
                 null,
@@ -63,16 +69,23 @@ class WalletControllerTest {
 
         mockMvc.perform(get("/wallet/transactions")
                         .with(authentication(authToken))
+                        .param("page", "1")
+                        .param("size", "20")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value(20000))
                 .andExpect(jsonPath("$.data.balance").value(12500))
+                .andExpect(jsonPath("$.data.page").value(1))
+                .andExpect(jsonPath("$.data.size").value(20))
+                .andExpect(jsonPath("$.data.hasNext").value(true))
                 .andExpect(jsonPath("$.data.transactions", hasSize(1)))
                 .andExpect(jsonPath("$.data.transactions[0].walletTransactionId").value(102))
                 .andExpect(jsonPath("$.data.transactions[0].transactionFlow").value("WITHDRAWAL"))
-                .andExpect(jsonPath("$.data.transactions[0].counterparty").value("이마트24 강남역점"))
+                .andExpect(jsonPath("$.data.transactions[0].counterparty").value("emart24 gangnam"))
                 .andExpect(jsonPath("$.data.transactions[0].amount").value(2500))
                 .andExpect(jsonPath("$.data.transactions[0].createdAt").value("2025-05-24T14:22:00"));
+
+        verify(walletService).findWalletTransactions(nullable(Long.class), eq(1), eq(20));
     }
 }
