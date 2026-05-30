@@ -57,4 +57,8 @@ public class User extends BaseEntity {
 
     @Column(name = "issued_time")
     private LocalDateTime issuedTime;
+
+    public void issueCertificate() {
+        this.hasCertificate = true;
+    }
 }

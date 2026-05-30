@@ -5,6 +5,7 @@ import { commonTemplateRoutes } from "./commonTemplateRoutes";
 import { signupRoutes } from "./signupRoutes";
 import { loginRoutes } from "./loginRoutes";
 import { jobRoutes } from "./jobRoutes";
+import { accountRoutes } from "./accountRoutes";
 import { NotFound } from "../pages/common/NotFound";
 
 export const appRoutes = [
@@ -13,6 +14,7 @@ export const appRoutes = [
   ...signupRoutes,
   ...jobRoutes,
   ...walletRoutes,
+  ...accountRoutes,
   ...certificateRoutes,
   ...commonTemplateRoutes,
   { path: "*", Component: NotFound },
