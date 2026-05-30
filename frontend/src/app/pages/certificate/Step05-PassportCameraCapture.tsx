@@ -18,7 +18,6 @@ import { MobileLayout } from "../../components/layout/MobileLayout";
 import { useStep5PassportCaptureStore } from "../../stores/pageStores";
 import { CameraCapturePage } from "../../components/camera/CameraCapturePage";
 import { certificateApi, type PassportOcrField } from "../../../api";
-import { toast } from "sonner";
 
 const ocrResultRows = [
   { label: "종류", value: "", icon: IdCard },
@@ -166,11 +165,6 @@ export function PassportCameraCapture() {
       const ocrResult = await certificateApi.recognizePassport(imageFile);
 
       if (!ocrResult.success) {
-        const validationResult =
-          ocrResult.raw.images?.[0]?.validationResult?.result;
-        if (validationResult === "NO_REQUESTED") {
-          throw new Error("여권이 인식되지 않았습니다. 다시 촬영해 주세요.");
-        }
         throw new Error(
           "OCR 인식에 실패했습니다. 여권 위치와 조명을 확인해 주세요."
         );
@@ -285,11 +279,14 @@ export function PassportCameraCapture() {
                   </div>
                   <div className="px-4 py-4 flex items-center">
                     <input
+                      type="text"
                       value={editableOcrValues[row.label] ?? ""}
                       onChange={(event) =>
                         handleOcrValueChange(row.label, event.target.value)
                       }
-                      className="w-full bg-transparent text-base outline-none"
+                      autoComplete="off"
+                      spellCheck={false}
+                      className="w-full rounded-md bg-background px-2 py-1 text-base text-foreground outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </div>

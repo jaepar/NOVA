@@ -265,6 +265,27 @@ export function NfcGuide() {
           </ul>
         </section>
 
+        <section className="rounded-2xl bg-secondary p-4 space-y-3">
+          <p className="text-sm font-medium">Step05 파싱 데이터</p>
+          {parsedPassportData ? (
+            <div className="rounded-xl border border-border bg-background overflow-hidden">
+              {comparisonFields.map(({ key, label }) => (
+                <div
+                  key={key}
+                  className="grid grid-cols-[120px_1fr] border-b border-border last:border-b-0"
+                >
+                  <p className="px-3 py-2 text-sm bg-secondary/30">{label}</p>
+                  <p className="px-3 py-2 text-sm break-all">{parsedPassportData[key] || '-'}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Step05에서 전달된 파싱 데이터가 없습니다.
+            </p>
+          )}
+        </section>
+
         {statusMessage ? (
           <p
             className={`text-sm text-center ${
