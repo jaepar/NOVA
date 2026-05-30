@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity/dist-es/fromCognitoIdentityPool";
 import { FaceLivenessDetector } from "@aws-amplify/ui-react-liveness";
@@ -20,7 +20,7 @@ const registeredImageBucket =
 const registeredImageKey =
   (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_KEY as string | undefined) ??
   "goverment/KOR-M592W1577/profile.jpg";
-const STEP08_PATH = "/certificate/step-08";
+const STEP08_PATH = "/account/step-07";
 
 const livenessDisplayText = {
   startScreenBeginCheckText: "얼굴 인증 시작",
@@ -373,7 +373,7 @@ export function LivenessCameraCapture() {
       if (result.decision === "PASS") {
         setIsDetectorVisible(false);
         stopCameraTracksRepeatedly();
-        window.setTimeout(() => navigate("/certificate/step-10"), 120);
+        window.setTimeout(() => navigate("/account/step-09"), 120);
         return;
       }
       setIsDetectorVisible(false);

@@ -6,6 +6,7 @@
 
 - `guidelines/DESIGN_SYSTEM.md`
 - `guidelines/LAYOUT_GUIDELINES.md`
+- `src/app/domains/AGENTS.md`
 
 ## 1) 목표
 
@@ -23,7 +24,8 @@
 ### 2.1) Codex 실행 정책
 
 - 본 저장소는 별도 브리지 파일을 사용하지 않는다.
-- Codex 작업 시 규칙 소스는 `AGENTS.md`와 `guidelines/*.md`만 사용한다.
+- Codex 작업 시 규칙 소스는 `AGENTS.md`, `guidelines/*.md`, `src/app/**/AGENTS.md`만 사용한다.
+- `README.md`는 시스템 가이드라인 소스로 취급하지 않는다.
 
 ### 2.2) API 작업 규칙 소스 (필수)
 
@@ -68,7 +70,8 @@
 
 ### 5.2) 약관 동의 페이지 규격 (필수)
 
-- 인증서 약관 동의 화면은 `src/app/domains/certificate-consent/` 규격을 사용한다.
+- 약관 동의 화면은 `src/app/domains/AGENTS.md`의 공통 규격을 사용한다.
+- 인증서/여권/생체/계좌 약관 정의는 각 도메인 폴더(`certificate-consent`, `verification-consent`, `account-consent`)의 정의 파일을 사용한다.
 - 약관 데이터는 `ConsentDefinition` 스키마를 사용한다.
 - 페이지 컴포넌트 내부에 약관 텍스트를 하드코딩하지 않는다.
 - 동의/아코디언/캐러셀 상태는 `storage.ts` API만 사용한다.
@@ -99,7 +102,7 @@
 - [ ] 헤더/본문/하단 고정 영역 겹침 없음
 - [ ] 공통 레이아웃 컴포넌트 일관 사용
 - [ ] 페이지별 프레임 중복 규칙 없음
-- [ ] 약관 샘플 페이지는 `src/app/domains/certificate-consent/README.md`의 완료 기준을 모두 충족
+- [ ] 약관 샘플 페이지는 `src/app/domains/AGENTS.md`의 완료 기준을 모두 충족
 
 ## 7) 파일 책임 범위
 
@@ -242,7 +245,7 @@ AI 실행 체크리스트:
 
 상태 관리:
 
-- 약관 상태는 `zustand`(`domains/certificate-consent/storage.ts`)를 사용한다.
+- 약관 상태는 `zustand`(`domains/storage.ts`)를 사용한다.
 - 컴포넌트 외부에서 `sessionStorage`를 직접 조작하지 않는다.
 
 진입/복귀 규칙:
@@ -274,8 +277,8 @@ AI 실행 체크리스트:
 
 - 약관 데이터는 페이지에 하드코딩하지 않고 정의 파일에서 관리한다.
 - 권장 위치: `src/app/domains/<service-domain>/`
-- 권장 파일명: `definition.<scenario>.ts`
-  - 예: `definition.issue-account.ts`, `definition.wallet.ts`
+- 권장 파일명: `definition.<domain-or-scenario>.ts`
+  - 예: `definition.certificate.ts`, `definition.liveness-consent.ts`, `definition.open-account.ts`
 - 페이지는 목적에 맞는 정의 파일을 import해서 `definition` props로 주입한다.
 
 ## 12) 헤더 뒤로가기 정책 (스텝형 플로우 필수)

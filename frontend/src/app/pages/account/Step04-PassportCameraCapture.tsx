@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -231,7 +231,7 @@ export function PassportCameraCapture() {
       issueDate: editableOcrValues["발급일"] ?? "",
       expiryDate: editableOcrValues["기간만료일"] ?? "",
     });
-    navigate("/certificate/step-06");
+    navigate("/account/step-05");
   };
 
   const handleOpenReviewWithTempData = () => {
@@ -244,7 +244,7 @@ export function PassportCameraCapture() {
     return (
       <MobileLayout
         title="비대면 실명확인"
-        backPath="/certificate/step-04"
+        backPath="/account/step-03"
         bottomContent={
           <Btn_2Col
             leftLabel="재촬영"
@@ -304,7 +304,7 @@ export function PassportCameraCapture() {
   return (
     <CameraCapturePage
       title="비대면 실명확인"
-      onClose={() => navigate("/certificate/step-04")}
+      onClose={() => navigate("/account/step-03")}
       headerBackgroundColor="#ffffff"
       headerTextColor="#000000"
       bottomBackgroundColor="#ffffff"

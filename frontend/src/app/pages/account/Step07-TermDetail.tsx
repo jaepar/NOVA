@@ -8,11 +8,14 @@ export function LivenessConsentTermDetail() {
     <ConsentTermDetailView
       definition={livenessConsentDefinition}
       termId={termId}
-      basePath="/certificate/step-08"
+      basePath="/account/step-07"
       preserveStateKey="preserveStep08State"
     />
   )
 }
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import { Camera, Lightbulb, ScanFace } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
@@ -9,9 +9,9 @@ export function LivenessGuide() {
   return (
     <MobileLayout
       title="비대면 실명확인"
-      backPath="/certificate/step-06"
+      backPath="/account/step-05"
       bottomContent={
-        <Btn_1Col onClick={() => navigate("/certificate/step-08")}>
+        <Btn_1Col onClick={() => navigate("/account/step-07")}>
           동의하고 촬영하기
         </Btn_1Col>
       }

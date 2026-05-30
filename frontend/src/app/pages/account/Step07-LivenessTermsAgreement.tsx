@@ -36,7 +36,7 @@ export function LivenessConsentAgreement() {
         return;
       }
       setSession(session.sessionId, session.expiresAt);
-      navigate("/certificate/step-09");
+      navigate("/account/step-08");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         setErrorMessage("로그인이 만료되었습니다. 다시 로그인해 주세요.");
@@ -55,14 +55,14 @@ export function LivenessConsentAgreement() {
   const handleSkipLivenessForTest = () => {
     setErrorMessage("");
     resetSession();
-    navigate("/certificate/step-10");
+    navigate("/account/step-09");
   };
   // [TEST ONLY END]
 
   return (
     <MobileLayout
       title="비대면 실명확인"
-      backPath="/certificate/step-07"
+      backPath="/account/step-06"
       bottomContent={
         <div className="space-y-2">
           <Btn_1Col
@@ -81,7 +81,7 @@ export function LivenessConsentAgreement() {
         <ConsentOverviewAccordion
           definition={livenessConsentDefinition}
           preserveState={preserveState}
-          basePath="/certificate/step-08"
+          basePath="/account/step-07"
           preserveStateKey="preserveStep08State"
           resetCarouselCursorKey="resetCategoryCursor"
           title={"서비스 가입을 위해\n약관에 동의해 주세요"}
