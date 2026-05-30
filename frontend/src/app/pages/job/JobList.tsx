@@ -4,6 +4,13 @@ import { useNavigate } from 'react-router-dom'
 import { AppButton } from '../../components/design-system/AppButton'
 import { HeaderActionButton } from '../../components/layout/HeaderActionButton'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select'
 import { jobPostings, jobRegionLabels, jobRegions } from '../../domains/job/mock'
 import type { JobRegion } from '../../domains/job/types'
 
@@ -29,27 +36,32 @@ export function JobList() {
         </HeaderActionButton>
       }
     >
-      <div className="-mx-5 border-b border-border">
-        <div className="flex gap-2 overflow-x-auto px-5 py-4 scrollbar-hide">
-          {jobRegions.map((region) => {
-            const isSelected = selectedRegion === region
+      <div className="sticky top-0 z-10 -mx-5 border-b border-border bg-background px-5 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <Select
+            value={selectedRegion}
+            onValueChange={(value) => setSelectedRegion(value as JobRegion)}
+          >
+            <SelectTrigger
+              aria-label="지역 선택"
+              className="h-9 w-auto min-w-[96px] justify-start rounded-full border-border bg-background px-4 text-sm text-foreground shadow-none transition-colors hover:bg-secondary focus-visible:ring-primary/20"
+            >
+              <span className="text-muted-foreground">지역</span>
+              <span className="h-3 w-px bg-border" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start" className="max-h-[280px] rounded-xl">
+              {jobRegions.map((region) => (
+                <SelectItem key={region} value={region} className="h-10">
+                  {jobRegionLabels[region]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            return (
-              <AppButton
-                key={region}
-                type="button"
-                variant="unstyled"
-                onClick={() => setSelectedRegion(region)}
-                className={`h-11 shrink-0 rounded-xl border px-5 text-[16px] transition-colors ${
-                  isSelected
-                    ? 'border-[#0057ff] bg-[#0057ff] text-white'
-                    : 'border-border bg-background text-foreground hover:bg-blue-50'
-                }`}
-              >
-                {jobRegionLabels[region]}
-              </AppButton>
-            )
-          })}
+          <span className="shrink-0 text-sm font-medium text-muted-foreground">
+            {filteredJobs.length}건
+          </span>
         </div>
       </div>
 
