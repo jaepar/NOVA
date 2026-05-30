@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Keypad, type KeypadPressEvent } from "secure-keypad";
+import type { KeypadPressEvent } from "secure-keypad";
 import { AppButton } from "../../components/design-system/AppButton";
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { MobileLayout } from "../../components/layout/MobileLayout";
@@ -18,6 +18,14 @@ const accountPasswordLength = 4;
 const passwordSheetCloseDurationMs = 320;
 const chargeCompletionLoadingMs = 700;
 const chargeLimitMessage = "1회 충전 금액은 10,000,000원까지만 가능합니다.";
+
+const SecureKeypad = lazy(() =>
+  import("secure-keypad").then((module) => {
+    document.getElementById("secure-keypad-styles")?.remove();
+
+    return { default: module.Keypad };
+  }),
+);
 
 function onlyDigits(value: string) {
   return value.replace(/\D/g, "");
@@ -64,10 +72,6 @@ export function WalletCharge() {
       .replace(/\. /g, ". ")
       .replace(".", ".")
       .trim() ?? "";
-
-  useLayoutEffect(() => {
-    document.getElementById("secure-keypad-styles")?.remove();
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -372,15 +376,17 @@ export function WalletCharge() {
           )}
 
           <div className="wallet-secure-keypad overflow-hidden rounded-[14px]">
-            <Keypad
-              shuffleKey
-              mixedKey
-              pressCooldown={120}
-              onPress={handleKeypadPress}
-              onBackspaceClick={handleBackspacePassword}
-              onClearClick={handleClearPassword}
-              onOkClick={handleConfirm}
-            />
+            <Suspense fallback={<div className="h-[144px] w-full rounded-[14px] border border-[#e5e7eb] bg-white" />}>
+              <SecureKeypad
+                shuffleKey
+                mixedKey
+                pressCooldown={120}
+                onPress={handleKeypadPress}
+                onBackspaceClick={handleBackspacePassword}
+                onClearClick={handleClearPassword}
+                onOkClick={handleConfirm}
+              />
+            </Suspense>
           </div>
         </div>
       </BottomSheet>
