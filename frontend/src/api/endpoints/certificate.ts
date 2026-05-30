@@ -66,6 +66,126 @@ export type PassportOcrResult = {
   raw: PassportOcrRawResponse
 }
 
+type OcrFieldCandidate = {
+  text?: string
+  confidenceScore?: number
+  formatted?: {
+    value?: string
+    year?: string
+    month?: string
+    day?: string
+  }
+}
+
+type OcrExtractedValue = {
+  text: string
+  confidence?: number
+}
+
+const getFirstValueWithConfidence = (value: unknown): OcrExtractedValue | null => {
+  if (!value) return null
+
+  if (typeof value === 'string') {
+    const normalized = value.trim()
+    return normalized.length > 0 ? { text: normalized } : null
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const candidate = item as OcrFieldCandidate
+      const formattedValue = candidate?.formatted?.value?.trim()
+      if (formattedValue) {
+        return { text: formattedValue, confidence: candidate?.confidenceScore }
+      }
+
+      const year = candidate?.formatted?.year?.trim()
+      const month = candidate?.formatted?.month?.trim()
+      const day = candidate?.formatted?.day?.trim()
+      if (year && month && day) {
+        return { text: `${year}.${month}.${day}`, confidence: candidate?.confidenceScore }
+      }
+
+      const textValue = candidate?.text?.trim()
+      if (textValue) return { text: textValue, confidence: candidate?.confidenceScore }
+    }
+  }
+
+  if (typeof value === 'object') {
+    const candidate = value as OcrFieldCandidate
+    const formattedValue = candidate?.formatted?.value?.trim()
+    if (formattedValue) return { text: formattedValue, confidence: candidate?.confidenceScore }
+    const textValue = candidate?.text?.trim()
+    if (textValue) return { text: textValue, confidence: candidate?.confidenceScore }
+  }
+
+  return null
+}
+
+const pushField = (
+  target: PassportOcrField[],
+  name: string,
+  value: unknown,
+  confidence?: number
+) => {
+  const extracted = getFirstValueWithConfidence(value)
+  if (!extracted) return
+  target.push({
+    name,
+    text: extracted.text,
+    confidence: extracted.confidence ?? confidence,
+  })
+}
+
+const extractStructuredPassportFields = (raw: PassportOcrRawResponse): PassportOcrField[] => {
+  const fields: PassportOcrField[] = []
+  const image = raw.images?.[0] as
+    | (NonNullable<PassportOcrRawResponse['images']>[number] & {
+        idCard?: { result?: { pp?: Record<string, unknown> } }
+        passport?: { passportResult?: Record<string, unknown> }
+      })
+    | undefined
+
+  const pp = image?.idCard?.result?.pp
+  // console.log(pp);
+  if (pp) {
+    pushField(fields, 'doc_type', pp.type)
+    pushField(fields, 'nationality_code', pp.issueCountry)
+    pushField(fields, 'passport_number', pp.num)
+    pushField(fields, 'surname', pp.surName)
+    pushField(fields, 'given_name', pp.givenName)
+    pushField(fields, 'birth_date', pp.birthDate)
+    pushField(fields, 'sex', pp.sex)
+    pushField(fields, 'nationality', pp.nationality)
+    pushField(fields, 'authority', pp.authority)
+    pushField(fields, 'issue_date', pp.issueDate)
+    pushField(fields, 'expiry_date', pp.expireDate)
+  }
+
+  const passportResult = image?.passport?.passportResult
+  if (passportResult) {
+    pushField(fields, 'doc_type', passportResult.documentType ?? passportResult.type)
+    pushField(
+      fields,
+      'nationality_code',
+      passportResult.issuingState ?? passportResult.countryCode ?? passportResult.nationalityCode
+    )
+    pushField(
+      fields,
+      'passport_number',
+      passportResult.passportNumber ?? passportResult.documentNumber
+    )
+    pushField(fields, 'surname', passportResult.surname ?? passportResult.lastName)
+    pushField(fields, 'given_name', passportResult.givenNames ?? passportResult.firstName)
+    pushField(fields, 'birth_date', passportResult.dateOfBirth ?? passportResult.birthDate)
+    pushField(fields, 'sex', passportResult.sex ?? passportResult.gender)
+    pushField(fields, 'nationality', passportResult.nationality)
+    pushField(fields, 'issue_date', passportResult.issueDate)
+    pushField(fields, 'expiry_date', passportResult.dateOfExpiry ?? passportResult.expiryDate)
+  }
+
+  return fields
+}
+
 export const certificateApi = {
   createLivenessSession: async (): Promise<LivenessSessionResponse> => {
     const response = await apiClient.post<ApiEnvelope<LivenessSessionResponse>>(
@@ -120,7 +240,7 @@ export const certificateApi = {
     })
 
     const raw = response.data
-    const fields =
+    const genericFields =
       raw.images?.[0]?.fields
         ?.filter((field): field is NonNullable<typeof field> => Boolean(field))
         .map((field) => ({
@@ -128,6 +248,9 @@ export const certificateApi = {
           text: field.inferText ?? '',
           confidence: field.inferConfidence,
         })) ?? []
+    const structuredFields = extractStructuredPassportFields(raw)
+    // console.log(structuredFields)
+    const fields = [...genericFields, ...structuredFields]
 
     return {
       success: raw.images?.[0]?.inferResult === 'SUCCESS',
