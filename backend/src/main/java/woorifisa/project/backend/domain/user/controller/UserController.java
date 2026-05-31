@@ -17,7 +17,7 @@ import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
-import woorifisa.project.backend.domain.user.dto.response.PassportOcrResponse;
+import woorifisa.project.backend.domain.user.dto.response.PassportResponse;
 import woorifisa.project.backend.domain.user.service.PassportOcrService;
 import woorifisa.project.backend.domain.user.service.UserService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
@@ -42,7 +42,7 @@ public class UserController {
 	}
 
 	@PostMapping(value = "/verifications/passports", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public BaseResponse<PassportOcrResponse> recognizePassport(
+	public BaseResponse<PassportResponse> recognizePassport(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
 		@RequestPart("file") MultipartFile file
 	) {

@@ -1,9 +1,7 @@
-// 파일: backend/src/main/java/woorifisa/project/backend/domain/user/service/PassportOcrService.java
 package woorifisa.project.backend.domain.user.service;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -18,13 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import woorifisa.project.backend.domain.user.dto.response.PassportOcrFieldResponse;
 import woorifisa.project.backend.domain.user.dto.response.PassportOcrRawResponse;
-import woorifisa.project.backend.domain.user.dto.response.PassportOcrResponse;
+import woorifisa.project.backend.domain.user.dto.response.PassportResponse;
 import woorifisa.project.backend.global.config.KycPassportOcrProperties;
 import woorifisa.project.backend.global.exception.CustomException;
 
-// 여권 OCR 외부 연동을 담당하는 서비스
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -33,35 +29,60 @@ public class PassportOcrService {
 	private final RestClient.Builder restClientBuilder;
 	private final KycPassportOcrProperties kycPassportOcrProperties;
 
-	// 여권 이미지를 OCR 호출 후 정규화된 응답으로 변환
-	public PassportOcrResponse recognizePassport(MultipartFile file) {
+	/**
+	 * 여권 이미지 파일을 입력받아 OCR을 수행하고, 프론트에서 사용 가능한 응답 형태로 변환합니다.
+	 *
+	 * @param file 여권 이미지 파일
+	 * @return OCR 성공 여부, 필드 목록, 원본 응답을 포함한 결과
+	 */
+	public PassportResponse recognizePassport(MultipartFile file) {
 		validateFile(file);
 		validateConfig();
 
 		try {
 			PassportOcrRawResponse raw = callPassportOcr(file);
-			List<PassportOcrFieldResponse> genericFields = extractGenericFields(raw);
-			List<PassportOcrFieldResponse> structuredFields = extractStructuredFields(raw);
-			List<PassportOcrFieldResponse> fields = new ArrayList<>(genericFields.size() + structuredFields.size());
-			fields.addAll(genericFields);
-			fields.addAll(structuredFields);
+			PassportOcrRawResponse.Image image = extractFirstImage(raw);
+			PassportOcrRawResponse.Result idCardResult = extractIdCardResult(image);
 
-			boolean success = false;
-			PassportOcrRawResponse.Image image = firstImage(raw);
-			if (image != null && "SUCCESS".equals(image.inferResult())) {
-				success = true;
+			if (!isSuccessfulPassportRecognition(image, idCardResult)) {
+				log.warn("passport ocr validation failed. inferResult={}, idType={}",
+					image.inferResult(), idCardResult.idtype());
+				throw new CustomException(PASSPORT_OCR_INVALID_ID_TYPE);
 			}
 
-			return new PassportOcrResponse(success, fields, raw);
+			Map<String, Object> passport = idCardResult.pp();
+			if (passport == null || passport.isEmpty()) {
+				log.warn("passport ocr result is empty. requestId={}", raw.requestId());
+				throw new CustomException(PASSPORT_OCR_FAILED);
+			}
+
+			return PassportResponse.builder()
+				.type(getData(passport, "type"))
+				.issueCountry(getData(passport, "issueCountry"))
+				.num(getData(passport, "num"))
+				.surName(getData(passport, "surName"))
+				.givenName(getData(passport, "givenName"))
+				.nationality(getData(passport, "nationality"))
+				.birthDate(getData(passport, "birthDate"))
+				.sex(getData(passport, "sex"))
+				.issueDate(getData(passport, "issueDate"))
+				.expireDate(getData(passport, "expireDate"))
+				.authority(getData(passport, "authority"))
+				.build();
 		} catch (CustomException exception) {
 			throw exception;
 		} catch (Exception exception) {
-			log.warn("passport ocr failed. reason={}", exception.getMessage(), exception);
+			log.warn("passport ocr parsing failed. reason={}", exception.getMessage(), exception);
 			throw new CustomException(PASSPORT_OCR_FAILED);
 		}
 	}
 
-	// OCR API를 multipart/form-data로 호출
+	/**
+	 * 외부 OCR API를 multipart/form-data 형식으로 호출합니다.
+	 *
+	 * @param file OCR 처리 대상 파일
+	 * @return 외부 OCR 원본 응답 DTO
+	 */
 	private PassportOcrRawResponse callPassportOcr(MultipartFile file) {
 		String message = buildMessageJson();
 
@@ -89,7 +110,11 @@ public class PassportOcrService {
 		return response;
 	}
 
-	// OCR 요청 message(JSON 문자열) 생성
+	/**
+	 * OCR API 요청에 필요한 message 파트를 JSON 문자열로 생성합니다.
+	 *
+	 * @return OCR 요청용 message JSON 문자열
+	 */
 	private String buildMessageJson() {
 		String requestId = UUID.randomUUID().toString();
 		long timestamp = System.currentTimeMillis();
@@ -100,223 +125,155 @@ public class PassportOcrService {
 			+ ",\"images\":[{\"format\":\"jpg\",\"name\":\"passport\"}]}";
 	}
 
-	// MultipartFile 바이트 변환 실패 시 OCR 실패로 처리
+	/**
+	 * MultipartFile을 바이트 배열로 변환합니다.
+	 *
+	 * @param file 변환 대상 파일
+	 * @return 파일 바이트 배열
+	 */
 	private byte[] toBytes(MultipartFile file) {
 		try {
 			return file.getBytes();
 		} catch (Exception exception) {
+			log.warn("passport ocr file to bytes failed. filename={}, reason={}",
+				file.getOriginalFilename(), exception.getMessage(), exception);
 			throw new CustomException(PASSPORT_OCR_FAILED);
 		}
 	}
 
-	// images[0].fields 기반 일반 필드 추출
-	private List<PassportOcrFieldResponse> extractGenericFields(PassportOcrRawResponse raw) {
-		List<PassportOcrFieldResponse> fields = new ArrayList<>();
-		PassportOcrRawResponse.Image image = firstImage(raw);
-		if (image == null || image.fields() == null) {
-			return fields;
-		}
+	/**
+	 * OCR 결과 맵에서 키에 해당하는 값을 문자열로 추출합니다.
+	 * 값은 List<Map> 형태를 가정하며, formatted.value -> formatted(날짜) -> text 순서로 우선 처리합니다.
+	 *
+	 * @param passport OCR passport 결과 맵
+	 * @param key 추출 대상 키
+	 * @return 파싱된 문자열 값, 없으면 null
+	 */
+	private String getData(Map<String, Object> passport, String key) {
+		Object value = passport.get(key);  // List<Map>의 형태를 가짐
 
-		for (PassportOcrRawResponse.Field field : image.fields()) {
-			if (field == null) {
-				continue;
-			}
-			fields.add(new PassportOcrFieldResponse(
-				orEmpty(field.name()),
-				orEmpty(field.inferText()),
-				field.inferConfidence()
-			));
-		}
-		return fields;
-	}
-
-	// idCard/passportResult 기반 구조화 필드 추출
-	private List<PassportOcrFieldResponse> extractStructuredFields(PassportOcrRawResponse raw) {
-		List<PassportOcrFieldResponse> fields = new ArrayList<>();
-		PassportOcrRawResponse.Image image = firstImage(raw);
-		if (image == null) {
-			return fields;
-		}
-
-		Map<String, Object> pp = extractPp(image.idCard());
-		if (pp != null) {
-			pushField(fields, "doc_type", pp.get("type"));
-			pushField(fields, "nationality_code", pp.get("issueCountry"));
-			pushField(fields, "passport_number", pp.get("num"));
-			pushField(fields, "surname", pp.get("surName"));
-			pushField(fields, "given_name", pp.get("givenName"));
-			pushField(fields, "birth_date", pp.get("birthDate"));
-			pushField(fields, "sex", pp.get("sex"));
-			pushField(fields, "nationality", pp.get("nationality"));
-			pushField(fields, "authority", pp.get("authority"));
-			pushField(fields, "issue_date", pp.get("issueDate"));
-			pushField(fields, "expiry_date", pp.get("expireDate"));
-		}
-
-		Map<String, Object> passportResult = extractPassportResult(image.passport());
-		if (passportResult != null) {
-			pushField(fields, "doc_type", firstNonNull(passportResult.get("documentType"), passportResult.get("type")));
-			pushField(fields, "nationality_code", firstNonNull(
-				passportResult.get("issuingState"),
-				passportResult.get("countryCode"),
-				passportResult.get("nationalityCode")
-			));
-			pushField(fields, "passport_number", firstNonNull(
-				passportResult.get("passportNumber"),
-				passportResult.get("documentNumber")
-			));
-			pushField(fields, "surname", firstNonNull(passportResult.get("surname"), passportResult.get("lastName")));
-			pushField(fields, "given_name",
-				firstNonNull(passportResult.get("givenNames"), passportResult.get("firstName")));
-			pushField(fields, "birth_date",
-				firstNonNull(passportResult.get("dateOfBirth"), passportResult.get("birthDate")));
-			pushField(fields, "sex", firstNonNull(passportResult.get("sex"), passportResult.get("gender")));
-			pushField(fields, "nationality", passportResult.get("nationality"));
-			pushField(fields, "issue_date", passportResult.get("issueDate"));
-			pushField(fields, "expiry_date", firstNonNull(
-				passportResult.get("dateOfExpiry"),
-				passportResult.get("expiryDate")
-			));
-		}
-
-		return fields;
-	}
-
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> extractPp(Map<String, Object> idCard) {
-		if (idCard == null) {
-			return null;
-		}
-		Object result = idCard.get("result");
-		if (!(result instanceof Map<?, ?> resultMap)) {
-			return null;
-		}
-		Object pp = resultMap.get("pp");
-		return pp instanceof Map<?, ?> ? (Map<String, Object>)pp : null;
-	}
-
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> extractPassportResult(Map<String, Object> passport) {
-		if (passport == null) {
-			return null;
-		}
-		Object passportResult = passport.get("passportResult");
-		return passportResult instanceof Map<?, ?> ? (Map<String, Object>)passportResult : null;
-	}
-
-	private void pushField(List<PassportOcrFieldResponse> target, String name, Object value) {
-		OcrExtractedValue extracted = getFirstValueWithConfidence(value);
-		if (extracted == null) {
-			return;
-		}
-		target.add(new PassportOcrFieldResponse(name, extracted.text(), extracted.confidence()));
-	}
-
-	@SuppressWarnings("unchecked")
-	private OcrExtractedValue getFirstValueWithConfidence(Object value) {
-		if (value == null) {
+		if (!(value instanceof List<?> list) || list.isEmpty()) {
 			return null;
 		}
 
-		if (value instanceof String text) {
-			String normalized = text.trim();
-			return normalized.isEmpty() ? null : new OcrExtractedValue(normalized, null);
+		Object first = list.getFirst();  // 자바 21 문법
+
+		if (!(first instanceof Map<?, ?> data)) {
+			return null;
 		}
 
-		if (value instanceof List<?> list) {
-			for (Object item : list) {
-				if (item instanceof Map<?, ?> mapItem) {
-					OcrExtractedValue extracted = extractFromCandidate((Map<String, Object>)mapItem);
-					if (extracted != null) {
-						return extracted;
-					}
-				}
+		Object formattedData = data.get("formatted");
+
+		if (formattedData instanceof Map<?, ?> formatted) {
+			Object formattedValue = formatted.get("value");
+
+			if (formattedValue != null) {  // value가 날짜 데이터가 아닌 text와 같은 데이터라면
+				return String.valueOf(formattedValue);
+			}
+
+			String formattedDate = formatDate(formatted);  // 날짜 데이터 처리
+
+			if (formattedDate != null) {
+				return formattedDate;
 			}
 		}
 
-		if (value instanceof Map<?, ?> mapValue) {
-			return extractFromCandidate((Map<String, Object>)mapValue);
-		}
+		Object text = data.get("text");
 
-		return null;
+		return text == null ? null : String.valueOf(text);
 	}
 
-	@SuppressWarnings("unchecked")
-	private OcrExtractedValue extractFromCandidate(Map<String, Object> candidate) {
-		Object formattedObj = candidate.get("formatted");
-		if (formattedObj instanceof Map<?, ?> formattedMapRaw) {
-			Map<String, Object> formattedMap = (Map<String, Object>)formattedMapRaw;
-			String formattedValue = asTrimmedString(formattedMap.get("value"));
-			if (!formattedValue.isEmpty()) {
-				return new OcrExtractedValue(formattedValue, asFloat(candidate.get("confidenceScore")));
-			}
+	/**
+	 * OCR formatted 날짜(year/month/day)를 yyyy.MM.dd 형태 문자열로 변환합니다.
+	 *
+	 * @param formatted formatted 맵
+	 * @return 변환된 날짜 문자열, 일부 값이 없으면 null
+	 */
+	private String formatDate(Map<?, ?> formatted) {
+		Object year = formatted.get("year");
+		Object month = formatted.get("month");
+		Object day = formatted.get("day");
 
-			String year = asTrimmedString(formattedMap.get("year"));
-			String month = asTrimmedString(formattedMap.get("month"));
-			String day = asTrimmedString(formattedMap.get("day"));
-			if (!year.isEmpty() && !month.isEmpty() && !day.isEmpty()) {
-				return new OcrExtractedValue(year + "." + month + "." + day, asFloat(candidate.get("confidenceScore")));
-			}
+		if (year == null || month == null || day == null) {
+			return null;
 		}
 
-		String text = asTrimmedString(candidate.get("text"));
-		if (!text.isEmpty()) {
-			return new OcrExtractedValue(text, asFloat(candidate.get("confidenceScore")));
-		}
-
-		return null;
+		return year + "." + month + "." + day;
 	}
 
-	private Object firstNonNull(Object... values) {
-		for (Object value : values) {
-			if (value != null) {
-				return value;
-			}
-		}
-		return null;
-	}
-
-	private String asTrimmedString(Object value) {
-		if (value == null) {
-			return "";
-		}
-		return String.valueOf(value).trim();
-	}
-
-	private Float asFloat(Object value) {
-		if (value instanceof Number number) {
-			return number.floatValue();
-		}
-		return null;
-	}
-
-	private PassportOcrRawResponse.Image firstImage(PassportOcrRawResponse raw) {
+	/**
+	 * OCR 원본 응답에서 첫 번째 이미지를 추출합니다.
+	 *
+	 * @param raw OCR 원본 응답
+	 * @return 첫 번째 이미지
+	 */
+	private PassportOcrRawResponse.Image extractFirstImage(PassportOcrRawResponse raw) {
 		if (raw == null || raw.images() == null || raw.images().isEmpty()) {
-			return null;
+			log.warn("passport ocr raw images is empty.");
+			throw new CustomException(PASSPORT_OCR_FAILED);
 		}
-		return raw.images().get(0);
+		return raw.images().getFirst();
 	}
 
-	private String orEmpty(String value) {
-		return value == null ? "" : value;
+	/**
+	 * OCR 이미지 결과에서 idCard/result 블록을 추출합니다.
+	 *
+	 * @param image OCR 이미지 결과
+	 * @return idCard 결과 객체
+	 */
+	private PassportOcrRawResponse.Result extractIdCardResult(PassportOcrRawResponse.Image image) {
+		if (image.idCard() == null || image.idCard().result() == null) {
+			log.warn("passport ocr idCard result is missing.");
+			throw new CustomException(PASSPORT_OCR_FAILED);
+		}
+		return image.idCard().result();
 	}
 
+	/**
+	 * OCR 성공 조건을 검사합니다.
+	 * - inferResult 가 SUCCESS
+	 * - idtype 이 Passport
+	 *
+	 * @param image OCR 이미지 결과
+	 * @param result OCR idCard 결과
+	 * @return 성공 조건 충족 여부
+	 */
+	private boolean isSuccessfulPassportRecognition(
+		PassportOcrRawResponse.Image image,
+		PassportOcrRawResponse.Result result
+	) {
+		boolean isSuccess = "SUCCESS".equalsIgnoreCase(image.inferResult());
+		boolean isPassportType = "Passport".equalsIgnoreCase(result.idtype());
+		return isSuccess && isPassportType;
+	}
+
+	/**
+	 * OCR 요청 파일의 유효성을 검증합니다.
+	 *
+	 * @param file 업로드 파일
+	 */
 	private void validateFile(MultipartFile file) {
 		if (file == null || file.isEmpty()) {
 			throw new CustomException(PASSPORT_OCR_FILE_REQUIRED);
 		}
 	}
 
+	/**
+	 * OCR 연동 필수 설정(URL/SECRET) 존재 여부를 검증합니다.
+	 */
 	private void validateConfig() {
 		if (!hasText(kycPassportOcrProperties.url()) || !hasText(kycPassportOcrProperties.secret())) {
 			throw new CustomException(PASSPORT_OCR_NOT_CONFIGURED);
 		}
 	}
 
+	/**
+	 * 문자열이 null/blank가 아닌지 확인합니다.
+	 *
+	 * @param value 검사 문자열
+	 * @return 유효 문자열 여부
+	 */
 	private boolean hasText(String value) {
 		return value != null && !value.isBlank();
-	}
-
-	private record OcrExtractedValue(String text, Float confidence) {
 	}
 }
