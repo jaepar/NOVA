@@ -20,7 +20,7 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     DELETED_USER("AUTH-005", "탈퇴한 사용자입니다."),
     PASSWORD_NOT_MATCHED("AUTH-006", "비밀번호가 일치하지 않습니다."),
     INVALID_EMAIL_FORMAT("AUTH-007", "올바른 이메일 형식이 아닙니다."),
-    EMAIL_VERIFICATION_RESEND_TOO_EARLY("AUTH-008", "인증번호 재발송은 60초 후에 가능합니다."),
+    EMAIL_VERIFICATION_RESEND_TOO_EARLY("AUTH-008", "인증번호 재발송은 60초 이후에 가능합니다."),
     EMAIL_VERIFICATION_SEND_FAILED("AUTH-009", "인증번호 이메일 발송에 실패했습니다."),
     EMAIL_VERIFICATION_CODE_EXPIRED_OR_NOT_FOUND("AUTH-010", "인증번호가 만료되었거나 존재하지 않습니다."),
     EMAIL_VERIFICATION_CODE_NOT_MATCHED("AUTH-011", "인증번호가 일치하지 않습니다."),
@@ -38,7 +38,12 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     BANKING_TRANSFER_PROCESSING("BANK-002", "이미 처리 중인 이체 요청입니다."),
     BANKING_CORE_BANKING_COMMUNICATION_FAILED("BANK-003", "코어뱅킹 통신에 실패했습니다."),
     BANKING_TRANSFER_FAILED("BANK-004", "계좌 이체 처리에 실패했습니다."),
-    BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED("BANK-005", "이체 처리 확인 재시도 대기 중 인터럽트가 발생했습니다.")
+    BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED("BANK-005", "이체 처리 확인 재시도 대기 중 인터럽트가 발생했습니다."),
+
+    /*
+     * job
+     */
+    JOB_NOT_FOUND("JOB-001", "구인구직 공고를 찾을 수 없습니다.")
     ;
 
     private final boolean success = false;
