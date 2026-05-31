@@ -53,8 +53,11 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     REUPLOAD_ONLY_REJECTED_ALLOWED("USER-006", "보완 업로드는 반려된 문서만 제출할 수 있습니다."),
     REUPLOAD_TARGET_REQUIRED("USER-007", "보완 업로드할 반려 문서 파일이 필요합니다."),
     REUPLOAD_ALL_REJECTED_REQUIRED("USER-008", "두 문서가 모두 반려된 경우 두 개의 문서를 모두 제출해야 합니다."),
+    PASSPORT_OCR_FILE_REQUIRED("USER-009", "여권 OCR을 위한 이미지 파일이 필요합니다."),
+    PASSPORT_OCR_NOT_CONFIGURED("USER-010", "여권 OCR 설정이 필요합니다."),
     KYC_OUTPUT_BUCKET_NOT_CONFIGURED("USER-011", "KYC Liveness S3 버킷 설정이 필요합니다."),
     LIVENESS_REFERENCE_IMAGE_NOT_FOUND("USER-012", "Liveness 결과에서 참조 이미지를 찾을 수 없습니다."),
+    PASSPORT_OCR_FAILED("USER-013", "여권 OCR 처리에 실패했습니다."),
 
     /**
      * admin

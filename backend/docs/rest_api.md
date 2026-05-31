@@ -157,6 +157,36 @@ Request
 }
 ```
 
+## USER-005 여권 인증
+
+- Method: `POST`
+- Path: `/users/verifications/passports`
+- Auth: `O` (USER 세션 필수)
+- Content-Type: `multipart/form-data`
+
+Request
+- `file`: 여권 이미지 파일 1개
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "success": true,
+    "fields": [
+      {
+        "name": "passport_number",
+        "text": "M12345678",
+        "confidence": 0.99
+      }
+    ],
+    "raw": {}
+  }
+}
+```
+
 Response (200)
 ```json
 {
