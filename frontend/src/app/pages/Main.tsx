@@ -1,18 +1,19 @@
-﻿import { useNavigate } from "react-router-dom";
-import { CreditCard, Headphones, MessageSquare, Wallet } from "lucide-react";
-import { MobileLayout } from "../components/layout/MobileLayout";
-import { BottomNav } from "../components/layout/BottomNav";
-import { SideMenu } from "../components/layout/SideMenu";
-import { BottomSheet } from "../components/layout/BottomSheet";
-import { useMainPageStore } from "../stores/pageStores";
-import { MainHeaderBrand } from "./main/MainHeaderBrand";
-import { MainHeaderActions } from "./main/MainHeaderActions";
-import { MainAccountPanel } from "./main/MainAccountPanel";
-import { MainJobBanner } from "./main/MainJobBanner";
-import { MainServiceGrid } from "./main/MainServiceGrid";
-import { MainExchangeRateGrid } from "./main/MainExchangeRateGrid";
-import { MainCertificateSheetContent } from "./main/MainCertificateSheetContent";
-import type { ExchangeRateItem, ServiceItem } from "./main/types";
+import { useNavigate } from 'react-router-dom'
+import { CreditCard, Headphones, MessageSquare, Wallet } from 'lucide-react'
+import { MobileLayout } from '../components/layout/MobileLayout'
+import { BottomNav } from '../components/layout/BottomNav'
+import { SideMenu } from '../components/layout/SideMenu'
+import { BottomSheet } from '../components/layout/BottomSheet'
+import { useMainPageStore } from '../stores/pageStores'
+import { authApi } from '../../api'
+import { MainHeaderBrand } from './main/MainHeaderBrand'
+import { MainHeaderActions } from './main/MainHeaderActions'
+import { MainAccountPanel } from './main/MainAccountPanel'
+import { MainJobBanner } from './main/MainJobBanner'
+import { MainServiceGrid } from './main/MainServiceGrid'
+import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
+import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
+import type { ExchangeRateItem, ServiceItem } from './main/types'
 
 export function Main() {
   const navigate = useNavigate();
@@ -61,6 +62,15 @@ export function Main() {
     navigate("/certificate/step-01");
   };
 
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      logout();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
   return (
     <div className="h-full w-full bg-background">
       <MobileLayout
@@ -106,7 +116,7 @@ export function Main() {
         isOpen={isMenuOpen}
         onClose={() => setMenuOpen(false)}
         isLoggedIn={isLoggedIn}
-        onLogout={logout}
+        onLogout={handleLogout}
         onLogin={() => navigate("/login")}
       />
 
