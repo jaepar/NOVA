@@ -10,6 +10,12 @@ spring:
       max-request-size: 40MB
 
 server:
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: true
+
   tomcat:
     # multipart 각 파트의 헤더 길이 제한(기본 512 bytes) 상향
     max-part-header-size: 8KB

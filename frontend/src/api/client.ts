@@ -16,6 +16,7 @@ const apiClient: AxiosInstance = axios.create({
   withCredentials: true,
   timeout: 10000, // 10초
   headers: {
+    "ngrok-skip-browser-warning": "true", // test서버용 aws 배포시 삭제 -> nrok cors 에러 임시 해결 방안
     "Content-Type": "application/json",
   },
 });
