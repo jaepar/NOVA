@@ -2,10 +2,12 @@ package woorifisa.project.backend.domain.job.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
+import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
 import woorifisa.project.backend.domain.job.service.JobService;
 import woorifisa.project.backend.global.response.BaseResponse;
 
@@ -22,5 +24,10 @@ public class JobController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return BaseResponse.ok(jobService.findJobOpenings(page, size));
+    }
+
+    @GetMapping("/{jobId}")
+    public BaseResponse<JobOpeningResponse> findJobOpening(@PathVariable Long jobId) {
+        return BaseResponse.ok(jobService.findJobOpening(jobId));
     }
 }
