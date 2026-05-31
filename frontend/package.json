@@ -8,6 +8,9 @@
     "dev": "vite"
   },
   "dependencies": {
+    "@aws-amplify/ui-react-liveness": "^3.6.5",
+    "@aws-sdk/credential-provider-cognito-identity": "^3.972.36",
+    "@aws-sdk/credential-providers": "^3.1053.0",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "7.3.5",

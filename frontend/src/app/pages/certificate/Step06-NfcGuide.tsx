@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { useStep5PassportCaptureStore } from '../../stores/pageStores'
 
 type ParsedNfcRecord = {
   recordType: string
@@ -10,6 +11,63 @@ type ParsedNfcRecord = {
   encoding?: string
   lang?: string
   data?: string
+}
+
+type PassportLikeData = {
+  docType: string
+  nationalityCode: string
+  passportNumber: string
+  surname: string
+  givenNames: string
+  birthDate: string
+  sex: string
+  country: string
+  issuingCountryCode: string
+  authority: string
+  issueDate: string
+  expiryDate: string
+}
+
+const comparisonFields: Array<{ key: keyof PassportLikeData; label: string }> = [
+  { key: 'docType', label: '종류' },
+  { key: 'nationalityCode', label: '국가 코드' },
+  { key: 'passportNumber', label: '여권번호' },
+  { key: 'surname', label: '성' },
+  { key: 'givenNames', label: '이름' },
+  { key: 'birthDate', label: '생년월일' },
+  { key: 'sex', label: '성별' },
+  { key: 'country', label: '국적' },
+  { key: 'issuingCountryCode', label: '발행국 코드' },
+  { key: 'authority', label: '발행 관청' },
+  { key: 'issueDate', label: '발급일' },
+  { key: 'expiryDate', label: '기간만료일' },
+]
+
+function normalizeValue(value: string): string {
+  return value.trim().replace(/\s+/g, ' ').toUpperCase()
+}
+
+function normalizeDate(value: string): string {
+  return normalizeValue(value).replace(/[-/]/g, '.')
+}
+
+function comparePassportData(step05Data: PassportLikeData, nfcData: PassportLikeData) {
+  const mismatches = comparisonFields.filter(({ key }) => {
+    const left =
+      key === 'birthDate' || key === 'issueDate' || key === 'expiryDate'
+        ? normalizeDate(step05Data[key])
+        : normalizeValue(step05Data[key])
+    const right =
+      key === 'birthDate' || key === 'issueDate' || key === 'expiryDate'
+        ? normalizeDate(nfcData[key])
+        : normalizeValue(nfcData[key])
+    return left !== right
+  })
+
+  return {
+    isMatch: mismatches.length === 0,
+    mismatchLabels: mismatches.map((item) => item.label),
+  }
 }
 
 function parseNdefRecords(event: NDEFReadingEvent): ParsedNfcRecord[] {
@@ -39,8 +97,11 @@ function parseNdefRecords(event: NDEFReadingEvent): ParsedNfcRecord[] {
 
 export function NfcGuide() {
   const navigate = useNavigate()
+  const parsedPassportData = useStep5PassportCaptureStore((state) => state.parsedPassportData)
+  const setParsedPassportData = useStep5PassportCaptureStore((state) => state.setParsedPassportData)
   const [isScanning, setIsScanning] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
+  const [isMismatchFailure, setIsMismatchFailure] = useState(false)
 
   const nfcUnsupportedMessage = useMemo(() => {
     return '이 기기/브라우저에서는 Web NFC를 지원하지 않습니다.'
@@ -48,15 +109,12 @@ export function NfcGuide() {
 
   const handleStartNfcTagging = async () => {
     if (isScanning) return
-    // [TEST CODE START] 웹 테스트용 우회 로직
-    // 배포 전 이 블록(START~END)을 삭제하면 실제 NFC 로직이 동작합니다.
-    setStatusMessage('테스트 모드: NFC 없이 다음 단계로 이동합니다.')
-    navigate('/certificate/step-07')
-    return
-    // [TEST CODE END]
+    setIsMismatchFailure(false)
+    if (!parsedPassportData) {
+      setStatusMessage('Step05 여권 정보가 없습니다. 이전 단계에서 다시 진행해 주세요.')
+      return
+    }
 
-    // [REAL NFC CODE START] 배포 시 아래 주석 블록을 해제해 사용하세요.
-    /*
     if (!('NDEFReader' in window)) {
       setStatusMessage(nfcUnsupportedMessage)
       console.warn('[NFC] Web NFC is not supported in this browser.')
@@ -109,11 +167,36 @@ export function NfcGuide() {
       })
 
       const parsedRecords = parseNdefRecords(readEvent)
-      alert(
-        `NFC 인식 성공\nserialNumber: ${readEvent.serialNumber ?? 'N/A'}\nrecords: ${JSON.stringify(parsedRecords, null, 2)}`
-      )
+      const firstJsonRecord = parsedRecords.find((record) => {
+        if (!record.data) return false
+        const trimmed = record.data.trim()
+        return trimmed.startsWith('{') && trimmed.endsWith('}')
+      })
 
-      setStatusMessage('NFC 인식에 성공했어요. 다음 단계로 이동합니다.')
+      if (!firstJsonRecord?.data) {
+        setStatusMessage('NFC 데이터에서 JSON 형식을 찾지 못했어요.')
+        return
+      }
+
+      let parsedNfcData: PassportLikeData
+      try {
+        parsedNfcData = JSON.parse(firstJsonRecord.data) as PassportLikeData
+      } catch {
+        setStatusMessage('NFC JSON 파싱에 실패했어요. 저장 포맷을 확인해 주세요.')
+        return
+      }
+
+      const compareResult = comparePassportData(parsedPassportData, parsedNfcData)
+
+      if (!compareResult.isMatch) {
+        setIsMismatchFailure(true)
+        setStatusMessage('인증 정보가 일치하지 않습니다.')
+        return
+      }
+
+      // 인증 성공 직전에만 인증 비교용 데이터를 폐기
+      setParsedPassportData(null)
+      setStatusMessage('NFC 인식 및 정보 비교에 성공했어요. 다음 단계로 이동합니다.')
       navigate('/certificate/step-07')
     } catch (error) {
       if (error instanceof Error && error.message === 'NFC_TIMEOUT') {
@@ -127,18 +210,29 @@ export function NfcGuide() {
     } finally {
       setIsScanning(false)
     }
-    */
-    // [REAL NFC CODE END]
   }
+
+  // [TEST ONLY START] 인증/비교와 무관하게 다음 단계 이동하는 임시 버튼
+  const handleSkipForTest = () => {
+    setIsMismatchFailure(false)
+    setStatusMessage('테스트 우회: 인증/비교 없이 다음 단계로 이동합니다.')
+    navigate('/certificate/step-07')
+  }
+  // [TEST ONLY END]
 
   return (
     <MobileLayout
       title="비대면 실명확인"
       backPath="/certificate/step-05"
       bottomContent={
-        <Btn_1Col onClick={handleStartNfcTagging} disabled={isScanning}>
-          {isScanning ? 'NFC 태깅 중...' : 'NFC 태깅 시작'}
-        </Btn_1Col>
+        <div className="space-y-2">
+          <Btn_1Col onClick={handleStartNfcTagging} disabled={isScanning}>
+            {isScanning ? 'NFC 태깅 중...' : 'NFC 태깅 시작'}
+          </Btn_1Col>
+          <Btn_1Col variant="outline" onClick={handleSkipForTest} disabled={isScanning}>
+            인증 없이 다음으로 (테스트)
+          </Btn_1Col>
+        </div>
       }
     >
       <div className="space-y-4 pb-2">
@@ -171,8 +265,35 @@ export function NfcGuide() {
           </ul>
         </section>
 
+        <section className="rounded-2xl bg-secondary p-4 space-y-3">
+          <p className="text-sm font-medium">Step05 파싱 데이터</p>
+          {parsedPassportData ? (
+            <div className="rounded-xl border border-border bg-background overflow-hidden">
+              {comparisonFields.map(({ key, label }) => (
+                <div
+                  key={key}
+                  className="grid grid-cols-[120px_1fr] border-b border-border last:border-b-0"
+                >
+                  <p className="px-3 py-2 text-sm bg-secondary/30">{label}</p>
+                  <p className="px-3 py-2 text-sm break-all">{parsedPassportData[key] || '-'}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Step05에서 전달된 파싱 데이터가 없습니다.
+            </p>
+          )}
+        </section>
+
         {statusMessage ? (
-          <p className="text-sm text-center text-muted-foreground">{statusMessage}</p>
+          <p
+            className={`text-sm text-center ${
+              isMismatchFailure ? 'text-destructive' : 'text-muted-foreground'
+            }`}
+          >
+            {statusMessage}
+          </p>
         ) : null}
       </div>
     </MobileLayout>
