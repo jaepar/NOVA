@@ -14,11 +14,11 @@ import {
 } from "lucide-react";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { Btn_2Col } from "../../components/design-system/Btn_2Col";
+import { InlineBanner } from "../../components/design-system/InlineBanner";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { useStep5PassportCaptureStore } from "../../stores/pageStores";
 import { CameraCapturePage } from "../../components/camera/CameraCapturePage";
 import { certificateApi, type PassportResponse } from "../../../api";
-import { toast } from "sonner";
 
 const ocrResultRows = [
   { label: "종류", value: "", icon: IdCard },
@@ -148,8 +148,8 @@ export function PassportCameraCapture() {
         error !== null &&
         "response" in error &&
         typeof (error as { response?: unknown }).response === "object"
-          ? ((error as { response?: { data?: { code?: string } } }).response
-              ?.data?.code ?? "")
+          ? (error as { response?: { data?: { code?: string } } }).response
+              ?.data?.code ?? ""
           : "";
 
       const message =
@@ -158,13 +158,11 @@ export function PassportCameraCapture() {
           : errorCode === "USER-009"
           ? "여권 이미지를 다시 촬영해 주세요."
           : errorCode === "USER-013"
-          ? "OCR 인식에 실패했습니다. 여권 위치와 조명을 확인해 주세요."
-          :
-        error instanceof Error
+          ? "인식에 실패했습니다. 여권 위치와 조명을 확인해 주세요."
+          : error instanceof Error
           ? error.message
           : "OCR 처리 중 오류가 발생했습니다. 다시 촬영해 주세요.";
       setOcrError(message);
-      toast.error(message);
       setMode("live");
     } finally {
       setIsOcrProcessing(false);
@@ -326,14 +324,10 @@ export function PassportCameraCapture() {
       <canvas ref={canvasRef} className="hidden" />
 
       {cameraError && (
-        <div className="mt-4 rounded-xl bg-red-500/10 border border-red-400/50 p-3 text-sm text-center text-black">
-          {cameraError}
-        </div>
+        <InlineBanner message={cameraError} variant="error" className="mt-4" />
       )}
       {ocrError && (
-        <div className="mt-4 rounded-xl bg-red-500/10 border border-red-400/50 p-3 text-sm text-center text-black">
-          {ocrError}
-        </div>
+        <InlineBanner message={ocrError} variant="error" className="mt-4" />
       )}
       {isOcrProcessing && (
         <div className="mt-4 rounded-xl bg-secondary border border-border p-3 text-sm text-center text-black">

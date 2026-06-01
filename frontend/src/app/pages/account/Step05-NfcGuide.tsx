@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { InlineBanner } from '../../components/design-system/InlineBanner'
 import { useStep5PassportCaptureStore } from '../../stores/pageStores'
 
 type ParsedNfcRecord = {
@@ -102,6 +103,15 @@ export function NfcGuide() {
   const [isScanning, setIsScanning] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [isMismatchFailure, setIsMismatchFailure] = useState(false)
+  const statusVariant = isMismatchFailure
+    ? 'error'
+    : statusMessage.includes('성공')
+      ? 'success'
+      : statusMessage.includes('기다리는 중') || statusMessage.includes('테스트 우회')
+        ? 'info'
+        : statusMessage
+          ? 'warning'
+          : 'info'
 
   const nfcUnsupportedMessage = useMemo(() => {
     return '이 기기/브라우저에서는 Web NFC를 지원하지 않습니다.'
@@ -265,15 +275,7 @@ export function NfcGuide() {
           </ul>
         </section>
 
-        {statusMessage ? (
-          <p
-            className={`text-sm text-center ${
-              isMismatchFailure ? 'text-destructive' : 'text-muted-foreground'
-            }`}
-          >
-            {statusMessage}
-          </p>
-        ) : null}
+        {statusMessage ? <InlineBanner message={statusMessage} variant={statusVariant} /> : null}
       </div>
     </MobileLayout>
   )

@@ -6,6 +6,7 @@ import "@aws-amplify/ui-react-liveness/styles.css";
 import "../../styles/liveness/LivenessCameraCapture.css";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { InlineBanner } from "../../components/design-system/InlineBanner";
 import { certificateApi } from "../../../api";
 import { useLivenessFlowStore } from "../../stores/pageStores";
 
@@ -495,9 +496,7 @@ export function LivenessCameraCapture() {
           </div>
         )}
         {failureMessage && (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {failureMessage}
-          </p>
+          <InlineBanner message={failureMessage} variant="error" />
         )}
       </div>
     </MobileLayout>
