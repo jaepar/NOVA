@@ -26,6 +26,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_PAGE_PARAM;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_SIZE_PARAM;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_NOT_FOUND;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,14 +63,35 @@ class WalletServiceTest {
 
         assertThat(response.balance()).isEqualTo(12500);
         assertThat(response.transactions()).hasSize(2);
-        assertThat(response.page()).isEqualTo(0);
-        assertThat(response.size()).isEqualTo(2);
         assertThat(response.hasNext()).isTrue();
         assertThat(response.transactions().get(0).walletTransactionId()).isEqualTo(102L);
         assertThat(response.transactions().get(0).transactionFlow()).isEqualTo(TransactionFlow.WITHDRAWAL);
         assertThat(response.transactions().get(0).counterparty()).isEqualTo("이마트24 강남역점");
         assertThat(response.transactions().get(0).amount()).isEqualTo(2500);
         assertThat(response.transactions().get(0).createdAt()).isEqualTo(LocalDateTime.of(2025, 5, 24, 14, 22));
+    }
+
+    @Test
+    @DisplayName("page가 음수이면 INVALID_PAGE_PARAM 예외가 발생한다")
+    void invalidPage() {
+        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, -1, 20))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(INVALID_PAGE_PARAM);
+    }
+
+    @Test
+    @DisplayName("size가 범위를 벗어나면 INVALID_SIZE_PARAM 예외가 발생한다")
+    void invalidSize() {
+        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, 0, 0))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(INVALID_SIZE_PARAM);
+
+        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, 0, 101))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(INVALID_SIZE_PARAM);
     }
 
     @Test

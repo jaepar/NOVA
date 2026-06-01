@@ -29,7 +29,9 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     /*
      * wallet
      */
-    WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다.")
+    WALLET_NOT_FOUND("WALLET-001", "월렛 정보를 찾을 수 없습니다."),
+    INVALID_PAGE_PARAM("WALLET-002", "page는 0 이상이어야 합니다."),
+    INVALID_SIZE_PARAM("WALLET-003", "size는 1 이상 100 이하여야 합니다.")
     ;
 
     private final boolean success = false;

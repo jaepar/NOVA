@@ -9,6 +9,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import woorifisa.project.backend.global.exception.CustomException;
 import woorifisa.project.backend.global.response.BaseErrorResponse;
@@ -21,7 +22,7 @@ public class GlobalControllerAdvice {
 
     // 잘못된 요청일 경우
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({BadRequestException.class, TypeMismatchException.class, MethodArgumentNotValidException.class, MissingServletRequestParameterException.class})
+    @ExceptionHandler({BadRequestException.class, TypeMismatchException.class, MethodArgumentNotValidException.class, MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class})
     public BaseErrorResponse handle_BadRequest(Exception e){
         log.error("[handle_BadRequest]", e);
         return new BaseErrorResponse(BAD_REQUEST);
