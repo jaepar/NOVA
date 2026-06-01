@@ -41,6 +41,8 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
 	WALLET_TERMS_REQUIRED("WALLET-010", "월렛 약관 동의가 필요합니다."),
 	WALLET_ALREADY_EXISTS("WALLET-011", "이미 월렛을 보유하고 있습니다."),
 	WALLET_CREATE_FAILED("WALLET-012", "월렛 생성에 실패했습니다."),
+	INVALID_PAGE_PARAM("WALLET-013", "page는 0 이상이어야 합니다."),
+	INVALID_SIZE_PARAM("WALLET-014", "size는 1 이상 100 이하이어야 합니다."),
 
 	/**
 	 * user
