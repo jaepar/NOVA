@@ -1,17 +1,22 @@
 package woorifisa.project.backend.global.corebanking.client;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateAccountRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRequestLookupResponse;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
@@ -20,12 +25,6 @@ import woorifisa.project.backend.domain.wallet.dto.corebanking.response.CoreBank
 import woorifisa.project.backend.global.exception.CustomException;
 import woorifisa.project.backend.global.response.BaseResponse;
 import woorifisa.project.backend.global.response.status.ResponseStatus;
-
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INSUFFICIENT_BALANCE;
 
 @Component
 @Slf4j
@@ -213,6 +212,44 @@ public class RestCoreBankingClient implements CoreBankingClient {
             throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
         }
     }
+
+	@Override
+	public CoreBankingCreateAccountResponse createAccount(CoreBankingCreateAccountRequest request) {
+		try {
+			log.info("[core_banking_account:create_requested] accountType={}, accountName={}, job={}, hasForeignTax={}",
+				request.accountType(), request.accountName(), request.job(), request.hasForeignTax());
+			// 코어뱅킹 계좌 개설 API 호출 후 응답 본문을 그대로 상위 서비스에 전달한다.
+			BaseResponse<CoreBankingCreateAccountResponse> response = restClientBuilder
+				.baseUrl(coreBankingBaseUrl)
+				.build()
+				.post()
+				.uri("/accounts/")
+				.body(request)
+				.retrieve()
+				.body(new ParameterizedTypeReference<>() {
+				});
+
+			if (response == null) {
+				log.error("[core_banking_account:create_failed] reason=null_response");
+				throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+			}
+			if (!response.getSuccess()) {
+				log.error("[core_banking_account:create_failed] reason=unsuccessful_response code={}, message={}",
+					response.getCode(), response.getMessage());
+				throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
+			}
+			if (response.getData() == null || response.getData().accountId() == null) {
+				log.error("[core_banking_account:create_failed] reason=invalid_response_data");
+				throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+			}
+			log.info("[core_banking_account:create_completed] accountId={}", response.getData().accountId());
+			return response.getData();
+		} catch (RestClientException exception) {
+			log.error("[core_banking_account:create_failed] reason=rest_client_exception message={}",
+				exception.getMessage());
+			throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+		}
+	}
 
     private boolean isInsufficientBalance(String code) {
         return "WALLET_ACCOUNT_DEBIT-003".equals(code);
