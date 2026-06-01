@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,10 +42,6 @@ class JobControllerTest {
     @DisplayName("public users can find job openings")
     void findJobOpeningsPublic() throws Exception {
         JobOpeningListResponse response = new JobOpeningListResponse(
-                1,
-                1,
-                0,
-                10,
                 List.of(new JobOpeningItem(
                         1L,
                         "ABC Company",
@@ -51,13 +49,15 @@ class JobControllerTest {
                         "Backend Developer",
                         "IT",
                         "ENTRY",
-                        "FULL_TIME",
+                        "5 days a week",
                         "Company policy",
-                        "UNTIL_FILLED",
                         LocalDateTime.of(2026, 5, 13, 12, 30)
-                ))
+                )),
+                0,
+                10,
+                true
         );
-        when(jobService.findJobOpenings(0, 10)).thenReturn(response);
+        when(jobService.getJobOpeningList(any(Pageable.class))).thenReturn(response);
 
         mockMvc.perform(get("/jobs")
                         .param("page", "0")
@@ -66,21 +66,24 @@ class JobControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value(20000))
-                .andExpect(jsonPath("$.data.total_count").value(1))
-                .andExpect(jsonPath("$.data.total_pages").value(1))
+                .andExpect(jsonPath("$.data.total_count").doesNotExist())
+                .andExpect(jsonPath("$.data.total_pages").doesNotExist())
+                .andExpect(jsonPath("$.data.job_openings").doesNotExist())
                 .andExpect(jsonPath("$.data.page").value(0))
                 .andExpect(jsonPath("$.data.size").value(10))
-                .andExpect(jsonPath("$.data.job_openings", hasSize(1)))
-                .andExpect(jsonPath("$.data.job_openings[0].job_id").value(1))
-                .andExpect(jsonPath("$.data.job_openings[0].company").value("ABC Company"))
-                .andExpect(jsonPath("$.data.job_openings[0].region").value("SEOUL"))
-                .andExpect(jsonPath("$.data.job_openings[0].opening_title").value("Backend Developer"))
-                .andExpect(jsonPath("$.data.job_openings[0].job_category").value("IT"))
-                .andExpect(jsonPath("$.data.job_openings[0].experience").value("ENTRY"))
-                .andExpect(jsonPath("$.data.job_openings[0].employment_type").value("FULL_TIME"))
-                .andExpect(jsonPath("$.data.job_openings[0].salary").value("Company policy"))
-                .andExpect(jsonPath("$.data.job_openings[0].deadline_type").value("UNTIL_FILLED"))
-                .andExpect(jsonPath("$.data.job_openings[0].created_at").value("2026-05-13T12:30:00"));
+                .andExpect(jsonPath("$.data.has_next").value(true))
+                .andExpect(jsonPath("$.data.items", hasSize(1)))
+                .andExpect(jsonPath("$.data.items[0].job_id").value(1))
+                .andExpect(jsonPath("$.data.items[0].company").value("ABC Company"))
+                .andExpect(jsonPath("$.data.items[0].region").value("SEOUL"))
+                .andExpect(jsonPath("$.data.items[0].opening_title").value("Backend Developer"))
+                .andExpect(jsonPath("$.data.items[0].job_category").value("IT"))
+                .andExpect(jsonPath("$.data.items[0].experience").value("ENTRY"))
+                .andExpect(jsonPath("$.data.items[0].work_period").value("5 days a week"))
+                .andExpect(jsonPath("$.data.items[0].salary").value("Company policy"))
+                .andExpect(jsonPath("$.data.items[0].employment_type").doesNotExist())
+                .andExpect(jsonPath("$.data.items[0].deadline_type").doesNotExist())
+                .andExpect(jsonPath("$.data.items[0].created_at").value("2026-05-13T12:30:00"));
     }
 
     @Test
@@ -106,7 +109,7 @@ class JobControllerTest {
                 "Seoul Gangnam-gu",
                 "Company introduction"
         );
-        when(jobService.findJobOpening(1L)).thenReturn(response);
+        when(jobService.getJobOpeningDetail(1L)).thenReturn(response);
 
         mockMvc.perform(get("/jobs/{jobId}", 1L)
                         .accept(MediaType.APPLICATION_JSON))
@@ -136,7 +139,7 @@ class JobControllerTest {
     @Test
     @DisplayName("return custom error when job opening detail does not exist")
     void findJobOpeningNotFound() throws Exception {
-        when(jobService.findJobOpening(999L)).thenThrow(new CustomException(JOB_NOT_FOUND));
+        when(jobService.getJobOpeningDetail(999L)).thenThrow(new CustomException(JOB_NOT_FOUND));
 
         mockMvc.perform(get("/jobs/{jobId}", 999L)
                         .accept(MediaType.APPLICATION_JSON))
