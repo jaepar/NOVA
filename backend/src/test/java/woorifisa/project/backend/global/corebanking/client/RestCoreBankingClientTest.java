@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.ObjectMapper;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -16,19 +18,23 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_PASSWORD_NOT_MATCHED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
 
 class RestCoreBankingClientTest {
+
+    private static final String CORE_BANKING_BASE_URL = "http://core-banking.test";
 
     @Test
     @DisplayName("CoreBanking 월렛 계좌 차감 API를 호출한다")
     void debit() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-        RestCoreBankingClient client = new RestCoreBankingClient(builder);
+        RestCoreBankingClient client = new RestCoreBankingClient(builder, new ObjectMapper());
         CoreBankingWalletDebitRequest request = new CoreBankingWalletDebitRequest(
                 "WCR-20260514-0001",
                 1001L,
@@ -36,8 +42,8 @@ class RestCoreBankingClientTest {
                 10000
         );
 
-        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
-        server.expect(requestTo("http://core-banking.test/account-transactions/wallet"))
+        setField(client, "coreBankingBaseUrl", CORE_BANKING_BASE_URL);
+        server.expect(requestTo(CORE_BANKING_BASE_URL + "/account-transactions/wallet"))
                 .andExpect(method(POST))
                 .andRespond(withSuccess("""
                         {
@@ -57,7 +63,7 @@ class RestCoreBankingClientTest {
     void debitFailed() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-        RestCoreBankingClient client = new RestCoreBankingClient(builder);
+        RestCoreBankingClient client = new RestCoreBankingClient(builder, new ObjectMapper());
         CoreBankingWalletDebitRequest request = new CoreBankingWalletDebitRequest(
                 "WCR-20260514-0001",
                 1001L,
@@ -65,8 +71,8 @@ class RestCoreBankingClientTest {
                 10000
         );
 
-        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
-        server.expect(requestTo("http://core-banking.test/account-transactions/wallet"))
+        setField(client, "coreBankingBaseUrl", CORE_BANKING_BASE_URL);
+        server.expect(requestTo(CORE_BANKING_BASE_URL + "/account-transactions/wallet"))
                 .andExpect(method(POST))
                 .andRespond(withSuccess("""
                         {
@@ -84,11 +90,11 @@ class RestCoreBankingClientTest {
     }
 
     @Test
-    @DisplayName("차감 호출 timeout은 통신 예외로 변환한다")
+    @DisplayName("CoreBanking 차감 호출 timeout은 통신 예외로 변환한다")
     void timeout() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-        RestCoreBankingClient client = new RestCoreBankingClient(builder);
+        RestCoreBankingClient client = new RestCoreBankingClient(builder, new ObjectMapper());
         CoreBankingWalletDebitRequest request = new CoreBankingWalletDebitRequest(
                 "WCR-20260514-0001",
                 1001L,
@@ -96,8 +102,8 @@ class RestCoreBankingClientTest {
                 10000
         );
 
-        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
-        server.expect(requestTo("http://core-banking.test/account-transactions/wallet"))
+        setField(client, "coreBankingBaseUrl", CORE_BANKING_BASE_URL);
+        server.expect(requestTo(CORE_BANKING_BASE_URL + "/account-transactions/wallet"))
                 .andExpect(method(POST))
                 .andRespond(withException(new SocketTimeoutException("timeout")));
 
@@ -113,10 +119,10 @@ class RestCoreBankingClientTest {
     void lookup() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
-        RestCoreBankingClient client = new RestCoreBankingClient(builder);
+        RestCoreBankingClient client = new RestCoreBankingClient(builder, new ObjectMapper());
 
-        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
-        server.expect(requestTo("http://core-banking.test/account-transactions/requests/WCR-20260514-0001"))
+        setField(client, "coreBankingBaseUrl", CORE_BANKING_BASE_URL);
+        server.expect(requestTo(CORE_BANKING_BASE_URL + "/account-transactions/requests/WCR-20260514-0001"))
                 .andExpect(method(GET))
                 .andRespond(withSuccess("""
                         {
@@ -130,6 +136,36 @@ class RestCoreBankingClientTest {
                         """, MediaType.APPLICATION_JSON));
 
         assertThat(client.existsWalletDebitRequest("WCR-20260514-0001")).isTrue();
+
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("CoreBanking 계좌 비밀번호 검증 실패 응답이면 비밀번호 불일치 예외로 변환한다")
+    void accountPasswordNotMatched() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        RestCoreBankingClient client = new RestCoreBankingClient(builder, new ObjectMapper());
+        CoreBankingPasswordVerifyRequest request = new CoreBankingPasswordVerifyRequest(2001L, "0000");
+
+        setField(client, "coreBankingBaseUrl", CORE_BANKING_BASE_URL);
+        server.expect(requestTo(CORE_BANKING_BASE_URL + "/accounts/password/verify"))
+                .andExpect(method(POST))
+                .andRespond(withBadRequest()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("""
+                                {
+                                  "success": false,
+                                  "code": "ACCOUNT-007",
+                                  "message": "account password mismatch",
+                                  "data": null
+                                }
+                                """));
+
+        assertThatThrownBy(() -> client.verifyAccountPassword(request))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus())
+                                .isEqualTo(BANKING_ACCOUNT_PASSWORD_NOT_MATCHED));
 
         server.verify();
     }

@@ -49,7 +49,7 @@ class WalletControllerTest {
         WalletService walletService = mock(WalletService.class);
         WalletController walletController = new WalletController(walletService);
         SessionUserPrincipal principal = new SessionUserPrincipal(1L);
-        ChargeWalletRequest request = new ChargeWalletRequest(10000);
+        ChargeWalletRequest request = new ChargeWalletRequest(10000, "1234");
 
         BaseResponse<Void> response = walletController.chargeWallet(principal, "idempotency-key", request);
 
