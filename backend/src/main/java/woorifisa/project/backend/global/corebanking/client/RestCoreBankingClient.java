@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
@@ -21,6 +22,10 @@ import woorifisa.project.backend.global.exception.CustomException;
 import woorifisa.project.backend.global.response.BaseResponse;
 import woorifisa.project.backend.global.response.status.ResponseStatus;
 
+import tools.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_PASSWORD_NOT_MATCHED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
@@ -32,6 +37,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 @RequiredArgsConstructor
 public class RestCoreBankingClient implements CoreBankingClient {
     private final RestClient.Builder restClientBuilder;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.core-banking.base-url}")
     private String coreBankingBaseUrl;
@@ -119,6 +125,10 @@ public class RestCoreBankingClient implements CoreBankingClient {
                     .uri("/accounts/password/verify")
                     .body(request)
                     .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+                        String body = new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                        throw new CustomException(toPasswordVerifyStatus(body));
+                    })
                     .body(new ParameterizedTypeReference<>() {
                     });
 
@@ -128,6 +138,8 @@ public class RestCoreBankingClient implements CoreBankingClient {
             if (!response.getSuccess()) {
                 throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
             }
+        } catch (RestClientResponseException exception) {
+            throw new CustomException(toPasswordVerifyStatus(exception.getResponseBodyAsString()));
         } catch (RestClientException exception) {
             throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
         }
@@ -216,6 +228,25 @@ public class RestCoreBankingClient implements CoreBankingClient {
 
     private boolean isInsufficientBalance(String code) {
         return "WALLET_ACCOUNT_DEBIT-003".equals(code);
+    }
+
+    private ResponseStatus toPasswordVerifyStatus(String body) {
+        String code = readJsonField(body, "code");
+        if ("ACCOUNT-007".equals(code)) {
+            return BANKING_ACCOUNT_PASSWORD_NOT_MATCHED;
+        }
+        if (code == null || code.isBlank()) {
+            return BANKING_CORE_BANKING_COMMUNICATION_FAILED;
+        }
+        return toResponseStatus(code, readJsonField(body, "message"));
+    }
+
+    private String readJsonField(String body, String fieldName) {
+        try {
+            return objectMapper.readTree(body).path(fieldName).asText();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private ResponseStatus toResponseStatus(String code, String message) {
