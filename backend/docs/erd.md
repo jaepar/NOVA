@@ -14,7 +14,7 @@ erDiagram
     VARCHAR_100 email "UNIQUE"
     VARCHAR_255 password
     BOOLEAN has_residence_card
-    BOOLEAN has_certificate
+    ENUM certificate_status "NOT_ISSUED | PENDING | ISSUED"
     BOOLEAN has_delete
     TIMESTAMP issued_time
     TIMESTAMP created_at
@@ -191,6 +191,7 @@ erDiagram
 | Field | Values |
 |---|---|
 | `user.gender` | `MALE`, `FEMALE` |
+| `user.certificate_status` | `NOT_ISSUED`, `PENDING`, `ISSUED` |
 | `wallet_transaction.transaction_flow` | `DEPOSIT`, `WITHDRAWAL` |
 | `application.status` | `PASSED`, `FAILED`, `READ`, `UNREAD` |
 | `hospital.type` | `INTERNAL_MEDICINE`, `ORTHOPEDICS`, `DENTAL`, `OTHER` |
@@ -205,3 +206,4 @@ erDiagram
 - Hospital 도메인(`hospital`, `reservation`)의 `reservation.rsv_date`, `hospital.open_time`, `hospital.close_time`, `hospital.break_time`, `hospital.day_off`는 현재 문자열 기반으로 저장한다.
 - Residence Card 관련 필드(`registration_num`, `issue_date`, `expiration_date`)도 현재 문자열 기반으로 저장한다.
 - `job.gender`는 현재 enum이 아닌 문자열 컬럼이다.
+- `user.certificate_status` 상태 전이는 `NOT_ISSUED -> PENDING -> ISSUED` 순서만 허용한다.

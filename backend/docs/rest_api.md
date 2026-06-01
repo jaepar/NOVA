@@ -165,3 +165,44 @@ Response (200)
   "message": "요청에 성공했습니다."
 }
 ```
+
+## BANK-001 계좌 개설(Cloud)
+
+- Method: `POST`
+- Path: `/banking`
+- Auth: `O` (USER 세션 필수)
+- 선행 조건: `user.certificate_status=ISSUED` (인증서 발급 완료 상태)
+- 오류 전달 규칙: coreBanking 비즈니스 오류(예: `ACCOUNT-*`)는 backend가 동일 `code/message`로 전달하고, 실제 통신 장애일 때만 `BANK-003`을 반환한다.
+
+Request
+```json
+{
+  "accountType": "DEMAND_DEPOSIT",
+  "accountName": "우리 SUPER주거래 통장",
+  "customerInfo": {
+    "address": "서울특별시 광진구 능동로 120",
+    "addressDetail": "건국대학교 기숙사 101호"
+  },
+  "job": "STUDENT",
+  "transactionInfo": {
+    "purpose": "SALARY_AND_LIVING_EXPENSES",
+    "source": "EARNED_AND_PENSION_INCOME"
+  },
+  "hasForeignTax": false,
+  "accountPassword": "1234"
+}
+```
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "accountId": 2001,
+    "bankCode": "WOORI",
+    "accountNumber": "1002-312-345678"
+  }
+}
+```
