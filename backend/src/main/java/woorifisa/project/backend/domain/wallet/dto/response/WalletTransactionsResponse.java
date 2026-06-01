@@ -9,8 +9,8 @@ import java.util.List;
 public record WalletTransactionsResponse(
         Integer balance,
         List<WalletTransactionItem> transactions,
-        int page,
-        int size,
+        int page,                                           // 현재 페이지 번호
+        int size,                                           // 페이지 크기
         boolean hasNext
 ) {
 

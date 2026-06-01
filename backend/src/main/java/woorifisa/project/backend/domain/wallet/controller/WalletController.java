@@ -26,6 +26,7 @@ public class WalletController {
 
     private final WalletService walletService;
 
+    // 월렛 생성
     @PostMapping
     public BaseResponse<Void> createWallet(
             @AuthenticationPrincipal SessionUserPrincipal principal,
@@ -35,6 +36,7 @@ public class WalletController {
         return BaseResponse.ok(null);
     }
 
+    // 월렛 거래내역 조회
     @GetMapping("/transactions")
     public BaseResponse<WalletTransactionsResponse> findWalletTransactions(
             @AuthenticationPrincipal SessionUserPrincipal principal,
@@ -43,6 +45,7 @@ public class WalletController {
         return BaseResponse.ok(walletService.findWalletTransactions(principal.userId(), pageable));
     }
 
+    // 월렛 충전
     @PostMapping("/charges")
     public BaseResponse<Void> chargeWallet(
             @AuthenticationPrincipal SessionUserPrincipal principal,
@@ -53,6 +56,7 @@ public class WalletController {
         return BaseResponse.ok(null);
     }
 
+    // 월렛 상태 조회
     @GetMapping("/status")
     public BaseResponse<WalletStatusResponse> findWalletStatus(
             @AuthenticationPrincipal SessionUserPrincipal principal
