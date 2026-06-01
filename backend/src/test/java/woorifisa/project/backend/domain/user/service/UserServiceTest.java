@@ -1,17 +1,9 @@
 package woorifisa.project.backend.domain.user.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INITIAL_DOCUMENT_BOTH_REQUIRED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.KYC_OUTPUT_BUCKET_NOT_CONFIGURED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.LIVENESS_REFERENCE_IMAGE_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.REUPLOAD_ALL_REJECTED_REQUIRED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.REUPLOAD_ONLY_REJECTED_ALLOWED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +38,7 @@ import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
-import woorifisa.project.backend.global.config.KycVerificationProperties;
+import woorifisa.project.backend.global.config.KycRekognitionProperties;
 import woorifisa.project.backend.global.exception.CustomException;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,13 +54,16 @@ class UserServiceTest {
 	private UserDocumentS3Uploader userDocumentS3Uploader;
 
 	@Mock
+	private NotificationService notificationService;
+
+	@Mock
 	private RekognitionClient rekognitionClient;
 
 	private UserService userService;
 
 	@BeforeEach
 	void setUp() {
-		KycVerificationProperties.Rekognition rekognition = new KycVerificationProperties.Rekognition(
+		KycRekognitionProperties.Rekognition rekognition = new KycRekognitionProperties.Rekognition(
 			"ap-northeast-1",
 			"nova-kyc-output",
 			"liveness",
@@ -77,12 +72,13 @@ class UserServiceTest {
 			2
 		);
 
-		KycVerificationProperties properties = new KycVerificationProperties(rekognition);
+		KycRekognitionProperties properties = new KycRekognitionProperties(rekognition);
 
 		userService = new UserService(
 			userRepository,
 			documentRepository,
 			userDocumentS3Uploader,
+			notificationService,
 			rekognitionClient,
 			properties
 		);
@@ -308,16 +304,17 @@ class UserServiceTest {
 			DocumentType.RESIDENCE_VERIFICATION_DOCUMENT,
 			DocumentStatus.REJECTED
 		);
-		verify(userDocumentS3Uploader).deleteByStatus(
-			userId,
-			DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT,
-			DocumentStatus.REJECTED
-		);
-	}
+			verify(userDocumentS3Uploader).deleteByStatus(
+				userId,
+				DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT,
+				DocumentStatus.REJECTED
+			);
+			verify(notificationService).deleteSupplementDocumentNotification(user);
+		}
 
-	@Test
-	@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
-	void userNotFound() {
+		@Test
+		@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
+		void userNotFound() {
 		Long userId = 1L;
 		MockMultipartFile residencePdf = new MockMultipartFile(
 			"residenceVerificationPdf",
@@ -430,7 +427,7 @@ class UserServiceTest {
 	@Test
 	@DisplayName("KYC 버킷 설정이 비어 있으면 세션 생성 시 예외를 던진다")
 	void createLivenessSessionThrowsWhenOutputBucketEmpty() {
-		KycVerificationProperties.Rekognition rekognition = new KycVerificationProperties.Rekognition(
+		KycRekognitionProperties.Rekognition rekognition = new KycRekognitionProperties.Rekognition(
 			"ap-northeast-1",
 			"",
 			"liveness",
@@ -439,13 +436,14 @@ class UserServiceTest {
 			2
 		);
 
-		UserService service = new UserService(
-			userRepository,
-			documentRepository,
-			userDocumentS3Uploader,
-			rekognitionClient,
-			new KycVerificationProperties(rekognition)
-		);
+			UserService service = new UserService(
+				userRepository,
+				documentRepository,
+				userDocumentS3Uploader,
+				notificationService,
+				rekognitionClient,
+				new KycRekognitionProperties(rekognition)
+			);
 
 		assertThatThrownBy(() -> service.createLivenessSession(1L))
 			.isInstanceOf(CustomException.class)

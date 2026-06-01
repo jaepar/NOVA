@@ -136,8 +136,6 @@ public class AccountService {
 
 		// Customer 정보 업데이트
 		customer.updateProfile(
-			request.customerInfo().name(),
-			request.customerInfo().email(),
 			request.customerInfo().address(),
 			request.customerInfo().addressDetail(),
 			request.job(),
