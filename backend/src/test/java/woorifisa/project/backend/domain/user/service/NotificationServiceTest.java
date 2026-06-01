@@ -1,6 +1,7 @@
 package woorifisa.project.backend.domain.user.service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,4 +57,16 @@ class NotificationServiceTest {
 		org.assertj.core.api.Assertions.assertThat(daily).isEqualTo(1);
 		org.assertj.core.api.Assertions.assertThat(outOfRange).isEqualTo(0);
 	}
+
+	@Test
+	@DisplayName("알림 클릭 시 본인 소유 알림만 삭제한다")
+	void deleteNotificationById() {
+		when(notificationRepository.deleteByNotificationIdAndUser_UserId(10L, 1L)).thenReturn(1L);
+
+		boolean deleted = notificationService.deleteNotificationById(1L, 10L);
+
+		org.assertj.core.api.Assertions.assertThat(deleted).isTrue();
+		verify(notificationRepository).deleteByNotificationIdAndUser_UserId(10L, 1L);
+	}
+
 }

@@ -54,6 +54,9 @@ class UserServiceTest {
 	private UserDocumentS3Uploader userDocumentS3Uploader;
 
 	@Mock
+	private NotificationService notificationService;
+
+	@Mock
 	private RekognitionClient rekognitionClient;
 
 	private UserService userService;
@@ -75,6 +78,7 @@ class UserServiceTest {
 			userRepository,
 			documentRepository,
 			userDocumentS3Uploader,
+			notificationService,
 			rekognitionClient,
 			properties
 		);
@@ -300,12 +304,24 @@ class UserServiceTest {
 			DocumentType.RESIDENCE_VERIFICATION_DOCUMENT,
 			DocumentStatus.REJECTED
 		);
-		verify(userDocumentS3Uploader).deleteByStatus(
-			userId,
-			DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT,
-			DocumentStatus.REJECTED
-		);
-	}
+			verify(userDocumentS3Uploader).deleteByStatus(
+				userId,
+				DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT,
+				DocumentStatus.REJECTED
+			);
+			verify(notificationService).deleteSupplementDocumentNotification(user);
+		}
+
+		@Test
+		@DisplayName("알림 삭제 요청 시 본인 알림이면 삭제한다")
+		void deleteNotificationSuccess() {
+			when(notificationService.deleteNotificationById(1L, 10L)).thenReturn(true);
+
+			boolean deleted = userService.deleteNotification(1L, 10L);
+
+			assertThat(deleted).isTrue();
+			verify(notificationService).deleteNotificationById(1L, 10L);
+		}
 
 	@Test
 	@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
@@ -431,13 +447,14 @@ class UserServiceTest {
 			2
 		);
 
-		UserService service = new UserService(
-			userRepository,
-			documentRepository,
-			userDocumentS3Uploader,
-			rekognitionClient,
-			new KycRekognitionProperties(rekognition)
-		);
+			UserService service = new UserService(
+				userRepository,
+				documentRepository,
+				userDocumentS3Uploader,
+				notificationService,
+				rekognitionClient,
+				new KycRekognitionProperties(rekognition)
+			);
 
 		assertThatThrownBy(() -> service.createLivenessSession(1L))
 			.isInstanceOf(CustomException.class)
