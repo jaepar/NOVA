@@ -61,7 +61,7 @@
 | `USER-006` | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
 | `USER-007` | 인증서 발급 | POST | `/users/verifications` | O | USER | |
 | `USER-008` | 알림 조회 | GET | `/users/notifications` | O | USER | |
-| `USER-009` | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
+| `USER-009` | 보완 서류 목록 조회 | GET | `/users/documents/corrections` | O | USER | `missing` 필드를 `,` 기준으로 파싱해 리스트 반환 |
 | `USER-010` | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED` |
 | `USER-011` | Liveness 얼굴 인증       | POST   | `/users/verifications/liveness`                          | O    | USER   |                               |
 | `USER-012` | Liveness 결과 조회       | GET    | `/users/verifications/liveness/{sessionId}`              | O    | USER   |                               |
