@@ -19,6 +19,7 @@ import woorifisa.project.backend.domain.user.dto.response.LivenessSessionRespons
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
 import woorifisa.project.backend.domain.user.dto.response.NotificationResponse;
 import woorifisa.project.backend.domain.user.dto.response.PassportResponse;
+import woorifisa.project.backend.domain.user.dto.response.CorrectionDocumentResponse;
 import woorifisa.project.backend.domain.user.service.NotificationService;
 import woorifisa.project.backend.domain.user.service.PassportOcrService;
 import woorifisa.project.backend.domain.user.service.UserService;
@@ -62,6 +63,13 @@ public class UserController {
 		@AuthenticationPrincipal SessionUserPrincipal principal
 	) {
 		return BaseResponse.ok(notificationService.getNotifications(principal.userId()));
+	}
+
+	@GetMapping("/documents/corrections")
+	public BaseResponse<List<CorrectionDocumentResponse>> getCorrectionDocuments(
+		@AuthenticationPrincipal SessionUserPrincipal principal
+	) {
+		return BaseResponse.ok(userService.getCorrectionDocuments(principal.userId()));
 	}
 
 	// 여권 인증
