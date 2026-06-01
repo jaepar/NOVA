@@ -6,6 +6,8 @@
 ## Service Scope
 
 - 계좌 개설/조회/비밀번호 검증/이체/거래내역/메모/해외송금 처리
+- 수취인 조회(은행코드+계좌번호 기반 예금주명 조회) 처리
+- 계좌 비밀번호 검증(account.password 일치 여부) 처리
 - 계정계 원장(잔액, 거래내역, 거래상태)의 최종 정합성 보장
 - 온프레미스 코어뱅킹 DB/FDS/대외 연동(필요 시) 처리
 
@@ -62,7 +64,7 @@ Base package: `woorifisa.project.coreBanking`
 
 ## API Design Rules
 
-- 경로 prefix는 `core-banking` 계열을 기본으로 유지한다.
+- 경로 prefix는 도메인 리소스 기준(`accounts`, `account-transactions`)을 기본으로 유지한다.
 - 삭제는 물리 삭제보다 상태 기반 soft-delete 또는 비활성화를 우선한다.
 - 컨트롤러는 DTO만 입출력하고 엔티티 직접 반환을 금지한다.
 - 컨트롤러 엔드포인트에는 SpringDoc 어노테이션을 작성한다.
@@ -79,6 +81,10 @@ Base package: `woorifisa.project.coreBanking`
 - 비밀번호 검증 API: 실패 횟수/잠금 정책을 고려한다.
 - 이체 API: `transfer_request_id` 기반 중복 방지 조회를 선행한다.
 - 해외송금 API: 금액/환율/수수료 부담자/국가 코드 유효성 검증을 선행한다.
+- 계좌 개설 API(`CB-001`)는 계좌번호를 숫자 13자리 raw 문자열로 저장하고, 조회 시 `SYYY-CZZ-ZZZZZZ`로 포매팅해 반환한다.
+- 계좌번호 생성 규칙은 `S(1)+YYY(3)+C(1)+NNNNNNNN(8)`을 따른다. `S=1`, `YYY=002`, `bankCode=WOORI`를 고정하며 `C`는 모듈러 방식 검증숫자를 사용한다.
+- 계좌 개설 요청의 enum 값(`accountType`, `transactionInfo.purpose`, `transactionInfo.source`)은 ERD 기준 enum만 허용한다.
+- 계좌 개설 요청의 `accountPassword`는 문자열로 수신하며, 원문을 로그/예외에 노출하지 않는다.
 
 ## Operational Commands
 

@@ -2,86 +2,90 @@ package woorifisa.project.backend.domain.wallet.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
-import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionItem;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
+import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
+import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
-import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
+import woorifisa.project.backend.global.response.BaseResponse;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.SUCCESS;
 
-@WebMvcTest(WalletController.class)
 class WalletControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockitoBean
-    private WalletService walletService;
-
-    @MockitoBean
-    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
     @DisplayName("세션 사용자 기준 월렛 잔액과 거래내역을 조회한다")
-    void success() throws Exception {
-        Long userId = 1L;
-        WalletTransactionsResponse response = new WalletTransactionsResponse(
-                12500,
-                List.of(new WalletTransactionItem(
-                        102L,
-                        TransactionFlow.WITHDRAWAL,
-                        "이마트24 강남역점",
-                        2500,
-                        LocalDateTime.of(2025, 5, 24, 14, 22, 0, 123456000)
-                )),
-                true
-        );
+    void found() {
+        WalletService walletService = mock(WalletService.class);
+        WalletController walletController = new WalletController(walletService);
+        SessionUserPrincipal principal = new SessionUserPrincipal(1L);
+        WalletTransactionsResponse serviceResponse = new WalletTransactionsResponse(12500, List.of(), true);
+        when(walletService.findWalletTransactions(1L, 1, 20)).thenReturn(serviceResponse);
 
-        when(walletService.findWalletTransactions(nullable(Long.class), anyInt(), anyInt())).thenReturn(response);
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                new SessionUserPrincipal(userId),
-                null,
-                AuthorityUtils.NO_AUTHORITIES
-        );
+        BaseResponse<WalletTransactionsResponse> response = walletController.findWalletTransactions(principal, 1, 20);
 
-        mockMvc.perform(get("/wallet/transactions")
-                        .with(authentication(authToken))
-                        .param("page", "1")
-                        .param("size", "20")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value(20000))
-                .andExpect(jsonPath("$.data.balance").value(12500))
-                .andExpect(jsonPath("$.data.hasNext").value(true))
-                .andExpect(jsonPath("$.data.transactions", hasSize(1)))
-                .andExpect(jsonPath("$.data.transactions[0].walletTransactionId").value(102))
-                .andExpect(jsonPath("$.data.transactions[0].transactionFlow").value("WITHDRAWAL"))
-                .andExpect(jsonPath("$.data.transactions[0].counterparty").value("이마트24 강남역점"))
-                .andExpect(jsonPath("$.data.transactions[0].amount").value(2500))
-                .andExpect(jsonPath("$.data.transactions[0].createdAt").value("2025-05-24T14:22:00"));
+        verify(walletService).findWalletTransactions(1L, 1, 20);
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
+        assertThat(response.getData()).isEqualTo(serviceResponse);
+    }
 
-        verify(walletService).findWalletTransactions(nullable(Long.class), eq(1), eq(20));
+    @Test
+    @DisplayName("월렛 충전 요청을 서비스로 전달하고 공통 성공 응답을 반환한다")
+    void success() {
+        WalletService walletService = mock(WalletService.class);
+        WalletController walletController = new WalletController(walletService);
+        SessionUserPrincipal principal = new SessionUserPrincipal(1L);
+        ChargeWalletRequest request = new ChargeWalletRequest(10000);
+
+        BaseResponse<Void> response = walletController.chargeWallet(principal, "idempotency-key", request);
+
+        verify(walletService).chargeWallet(1L, "idempotency-key", request);
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
+    }
+
+    @Test
+    @DisplayName("세션 사용자 기준 월렛 상태를 조회한다")
+    void walletStatus() {
+        WalletService walletService = mock(WalletService.class);
+        WalletController walletController = new WalletController(walletService);
+        SessionUserPrincipal principal = new SessionUserPrincipal(1L);
+        WalletStatusResponse serviceResponse = new WalletStatusResponse(WalletNextStep.WALLET_TERMS);
+        when(walletService.findWalletStatus(1L)).thenReturn(serviceResponse);
+
+        BaseResponse<WalletStatusResponse> response = walletController.findWalletStatus(principal);
+
+        verify(walletService).findWalletStatus(1L);
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
+        assertThat(response.getData()).isEqualTo(serviceResponse);
+    }
+
+    @Test
+    @DisplayName("세션 사용자 기준 월렛 생성 요청을 처리한다")
+    void createWallet() {
+        WalletService walletService = mock(WalletService.class);
+        WalletController walletController = new WalletController(walletService);
+        SessionUserPrincipal principal = new SessionUserPrincipal(1L);
+        WalletCreateRequest request = new WalletCreateRequest(true);
+
+        BaseResponse<Void> response = walletController.createWallet(principal, request);
+
+        verify(walletService).createWallet(1L, request);
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
     }
 }

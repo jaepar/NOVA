@@ -30,15 +30,15 @@ export function WalletAgreementItem({
           onClick={onToggleCheck}
           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors ${
             checked
-              ? 'border-primary bg-primary text-primary-foreground'
-              : 'border-gray-300 bg-background text-transparent'
+              ? "border-[#111111] bg-[#111111] text-white"
+              : "border-gray-300 bg-background text-transparent"
           }`}
         >
           <Check className="h-3.5 w-3.5" />
         </AppButton>
 
         {term.required && (
-          <span className="shrink-0 rounded-md bg-blue-50 px-1.5 py-1 text-[12px] font-medium leading-none text-primary">
+          <span className="shrink-0 rounded-md bg-[#f1f1f1] px-1.5 py-1 text-[12px] font-medium leading-none text-[#111111]">
             필수
           </span>
         )}

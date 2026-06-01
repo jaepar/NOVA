@@ -1,9 +1,9 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { ConsentOverviewAccordion } from '../../components/consent/ConsentOverviewAccordion'
-import { certificateConsentDefinitionSample } from '../../domains/certificate-consent/definition.sample'
+import { certificateConsentDefinitionSample } from '../../domains/definition.sample'
 
 export function ConsentTemplate() {
   const navigate = useNavigate()
@@ -30,3 +30,5 @@ export function ConsentTemplate() {
     </MobileLayout>
   )
 }
+
+

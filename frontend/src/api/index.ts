@@ -19,4 +19,15 @@ export * from './types'
  */
 
 export { authApi } from './endpoints/auth';
-export type { AuthMessageResponse, SignupRequest } from './endpoints/auth';
+export { certificateApi } from './endpoints/certificate';
+export type {
+  AuthMessageResponse,
+  LoginRequest,
+  LoginResponse,
+  SessionCheckResponse,
+  SignupRequest,
+} from './endpoints/auth';
+export type { LivenessSessionResponse } from './endpoints/certificate';
+export type { PassportResponse } from './endpoints/certificate';
+export { walletApi } from './endpoints/wallet';
+export type { WalletNextStep, WalletStatusResponse } from './endpoints/wallet';

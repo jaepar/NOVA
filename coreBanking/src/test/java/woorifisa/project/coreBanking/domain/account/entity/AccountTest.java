@@ -2,9 +2,13 @@ package woorifisa.project.coreBanking.domain.account.entity;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import woorifisa.project.coreBanking.global.exception.CustomException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_CREDIT_INVALID_AMOUNT;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_DEBIT_INSUFFICIENT_BALANCE;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_DEBIT_INVALID_AMOUNT;
 
 class AccountTest {
 
@@ -28,7 +32,8 @@ class AccountTest {
                 .build();
 
         assertThatThrownBy(() -> account.debit(40000))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ACCOUNT_DEBIT_INSUFFICIENT_BALANCE.getMessage());
 
         assertThat(account.getBalance()).isEqualTo(30000);
     }
@@ -41,7 +46,22 @@ class AccountTest {
                 .build();
 
         assertThatThrownBy(() -> account.debit(0))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ACCOUNT_DEBIT_INVALID_AMOUNT.getMessage());
+
+        assertThat(account.getBalance()).isEqualTo(30000);
+    }
+
+    @Test
+    @DisplayName("0원 이하 금액은 입금하지 않는다")
+    void creditRejectsNonPositiveAmount() {
+        Account account = Account.builder()
+                .balance(30000)
+                .build();
+
+        assertThatThrownBy(() -> account.credit(0))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ACCOUNT_CREDIT_INVALID_AMOUNT.getMessage());
 
         assertThat(account.getBalance()).isEqualTo(30000);
     }

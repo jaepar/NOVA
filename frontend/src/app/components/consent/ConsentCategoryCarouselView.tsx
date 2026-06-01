@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useRef } from 'react'
+﻿import { useEffect, useMemo, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { CloseButtonTemplate } from '../../pages/common/CloseButtonTemplate'
 import { AppButton } from '../design-system/AppButton'
-import { ConsentDefinition, findCategory } from '../../domains/certificate-consent/spec'
+import { ConsentDefinition, findCategory } from '../../domains/spec'
 import {
   markTermsAgreed,
   setCategoryCursor,
   useConsentStorageStore,
-} from '../../domains/certificate-consent/storage'
+} from '../../domains/storage'
 
 interface ConsentCategoryCarouselViewProps {
   definition: ConsentDefinition
@@ -135,3 +135,4 @@ export function ConsentCategoryCarouselView({
     </CloseButtonTemplate>
   )
 }
+
