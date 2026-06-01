@@ -143,6 +143,26 @@ Response (200)
 }
 ```
 
+Error Response (인증서 미발급)
+```json
+{
+  "success": false,
+  "code": "BANK-008",
+  "message": "인증서 발급 완료 상태에서만 계좌 개설이 가능합니다.",
+  "data": null
+}
+```
+
+Error Response (coreBanking 비즈니스 실패 예시)
+```json
+{
+  "success": false,
+  "code": "ACCOUNT-014",
+  "message": "동일한 상품이 존재합니다.",
+  "data": null
+}
+```
+
 ## BANK-002 계좌 비밀번호 검증(Cloud)
 
 - Method: `POST`
