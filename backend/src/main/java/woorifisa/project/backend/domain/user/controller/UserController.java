@@ -31,6 +31,7 @@ public class UserController {
 	private final UserService userService;
 	private final PassportOcrService passportOcrService;
 
+	// 서류 제출
 	@PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public BaseResponse<Void> uploadDocuments(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
@@ -41,6 +42,7 @@ public class UserController {
 		return BaseResponse.ok(null);
 	}
 
+	// 여권 인증
 	@PostMapping(value = "/verifications/passports", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public BaseResponse<PassportResponse> recognizePassport(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
@@ -49,6 +51,7 @@ public class UserController {
 		return BaseResponse.ok(passportOcrService.recognizePassport(file));
 	}
 
+	// Liveness 세션 생성
 	@PostMapping("/verifications/liveness")
 	public BaseResponse<LivenessSessionResponse> createLivenessSession(
 		@AuthenticationPrincipal SessionUserPrincipal principal
@@ -56,6 +59,7 @@ public class UserController {
 		return BaseResponse.ok(userService.createLivenessSession(principal.userId()));
 	}
 
+	// Liveness 인증 결과 확인
 	@GetMapping("/verifications/liveness/{sessionId}")
 	public BaseResponse<LivenessVerificationResponse> getLivenessResult(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
@@ -64,6 +68,7 @@ public class UserController {
 		return BaseResponse.ok(userService.getLivenessResult(principal.userId(), sessionId));
 	}
 
+	// Liveness 얼굴 대조
 	@PostMapping("/verifications/liveness/{sessionId}/face-match")
 	public BaseResponse<LivenessVerificationResponse> compareFaceWithRegisteredImage(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
@@ -73,6 +78,7 @@ public class UserController {
 		return BaseResponse.ok(userService.compareFaceWithRegisteredImage(principal.userId(), sessionId, request));
 	}
 
+	// Liveness 최종 인가
 	@PostMapping("/verifications/liveness/{sessionId}/finalize")
 	public BaseResponse<LivenessFinalizeResponse> finalizeLivenessVerification(
 		@AuthenticationPrincipal SessionUserPrincipal principal,

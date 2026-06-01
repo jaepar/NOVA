@@ -168,9 +168,7 @@ public class UserService {
 	private final RekognitionClient rekognitionClient;
 	private final KycRekognitionProperties kycRekognitionProperties;
 
-	public LivenessSessionResponse createLivenessSession(
-		Long userId
-	) {
+	public LivenessSessionResponse createLivenessSession(Long userId) {
 		KycRekognitionProperties.Rekognition rekognition = kycRekognitionProperties.rekognition();
 		if (rekognition == null || rekognition.outputBucket() == null || rekognition.outputBucket().isBlank()) {
 			throw new CustomException(KYC_OUTPUT_BUCKET_NOT_CONFIGURED);
