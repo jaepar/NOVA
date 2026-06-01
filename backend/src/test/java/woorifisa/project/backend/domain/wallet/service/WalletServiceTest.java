@@ -40,7 +40,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_PAGE_PARAM;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_SIZE_PARAM;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ALREADY_EXISTS;
@@ -129,7 +128,7 @@ class WalletServiceTest {
         when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.of(wallet));
         when(walletTransactionRepository.findAllByWallet_WalletIdOrderByCreatedAtDesc(10L, pageable)).thenReturn(transactions);
 
-        WalletTransactionsResponse response = walletService.findWalletTransactions(userId, 0, 2);
+        WalletTransactionsResponse response = walletService.findWalletTransactions(userId, pageable);
 
         assertThat(response.balance()).isEqualTo(12500);
         assertThat(response.transactions()).hasSize(2);
@@ -274,25 +273,9 @@ class WalletServiceTest {
     }
 
     @Test
-    @DisplayName("page가 0보다 작으면 예외가 발생한다")
-    void invalidPage() {
-        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, -1, 20))
-                .isInstanceOfSatisfying(CustomException.class,
-                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(INVALID_PAGE_PARAM));
-    }
-
-    @Test
-    @DisplayName("size가 1보다 작으면 예외가 발생한다")
-    void invalidSizeLowerThanOne() {
-        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, 0, 0))
-                .isInstanceOfSatisfying(CustomException.class,
-                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(INVALID_SIZE_PARAM));
-    }
-
-    @Test
     @DisplayName("size가 100보다 크면 예외가 발생한다")
     void invalidSizeGreaterThanOneHundred() {
-        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, 0, 101))
+        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, PageRequest.of(0, 101)))
                 .isInstanceOfSatisfying(CustomException.class,
                         exception -> assertThat(exception.getExceptionStatus()).isEqualTo(INVALID_SIZE_PARAM));
     }

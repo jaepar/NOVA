@@ -11,6 +11,9 @@ import woorifisa.project.backend.domain.wallet.service.WalletService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,12 +30,13 @@ class WalletControllerTest {
         WalletService walletService = mock(WalletService.class);
         WalletController walletController = new WalletController(walletService);
         SessionUserPrincipal principal = new SessionUserPrincipal(1L);
-        WalletTransactionsResponse serviceResponse = new WalletTransactionsResponse(12500, List.of(), true);
-        when(walletService.findWalletTransactions(1L, 1, 20)).thenReturn(serviceResponse);
+        Pageable pageable = PageRequest.of(1, 20);
+        WalletTransactionsResponse serviceResponse = new WalletTransactionsResponse(12500, List.of(), 1, 20, true);
+        when(walletService.findWalletTransactions(1L, pageable)).thenReturn(serviceResponse);
 
-        BaseResponse<WalletTransactionsResponse> response = walletController.findWalletTransactions(principal, 1, 20);
+        BaseResponse<WalletTransactionsResponse> response = walletController.findWalletTransactions(principal, pageable);
 
-        verify(walletService).findWalletTransactions(1L, 1, 20);
+        verify(walletService).findWalletTransactions(1L, pageable);
         assertThat(response.getSuccess()).isTrue();
         assertThat(response.getCode()).isEqualTo("20000");
         assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());

@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
@@ -37,10 +38,9 @@ public class WalletController {
     @GetMapping("/transactions")
     public BaseResponse<WalletTransactionsResponse> findWalletTransactions(
             @AuthenticationPrincipal SessionUserPrincipal principal,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "20") int size
+            @PageableDefault(size = 20) Pageable pageable
     ) {
-        return BaseResponse.ok(walletService.findWalletTransactions(principal.userId(), page, size));
+        return BaseResponse.ok(walletService.findWalletTransactions(principal.userId(), pageable));
     }
 
     @PostMapping("/charges")
