@@ -313,19 +313,8 @@ class UserServiceTest {
 		}
 
 		@Test
-		@DisplayName("알림 삭제 요청 시 본인 알림이면 삭제한다")
-		void deleteNotificationSuccess() {
-			when(notificationService.deleteNotificationById(1L, 10L)).thenReturn(true);
-
-			boolean deleted = userService.deleteNotification(1L, 10L);
-
-			assertThat(deleted).isTrue();
-			verify(notificationService).deleteNotificationById(1L, 10L);
-		}
-
-	@Test
-	@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
-	void userNotFound() {
+		@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
+		void userNotFound() {
 		Long userId = 1L;
 		MockMultipartFile residencePdf = new MockMultipartFile(
 			"residenceVerificationPdf",

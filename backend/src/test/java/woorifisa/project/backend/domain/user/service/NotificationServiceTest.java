@@ -1,7 +1,6 @@
 package woorifisa.project.backend.domain.user.service;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,7 +16,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import woorifisa.project.backend.domain.user.entity.Notification;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.NotificationType;
 import woorifisa.project.backend.domain.user.repository.NotificationRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 
@@ -67,6 +68,26 @@ class NotificationServiceTest {
 
 		org.assertj.core.api.Assertions.assertThat(deleted).isTrue();
 		verify(notificationRepository).deleteByNotificationIdAndUser_UserId(10L, 1L);
+	}
+
+	@Test
+	@DisplayName("알림 목록은 최신순으로 조회된다")
+	void getNotifications() {
+		User user = User.builder().userId(1L).build();
+		Notification notification = Notification.builder()
+			.notificationId(10L)
+			.user(user)
+			.type(NotificationType.SUPPLEMENT_DOCUMENT)
+			.content("서류 심사 결과 보완이 필요합니다.")
+			.build();
+
+		when(notificationRepository.findAllByUser_UserIdOrderByCreatedAtDesc(1L)).thenReturn(List.of(notification));
+
+		var responses = notificationService.getNotifications(1L);
+
+		org.assertj.core.api.Assertions.assertThat(responses).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(responses.getFirst().notificationId()).isEqualTo(10L);
+		org.assertj.core.api.Assertions.assertThat(responses.getFirst().type()).isEqualTo("SUPPLEMENT_DOCUMENT");
 	}
 
 }
