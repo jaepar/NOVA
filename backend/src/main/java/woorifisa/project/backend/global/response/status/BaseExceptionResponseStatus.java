@@ -55,6 +55,7 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     REUPLOAD_ALL_REJECTED_REQUIRED("USER-008", "두 문서가 모두 반려된 경우 두 개의 문서를 모두 제출해야 합니다."),
     KYC_OUTPUT_BUCKET_NOT_CONFIGURED("USER-011", "KYC Liveness S3 버킷 설정이 필요합니다."),
     LIVENESS_REFERENCE_IMAGE_NOT_FOUND("USER-012", "Liveness 결과에서 참조 이미지를 찾을 수 없습니다."),
+    USER_CERTIFICATE_STATUS_TRANSITION_INVALID("USER-013", "인증서 상태 전이가 올바르지 않습니다."),
 
     /**
      * admin
@@ -73,7 +74,8 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     BANKING_TRANSFER_FAILED("BANK-004", "계좌 이체 처리에 실패했습니다."),
     BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED("BANK-005", "이체 처리 확인 재시도 대기 중 인터럽트가 발생했습니다."),
     BANKING_RECIPIENT_NOT_FOUND("BANK-006", "수취인 계좌 정보를 찾을 수 없습니다."),
-    BANKING_ACCOUNT_PASSWORD_NOT_MATCHED("BANK-007", "계좌 비밀번호가 일치하지 않습니다.")
+    BANKING_ACCOUNT_PASSWORD_NOT_MATCHED("BANK-007", "계좌 비밀번호가 일치하지 않습니다."),
+    BANKING_CERTIFICATE_REQUIRED("BANK-008", "인증서 발급 완료 상태에서만 계좌 개설이 가능합니다.")
     ;
 
     private final boolean success = false;
