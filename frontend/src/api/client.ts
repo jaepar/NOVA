@@ -13,8 +13,8 @@ const BASE_URL = import.meta.env.DEV
 // Axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true,
   timeout: 10000, // 10초
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },

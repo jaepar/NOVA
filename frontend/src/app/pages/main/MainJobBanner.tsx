@@ -1,6 +1,17 @@
-﻿export function MainJobBanner() {
+import { AppButton } from '../../components/design-system/AppButton'
+
+interface MainJobBannerProps {
+  onClick?: () => void
+}
+
+export function MainJobBanner({ onClick }: MainJobBannerProps) {
   return (
-    <div className="rounded-2xl overflow-hidden">
+    <AppButton
+      type="button"
+      variant="unstyled"
+      onClick={onClick}
+      className="block w-full overflow-hidden rounded-2xl text-left"
+    >
       <div className="bg-blue-600 p-6 h-40 flex flex-col justify-between relative">
         <div>
           <h3 className="text-white text-lg font-medium mb-2">구인구직 정보</h3>
@@ -12,6 +23,6 @@
           <div className="w-12 h-12 rounded-full bg-white/20" />
         </div>
       </div>
-    </div>
+    </AppButton>
   )
 }
