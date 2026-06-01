@@ -92,10 +92,23 @@ public class NotificationService {
 		createOrReplace(user, NotificationType.SUPPLEMENT_DOCUMENT, content);
 	}
 
+	// 보완 서류 재제출이 완료된 한경우 보완서류 알림을 삭제
+	@Transactional
+	public void deleteSupplementDocumentNotification(User user) {
+		notificationRepository.deleteByUserAndType(user, NotificationType.SUPPLEMENT_DOCUMENT);
+	}
+
 	// 외국인등록증 기간 타입 알림을 유저 기준으로 최신 1건만 유지하며 저장
 	@Transactional
 	public void createOrReplaceResidenceCardPeriodNotification(User user, String content) {
 		createOrReplace(user, NotificationType.RESIDENCE_CARD_PERIOD, content);
+	}
+
+	// 알림 클릭 시 본인 소유 알림만 삭제한다.
+	@Transactional
+	public boolean deleteNotificationById(Long userId, Long notificationId) {
+		long deleted = notificationRepository.deleteByNotificationIdAndUser_UserId(notificationId, userId);
+		return deleted > 0;
 	}
 
 	// 동일 유저/타입 기존 알림을 삭제한 뒤 새 알림 1건을 저장한다.

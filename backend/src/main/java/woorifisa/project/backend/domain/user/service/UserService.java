@@ -44,6 +44,7 @@ public class UserService {
 	private final UserRepository userRepository;
 	private final DocumentRepository documentRepository;
 	private final UserDocumentS3Uploader userDocumentS3Uploader;
+	private final NotificationService notificationService;
 
 	@Transactional
 	public void uploadDocuments(
@@ -63,6 +64,13 @@ public class UserService {
 
 		// 문서를 보완해야하는 경우(다시 제출하는 경우)
 		uploadCorrectionDocuments(user, residenceVerificationPdf, alienRegistrationApplicationPdf);
+		// 보완 서류 제출 시 보완 알림 삭제
+		notificationService.deleteSupplementDocumentNotification(user);
+	}
+
+	@Transactional
+	public boolean deleteNotification(Long userId, Long notificationId) {
+		return notificationService.deleteNotificationById(userId, notificationId);
 	}
 
 	private void uploadInitialDocuments(User user, MultipartFile residenceVerificationPdf,
