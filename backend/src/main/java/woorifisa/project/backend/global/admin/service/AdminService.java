@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.user.entity.Document;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
@@ -104,10 +105,14 @@ public class AdminService {
 	private void updateCertificateIfAllDocumentsApproved(User user) {
 		boolean alienApproved = isLatestApproved(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT);
 		boolean residenceApproved = isLatestApproved(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT);
-		log.info("[certificate:eligibility_checked] userId={}, alienApproved={}, residenceApproved={}, hasCertificate={}",
-			user.getUserId(), alienApproved, residenceApproved, user.getHasCertificate());
+		log.info("[certificate:eligibility_checked] userId={}, alienApproved={}, residenceApproved={}, certificateStatus={}",
+			user.getUserId(), alienApproved, residenceApproved, user.getCertificateStatus());
 
-		if (alienApproved && residenceApproved && !Boolean.TRUE.equals(user.getHasCertificate())) {
+		if (alienApproved && residenceApproved && user.getCertificateStatus() != CertificateStatus.ISSUED) {
+			// 발급 전 사용자만 신청 중 상태를 거쳐 최종 발급으로 전이한다.
+			if (user.getCertificateStatus() == CertificateStatus.NOT_ISSUED) {
+				user.startCertificateIssuance();
+			}
 			user.issueCertificate();
 			log.info("[certificate:issued] userId={}, issuedTime={}", user.getUserId(), user.getIssuedTime());
 			log.info("[certificate:core_banking_customer_create_requested] userId={}, name={}, email={}",
