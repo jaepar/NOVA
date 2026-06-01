@@ -118,6 +118,7 @@ export function Main() {
         isLoggedIn={isLoggedIn}
         onLogout={handleLogout}
         onLogin={() => navigate("/login")}
+        onProfile={() => navigate('/mypage')}
       />
 
       <BottomSheet

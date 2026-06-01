@@ -10,6 +10,7 @@ interface SideMenuProps {
   isLoggedIn?: boolean
   onLogout?: () => void
   onLogin?: () => void
+  onProfile?: () => void
 }
 
 export function SideMenu({
@@ -18,6 +19,7 @@ export function SideMenu({
   isLoggedIn = false,
   onLogout,
   onLogin,
+  onProfile,
 }: SideMenuProps) {
   const visibilityStore = useMemo(
     () =>
@@ -42,7 +44,7 @@ export function SideMenu({
   }, [isOpen])
 
   const menuItems = [
-    { icon: <User className="w-5 h-5" />, label: '프로필', onClick: () => {} },
+    { icon: <User className="w-5 h-5" />, label: '프로필', onClick: onProfile || (() => {}) },
     { icon: <Settings className="w-5 h-5" />, label: '설정', onClick: () => {} },
     { icon: <HelpCircle className="w-5 h-5" />, label: '고객센터', onClick: () => {} },
     isLoggedIn
