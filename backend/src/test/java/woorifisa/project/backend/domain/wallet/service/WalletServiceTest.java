@@ -267,7 +267,7 @@ class WalletServiceTest {
     void notFound() {
         when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, 0, 20))
+        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, PageRequest.of(0, 20)))
                 .isInstanceOfSatisfying(CustomException.class,
                         exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_NOT_FOUND));
     }
