@@ -68,11 +68,6 @@ public class UserService {
 		notificationService.deleteSupplementDocumentNotification(user);
 	}
 
-	@Transactional
-	public boolean deleteNotification(Long userId, Long notificationId) {
-		return notificationService.deleteNotificationById(userId, notificationId);
-	}
-
 	private void uploadInitialDocuments(User user, MultipartFile residenceVerificationPdf,
 		MultipartFile alienRegistrationApplicationPdf) {
 		// 최초 업로드
