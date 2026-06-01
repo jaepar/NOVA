@@ -21,9 +21,21 @@ const passwordSheetCloseDurationMs = 320;
 const chargeCompletionLoadingMs = 700;
 const chargeLimitMessage = "1회 충전 금액은 10,000,000원까지만 가능합니다.";
 
+function removeSecureKeypadGlobalStyles() {
+  const style = document.getElementById("secure-keypad-styles");
+
+  if (!style?.textContent) {
+    return;
+  }
+
+  style.textContent = style.textContent
+    .replace(/html,\s*body,\s*#root\s*\{[\s\S]*?\}\s*/u, "")
+    .replace(/body\s*\{[\s\S]*?\}\s*/u, "");
+}
+
 const SecureKeypad = lazy(() =>
   import("secure-keypad").then((module) => {
-    document.getElementById("secure-keypad-styles")?.remove();
+    removeSecureKeypadGlobalStyles();
 
     return { default: module.Keypad };
   }),
