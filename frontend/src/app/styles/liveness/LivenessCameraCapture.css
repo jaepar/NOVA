@@ -74,8 +74,6 @@
 
 /* 광과민성 안내 포함 기본 안내는 표시 유지 */
 
-/* SDK 기본 시작 버튼은 표시 유지 */
-
 /* 링크 버튼 */
 .nova-liveness-surface .amplify-button[data-variation='link'] {
   color: #111111;
@@ -173,22 +171,6 @@
 .nova-liveness-surface [class*='liveness-toast'] {
   opacity: 0 !important;
   pointer-events: none !important;
-}
-
-.nova-liveness-guidance-toast {
-  width: fit-content;
-  max-width: calc(100% - 32px);
-  margin: 10px auto 0;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #111111;
-  font-size: 14px;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
 }
 
 /* 실패/오류 안내 UI 가독성 개선 */

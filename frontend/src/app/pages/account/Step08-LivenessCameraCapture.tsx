@@ -482,13 +482,7 @@ export function LivenessCameraCapture() {
           isCameraActive &&
           liveHintText &&
           !failureMessage && (
-            <div
-              className="nova-liveness-guidance-toast"
-              role="status"
-              aria-live="polite"
-            >
-              {liveHintText}
-            </div>
+            <InlineBanner message={liveHintText} variant="info" />
           )}
         {!isDetectorVisible && failureMessage && (
           <div className="nova-liveness-placeholder" aria-hidden="true">
