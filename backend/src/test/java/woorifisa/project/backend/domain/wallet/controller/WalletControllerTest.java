@@ -43,7 +43,7 @@ class WalletControllerTest {
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
-    @DisplayName("passes requested page and size to wallet transaction lookup")
+    @DisplayName("세션 사용자 기준 월렛 잔액과 거래내역을 조회한다")
     void success() throws Exception {
         Long userId = 1L;
         WalletTransactionsResponse response = new WalletTransactionsResponse(
@@ -51,12 +51,10 @@ class WalletControllerTest {
                 List.of(new WalletTransactionItem(
                         102L,
                         TransactionFlow.WITHDRAWAL,
-                        "emart24 gangnam",
+                        "이마트24 강남역점",
                         2500,
                         LocalDateTime.of(2025, 5, 24, 14, 22, 0, 123456000)
                 )),
-                1,
-                20,
                 true
         );
 
@@ -76,13 +74,11 @@ class WalletControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value(20000))
                 .andExpect(jsonPath("$.data.balance").value(12500))
-                .andExpect(jsonPath("$.data.page").value(1))
-                .andExpect(jsonPath("$.data.size").value(20))
                 .andExpect(jsonPath("$.data.hasNext").value(true))
                 .andExpect(jsonPath("$.data.transactions", hasSize(1)))
                 .andExpect(jsonPath("$.data.transactions[0].walletTransactionId").value(102))
                 .andExpect(jsonPath("$.data.transactions[0].transactionFlow").value("WITHDRAWAL"))
-                .andExpect(jsonPath("$.data.transactions[0].counterparty").value("emart24 gangnam"))
+                .andExpect(jsonPath("$.data.transactions[0].counterparty").value("이마트24 강남역점"))
                 .andExpect(jsonPath("$.data.transactions[0].amount").value(2500))
                 .andExpect(jsonPath("$.data.transactions[0].createdAt").value("2025-05-24T14:22:00"));
 
