@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.user.entity.Notification;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.dto.response.NotificationResponse;
 import woorifisa.project.backend.domain.user.entity.enums.NotificationType;
 import woorifisa.project.backend.domain.user.repository.NotificationRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
@@ -109,6 +111,14 @@ public class NotificationService {
 	public boolean deleteNotificationById(Long userId, Long notificationId) {
 		long deleted = notificationRepository.deleteByNotificationIdAndUser_UserId(notificationId, userId);
 		return deleted > 0;
+	}
+
+	// 사용자의 알림 목록을 최신순으로 조회
+	@Transactional(readOnly = true)
+	public List<NotificationResponse> getNotifications(Long userId) {
+		return notificationRepository.findAllByUser_UserIdOrderByCreatedAtDesc(userId).stream()
+			.map(NotificationResponse::from)
+			.collect(Collectors.toList());
 	}
 
 	// 동일 유저/타입 기존 알림을 삭제한 뒤 새 알림 1건을 저장한다.
