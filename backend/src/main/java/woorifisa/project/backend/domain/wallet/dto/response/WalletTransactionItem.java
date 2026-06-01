@@ -1,5 +1,6 @@
 package woorifisa.project.backend.domain.wallet.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import woorifisa.project.backend.domain.wallet.entity.WalletTransaction;
 import woorifisa.project.backend.domain.wallet.entity.enums.TransactionFlow;
 
@@ -10,6 +11,7 @@ public record WalletTransactionItem(
         TransactionFlow transactionFlow,
         String counterparty,
         Integer amount,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime createdAt
 ) {
 

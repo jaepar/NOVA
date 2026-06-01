@@ -2,45 +2,27 @@ package woorifisa.project.backend.domain.wallet.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
-import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
-import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.SUCCESS;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class WalletControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockitoBean
-    private WalletService walletService;
-
-    @MockitoBean
-    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
     @DisplayName("세션 사용자 기준 월렛 잔액과 거래내역을 조회한다")
@@ -48,12 +30,13 @@ class WalletControllerTest {
         WalletService walletService = mock(WalletService.class);
         WalletController walletController = new WalletController(walletService);
         SessionUserPrincipal principal = new SessionUserPrincipal(1L);
-        WalletTransactionsResponse serviceResponse = new WalletTransactionsResponse(12500, List.of());
-        when(walletService.findWalletTransactions(1L)).thenReturn(serviceResponse);
+        Pageable pageable = PageRequest.of(1, 20);
+        WalletTransactionsResponse serviceResponse = new WalletTransactionsResponse(12500, List.of(), 1, 20, true);
+        when(walletService.findWalletTransactions(1L, pageable)).thenReturn(serviceResponse);
 
-        BaseResponse<WalletTransactionsResponse> response = walletController.findWalletTransactions(principal);
+        BaseResponse<WalletTransactionsResponse> response = walletController.findWalletTransactions(principal, pageable);
 
-        verify(walletService).findWalletTransactions(1L);
+        verify(walletService).findWalletTransactions(1L, pageable);
         assertThat(response.getSuccess()).isTrue();
         assertThat(response.getCode()).isEqualTo("20000");
         assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
@@ -96,31 +79,17 @@ class WalletControllerTest {
 
     @Test
     @DisplayName("세션 사용자 기준 월렛 생성 요청을 처리한다")
-    void createWallet() throws Exception {
-        Long userId = 1L;
-        UsernamePasswordAuthenticationToken authToken = authToken(userId);
+    void createWallet() {
+        WalletService walletService = mock(WalletService.class);
+        WalletController walletController = new WalletController(walletService);
+        SessionUserPrincipal principal = new SessionUserPrincipal(1L);
+        WalletCreateRequest request = new WalletCreateRequest(true);
 
-        mockMvc.perform(post("/wallet")
-                        .with(authentication(authToken))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "termsAgreed": true
-                                }
-                                """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value(20000));
+        BaseResponse<Void> response = walletController.createWallet(principal, request);
 
-        verify(walletService).createWallet(any(), any());
-    }
-
-    private UsernamePasswordAuthenticationToken authToken(Long userId) {
-        return new UsernamePasswordAuthenticationToken(
-                new SessionUserPrincipal(userId),
-                null,
-                AuthorityUtils.NO_AUTHORITIES
-        );
+        verify(walletService).createWallet(1L, request);
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
     }
 }

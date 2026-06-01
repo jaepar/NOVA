@@ -157,11 +157,67 @@ Request
 }
 ```
 
+## USER-005 여권 인증
+
+- Method: `POST`
+- Path: `/users/verifications/passports`
+- Auth: `O` (USER 세션 필수)
+- Content-Type: `multipart/form-data`
+
+Request
+- `file`: 여권 이미지 파일 1개
+
 Response (200)
 ```json
 {
   "success": true,
-  "code": 20000,
-  "message": "요청에 성공했습니다."
+  "code": "20000",
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "type": "P",
+    "issueCountry": "KOR",
+    "num": "M12345678",
+    "surName": "KIM",
+    "givenName": "GILDONG",
+    "nationality": "KOREAN",
+    "birthDate": "1990.01.01",
+    "sex": "M",
+    "issueDate": "2020.01.01",
+    "expireDate": "2030.01.01",
+    "authority": "MOFA"
+  }
+}
+```
+
+Error Response
+```json
+{
+  "success": false,
+  "code": "USER-009",
+  "message": "여권 OCR을 위한 이미지 파일이 필요합니다."
+}
+```
+
+```json
+{
+  "success": false,
+  "code": "USER-010",
+  "message": "여권 OCR 설정이 필요합니다."
+}
+```
+
+```json
+{
+  "success": false,
+  "code": "USER-013",
+  "message": "여권 OCR 처리에 실패했습니다."
+}
+```
+
+```json
+{
+  "success": false,
+  "code": "USER-014",
+  "message": "사진이 올바르지 않습니다."
 }
 ```
