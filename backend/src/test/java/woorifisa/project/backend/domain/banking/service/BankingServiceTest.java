@@ -10,13 +10,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingCreateAccountResponse;
+import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
+import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -34,6 +39,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CERTIFICATE_REQUIRED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,6 +49,8 @@ class BankingServiceTest {
     private AccountRefRepository accountRefRepository;
     @Mock
     private StringRedisTemplate stringRedisTemplate;
+    @Mock
+    private UserRepository userRepository;
     @Mock
     private ValueOperations<String, String> valueOperations;
     @Mock
@@ -54,6 +62,7 @@ class BankingServiceTest {
     void setUp() {
         bankingService = new BankingService(
                 accountRefRepository,
+                userRepository,
                 stringRedisTemplate,
                 coreBankingClient
         );
@@ -255,5 +264,68 @@ class BankingServiceTest {
         bankingService.verifyAccountPassword(userId, new AccountPasswordVerifyRequest(2001L, "1234"));
 
         verify(coreBankingClient).verifyAccountPassword(any());
+    }
+
+    @Test
+    @DisplayName("계좌 개설 요청 시 코어뱅킹 연동 후 계좌 참조를 저장한다")
+    void createAccountSuccess() {
+        Long userId = 1L;
+        User user = User.builder()
+                .userId(userId)
+                .name("PARK JAEHA")
+                .email("abcdef@gmail.com")
+                .certificateStatus(CertificateStatus.ISSUED)
+                .build();
+        AccountCreateRequest request = new AccountCreateRequest(
+                "DEMAND_DEPOSIT",
+                "우리 SUPER주거래 통장",
+                new AccountCreateRequest.CustomerInfo("서울특별시 광진구 능동로 120", "건국대학교 기숙사 101호"),
+                "STUDENT",
+                new AccountCreateRequest.TransactionInfo("SALARY_AND_LIVING_EXPENSES", "EARNED_AND_PENSION_INCOME"),
+                false,
+                "1234"
+        );
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(coreBankingClient.createAccount(any())).thenReturn(
+                new CoreBankingCreateAccountResponse(2001L, 1001L, "우리 SUPER주거래 통장", "1002-312-345678")
+        );
+
+        AccountCreateResponse response = bankingService.createAccount(userId, request);
+
+        assertThat(response.accountId()).isEqualTo(2001L);
+        assertThat(response.bankCode()).isEqualTo("WOORI");
+        assertThat(response.accountNumber()).isEqualTo("1002-312-345678");
+        verify(accountRefRepository).save(any(AccountRef.class));
+    }
+
+    @Test
+    @DisplayName("인증서 발급 완료 상태가 아니면 계좌 개설에 실패한다")
+    void createAccountFailsWhenCertificateIsNotIssued() {
+        Long userId = 1L;
+        User user = User.builder()
+                .userId(userId)
+                .name("PARK JAEHA")
+                .email("abcdef@gmail.com")
+                .certificateStatus(CertificateStatus.NOT_ISSUED)
+                .build();
+        AccountCreateRequest request = new AccountCreateRequest(
+                "DEMAND_DEPOSIT",
+                "우리 SUPER주거래 통장",
+                new AccountCreateRequest.CustomerInfo("서울특별시 광진구 능동로 120", "건국대학교 기숙사 101호"),
+                "STUDENT",
+                new AccountCreateRequest.TransactionInfo("SALARY_AND_LIVING_EXPENSES", "EARNED_AND_PENSION_INCOME"),
+                false,
+                "1234"
+        );
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> bankingService.createAccount(userId, request))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(BANKING_CERTIFICATE_REQUIRED);
+
+        verify(coreBankingClient, never()).createAccount(any());
     }
 }
