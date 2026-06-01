@@ -4,6 +4,7 @@ import { certificateRoutes } from "./certificateRoutes";
 import { commonTemplateRoutes } from "./commonTemplateRoutes";
 import { signupRoutes } from "./signupRoutes";
 import { loginRoutes } from "./loginRoutes";
+import { jobRoutes } from "./jobRoutes";
 import { accountRoutes } from "./accountRoutes";
 import { NotFound } from "../pages/common/NotFound";
 
@@ -11,6 +12,7 @@ export const appRoutes = [
   ...mainRoutes,
   ...loginRoutes,
   ...signupRoutes,
+  ...jobRoutes,
   ...walletRoutes,
   ...accountRoutes,
   ...certificateRoutes,

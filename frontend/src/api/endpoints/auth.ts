@@ -37,6 +37,11 @@ export const authApi = {
 
     return response.data;
   },
+  logout: async (): Promise<AuthMessageResponse> => {
+    const response = await apiClient.post<AuthMessageResponse>("/auth/logout");
+
+    return response.data;
+  },
   login: async (payload: LoginRequest): Promise<LoginResponse> => {
     const response = await apiClient.post<AuthApiResponse<LoginResponse>>("/auth/login", payload);
 
