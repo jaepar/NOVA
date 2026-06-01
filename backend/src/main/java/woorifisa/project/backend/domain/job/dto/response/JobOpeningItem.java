@@ -15,11 +15,9 @@ public record JobOpeningItem(
         @JsonProperty("job_category")
         String jobCategory,
         String experience,
-        @JsonProperty("employment_type")
-        String employmentType,
+        @JsonProperty("work_period")
+        String workPeriod,
         String salary,
-        @JsonProperty("deadline_type")
-        String deadlineType,
         @JsonProperty("created_at")
         LocalDateTime createdAt
 ) {
@@ -32,9 +30,8 @@ public record JobOpeningItem(
                 job.getOpeningTitle(),
                 job.getJobCategory(),
                 job.getExperience(),
-                job.getEmploymentType(),
+                job.getWorkPeriod(),
                 job.getSalary(),
-                job.getDeadlineType(),
                 job.getCreatedAt()
         );
     }
