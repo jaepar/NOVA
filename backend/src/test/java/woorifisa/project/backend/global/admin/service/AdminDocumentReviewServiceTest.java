@@ -24,6 +24,7 @@ import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
+import woorifisa.project.backend.domain.user.service.NotificationService;
 import woorifisa.project.backend.domain.user.service.UserDocumentS3Uploader;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -42,6 +43,9 @@ class AdminDocumentReviewServiceTest {
 
 	@Mock
 	private CoreBankingClient coreBankingClient;
+
+	@Mock
+	private NotificationService notificationService;
 
 	@InjectMocks
 	private AdminService adminDocumentReviewService;
@@ -83,7 +87,8 @@ class AdminDocumentReviewServiceTest {
 		assertThat(user.getHasCertificate()).isTrue();
 		assertThat(user.getIssuedTime()).isNotNull();
 		verify(documentRepository).save(latestResidence);
-		verify(coreBankingClient).createCustomer(org.mockito.ArgumentMatchers.any());
+			verify(coreBankingClient).createCustomer(org.mockito.ArgumentMatchers.any());
+			verify(notificationService).createOrReplaceSupplementDocumentNotification(user, "제출한 서류가 모두 승인되었습니다.");
 	}
 
 	@Test
@@ -101,6 +106,8 @@ class AdminDocumentReviewServiceTest {
 		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT))
 			.thenReturn(Optional.of(latestAlien));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT))
+			.thenReturn(Optional.empty());
 		when(userDocumentS3Uploader.renameStatus(
 			userId,
 			DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT,
@@ -113,6 +120,42 @@ class AdminDocumentReviewServiceTest {
 		assertThat(latestAlien.getStatus()).isEqualTo(DocumentStatus.REJECTED);
 		assertThat(latestAlien.getMissing()).isEqualTo("issue_date,signature");
 		verify(documentRepository).save(latestAlien);
+		verify(notificationService, never()).createOrReplaceSupplementDocumentNotification(user, "서류 심사 결과 보완이 필요합니다.");
+	}
+
+	@Test
+	@DisplayName("관리자 심사 시 두 문서가 모두 심사 완료 상태이고 하나라도 REJECTED면 보완 알림을 생성한다")
+	void createSupplementNotificationWhenAllReviewedAndAnyRejected() {
+		Long userId = 1L;
+		User user = User.builder().userId(userId).build();
+		Document latestAlien = Document.builder()
+			.user(user)
+			.documentType(DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT)
+			.status(DocumentStatus.MODIFIED)
+			.fileUrl("https://s3/documents/1_ALIEN_REGISTRATION_SUPPORTING_DOCUMENT_MODIFIED.pdf")
+			.build();
+		Document latestResidenceRejected = Document.builder()
+			.user(user)
+			.documentType(DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)
+			.status(DocumentStatus.REJECTED)
+			.fileUrl("https://s3/documents/1_RESIDENCE_VERIFICATION_DOCUMENT_REJECTED.pdf")
+			.build();
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT))
+			.thenReturn(Optional.of(latestAlien));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT))
+			.thenReturn(Optional.of(latestResidenceRejected));
+		when(userDocumentS3Uploader.renameStatus(
+			userId,
+			DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT,
+			DocumentStatus.MODIFIED,
+			DocumentStatus.REJECTED
+		)).thenReturn("https://s3/documents/1_ALIEN_REGISTRATION_SUPPORTING_DOCUMENT_REJECTED.pdf");
+
+		adminDocumentReviewService.reviewDocument(userId, "ALIEN_REGISTRATION_APPLICATION", "REJECTED", "issue_date");
+
+		verify(notificationService).createOrReplaceSupplementDocumentNotification(user, "서류 심사 결과 보완이 필요합니다.");
 	}
 
 	@Test
@@ -169,7 +212,8 @@ class AdminDocumentReviewServiceTest {
 
 		adminDocumentReviewService.reviewDocument(userId, "RESIDENCE_PROOF", "APPROVED", null);
 
-		verify(coreBankingClient, never()).createCustomer(org.mockito.ArgumentMatchers.any());
+			verify(coreBankingClient, never()).createCustomer(org.mockito.ArgumentMatchers.any());
+			verify(notificationService).createOrReplaceSupplementDocumentNotification(user, "제출한 서류가 모두 승인되었습니다.");
 	}
 
 	@Test
