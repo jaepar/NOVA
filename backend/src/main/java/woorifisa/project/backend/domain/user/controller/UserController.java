@@ -42,6 +42,16 @@ public class UserController {
 		return BaseResponse.ok(null);
 	}
 
+	// 서류 승인 알림 클릭 시 해당 알림 제거
+	@PostMapping("/notifications/{notificationId}/delete")
+	public BaseResponse<Void> deleteNotification(
+		@AuthenticationPrincipal SessionUserPrincipal principal,
+		@PathVariable Long notificationId
+	) {
+		userService.deleteNotification(principal.userId(), notificationId);
+		return BaseResponse.ok(null);
+	}
+
 	// 여권 인증
 	@PostMapping(value = "/verifications/passports", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public BaseResponse<PassportResponse> recognizePassport(
