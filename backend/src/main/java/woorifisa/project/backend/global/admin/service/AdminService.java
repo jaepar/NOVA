@@ -13,6 +13,7 @@ import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
+import woorifisa.project.backend.domain.user.service.NotificationService;
 import woorifisa.project.backend.domain.user.service.UserDocumentS3Uploader;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -27,6 +28,7 @@ public class AdminService {
 	private final DocumentRepository documentRepository;
 	private final UserDocumentS3Uploader userDocumentS3Uploader;
 	private final CoreBankingClient coreBankingClient;
+	private final NotificationService notificationService;
 
 	@Transactional
 	public void reviewDocument(Long userId, String documentTypeValue, String targetStatusValue, String missing) {
@@ -55,14 +57,17 @@ public class AdminService {
 		try {
 			String reviewedMissing = targetStatus == DocumentStatus.APPROVED ? null : missing;
 			document.changeStatus(updatedFileUrl, targetStatus, reviewedMissing);
-			documentRepository.save(document);
-			log.info("[admin_review:status_updated] userId={}, documentType={}, from={}, to={}",
-				userId, documentType, previousStatus, targetStatus);
+				documentRepository.save(document);
+				log.info("[admin_review:status_updated] userId={}, documentType={}, from={}, to={}",
+					userId, documentType, previousStatus, targetStatus);
 
-			// 해당 유저의 서류 2개가 모두 APPROVED 상태라면, 인증서 발급
-			if (targetStatus == DocumentStatus.APPROVED) {
-				updateCertificateIfAllDocumentsApproved(user);
-			}
+				// 심사 결과에 맞춰 보완 필요/승인 완료 알림을 최신 1건으로 갱신한다.
+				createDocumentReviewNotification(user, targetStatus);
+
+				// 해당 유저의 서류 2개가 모두 APPROVED 상태라면, 인증서 발급
+				if (targetStatus == DocumentStatus.APPROVED) {
+					updateCertificateIfAllDocumentsApproved(user);
+				}
 		} catch (RuntimeException exception) {
 			rollbackS3Status(userId, documentType, targetStatus, previousStatus, exception);
 			throw exception;
@@ -117,9 +122,56 @@ public class AdminService {
 		}
 	}
 
+	// 서류 심사 결과에 따라 보완 필요 또는 전체 승인 완료 알림을 생성한다.
+	private void createDocumentReviewNotification(User user, DocumentStatus targetStatus) {
+		if (!isAllDocumentsReviewed(user)) {
+			return;
+		}
+
+		if (targetStatus == DocumentStatus.REJECTED || hasAnyRejectedDocument(user)) {
+			notificationService.createOrReplaceSupplementDocumentNotification(user, "서류 심사 결과 보완이 필요합니다.");
+			return;
+		}
+
+		if (targetStatus == DocumentStatus.APPROVED && isAllDocumentsApproved(user)) {
+			notificationService.createOrReplaceSupplementDocumentNotification(user, "제출한 서류가 모두 승인되었습니다.");
+		}
+	}
+
+	// 두 종류의 필수 문서 최신 상태가 모두 심사 완료(APPROVED/REJECTED)인지 확인한다.
+	private boolean isAllDocumentsReviewed(User user) {
+		return isLatestReviewed(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT)
+			&& isLatestReviewed(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT);
+	}
+
+	// 두 종류의 필수 문서 중 하나라도 최신 상태가 REJECTED인지 확인한다.
+	private boolean hasAnyRejectedDocument(User user) {
+		return isLatestRejected(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT)
+			|| isLatestRejected(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT);
+	}
+
+	// 두 종류의 필수 문서 최신 상태가 모두 APPROVED인지 확인한다.
+	private boolean isAllDocumentsApproved(User user) {
+		boolean alienApproved = isLatestApproved(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT);
+		boolean residenceApproved = isLatestApproved(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT);
+		return alienApproved && residenceApproved;
+	}
+
+	private boolean isLatestReviewed(User user, DocumentType documentType) {
+		return documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
+			.map(document -> document.getStatus() == DocumentStatus.APPROVED || document.getStatus() == DocumentStatus.REJECTED)
+			.orElse(false);
+	}
+
 	private boolean isLatestApproved(User user, DocumentType documentType) {
 		return documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
 			.map(document -> document.getStatus() == DocumentStatus.APPROVED)
+			.orElse(false);
+	}
+
+	private boolean isLatestRejected(User user, DocumentType documentType) {
+		return documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
+			.map(document -> document.getStatus() == DocumentStatus.REJECTED)
 			.orElse(false);
 	}
 
