@@ -122,6 +122,20 @@ flowchart TD
 - 이체 사전 조회는 클라우드 `banking` API에서 처리하되, 내 계좌 정보는 `account_ref` 조회를 사용하고 수취인 예금주명은 coreBanking 연동 API 응답을 기준으로 한다.
 - 계좌 비밀번호 검증은 클라우드 `banking` API에서 본인 계좌 소유 확인 후 coreBanking 검증 API 응답을 기준으로 처리한다.
 
+## Notification Rules (`user/notification`)
+
+- 알림은 `user` 도메인에서 관리하며, 동일 `user + type` 알림은 최신 1건만 유지한다.
+- 보완 서류 알림(`SUPPLEMENT_DOCUMENT`):
+  - 관리자 서류 심사 결과에서 두 문서가 모두 심사 완료(`APPROVED`/`REJECTED`)일 때만 생성한다.
+  - 두 문서 중 하나라도 `REJECTED`이면 "보완 필요" 알림을 생성한다.
+  - 사용자가 보완 서류를 재제출하면 기존 보완 알림을 삭제한다.
+- 서류 승인 완료 알림:
+  - 두 문서가 모두 `APPROVED`일 때 생성한다.
+- 외국인등록증 기간 알림(`RESIDENCE_CARD_PERIOD`):
+  - 대상은 `hasCertificate=true`, `hasResidenceCard=false`, `issuedTime!=null` 사용자로 제한한다.
+  - 발급 1개월/2개월 시점과 만료 7일 전부터 만료 전일까지 스케줄로 생성한다.
+- 알림 클릭 삭제 API는 본인 소유 알림만 삭제 가능해야 한다.
+
 ## Logging Policy
 
 - 로깅 프레임워크: SLF4J 기반 (`@Slf4j`) 사용.
