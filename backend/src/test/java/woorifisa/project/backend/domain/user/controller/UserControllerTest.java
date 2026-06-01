@@ -79,8 +79,8 @@ class UserControllerTest {
 			verify(userService).uploadDocuments(eq(1L), any(), any());
 		}
 
-	@Test
-	@DisplayName("여권 OCR API는 성공 응답을 반환한다")
+		@Test
+		@DisplayName("여권 OCR API는 성공 응답을 반환한다")
 	void recognizePassportReturnsSuccess() throws Exception {
 		MockMultipartFile passportImage = new MockMultipartFile(
 			"file",
@@ -114,8 +114,9 @@ class UserControllerTest {
 			.andExpect(jsonPath("$.code").value("20000"))
 			.andExpect(jsonPath("$.data.num").value("M12345678"));
 
-		verify(passportOcrService).recognizePassport(any());
-	}
+				verify(passportOcrService).recognizePassport(any());
+		}
+
 
 	@Test
 	@DisplayName("Liveness 세션 생성 API는 성공 응답을 반환한다")
@@ -254,4 +255,3 @@ class UserControllerTest {
 			);
 		}
 }
-

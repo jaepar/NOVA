@@ -17,11 +17,14 @@ import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
+import woorifisa.project.backend.domain.user.dto.response.NotificationResponse;
 import woorifisa.project.backend.domain.user.dto.response.PassportResponse;
+import woorifisa.project.backend.domain.user.service.NotificationService;
 import woorifisa.project.backend.domain.user.service.PassportOcrService;
 import woorifisa.project.backend.domain.user.service.UserService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,6 +32,7 @@ import woorifisa.project.backend.global.response.BaseResponse;
 public class UserController {
 
 	private final UserService userService;
+	private final NotificationService notificationService;
 	private final PassportOcrService passportOcrService;
 
 	// 서류 제출
@@ -40,6 +44,24 @@ public class UserController {
 	) {
 		userService.uploadDocuments(principal.userId(), residenceVerificationPdf, alienRegistrationApplicationPdf);
 		return BaseResponse.ok(null);
+	}
+
+	// 서류 승인 알림 클릭 시 해당 알림 제거
+	@PostMapping("/notifications/{notificationId}/delete")
+	public BaseResponse<Void> deleteNotification(
+		@AuthenticationPrincipal SessionUserPrincipal principal,
+		@PathVariable Long notificationId
+	) {
+		notificationService.deleteNotificationById(principal.userId(), notificationId);
+		return BaseResponse.ok(null);
+	}
+
+	// 알림 목록 조회
+	@GetMapping("/notifications")
+	public BaseResponse<List<NotificationResponse>> getNotifications(
+		@AuthenticationPrincipal SessionUserPrincipal principal
+	) {
+		return BaseResponse.ok(notificationService.getNotifications(principal.userId()));
 	}
 
 	// 여권 인증
