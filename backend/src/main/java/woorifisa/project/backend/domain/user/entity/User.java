@@ -60,5 +60,6 @@ public class User extends BaseEntity {
 
     public void issueCertificate() {
         this.hasCertificate = true;
+        this.issuedTime = LocalDateTime.now();
     }
 }

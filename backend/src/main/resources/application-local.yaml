@@ -65,6 +65,9 @@ cloud:
 
 kyc:
   verification:
+    passport-ocr:
+      url: ${CLOVA_OCR_URL}
+      secret: ${CLOVA_OCR_SECRET}
     rekognition:
       region: ap-northeast-1
       output-bucket: ${AWS_S3_BUCKET}

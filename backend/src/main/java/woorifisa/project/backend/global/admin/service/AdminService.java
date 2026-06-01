@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.user.entity.Document;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
@@ -13,18 +14,24 @@ import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.domain.user.service.UserDocumentS3Uploader;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.global.exception.CustomException;
+import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AdminService {
 
 	private final UserRepository userRepository;
 	private final DocumentRepository documentRepository;
 	private final UserDocumentS3Uploader userDocumentS3Uploader;
+	private final CoreBankingClient coreBankingClient;
 
 	@Transactional
 	public void reviewDocument(Long userId, String documentTypeValue, String targetStatusValue, String missing) {
+		log.info("[admin_review:requested] userId={}, documentType={}, targetStatus={}",
+			userId, documentTypeValue, targetStatusValue);
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 		DocumentType documentType = parseDocumentType(documentTypeValue);
@@ -45,13 +52,20 @@ public class AdminService {
 			targetStatus
 		);
 
-		String reviewedMissing = targetStatus == DocumentStatus.APPROVED ? null : missing;
-		document.changeStatus(updatedFileUrl, targetStatus, reviewedMissing);
-		documentRepository.save(document);
+		try {
+			String reviewedMissing = targetStatus == DocumentStatus.APPROVED ? null : missing;
+			document.changeStatus(updatedFileUrl, targetStatus, reviewedMissing);
+			documentRepository.save(document);
+			log.info("[admin_review:status_updated] userId={}, documentType={}, from={}, to={}",
+				userId, documentType, previousStatus, targetStatus);
 
-		// 해당 유저의 서류 2개가 모두 APPROVED 상태라면, 인증서 발급
-		if (targetStatus == DocumentStatus.APPROVED) {
-			updateCertificateIfAllDocumentsApproved(user);
+			// 해당 유저의 서류 2개가 모두 APPROVED 상태라면, 인증서 발급
+			if (targetStatus == DocumentStatus.APPROVED) {
+				updateCertificateIfAllDocumentsApproved(user);
+			}
+		} catch (RuntimeException exception) {
+			rollbackS3Status(userId, documentType, targetStatus, previousStatus, exception);
+			throw exception;
 		}
 	}
 
@@ -90,9 +104,16 @@ public class AdminService {
 	private void updateCertificateIfAllDocumentsApproved(User user) {
 		boolean alienApproved = isLatestApproved(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT);
 		boolean residenceApproved = isLatestApproved(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT);
+		log.info("[certificate:eligibility_checked] userId={}, alienApproved={}, residenceApproved={}, hasCertificate={}",
+			user.getUserId(), alienApproved, residenceApproved, user.getHasCertificate());
 
-		if (alienApproved && residenceApproved) {
+		if (alienApproved && residenceApproved && !Boolean.TRUE.equals(user.getHasCertificate())) {
 			user.issueCertificate();
+			log.info("[certificate:issued] userId={}, issuedTime={}", user.getUserId(), user.getIssuedTime());
+			log.info("[certificate:core_banking_customer_create_requested] userId={}, name={}, email={}",
+				user.getUserId(), user.getName(), user.getEmail());
+			coreBankingClient.createCustomer(CoreBankingCreateCustomerRequest.from(user));
+			log.info("[certificate:core_banking_customer_create_completed] userId={}", user.getUserId());
 		}
 	}
 
@@ -100,5 +121,35 @@ public class AdminService {
 		return documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
 			.map(document -> document.getStatus() == DocumentStatus.APPROVED)
 			.orElse(false);
+	}
+
+	private void rollbackS3Status(
+		Long userId,
+		DocumentType documentType,
+		DocumentStatus currentStatus,
+		DocumentStatus previousStatus,
+		RuntimeException originalException
+	) {
+		try {
+			userDocumentS3Uploader.renameStatus(userId, documentType, currentStatus, previousStatus);
+			log.warn(
+				"[admin_review:s3_rollback_completed] userId={}, documentType={}, from={}, to={}",
+				userId,
+				documentType,
+				currentStatus,
+				previousStatus
+			);
+		} catch (RuntimeException rollbackException) {
+			log.error(
+				"[admin_review:s3_rollback_failed] userId={}, documentType={}, from={}, to={}, originalReason={}, rollbackReason={}",
+				userId,
+				documentType,
+				currentStatus,
+				previousStatus,
+				originalException.getMessage(),
+				rollbackException.getMessage(),
+				rollbackException
+			);
+		}
 	}
 }

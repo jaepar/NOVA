@@ -33,37 +33,18 @@ export type FaceMatchRequest = {
   registeredImageKey: string
 }
 
-export type PassportOcrRawResponse = {
-  version?: string
-  requestId?: string
-  timestamp?: number
-  images?: Array<{
-    uid?: string
-    name?: string
-    inferResult?: string
-    message?: string
-    validationResult?: {
-      result?: string
-    }
-    fields?: Array<{
-      name?: string
-      valueType?: string
-      inferText?: string
-      inferConfidence?: number
-    }>
-  }>
-}
-
-export type PassportOcrField = {
-  name: string
-  text: string
-  confidence?: number
-}
-
-export type PassportOcrResult = {
-  success: boolean
-  fields: PassportOcrField[]
-  raw: PassportOcrRawResponse
+export type PassportResponse = {
+  type?: string
+  issueCountry?: string
+  num?: string
+  surName?: string
+  givenName?: string
+  nationality?: string
+  birthDate?: string
+  sex?: string
+  issueDate?: string
+  expireDate?: string
+  authority?: string
 }
 
 export const certificateApi = {
@@ -89,50 +70,14 @@ export const certificateApi = {
     )
     return response.data.data
   },
-  recognizePassport: async (imageFile: File): Promise<PassportOcrResult> => {
-    const ocrUrl = import.meta.env.VITE_CLOVA_OCR_URL as string | undefined
-    const ocrSecret = import.meta.env.VITE_CLOVA_OCR_SECRET as string | undefined
-
-    if (!ocrUrl || !ocrSecret) {
-      throw new Error('OCR 연동 환경변수가 설정되지 않았습니다.')
-    }
-
-    const message = {
-      version: 'V2',
-      requestId: crypto.randomUUID(),
-      timestamp: Date.now(),
-      images: [
-        {
-          format: 'jpg',
-          name: 'passport',
-        },
-      ],
-    }
-
+  recognizePassport: async (imageFile: File): Promise<PassportResponse> => {
     const formData = new FormData()
-    formData.append('message', JSON.stringify(message))
     formData.append('file', imageFile)
 
-    const response = await apiClient.post<PassportOcrRawResponse>(ocrUrl, formData, {
-      headers: {
-        'X-OCR-SECRET': ocrSecret,
-      },
-    })
-
-    const raw = response.data
-    const fields =
-      raw.images?.[0]?.fields
-        ?.filter((field): field is NonNullable<typeof field> => Boolean(field))
-        .map((field) => ({
-          name: field.name ?? '',
-          text: field.inferText ?? '',
-          confidence: field.inferConfidence,
-        })) ?? []
-
-    return {
-      success: raw.images?.[0]?.inferResult === 'SUCCESS',
-      fields,
-      raw,
-    }
+    const response = await apiClient.post<ApiEnvelope<PassportResponse>>(
+      '/users/verifications/passports',
+      formData
+    )
+    return response.data.data
   },
 }
