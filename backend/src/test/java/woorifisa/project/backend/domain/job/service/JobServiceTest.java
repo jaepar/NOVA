@@ -7,8 +7,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
@@ -24,6 +25,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.JOB_NOT_FOUND;
 
@@ -37,47 +39,50 @@ class JobServiceTest {
     private JobService jobService;
 
     @Test
-    @DisplayName("find job openings with latest pagination")
-    void findJobOpenings() {
+    @DisplayName("get job opening list with slice pagination")
+    void getJobOpeningList() {
         Job job = job(1L, "ABC Company", "SEOUL", "Backend Developer", LocalDateTime.of(2026, 5, 13, 12, 30));
-        when(jobRepository.findAll(any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(job), Pageable.ofSize(10), 25));
+        Pageable requestedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        when(jobRepository.findAllBy(any(Pageable.class)))
+                .thenReturn(new SliceImpl<>(List.of(job), requestedPageable, true));
 
-        JobOpeningListResponse response = jobService.findJobOpenings(0, 10);
+        JobOpeningListResponse response = jobService.getJobOpeningList(requestedPageable);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        org.mockito.Mockito.verify(jobRepository).findAll(pageableCaptor.capture());
+        verify(jobRepository).findAllBy(pageableCaptor.capture());
         Pageable pageable = pageableCaptor.getValue();
 
         assertThat(pageable.getPageNumber()).isEqualTo(0);
         assertThat(pageable.getPageSize()).isEqualTo(10);
         assertThat(pageable.getSort().getOrderFor("createdAt")).isNotNull();
         assertThat(pageable.getSort().getOrderFor("createdAt").getDirection()).isEqualTo(Sort.Direction.DESC);
-        assertThat(response.totalCount()).isEqualTo(25);
-        assertThat(response.totalPages()).isEqualTo(3);
         assertThat(response.page()).isEqualTo(0);
         assertThat(response.size()).isEqualTo(10);
-        assertThat(response.jobOpenings()).hasSize(1);
-        assertThat(response.jobOpenings().get(0).jobId()).isEqualTo(1L);
-        assertThat(response.jobOpenings().get(0).createdAt()).isEqualTo(LocalDateTime.of(2026, 5, 13, 12, 30));
+        assertThat(response.hasNext()).isTrue();
+        assertThat(response.items()).hasSize(1);
+        assertThat(response.items().get(0).jobId()).isEqualTo(1L);
+        assertThat(response.items().get(0).workPeriod()).isEqualTo("5 days a week");
+        assertThat(response.items().get(0).createdAt()).isEqualTo(LocalDateTime.of(2026, 5, 13, 12, 30));
     }
 
     @Test
-    @DisplayName("return empty page when there are no job openings")
-    void findJobOpeningsEmpty() {
-        when(jobRepository.findAll(any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(), Pageable.ofSize(10), 0));
+    @DisplayName("return empty slice when there are no job openings")
+    void getJobOpeningListEmpty() {
+        Pageable requestedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        when(jobRepository.findAllBy(any(Pageable.class)))
+                .thenReturn(new SliceImpl<>(List.of(), requestedPageable, false));
 
-        JobOpeningListResponse response = jobService.findJobOpenings(0, 10);
+        JobOpeningListResponse response = jobService.getJobOpeningList(requestedPageable);
 
-        assertThat(response.totalCount()).isZero();
-        assertThat(response.totalPages()).isZero();
-        assertThat(response.jobOpenings()).isEmpty();
+        assertThat(response.items()).isEmpty();
+        assertThat(response.page()).isZero();
+        assertThat(response.size()).isEqualTo(10);
+        assertThat(response.hasNext()).isFalse();
     }
 
     @Test
     @DisplayName("find job opening detail by job ID")
-    void findJobOpening() {
+    void getJobOpeningDetail() {
         Job job = Job.builder()
                 .jobId(1L)
                 .company("ABC Company")
@@ -100,7 +105,7 @@ class JobServiceTest {
                 .build();
         when(jobRepository.findById(1L)).thenReturn(Optional.of(job));
 
-        JobOpeningResponse response = jobService.findJobOpening(1L);
+        JobOpeningResponse response = jobService.getJobOpeningDetail(1L);
 
         assertThat(response.jobId()).isEqualTo(1L);
         assertThat(response.company()).isEqualTo("ABC Company");
@@ -124,10 +129,10 @@ class JobServiceTest {
 
     @Test
     @DisplayName("throw JOB_NOT_FOUND when job opening does not exist")
-    void findJobOpeningNotFound() {
+    void getJobOpeningDetailNotFound() {
         when(jobRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> jobService.findJobOpening(999L))
+        assertThatThrownBy(() -> jobService.getJobOpeningDetail(999L))
                 .isInstanceOf(CustomException.class)
                 .extracting("exceptionStatus")
                 .isEqualTo(JOB_NOT_FOUND);
@@ -142,6 +147,7 @@ class JobServiceTest {
                 .jobCategory("IT")
                 .experience("ENTRY")
                 .employmentType("FULL_TIME")
+                .workPeriod("5 days a week")
                 .salary("Company policy")
                 .deadlineType("UNTIL_FILLED")
                 .build();
