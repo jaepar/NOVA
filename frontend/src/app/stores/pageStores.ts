@@ -202,18 +202,17 @@ interface Step5PassportCaptureState {
   capturedImage: string | null
   cameraError: string | null
   parsedPassportData: {
-    docType: string
-    nationalityCode: string
-    passportNumber: string
-    surname: string
-    givenNames: string
+    type: string
+    issueCountry: string
+    num: string
+    surName: string
+    givenName: string
+    nationlity: string
     birthDate: string
     sex: string
-    country: string
-    issuingCountryCode: string
     authority: string
     issueDate: string
-    expiryDate: string
+    expireDate: string
   } | null
   setMode: (mode: 'live' | 'review') => void
   setCapturedImage: (capturedImage: string | null) => void
