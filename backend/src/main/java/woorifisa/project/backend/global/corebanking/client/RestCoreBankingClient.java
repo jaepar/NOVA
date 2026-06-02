@@ -11,9 +11,11 @@ import org.springframework.web.client.RestClientException;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransactionQuery;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRequestLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.response.CoreBankingBaseResponse;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.response.CoreBankingWalletDebitLookupResponse;
@@ -128,6 +130,40 @@ public class RestCoreBankingClient implements CoreBankingClient {
             if (!response.getSuccess()) {
                 throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
             }
+        } catch (RestClientException exception) {
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+        }
+    }
+
+    @Override
+    public CoreBankingTransactionsResponse findAccountTransactions(CoreBankingTransactionQuery query) {
+        try {
+            BaseResponse<CoreBankingTransactionsResponse> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/account-transactions/accounts/{accountId}")
+                            .queryParam("from", query.from())
+                            .queryParam("to", query.to())
+                            .queryParam("flow", query.flow())
+                            .queryParam("page", query.page())
+                            .queryParam("size", query.size())
+                            .build(query.accountId()))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+            if (!response.getSuccess()) {
+                throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
+            }
+            if (response.getData() == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+            return response.getData();
         } catch (RestClientException exception) {
             throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
         }
