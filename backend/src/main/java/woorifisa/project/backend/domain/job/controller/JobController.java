@@ -21,14 +21,14 @@ public class JobController {
     private final JobService jobService;
 
     @GetMapping
-    public BaseResponse<JobOpeningListResponse> findJobOpenings(
+    public BaseResponse<JobOpeningListResponse> getJobOpeningList(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         return BaseResponse.ok(jobService.getJobOpeningList(pageable));
     }
 
     @GetMapping("/{jobId}")
-    public BaseResponse<JobOpeningResponse> findJobOpening(@PathVariable Long jobId) {
+    public BaseResponse<JobOpeningResponse> getJobOpeningDetail(@PathVariable Long jobId) {
         return BaseResponse.ok(jobService.getJobOpeningDetail(jobId));
     }
 }
