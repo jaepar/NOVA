@@ -2,6 +2,9 @@ package woorifisa.project.backend.domain.wallet.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -37,6 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_SIZE_PARAM;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ALREADY_EXISTS;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CREATE_FAILED;
@@ -118,14 +122,18 @@ class WalletServiceTest {
         WalletTransaction first = walletTransaction(101L, wallet, TransactionFlow.DEPOSIT, "월렛 충전", 10000, LocalDateTime.of(2025, 5, 24, 10, 30));
         WalletTransaction second = walletTransaction(102L, wallet, TransactionFlow.WITHDRAWAL, "이마트24 강남점", 2500, LocalDateTime.of(2025, 5, 24, 14, 22));
 
-        when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.of(wallet));
-        when(walletTransactionRepository.findAllByWallet_WalletIdOrderByCreatedAtDesc(10L)).thenReturn(List.of(second, first));
+        PageRequest pageable = PageRequest.of(0, 2);
+        Slice<WalletTransaction> transactions = new SliceImpl<>(List.of(second, first), pageable, true);
 
-        WalletTransactionsResponse response = walletService.findWalletTransactions(userId);
+        when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.of(wallet));
+        when(walletTransactionRepository.findAllByWallet_WalletIdOrderByCreatedAtDesc(10L, pageable)).thenReturn(transactions);
+
+        WalletTransactionsResponse response = walletService.findWalletTransactions(userId, pageable);
 
         assertThat(response.balance()).isEqualTo(12500);
         assertThat(response.transactions()).hasSize(2);
         assertThat(response.transactions().get(0).walletTransactionId()).isEqualTo(102L);
+        assertThat(response.hasNext()).isTrue();
     }
 
     @Test
@@ -259,9 +267,17 @@ class WalletServiceTest {
     void notFound() {
         when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> walletService.findWalletTransactions(1L))
+        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, PageRequest.of(0, 20)))
                 .isInstanceOfSatisfying(CustomException.class,
                         exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("size가 100보다 크면 예외가 발생한다")
+    void invalidSizeGreaterThanOneHundred() {
+        assertThatThrownBy(() -> walletService.findWalletTransactions(1L, PageRequest.of(0, 101)))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(INVALID_SIZE_PARAM));
     }
 
     @Test

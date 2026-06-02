@@ -22,6 +22,8 @@ import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
+import woorifisa.project.backend.domain.user.dto.response.PassportResponse;
+import woorifisa.project.backend.domain.user.service.PassportOcrService;
 import woorifisa.project.backend.domain.user.service.UserService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 
@@ -38,6 +40,9 @@ class UserControllerTest {
 
 	@MockitoBean
 	private UserService userService;
+
+	@MockitoBean
+	private PassportOcrService passportOcrService;
 
 	@MockitoBean
 	private JpaMetamodelMappingContext jpaMetamodelMappingContext;
@@ -75,8 +80,47 @@ class UserControllerTest {
 		}
 
 		@Test
-		@DisplayName("Liveness 세션 생성 API는 성공 응답을 반환한다")
-		void createLivenessSessionReturnsSuccess() throws Exception {
+		@DisplayName("여권 OCR API는 성공 응답을 반환한다")
+	void recognizePassportReturnsSuccess() throws Exception {
+		MockMultipartFile passportImage = new MockMultipartFile(
+			"file",
+			"passport.jpg",
+			MediaType.IMAGE_JPEG_VALUE,
+			"passport".getBytes()
+		);
+
+		PassportResponse payload = PassportResponse.builder()
+			.type("P")
+			.issueCountry("KOR")
+			.num("M12345678")
+			.surName("KIM")
+			.givenName("GILDONG")
+			.nationality("KOREAN")
+			.birthDate("1990.01.01")
+			.sex("M")
+			.issueDate("2020.01.01")
+			.expireDate("2030.01.01")
+			.authority("MOFA")
+			.build();
+
+		when(passportOcrService.recognizePassport(any())).thenReturn(payload);
+
+		mockMvc.perform(multipart("/users/verifications/passports")
+				.file(passportImage)
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"))
+			.andExpect(jsonPath("$.data.num").value("M12345678"));
+
+				verify(passportOcrService).recognizePassport(any());
+		}
+
+
+	@Test
+	@DisplayName("Liveness 세션 생성 API는 성공 응답을 반환한다")
+	void createLivenessSessionReturnsSuccess() throws Exception {
 			LivenessSessionResponse payload = new LivenessSessionResponse(
 				"session-123",
 				Instant.parse("2026-05-29T00:00:00Z")
@@ -84,7 +128,7 @@ class UserControllerTest {
 
 			when(userService.createLivenessSession(1L)).thenReturn(payload);
 
-			mockMvc.perform(post("/users/liveness/session")
+			mockMvc.perform(post("/users/verifications/liveness")
 					.with(authentication(authToken()))
 					.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -95,9 +139,9 @@ class UserControllerTest {
 			verify(userService).createLivenessSession(1L);
 		}
 
-		@Test
-		@DisplayName("Liveness 결과 조회 API는 성공 응답을 반환한다")
-		void getLivenessResultReturnsSuccess() throws Exception {
+	@Test
+	@DisplayName("Liveness 결과 조회 API는 성공 응답을 반환한다")
+	void getLivenessResultReturnsSuccess() throws Exception {
 			LivenessVerificationResponse payload = new LivenessVerificationResponse(
 				"session-123",
 				"SUCCEEDED",
@@ -108,7 +152,7 @@ class UserControllerTest {
 
 			when(userService.getLivenessResult(1L, "session-123")).thenReturn(payload);
 
-			mockMvc.perform(get("/users/liveness/session/{sessionId}", "session-123")
+			mockMvc.perform(get("/users/verifications/liveness/{sessionId}", "session-123")
 					.with(authentication(authToken()))
 					.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -123,9 +167,9 @@ class UserControllerTest {
 			verify(userService).getLivenessResult(1L, "session-123");
 		}
 
-		@Test
-		@DisplayName("Liveness 동일인 비교 API는 성공 응답을 반환한다")
-		void compareFaceReturnsSuccess() throws Exception {
+	@Test
+	@DisplayName("Liveness 동일인 비교 API는 성공 응답을 반환한다")
+	void compareFaceReturnsSuccess() throws Exception {
 			LivenessVerificationResponse payload = new LivenessVerificationResponse(
 				"session-123",
 				"FACE_MATCH",
@@ -137,14 +181,14 @@ class UserControllerTest {
 			when(userService.compareFaceWithRegisteredImage(eq(1L), eq("session-123"), any(FaceMatchRequest.class)))
 				.thenReturn(payload);
 
-			mockMvc.perform(post("/users/liveness/session/{sessionId}/face-match", "session-123")
+			mockMvc.perform(post("/users/verifications/liveness/{sessionId}/face-match", "session-123")
 					.with(authentication(authToken()))
 					.contentType(MediaType.APPLICATION_JSON)
 					.accept(MediaType.APPLICATION_JSON)
 					.content("""
                                 {
-                                  "bucket": "bucket",
-                                  "key": "registered.jpg"
+                                  "registeredImageBucket": "bucket",
+                                  "registeredImageKey": "registered.jpg"
                                 }
                                 """))
 				.andExpect(status().isOk())
@@ -163,9 +207,9 @@ class UserControllerTest {
 			);
 		}
 
-		@Test
-		@DisplayName("Liveness 최종 확정 API는 성공 응답을 반환한다")
-		void finalizeReturnsSuccess() throws Exception {
+	@Test
+	@DisplayName("Liveness 최종 확정 API는 성공 응답을 반환한다")
+	void finalizeReturnsSuccess() throws Exception {
 			LivenessFinalizeResponse payload = new LivenessFinalizeResponse(
 				"session-123",
 				95f,
@@ -177,14 +221,14 @@ class UserControllerTest {
 			when(userService.finalizeVerification(eq(1L), eq("session-123"), any(FaceMatchRequest.class)))
 				.thenReturn(payload);
 
-			mockMvc.perform(post("/users/liveness/session/{sessionId}/finalize", "session-123")
+			mockMvc.perform(post("/users/verifications/liveness/{sessionId}/finalize", "session-123")
 					.with(authentication(authToken()))
 					.contentType(MediaType.APPLICATION_JSON)
 					.accept(MediaType.APPLICATION_JSON)
 					.content("""
                                 {
-                                  "bucket": "bucket",
-                                  "key": "registered.jpg"
+                                  "registeredImageBucket": "bucket",
+                                  "registeredImageKey": "registered.jpg"
                                 }
                                 """))
 				.andExpect(status().isOk())
@@ -211,4 +255,3 @@ class UserControllerTest {
 			);
 		}
 }
-

@@ -1,6 +1,8 @@
 package woorifisa.project.backend.domain.wallet.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -22,8 +24,8 @@ import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.time.Duration;
-import java.util.List;
 
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_SIZE_PARAM;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ALREADY_EXISTS;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CREATE_FAILED;
@@ -57,10 +59,16 @@ public class WalletService {
     private final StringRedisTemplate stringRedisTemplate;
 
     @Transactional(readOnly = true)
-    public WalletTransactionsResponse findWalletTransactions(Long userId) {
+    public WalletTransactionsResponse findWalletTransactions(Long userId, Pageable pageable) {
+        // size 상한(100)은 대량 조회로 인한 DB 부하 방지 (page/size 음수·0은 Spring MVC가 사전 차단)
+        if (pageable.getPageSize() > 100) {
+            throw new CustomException(INVALID_SIZE_PARAM);
+        }
         Wallet wallet = walletRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new CustomException(WALLET_NOT_FOUND));
-        List<WalletTransaction> transactions = walletTransactionRepository.findAllByWallet_WalletIdOrderByCreatedAtDesc(wallet.getWalletId());
+        // Slice 사용 — count 쿼리 없이 다음 페이지 존재 여부(hasNext)만 확인
+        Slice<WalletTransaction> transactions = walletTransactionRepository
+                .findAllByWallet_WalletIdOrderByCreatedAtDesc(wallet.getWalletId(), pageable);
 
         return WalletTransactionsResponse.from(wallet, transactions);
     }

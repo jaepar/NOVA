@@ -33,37 +33,18 @@ export type FaceMatchRequest = {
   registeredImageKey: string
 }
 
-export type PassportOcrRawResponse = {
-  version?: string
-  requestId?: string
-  timestamp?: number
-  images?: Array<{
-    uid?: string
-    name?: string
-    inferResult?: string
-    message?: string
-    validationResult?: {
-      result?: string
-    }
-    fields?: Array<{
-      name?: string
-      valueType?: string
-      inferText?: string
-      inferConfidence?: number
-    }>
-  }>
-}
-
-export type PassportOcrField = {
-  name: string
-  text: string
-  confidence?: number
-}
-
-export type PassportOcrResult = {
-  success: boolean
-  fields: PassportOcrField[]
-  raw: PassportOcrRawResponse
+export type PassportResponse = {
+  type?: string
+  issueCountry?: string
+  num?: string
+  surName?: string
+  givenName?: string
+  nationality?: string
+  birthDate?: string
+  sex?: string
+  issueDate?: string
+  expireDate?: string
+  authority?: string
 }
 
 export const certificateApi = {
@@ -89,11 +70,11 @@ export const certificateApi = {
     )
     return response.data.data
   },
-  recognizePassport: async (imageFile: File): Promise<PassportOcrResult> => {
+  recognizePassport: async (imageFile: File): Promise<PassportResponse> => {
     const formData = new FormData()
     formData.append('file', imageFile)
 
-    const response = await apiClient.post<ApiEnvelope<PassportOcrResult>>(
+    const response = await apiClient.post<ApiEnvelope<PassportResponse>>(
       '/users/verifications/passports',
       formData
     )

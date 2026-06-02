@@ -16,25 +16,25 @@ public record PassportOcrRawResponse(
 		String name,
 		String inferResult,
 		String message,
-		ValidationResult validationResult,
-		List<Field> fields,
-		Map<String, Object> idCard,
-		Map<String, Object> passport
+		IdCard idCard
 	) {
 	}
 
-	// 검증 결과
-	public record ValidationResult(
-		String result
+	public record IdCard(
+		Meta meta,
+		Result result
 	) {
 	}
 
-	// 일반 OCR 필드
-	public record Field(
-		String name,
-		String valueType,
-		String inferText,
-		Float inferConfidence
+	public record Meta(
+		String estimatedLanguage
+	) {
+	}
+
+	public record Result(
+		Boolean isConfident,
+		Map<String, Object> pp,
+		String idtype
 	) {
 	}
 }

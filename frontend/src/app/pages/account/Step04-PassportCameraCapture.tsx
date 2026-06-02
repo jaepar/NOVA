@@ -14,11 +14,11 @@ import {
 } from "lucide-react";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { Btn_2Col } from "../../components/design-system/Btn_2Col";
+import { InlineBanner } from "../../components/design-system/InlineBanner";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { useStep5PassportCaptureStore } from "../../stores/pageStores";
 import { CameraCapturePage } from "../../components/camera/CameraCapturePage";
-import { certificateApi, type PassportOcrField } from "../../../api";
-import { toast } from "sonner";
+import { certificateApi, type PassportResponse } from "../../../api";
 
 const ocrResultRows = [
   { label: "종류", value: "", icon: IdCard },
@@ -49,46 +49,20 @@ const TEMP_DUMMY_OCR_VALUES: Record<string, string> = {
   기간만료일: "2033.08.14",
 };
 
-const passportFieldAliases: Record<string, string[]> = {
-  종류: ["type", "doc_type", "document_type"],
-  "국가 코드": ["country_code", "nationality_code", "issuing_country_code"],
-  여권번호: ["passport_no", "passport_number", "passportnum"],
-  성: ["surname", "last_name", "family_name"],
-  이름: ["given_name", "first_name", "given_names"],
-  생년월일: ["birth", "birth_date", "date_of_birth", "dob"],
-  성별: ["sex", "gender"],
-  국적: ["nationality", "country"],
-  "발행 관청": ["authority", "issuing_authority"],
-  발급일: ["issue_date", "issued_date"],
-  기간만료일: ["expiry_date", "expiration_date", "expire_date"],
-};
-
-const normalizeKey = (value: string) =>
-  value.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-const mapOcrFieldsToEditableValues = (fields: PassportOcrField[]) => {
-  const normalizedFieldMap = new Map<string, string>();
-  fields.forEach((field) => {
-    const normalizedName = normalizeKey(field.name);
-    if (normalizedName && field.text) {
-      normalizedFieldMap.set(normalizedName, field.text);
-    }
-  });
-
-  const next = Object.fromEntries(
-    ocrResultRows.map((row) => [row.label, row.value])
-  );
-  Object.entries(passportFieldAliases).forEach(([label, aliases]) => {
-    for (const alias of aliases) {
-      const candidate = normalizedFieldMap.get(normalizeKey(alias));
-      if (candidate) {
-        next[label] = candidate;
-        break;
-      }
-    }
-  });
-
-  return next;
+const mapPassportResponseToEditableValues = (passport: PassportResponse) => {
+  return {
+    종류: passport.type ?? "",
+    "국가 코드": passport.issueCountry ?? "",
+    여권번호: passport.num ?? "",
+    성: passport.surName ?? "",
+    이름: passport.givenName ?? "",
+    생년월일: passport.birthDate ?? "",
+    성별: passport.sex ?? "",
+    국적: passport.nationality ?? "",
+    "발행 관청": passport.authority ?? "",
+    발급일: passport.issueDate ?? "",
+    기간만료일: passport.expireDate ?? "",
+  };
 };
 
 export function PassportCameraCapture() {
@@ -165,27 +139,30 @@ export function PassportCameraCapture() {
     try {
       const ocrResult = await certificateApi.recognizePassport(imageFile);
 
-      if (!ocrResult.success) {
-        const validationResult =
-          ocrResult.raw.images?.[0]?.validationResult?.result;
-        if (validationResult === "NO_REQUESTED") {
-          throw new Error("여권이 인식되지 않았습니다. 다시 촬영해 주세요.");
-        }
-        throw new Error(
-          "OCR 인식에 실패했습니다. 여권 위치와 조명을 확인해 주세요."
-        );
-      }
-
-      setEditableOcrValues(mapOcrFieldsToEditableValues(ocrResult.fields));
+      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult));
       setCapturedImage(imageDataUrl);
       setMode("review");
     } catch (error) {
+      const errorCode =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: unknown }).response === "object"
+          ? (error as { response?: { data?: { code?: string } } }).response
+              ?.data?.code ?? ""
+          : "";
+
       const message =
-        error instanceof Error
+        errorCode === "USER-014"
+          ? "사진이 올바르지 않습니다. 다시 촬영해 주세요."
+          : errorCode === "USER-009"
+          ? "여권 이미지를 다시 촬영해 주세요."
+          : errorCode === "USER-013"
+          ? "인식에 실패했습니다. 여권 위치와 조명을 확인해 주세요."
+          : error instanceof Error
           ? error.message
           : "OCR 처리 중 오류가 발생했습니다. 다시 촬영해 주세요.";
       setOcrError(message);
-      toast.error(message);
       setMode("live");
     } finally {
       setIsOcrProcessing(false);
@@ -344,14 +321,10 @@ export function PassportCameraCapture() {
       <canvas ref={canvasRef} className="hidden" />
 
       {cameraError && (
-        <div className="mt-4 rounded-xl bg-red-500/10 border border-red-400/50 p-3 text-sm text-center text-black">
-          {cameraError}
-        </div>
+        <InlineBanner message={cameraError} variant="error" className="mt-4" />
       )}
       {ocrError && (
-        <div className="mt-4 rounded-xl bg-red-500/10 border border-red-400/50 p-3 text-sm text-center text-black">
-          {ocrError}
-        </div>
+        <InlineBanner message={ocrError} variant="error" className="mt-4" />
       )}
       {isOcrProcessing && (
         <div className="mt-4 rounded-xl bg-secondary border border-border p-3 text-sm text-center text-black">

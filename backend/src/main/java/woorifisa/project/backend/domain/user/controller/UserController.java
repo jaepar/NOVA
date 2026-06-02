@@ -17,11 +17,14 @@ import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
-import woorifisa.project.backend.domain.user.dto.response.PassportOcrResponse;
+import woorifisa.project.backend.domain.user.dto.response.NotificationResponse;
+import woorifisa.project.backend.domain.user.dto.response.PassportResponse;
+import woorifisa.project.backend.domain.user.service.NotificationService;
 import woorifisa.project.backend.domain.user.service.PassportOcrService;
 import woorifisa.project.backend.domain.user.service.UserService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,8 +32,10 @@ import woorifisa.project.backend.global.response.BaseResponse;
 public class UserController {
 
 	private final UserService userService;
+	private final NotificationService notificationService;
 	private final PassportOcrService passportOcrService;
 
+	// 서류 제출
 	@PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public BaseResponse<Void> uploadDocuments(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
@@ -41,14 +46,34 @@ public class UserController {
 		return BaseResponse.ok(null);
 	}
 
+	// 서류 승인 알림 클릭 시 해당 알림 제거
+	@PostMapping("/notifications/{notificationId}/delete")
+	public BaseResponse<Void> deleteNotification(
+		@AuthenticationPrincipal SessionUserPrincipal principal,
+		@PathVariable Long notificationId
+	) {
+		notificationService.deleteNotificationById(principal.userId(), notificationId);
+		return BaseResponse.ok(null);
+	}
+
+	// 알림 목록 조회
+	@GetMapping("/notifications")
+	public BaseResponse<List<NotificationResponse>> getNotifications(
+		@AuthenticationPrincipal SessionUserPrincipal principal
+	) {
+		return BaseResponse.ok(notificationService.getNotifications(principal.userId()));
+	}
+
+	// 여권 인증
 	@PostMapping(value = "/verifications/passports", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public BaseResponse<PassportOcrResponse> recognizePassport(
+	public BaseResponse<PassportResponse> recognizePassport(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
 		@RequestPart("file") MultipartFile file
 	) {
 		return BaseResponse.ok(passportOcrService.recognizePassport(file));
 	}
 
+	// Liveness 세션 생성
 	@PostMapping("/verifications/liveness")
 	public BaseResponse<LivenessSessionResponse> createLivenessSession(
 		@AuthenticationPrincipal SessionUserPrincipal principal
@@ -56,6 +81,7 @@ public class UserController {
 		return BaseResponse.ok(userService.createLivenessSession(principal.userId()));
 	}
 
+	// Liveness 인증 결과 확인
 	@GetMapping("/verifications/liveness/{sessionId}")
 	public BaseResponse<LivenessVerificationResponse> getLivenessResult(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
@@ -64,6 +90,7 @@ public class UserController {
 		return BaseResponse.ok(userService.getLivenessResult(principal.userId(), sessionId));
 	}
 
+	// Liveness 얼굴 대조
 	@PostMapping("/verifications/liveness/{sessionId}/face-match")
 	public BaseResponse<LivenessVerificationResponse> compareFaceWithRegisteredImage(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
@@ -73,6 +100,7 @@ public class UserController {
 		return BaseResponse.ok(userService.compareFaceWithRegisteredImage(principal.userId(), sessionId, request));
 	}
 
+	// Liveness 최종 인가
 	@PostMapping("/verifications/liveness/{sessionId}/finalize")
 	public BaseResponse<LivenessFinalizeResponse> finalizeLivenessVerification(
 		@AuthenticationPrincipal SessionUserPrincipal principal,

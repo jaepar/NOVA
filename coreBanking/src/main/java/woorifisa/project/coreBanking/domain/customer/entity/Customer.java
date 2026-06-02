@@ -59,8 +59,6 @@ public class Customer extends BaseEntity {
 	private Boolean hasForeignTax;
 
 	public void updateProfile(
-		String name,
-		String email,
 		String address,
 		String addressDetail,
 		String job,
@@ -68,8 +66,6 @@ public class Customer extends BaseEntity {
 		FundSource source,
 		Boolean hasForeignTax
 	) {
-		this.name = name;
-		this.email = email;
 		this.address = address;
 		this.addressDetail = addressDetail;
 		this.job = job;
