@@ -7,19 +7,29 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransactionQuery;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -255,5 +265,85 @@ class BankingServiceTest {
         bankingService.verifyAccountPassword(userId, new AccountPasswordVerifyRequest(2001L, "1234"));
 
         verify(coreBankingClient).verifyAccountPassword(any());
+    }
+
+    @Test
+    @DisplayName("본인 계좌 거래내역 조회 요청을 기간/유형/페이지 조건과 함께 코어뱅킹으로 전달한다")
+    void findTransactionsSuccess() {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        Pageable pageable = PageRequest.of(0, 20);
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(accountId)
+                .hasAccount(true)
+                .build();
+        CoreBankingTransactionsResponse coreResponse = new CoreBankingTransactionsResponse(
+                accountId,
+                List.of(new CoreBankingTransactionsResponse.Transaction(
+                        9001L,
+                        "DEPOSIT",
+                        "WALLET_CHARGE",
+                        10000,
+                        50000,
+                        "충전",
+                        LocalDateTime.of(2026, 6, 2, 10, 30)
+                )),
+                0,
+                20,
+                false
+        );
+
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId))
+                .thenReturn(Optional.of(accountRef));
+        when(coreBankingClient.findAccountTransactions(any())).thenReturn(coreResponse);
+
+        BankingTransactionsResponse response = bankingService.findTransactions(
+                userId,
+                accountId,
+                TransactionPeriod.ONE_MONTH,
+                TransactionFlowFilter.ALL,
+                pageable
+        );
+
+        ArgumentCaptor<CoreBankingTransactionQuery> captor = ArgumentCaptor.forClass(CoreBankingTransactionQuery.class);
+        verify(coreBankingClient).findAccountTransactions(captor.capture());
+        CoreBankingTransactionQuery query = captor.getValue();
+        assertThat(query.accountId()).isEqualTo(accountId);
+        assertThat(query.from()).isEqualTo(LocalDate.now().minusMonths(1));
+        assertThat(query.to()).isEqualTo(LocalDate.now());
+        assertThat(query.flow()).isEqualTo(TransactionFlowFilter.ALL);
+        assertThat(query.page()).isEqualTo(0);
+        assertThat(query.size()).isEqualTo(20);
+        assertThat(response.accountId()).isEqualTo(accountId);
+        assertThat(response.period()).isEqualTo(TransactionPeriod.ONE_MONTH);
+        assertThat(response.flow()).isEqualTo(TransactionFlowFilter.ALL);
+        assertThat(response.transactions()).hasSize(1);
+        assertThat(response.transactions().get(0).balanceAfter()).isEqualTo(50000);
+        assertThat(response.transactions().get(0).memo()).isEqualTo("충전");
+        assertThat(response.hasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("본인 계좌가 아니면 거래내역 조회를 코어뱅킹에 요청하지 않는다")
+    void findTransactionsAccountNotFound() {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bankingService.findTransactions(
+                userId,
+                accountId,
+                TransactionPeriod.ONE_MONTH,
+                TransactionFlowFilter.ALL,
+                PageRequest.of(0, 20)
+        ))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(BANKING_ACCOUNT_NOT_FOUND);
+
+        verify(coreBankingClient, never()).findAccountTransactions(any());
     }
 }

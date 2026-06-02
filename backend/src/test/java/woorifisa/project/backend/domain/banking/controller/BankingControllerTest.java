@@ -10,13 +10,22 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
+import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -125,5 +134,54 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
                 .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("거래내역 조회 요청을 기본 기간/유형/페이지 크기로 처리한다")
+    void findTransactionsWithDefaults() throws Exception {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.findTransactions(any(), any(), any(), any(), any()))
+                .thenReturn(new BankingTransactionsResponse(
+                        accountId,
+                        TransactionPeriod.ONE_MONTH,
+                        TransactionFlowFilter.ALL,
+                        List.of(new BankingTransactionsResponse.Transaction(
+                                9001L,
+                                "DEPOSIT",
+                                "WALLET_CHARGE",
+                                10000,
+                                50000,
+                                "충전",
+                                LocalDateTime.of(2026, 6, 2, 10, 30)
+                        )),
+                        0,
+                        20,
+                        false
+                ));
+
+        mockMvc.perform(get("/banking/{accountId}/transactions", accountId)
+                        .with(authentication(authToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data.accountId").value(2001))
+                .andExpect(jsonPath("$.data.period").value("ONE_MONTH"))
+                .andExpect(jsonPath("$.data.flow").value("ALL"))
+                .andExpect(jsonPath("$.data.transactions[0].transactionId").value(9001))
+                .andExpect(jsonPath("$.data.transactions[0].balanceAfter").value(50000))
+                .andExpect(jsonPath("$.data.transactions[0].memo").value("충전"))
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.size").value(20))
+                .andExpect(jsonPath("$.data.hasNext").value(false));
+
+        verify(bankingService).findTransactions(any(), eq(accountId), eq(TransactionPeriod.ONE_MONTH),
+                eq(TransactionFlowFilter.ALL), any());
     }
 }
