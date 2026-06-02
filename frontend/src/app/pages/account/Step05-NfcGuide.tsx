@@ -15,54 +15,36 @@ type ParsedNfcRecord = {
 }
 
 type PassportLikeData = {
-  docType: string
-  nationalityCode: string
-  passportNumber: string
-  surname: string
-  givenNames: string
+  type: string
+  issueCountry: string
+  num: string
+  surName: string
+  givenName: string
+  nationlity: string
   birthDate: string
   sex: string
-  country: string
-  issuingCountryCode: string
   authority: string
   issueDate: string
-  expiryDate: string
+  expireDate: string
 }
 
 const comparisonFields: Array<{ key: keyof PassportLikeData; label: string }> = [
-  { key: 'docType', label: '종류' },
-  { key: 'nationalityCode', label: '국가 코드' },
-  { key: 'passportNumber', label: '여권번호' },
-  { key: 'surname', label: '성' },
-  { key: 'givenNames', label: '이름' },
+  { key: 'type', label: '종류' },
+  { key: 'issueCountry', label: '국가 코드' },
+  { key: 'num', label: '여권번호' },
+  { key: 'surName', label: '성' },
+  { key: 'givenName', label: '이름' },
+  { key: 'nationlity', label: '국적' },
   { key: 'birthDate', label: '생년월일' },
   { key: 'sex', label: '성별' },
-  { key: 'country', label: '국적' },
-  { key: 'issuingCountryCode', label: '발행국 코드' },
   { key: 'authority', label: '발행 관청' },
   { key: 'issueDate', label: '발급일' },
-  { key: 'expiryDate', label: '기간만료일' },
+  { key: 'expireDate', label: '기간만료일' },
 ]
-
-function normalizeValue(value: string): string {
-  return value.trim().replace(/\s+/g, ' ').toUpperCase()
-}
-
-function normalizeDate(value: string): string {
-  return normalizeValue(value).replace(/[-/]/g, '.')
-}
 
 function comparePassportData(step05Data: PassportLikeData, nfcData: PassportLikeData) {
   const mismatches = comparisonFields.filter(({ key }) => {
-    const left =
-      key === 'birthDate' || key === 'issueDate' || key === 'expiryDate'
-        ? normalizeDate(step05Data[key])
-        : normalizeValue(step05Data[key])
-    const right =
-      key === 'birthDate' || key === 'issueDate' || key === 'expiryDate'
-        ? normalizeDate(nfcData[key])
-        : normalizeValue(nfcData[key])
-    return left !== right
+    return step05Data[key] !== nfcData[key]
   })
 
   return {

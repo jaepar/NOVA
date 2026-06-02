@@ -195,18 +195,17 @@ export function PassportCameraCapture() {
 
   const handleMoveToStep06 = () => {
     setParsedPassportData({
-      docType: editableOcrValues["종류"] ?? "",
-      nationalityCode: editableOcrValues["국가 코드"] ?? "",
-      passportNumber: editableOcrValues["여권번호"] ?? "",
-      surname: editableOcrValues["성"] ?? "",
-      givenNames: editableOcrValues["이름"] ?? "",
+      type: editableOcrValues["종류"] ?? "",
+      issueCountry: editableOcrValues["국가 코드"] ?? "",
+      num: editableOcrValues["여권번호"] ?? "",
+      surName: editableOcrValues["성"] ?? "",
+      givenName: editableOcrValues["이름"] ?? "",
+      nationlity: editableOcrValues["국적"] ?? "",
       birthDate: editableOcrValues["생년월일"] ?? "",
       sex: editableOcrValues["성별"] ?? "",
-      country: editableOcrValues["국적"] ?? "",
-      issuingCountryCode: editableOcrValues["국가 코드"] ?? "",
       authority: editableOcrValues["발행 관청"] ?? "",
       issueDate: editableOcrValues["발급일"] ?? "",
-      expiryDate: editableOcrValues["기간만료일"] ?? "",
+      expireDate: editableOcrValues["기간만료일"] ?? "",
     });
     navigate("/account/step-05");
   };
