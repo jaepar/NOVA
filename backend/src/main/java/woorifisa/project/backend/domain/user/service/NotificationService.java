@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.user.entity.Notification;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.dto.response.NotificationResponse;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.NotificationType;
 import woorifisa.project.backend.domain.user.repository.NotificationRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
@@ -37,8 +38,10 @@ public class NotificationService {
 	// 대상 유저를 조회해 오늘 기준 알림 생성 조건을 만족하는 경우 알림을 생성
 	@Transactional
 	public int createResidenceCardPeriodNotifications(LocalDate today) {
-		// 인증서 발급이 되었고, 외국인등록증을 등록하지 않았고, 인증서 발급일자가 있는 유저를 타겟으로 선정
-		List<User> targets = userRepository.findAllByHasCertificateTrueAndHasResidenceCardFalseAndIssuedTimeIsNotNull();
+		// 인증서가 발급되었고, 외국인등록증을 등록하지 않았고, 인증서 발급일자가 있는 유저를 타겟으로 선정
+		List<User> targets = userRepository.findAllByCertificateStatusAndHasResidenceCardFalseAndIssuedTimeIsNotNull(
+			CertificateStatus.ISSUED
+		);
 		int createdCount = 0;
 
 		for (User user : targets) {

@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.Gender;
 import woorifisa.project.backend.global.entity.BaseEntity;
 
@@ -49,8 +50,9 @@ public class User extends BaseEntity {
     @Column(name = "has_residence_card", nullable = false)
     private Boolean hasResidenceCard;
 
-    @Column(name = "has_certificate", nullable = false)
-    private Boolean hasCertificate;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "certificate_status", nullable = false, length = 20)
+    private CertificateStatus certificateStatus;
 
     @Column(name = "has_delete", nullable = false)
     private Boolean hasDelete;
@@ -59,7 +61,7 @@ public class User extends BaseEntity {
     private LocalDateTime issuedTime;
 
     public void issueCertificate() {
-        this.hasCertificate = true;
+        this.certificateStatus = CertificateStatus.ISSUED;
         this.issuedTime = LocalDateTime.now();
     }
 
