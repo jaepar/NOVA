@@ -7,7 +7,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransactionFlowFilter;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransferAccountRequest;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.AccountTransactionsResponse;
 import woorifisa.project.coreBanking.domain.accountTransaction.service.AccountTransactionService;
 import woorifisa.project.coreBanking.global.exception.CustomException;
 import woorifisa.project.coreBanking.global.exception.handler.GlobalControllerAdvice;
@@ -30,6 +32,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSACTION_NOT_FOUND;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSFER_INVALID_REQUEST;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
 class AccountTransactionControllerTest {
 
     private final AccountTransactionService accountTransactionService = mock(AccountTransactionService.class);
@@ -51,6 +57,49 @@ class AccountTransactionControllerTest {
                 .andExpect(jsonPath("$.code").value("20000"))
                 .andExpect(jsonPath("$.message").value("요청에 성공했습니다."))
                 .andExpect(jsonPath("$.data.externalRequestId").value(externalRequestId));
+    }
+
+    @Test
+    @DisplayName("계좌 거래내역 조회 API는 기간/유형/페이지 조건을 서비스로 전달하고 거래내역을 반환한다")
+    void findTransactions() throws Exception {
+        Long accountId = 2001L;
+        when(accountTransactionService.findTransactions(
+                accountId,
+                LocalDate.of(2026, 5, 10),
+                LocalDate.of(2026, 6, 2),
+                TransactionFlowFilter.ALL,
+                0,
+                20
+        )).thenReturn(new AccountTransactionsResponse(
+                accountId,
+                List.of(new AccountTransactionsResponse.Transaction(
+                        9001L,
+                        "WITHDRAWAL",
+                        "ACCOUNT_TRANSFER",
+                        "PARK",
+                        5000,
+                        25000,
+                        "월세",
+                        LocalDateTime.of(2026, 6, 2, 10, 30)
+                )),
+                0,
+                20,
+                false
+        ));
+
+        mockMvc.perform(get("/account-transactions/accounts/{accountId}", accountId)
+                        .param("from", "2026-05-10")
+                        .param("to", "2026-06-02")
+                        .param("flow", "ALL")
+                        .param("page", "0")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.accountId").value(2001))
+                .andExpect(jsonPath("$.data.transactions[0].transactionId").value(9001))
+                .andExpect(jsonPath("$.data.transactions[0].counterParty").value("PARK"))
+                .andExpect(jsonPath("$.data.transactions[0].balanceAfter").value(25000))
+                .andExpect(jsonPath("$.data.hasNext").value(false));
     }
 
     @Test

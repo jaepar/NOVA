@@ -5,22 +5,30 @@ import org.junit.jupiter.api.Test;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
 import org.mockito.ArgumentCaptor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.SliceImpl;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.account.repository.AccountRepository;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransferAccountRequest;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransactionFlowFilter;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionFlow;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
 import woorifisa.project.coreBanking.domain.customer.entity.Customer;
 import woorifisa.project.coreBanking.global.exception.CustomException;
 
+import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -58,6 +66,7 @@ class AccountTransactionServiceTest {
         assertThat(transaction.getTransactionType()).isEqualTo(TransactionType.WALLET_CHARGE);
         assertThat(transaction.getCounterParty()).isEqualTo("월렛 충전");
         assertThat(transaction.getAmount()).isEqualTo(10000);
+        assertThat(transaction.getBalanceAfter()).isEqualTo(20000);
         assertThat(transaction.getExternalRequestId()).isEqualTo("WCR-20260514-0001");
     }
 
@@ -289,6 +298,8 @@ class AccountTransactionServiceTest {
 
         ArgumentCaptor<AccountTransaction> captor = forClass(AccountTransaction.class);
         verify(accountTransactionRepository, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues().get(0).getBalanceAfter()).isEqualTo(25000);
+        assertThat(captor.getAllValues().get(1).getBalanceAfter()).isEqualTo(12000);
         assertThat(captor.getAllValues().get(0).getCounterParty()).isEqualTo("박재하");
         assertThat(captor.getAllValues().get(1).getCounterParty()).isEqualTo("홍길동");
     }
@@ -336,6 +347,109 @@ class AccountTransactionServiceTest {
         assertThatThrownBy(() -> accountTransactionService.transfer(request))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ACCOUNT_TRANSFER_INSUFFICIENT_BALANCE.getMessage());
+    }
+
+    @Test
+    @DisplayName("거래내역 전체 조회 시 최신순 페이지 조건으로 원장 거래내역을 반환한다")
+    void findTransactionsAll() {
+        Long accountId = 2001L;
+        LocalDate from = LocalDate.of(2026, 5, 10);
+        LocalDate to = LocalDate.of(2026, 6, 2);
+        Account account = Account.builder().accountId(accountId).build();
+        AccountTransaction transaction = AccountTransaction.builder()
+                .accountTransactionId(9001L)
+                .account(account)
+                .transactionFlow(TransactionFlow.WITHDRAWAL)
+                .transactionType(TransactionType.ACCOUNT_TRANSFER)
+                .counterParty("PARK")
+                .amount(5000)
+                .balanceAfter(25000)
+                .memo("월세")
+                .externalRequestId("REQ-1")
+                .build();
+        setCreatedAt(transaction, LocalDateTime.of(2026, 6, 2, 10, 30));
+
+        when(accountRepository.existsById(accountId)).thenReturn(true);
+        when(accountTransactionRepository.findByAccount_AccountIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(any(), any(), any(), any()))
+                .thenReturn(new SliceImpl<>(List.of(transaction), PageRequest.of(0, 20), false));
+
+        var response = accountTransactionService.findTransactions(
+                accountId,
+                from,
+                to,
+                TransactionFlowFilter.ALL,
+                0,
+                20
+        );
+
+        assertThat(response.accountId()).isEqualTo(accountId);
+        assertThat(response.transactions()).hasSize(1);
+        assertThat(response.transactions().get(0).transactionId()).isEqualTo(9001L);
+        assertThat(response.transactions().get(0).counterParty()).isEqualTo("PARK");
+        assertThat(response.transactions().get(0).balanceAfter()).isEqualTo(25000);
+        assertThat(response.transactions().get(0).transactionDateTime()).isEqualTo(LocalDateTime.of(2026, 6, 2, 10, 30));
+        verify(accountTransactionRepository).findByAccount_AccountIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                eq(accountId),
+                eq(from.atStartOfDay()),
+                eq(to.plusDays(1).atStartOfDay()),
+                any()
+        );
+    }
+
+    @Test
+    @DisplayName("거래 흐름 필터가 있으면 해당 흐름만 조회한다")
+    void findTransactionsByFlow() {
+        Long accountId = 2001L;
+        when(accountRepository.existsById(accountId)).thenReturn(true);
+        when(accountTransactionRepository.findByAccount_AccountIdAndTransactionFlowAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(any(), any(), any(), any(), any()))
+                .thenReturn(new SliceImpl<>(List.of(), PageRequest.of(1, 20), false));
+
+        accountTransactionService.findTransactions(
+                accountId,
+                LocalDate.of(2026, 5, 10),
+                LocalDate.of(2026, 6, 2),
+                TransactionFlowFilter.DEPOSIT,
+                1,
+                20
+        );
+
+        verify(accountTransactionRepository).findByAccount_AccountIdAndTransactionFlowAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                eq(accountId),
+                eq(TransactionFlow.DEPOSIT),
+                any(),
+                any(),
+                any()
+        );
+    }
+
+    @Test
+    @DisplayName("거래내역 조회 계좌가 없으면 예외를 반환한다")
+    void findTransactionsAccountNotFound() {
+        Long accountId = 2001L;
+        when(accountRepository.existsById(accountId)).thenReturn(false);
+
+        assertThatThrownBy(() -> accountTransactionService.findTransactions(
+                accountId,
+                LocalDate.of(2026, 5, 10),
+                LocalDate.of(2026, 6, 2),
+                TransactionFlowFilter.ALL,
+                0,
+                20
+        ))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ACCOUNT_TRANSACTION_ACCOUNT_NOT_FOUND.getMessage());
+
+        verify(accountTransactionRepository, never()).findByAccount_AccountIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(any(), any(), any(), any());
+    }
+
+    private void setCreatedAt(AccountTransaction transaction, LocalDateTime createdAt) {
+        try {
+            Field field = woorifisa.project.coreBanking.global.entity.BaseEntity.class.getDeclaredField("createdAt");
+            field.setAccessible(true);
+            field.set(transaction, createdAt);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 
 }
