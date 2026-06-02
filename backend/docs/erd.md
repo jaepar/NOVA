@@ -113,6 +113,9 @@ erDiagram
     BIGINT application_id PK
     BIGINT user_id FK
     BIGINT job_id FK
+    VARCHAR_10 country_code
+    VARCHAR_30 phone
+    VARCHAR_100 recommender
     ENUM status "PASSED | FAILED | READ | UNREAD"
     TIMESTAMP created_at
     TIMESTAMP updated_at

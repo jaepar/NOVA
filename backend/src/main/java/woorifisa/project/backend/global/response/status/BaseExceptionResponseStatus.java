@@ -71,6 +71,12 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
 	DOCUMENT_REVIEW_SOURCE_STATUS_INVALID("ADMIN-004", "심사 가능한 문서 상태가 아닙니다."),
 
 	/**
+	 * job
+	 */
+	JOB_NOT_FOUND("JOB-001", "구인구직 공고를 찾을 수 없습니다."),
+	APPLICATION_ALREADY_EXISTS("JOB-002", "이미 지원한 구인공고입니다."),
+
+	/**
 	 * banking
 	 */
 	BANKING_ACCOUNT_NOT_FOUND("BANK-001", "계좌 정보를 찾을 수 없습니다."),
