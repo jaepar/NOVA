@@ -43,6 +43,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BAD_REQUEST;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
 
@@ -285,10 +287,10 @@ class BankingServiceTest {
                         9001L,
                         "DEPOSIT",
                         "WALLET_CHARGE",
+                        "월렛 충전",
                         10000,
                         50000,
                         "충전",
-                        "?? ??",
                         LocalDateTime.of(2026, 6, 2, 10, 30)
                 )),
                 0,
@@ -305,11 +307,11 @@ class BankingServiceTest {
                 accountId,
                 TransactionPeriod.ONE_MONTH,
                 TransactionFlowFilter.ALL,
+                null,
+                null,
                 pageable
         );
 
-                null,
-                null,
         ArgumentCaptor<CoreBankingTransactionQuery> captor = ArgumentCaptor.forClass(CoreBankingTransactionQuery.class);
         verify(coreBankingClient).findAccountTransactions(captor.capture());
         CoreBankingTransactionQuery query = captor.getValue();
@@ -323,17 +325,14 @@ class BankingServiceTest {
         assertThat(response.period()).isEqualTo(TransactionPeriod.ONE_MONTH);
         assertThat(response.flow()).isEqualTo(TransactionFlowFilter.ALL);
         assertThat(response.transactions()).hasSize(1);
+        assertThat(response.transactions().get(0).counterParty()).isEqualTo("월렛 충전");
         assertThat(response.transactions().get(0).balanceAfter()).isEqualTo(50000);
         assertThat(response.transactions().get(0).memo()).isEqualTo("충전");
         assertThat(response.hasNext()).isFalse();
-        assertThat(response.transactions().get(0).counterParty()).isEqualTo("?? ??");
     }
 
     @Test
-    @DisplayName("본인 계좌가 아니면 거래내역 조회를 코어뱅킹에 요청하지 않는다")
-    void findTransactionsAccountNotFound() {
-    @Test
-    @DisplayName("?? ?? ???? ??? ???? ???? ??? ?????? ????")
+    @DisplayName("직접 입력 기간이면 요청한 시작일과 종료일을 그대로 코어뱅킹으로 전달한다")
     void findTransactionsWithCustomPeriod() {
         Long userId = 1L;
         Long accountId = 2001L;
@@ -378,6 +377,40 @@ class BankingServiceTest {
         assertThat(response.period()).isEqualTo(TransactionPeriod.CUSTOM);
     }
 
+    @Test
+    @DisplayName("고정 조회 기간에 직접 입력 날짜가 함께 전달되면 잘못된 요청으로 처리한다")
+    void findTransactionsRejectsCustomDatesWithFixedPeriod() {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(accountId)
+                .hasAccount(true)
+                .build();
+
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId))
+                .thenReturn(Optional.of(accountRef));
+
+        assertThatThrownBy(() -> bankingService.findTransactions(
+                userId,
+                accountId,
+                TransactionPeriod.ONE_MONTH,
+                TransactionFlowFilter.ALL,
+                LocalDate.of(2026, 5, 1),
+                LocalDate.of(2026, 6, 1),
+                PageRequest.of(0, 20)
+        ))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(BAD_REQUEST);
+
+        verify(coreBankingClient, never()).findAccountTransactions(any());
+    }
+
+    @Test
+    @DisplayName("본인 계좌가 아니면 거래내역 조회를 코어뱅킹에 요청하지 않는다")
+    void findTransactionsAccountNotFound() {
         Long userId = 1L;
         Long accountId = 2001L;
         when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId))
@@ -388,11 +421,11 @@ class BankingServiceTest {
                 accountId,
                 TransactionPeriod.ONE_MONTH,
                 TransactionFlowFilter.ALL,
+                null,
+                null,
                 PageRequest.of(0, 20)
         ))
                 .isInstanceOf(CustomException.class)
-                null,
-                null,
                 .extracting("exceptionStatus")
                 .isEqualTo(BANKING_ACCOUNT_NOT_FOUND);
 

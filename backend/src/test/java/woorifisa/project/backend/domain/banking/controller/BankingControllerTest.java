@@ -21,6 +21,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -156,10 +157,10 @@ class BankingControllerTest {
                                 9001L,
                                 "DEPOSIT",
                                 "WALLET_CHARGE",
+                                "월렛 충전",
                                 10000,
                                 50000,
                                 "충전",
-                                "?? ??",
                                 LocalDateTime.of(2026, 6, 2, 10, 30)
                         )),
                         0,
@@ -176,19 +177,19 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.data.period").value("ONE_MONTH"))
                 .andExpect(jsonPath("$.data.flow").value("ALL"))
                 .andExpect(jsonPath("$.data.transactions[0].transactionId").value(9001))
+                .andExpect(jsonPath("$.data.transactions[0].counterParty").value("월렛 충전"))
                 .andExpect(jsonPath("$.data.transactions[0].balanceAfter").value(50000))
                 .andExpect(jsonPath("$.data.transactions[0].memo").value("충전"))
                 .andExpect(jsonPath("$.data.page").value(0))
-                .andExpect(jsonPath("$.data.transactions[0].counterParty").value("?? ??"))
                 .andExpect(jsonPath("$.data.size").value(20))
                 .andExpect(jsonPath("$.data.hasNext").value(false));
 
         verify(bankingService).findTransactions(any(), eq(accountId), eq(TransactionPeriod.ONE_MONTH),
-                eq(TransactionFlowFilter.ALL), any(), any(), any());
+                eq(TransactionFlowFilter.ALL), isNull(), isNull(), any());
     }
 
     @Test
-    @DisplayName("???? ?? ?? ?? ??? ???? ????")
+    @DisplayName("거래내역 조회 직접 입력 기간을 서비스로 전달한다")
     void findTransactionsWithCustomPeriod() throws Exception {
         Long userId = 1L;
         Long accountId = 2001L;
