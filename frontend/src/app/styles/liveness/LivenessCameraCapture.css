@@ -21,7 +21,6 @@
 .nova-liveness-surface {
   --nova-camera-frame-y: 20px;
   --nova-camera-frame-gap-bottom: 14px;
-  --nova-placeholder-y-offset: 24px;
 }
 
 /* 카메라 선택/주의 문구 숨김 */
@@ -46,7 +45,9 @@
   box-sizing: border-box !important;
 }
 
-.nova-liveness-surface .amplify-liveness-start-screen-camera-waiting .amplify-text,
+.nova-liveness-surface
+  .amplify-liveness-start-screen-camera-waiting
+  .amplify-text,
 .nova-liveness-surface .amplify-liveness-connecting-loader .amplify-text {
   font-size: 16px !important;
   line-height: 1.45 !important;
@@ -57,7 +58,9 @@
   text-align: center !important;
 }
 
-.nova-liveness-surface .amplify-liveness-start-screen-camera-waiting .amplify-loader,
+.nova-liveness-surface
+  .amplify-liveness-start-screen-camera-waiting
+  .amplify-loader,
 .nova-liveness-surface .amplify-liveness-connecting-loader .amplify-loader {
   margin: 0 !important;
 }
@@ -74,10 +77,8 @@
 
 /* 광과민성 안내 포함 기본 안내는 표시 유지 */
 
-/* SDK 기본 시작 버튼은 표시 유지 */
-
 /* 링크 버튼 */
-.nova-liveness-surface .amplify-button[data-variation='link'] {
+.nova-liveness-surface .amplify-button[data-variation="link"] {
   color: #111111;
 }
 
@@ -99,7 +100,7 @@
 }
 
 .nova-liveness-surface .amplify-liveness-toast__container,
-.nova-liveness-surface [class*='liveness-toast__container'] {
+.nova-liveness-surface [class*="liveness-toast__container"] {
   position: static !important;
   order: 99 !important;
   width: auto !important;
@@ -109,7 +110,7 @@
 /* 힌트 오버레이(얼굴을 원 안 중앙에...)도 카메라 아래로 강제 이동 */
 .nova-liveness-surface .amplify-liveness-hint,
 .nova-liveness-surface .amplify-liveness-hint--mobile,
-.nova-liveness-surface [class*='liveness-hint'] {
+.nova-liveness-surface [class*="liveness-hint"] {
   position: static !important;
   top: auto !important;
   left: auto !important;
@@ -125,7 +126,7 @@
 .nova-liveness-surface .amplify-liveness-toast__message,
 .nova-liveness-surface .amplify-liveness-toast .amplify-text,
 .nova-liveness-surface .amplify-liveness-toast span,
-.nova-liveness-surface [class*='liveness-toast'] .amplify-text {
+.nova-liveness-surface [class*="liveness-toast"] .amplify-text {
   background: #ffffff !important;
   color: #111111 !important;
   font-size: 14px !important;
@@ -156,8 +157,8 @@
 }
 
 /* 오버레이 레이어에 절대배치되는 힌트/토스트를 일반 문서 흐름으로 강제 */
-.nova-liveness-surface [class*='liveness-hint'],
-.nova-liveness-surface [class*='liveness-toast'] {
+.nova-liveness-surface [class*="liveness-hint"],
+.nova-liveness-surface [class*="liveness-toast"] {
   position: static !important;
   inset: auto !important;
   transform: none !important;
@@ -169,26 +170,10 @@
 .nova-liveness-surface .amplify-liveness-hint,
 .nova-liveness-surface .amplify-liveness-hint--mobile,
 .nova-liveness-surface .amplify-liveness-toast__container,
-.nova-liveness-surface [class*='liveness-hint'],
-.nova-liveness-surface [class*='liveness-toast'] {
+.nova-liveness-surface [class*="liveness-hint"],
+.nova-liveness-surface [class*="liveness-toast"] {
   opacity: 0 !important;
   pointer-events: none !important;
-}
-
-.nova-liveness-guidance-toast {
-  width: fit-content;
-  max-width: calc(100% - 32px);
-  margin: 10px auto 0;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #111111;
-  font-size: 14px;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
 }
 
 /* 실패/오류 안내 UI 가독성 개선 */
@@ -219,7 +204,7 @@
 /* progress bar(매치 인디케이터)를 카메라 상단으로 올림 */
 .nova-liveness-surface .amplify-liveness-instruction-overlay {
   position: absolute !important;
-  top: -130px !important;  /*음수로 조정*/
+  top: -130px !important; /*음수로 조정*/
   left: 0 !important;
   right: 0 !important;
   z-index: 6 !important;
@@ -250,30 +235,35 @@
   object-fit: cover !important;
 }
 
-/* SDK 기본 마스크형 타원 캔버스는 숨김 */
+/* 기본 가이드라인 형태 커스텀: 기본 캔버스는 보이지 않게 두고 좌표만 추출 */
 .nova-liveness-surface .amplify-liveness-oval-canvas {
-  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
-/* 색상 오버레이/채움 레이어 제거 */
 .nova-liveness-surface .amplify-liveness-freshness-canvas,
 .nova-liveness-surface .amplify-liveness-overlay-opaque {
   display: none !important;
 }
 
-/* 타원 라인만 표시되는 커스텀 가이드 */
 .nova-liveness-surface .amplify-liveness-video-anchor::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 34%;
-  height: 46%;
+  width: 137px;
+  height: 226px;
   transform: translate(-50%, -50%);
-  border: 3px solid rgba(255, 255, 255, 0.92);
+  border: 3px solid rgba(255, 255, 255, 0.95);
   border-radius: 9999px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
   pointer-events: none;
+  opacity: 0;
+}
+
+.nova-liveness-surface.nova-liveness-active
+  .amplify-liveness-video-anchor::after {
+  opacity: 1;
 }
 
 /* 실패/오류 후 재촬영 대기용 빈 카메라 프레임 */
@@ -281,14 +271,14 @@
   position: relative;
   width: min(78vw, 320px);
   height: min(78vw, 320px);
-  margin: calc(var(--nova-camera-frame-y) + var(--nova-placeholder-y-offset)) auto var(--nova-camera-frame-gap-bottom);
+  margin: var(--nova-camera-frame-y) auto var(--nova-camera-frame-gap-bottom);
   border-radius: 9999px;
   background: #f3f4f6;
   border: 2px solid rgba(17, 17, 17, 0.2);
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.1);
 }
 
-.nova-liveness-placeholder__oval {
+/* .nova-liveness-placeholder__oval {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -297,4 +287,4 @@
   transform: translate(-50%, -50%);
   border: 2px solid rgba(17, 17, 17, 0.2);
   border-radius: 9999px;
-}
+} */

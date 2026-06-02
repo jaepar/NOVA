@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.user.service;
+package woorifisa.project.backend.domain.user.service.ocr;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,7 +18,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
-import woorifisa.project.backend.domain.user.dto.response.PassportResponse;
+import woorifisa.project.backend.domain.user.dto.response.ocr.PassportResponse;
 import woorifisa.project.backend.global.config.KycPassportOcrProperties;
 import woorifisa.project.backend.global.exception.CustomException;
 

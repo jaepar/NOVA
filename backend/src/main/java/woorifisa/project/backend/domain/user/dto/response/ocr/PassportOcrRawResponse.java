@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.user.dto.response;
+package woorifisa.project.backend.domain.user.dto.response.ocr;
 
 import java.util.List;
 import java.util.Map;

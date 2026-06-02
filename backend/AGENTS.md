@@ -121,6 +121,9 @@ flowchart TD
 - 금융 원장 상태 변경은 클라우드 banking 도메인에서 온프레미스 Core Banking Gateway/Server로 요청을 전달한 뒤, 온프레미스 Core Banking에서만 최종 반영한다.
 - 이체 사전 조회는 클라우드 `banking` API에서 처리하되, 내 계좌 정보는 `account_ref` 조회를 사용하고 수취인 예금주명은 coreBanking 연동 API 응답을 기준으로 한다.
 - 계좌 비밀번호 검증은 클라우드 `banking` API에서 본인 계좌 소유 확인 후 coreBanking 검증 API 응답을 기준으로 처리한다.
+- Government DB 신원 조회는 `global/government/client` 단일 클라이언트로만 수행한다.
+- 주민등록번호/외국인등록번호 원문은 `gateway`로 전송하지 않는다. OCR 값은 숫자만 남기도록 정규화한 뒤 `REGISTRATION_NUMBER_HMAC_SECRET` 기반 HMAC-SHA256 해시(`registrationNumberHash`)로 조회한다.
+- Government DB 조회 응답은 식별번호 원문을 포함하지 않는다. 조회 성공은 식별번호 해시 일치를 의미하며, backend는 이름/발급일/active 여부를 추가 검증한다.
 
 ## Notification Rules (`user/notification`)
 
@@ -132,7 +135,7 @@ flowchart TD
 - 서류 승인 완료 알림:
   - 두 문서가 모두 `APPROVED`일 때 생성한다.
 - 외국인등록증 기간 알림(`RESIDENCE_CARD_PERIOD`):
-  - 대상은 `hasCertificate=true`, `hasResidenceCard=false`, `issuedTime!=null` 사용자로 제한한다.
+  - 대상은 `certificateStatus=NOT_ISSUED`, `hasResidenceCard=false`, `issuedTime!=null` 사용자로 제한한다.
   - 발급 1개월/2개월 시점과 만료 7일 전부터 만료 전일까지 스케줄로 생성한다.
 - 알림 클릭 삭제 API는 본인 소유 알림만 삭제 가능해야 한다.
 
