@@ -15,10 +15,10 @@ public enum TransactionPeriod {
             return today.minusMonths(1);
         }
     },
-    THREE_MONTHS {
+    CUSTOM {
         @Override
         public LocalDate from(LocalDate today) {
-            return today.minusMonths(3);
+            return today;
         }
     };
 

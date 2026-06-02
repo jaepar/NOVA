@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,8 @@ import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResp
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
+
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -68,8 +71,10 @@ public class BankingController {
             @PathVariable Long accountId,
             @RequestParam(defaultValue = "ONE_MONTH") TransactionPeriod period,
             @RequestParam(defaultValue = "ALL") TransactionFlowFilter flow,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return BaseResponse.ok(bankingService.findTransactions(principal.userId(), accountId, period, flow, pageable));
+        return BaseResponse.ok(bankingService.findTransactions(principal.userId(), accountId, period, flow, from, to, pageable));
     }
 }

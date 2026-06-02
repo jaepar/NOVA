@@ -136,6 +136,7 @@ public class RestCoreBankingClient implements CoreBankingClient {
     }
 
     @Override
+    // Cloud에서 검증한 조회 조건을 Core Banking 거래내역 조회 API의 query parameter로 전달한다.
     public CoreBankingTransactionsResponse findAccountTransactions(CoreBankingTransactionQuery query) {
         try {
             BaseResponse<CoreBankingTransactionsResponse> response = restClientBuilder

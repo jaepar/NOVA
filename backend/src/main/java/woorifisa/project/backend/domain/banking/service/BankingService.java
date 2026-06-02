@@ -30,6 +30,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BAD_REQUEST;
 
 @Service
 @RequiredArgsConstructor
@@ -136,6 +137,8 @@ public class BankingService {
             Long accountId,
             TransactionPeriod period,
             TransactionFlowFilter flow,
+            LocalDate customFrom,
+            LocalDate customTo,
             Pageable pageable
     ) {
         // 요청한 계좌가 본인 계좌인지 검증
@@ -145,10 +148,12 @@ public class BankingService {
         // 조회 기간(period)을 오늘 기준 시작일로 변환하여 코어뱅킹 쿼리 생성
         // 정렬은 코어뱅킹에서 내림차순 고정이므로 별도 sort 파라미터 없이 page/size만 전달
         LocalDate today = LocalDate.now();
+        LocalDate from = resolveFrom(period, today, customFrom, customTo);
+        LocalDate to = resolveTo(period, today, customFrom, customTo);
         CoreBankingTransactionQuery query = new CoreBankingTransactionQuery(
                 accountId,
-                period.from(today),
-                today,
+                from,
+                to,
                 flow,
                 pageable.getPageNumber(),
                 pageable.getPageSize()
@@ -156,6 +161,31 @@ public class BankingService {
         // 코어뱅킹에서 페이지 단위로 거래내역 조회 후 응답 변환
         CoreBankingTransactionsResponse response = coreBankingClient.findAccountTransactions(query);
         return BankingTransactionsResponse.of(period, flow, response);
+    }
+
+    // 조회 시작일 계산: 고정 기간은 오늘 기준으로 계산하고, 직접 입력은 요청값을 그대로 사용한다.
+    private LocalDate resolveFrom(TransactionPeriod period, LocalDate today, LocalDate customFrom, LocalDate customTo) {
+        if (period != TransactionPeriod.CUSTOM) {
+            return period.from(today);
+        }
+        validateCustomPeriod(customFrom, customTo);
+        return customFrom;
+    }
+
+    // 조회 종료일 계산: 고정 기간은 오늘까지, 직접 입력은 요청한 종료일을 사용한다.
+    private LocalDate resolveTo(TransactionPeriod period, LocalDate today, LocalDate customFrom, LocalDate customTo) {
+        if (period != TransactionPeriod.CUSTOM) {
+            return today;
+        }
+        validateCustomPeriod(customFrom, customTo);
+        return customTo;
+    }
+
+    // 직접 입력 기간은 시작일/종료일이 모두 있어야 하며, 시작일이 종료일보다 늦을 수 없다.
+    private void validateCustomPeriod(LocalDate customFrom, LocalDate customTo) {
+        if (customFrom == null || customTo == null || customFrom.isAfter(customTo)) {
+            throw new CustomException(BAD_REQUEST);
+        }
     }
 
     // ProcessingKey 생성 메서드

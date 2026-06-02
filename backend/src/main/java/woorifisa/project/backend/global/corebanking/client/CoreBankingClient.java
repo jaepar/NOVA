@@ -19,6 +19,7 @@ public interface CoreBankingClient {
 
     void verifyAccountPassword(CoreBankingPasswordVerifyRequest request);
 
+    // Core Banking 원장 기준 계좌 거래내역을 기간/유형/페이지 조건으로 조회한다.
     CoreBankingTransactionsResponse findAccountTransactions(CoreBankingTransactionQuery query);
 
     void debitWalletAccount(CoreBankingWalletDebitRequest request);
