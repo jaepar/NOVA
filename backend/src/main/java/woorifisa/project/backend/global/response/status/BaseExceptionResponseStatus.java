@@ -73,7 +73,7 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
 	/**
 	 * job
 	 */
-	JOB_NOT_FOUND("JOB-001", "존재하지 않는 구인공고입니다."),
+	JOB_NOT_FOUND("JOB-001", "구인구직 공고를 찾을 수 없습니다."),
 	APPLICATION_ALREADY_EXISTS("JOB-002", "이미 지원한 구인공고입니다."),
 
 	/**
