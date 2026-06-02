@@ -14,6 +14,7 @@ public record CoreBankingTransactionsResponse(
             Long transactionId,
             String transactionFlow,
             String transactionType,
+            String counterParty,
             Integer amount,
             Integer balanceAfter,
             String memo,
