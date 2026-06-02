@@ -106,6 +106,12 @@ public class NotificationService {
 		createOrReplace(user, NotificationType.RESIDENCE_CARD_PERIOD, content);
 	}
 
+	// 외국인등록증 등록이 완료된 경우 기간 알림을 삭제
+	@Transactional
+	public void deleteResidenceCardPeriodNotification(User user) {
+		notificationRepository.deleteByUserAndType(user, NotificationType.RESIDENCE_CARD_PERIOD);
+	}
+
 	// 알림 클릭 시 본인 소유 알림만 삭제한다.
 	@Transactional
 	public boolean deleteNotificationById(Long userId, Long notificationId) {

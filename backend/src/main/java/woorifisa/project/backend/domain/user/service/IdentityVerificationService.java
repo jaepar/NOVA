@@ -30,6 +30,7 @@ public class IdentityVerificationService {
 	private final UserRepository userRepository;
 	private final GovernmentIdentityClient governmentIdentityClient;
 	private final RegistrationNumberHmacHasher registrationNumberHmacHasher;
+	private final NotificationService notificationService;
 
 	@Transactional
 	public IdentityVerificationResponse verifyIdentity(Long userId, MultipartFile file, OcrDocumentType ocrDocumentType) {
@@ -93,6 +94,7 @@ public class IdentityVerificationService {
 		}
 
 		user.registerResidenceCard();
+		notificationService.deleteResidenceCardPeriodNotification(user);
 
 		return IdentityVerificationResponse.builder()
 			.ocrDocumentType(OcrDocumentType.ID_CARD)
