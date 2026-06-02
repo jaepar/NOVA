@@ -147,7 +147,7 @@ class BankingControllerTest {
                 AuthorityUtils.NO_AUTHORITIES
         );
 
-        when(bankingService.findTransactions(any(), any(), any(), any(), any()))
+        when(bankingService.findTransactions(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new BankingTransactionsResponse(
                         accountId,
                         TransactionPeriod.ONE_MONTH,
@@ -159,6 +159,7 @@ class BankingControllerTest {
                                 10000,
                                 50000,
                                 "충전",
+                                "?? ??",
                                 LocalDateTime.of(2026, 6, 2, 10, 30)
                         )),
                         0,
@@ -178,10 +179,51 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.data.transactions[0].balanceAfter").value(50000))
                 .andExpect(jsonPath("$.data.transactions[0].memo").value("충전"))
                 .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.transactions[0].counterParty").value("?? ??"))
                 .andExpect(jsonPath("$.data.size").value(20))
                 .andExpect(jsonPath("$.data.hasNext").value(false));
 
         verify(bankingService).findTransactions(any(), eq(accountId), eq(TransactionPeriod.ONE_MONTH),
-                eq(TransactionFlowFilter.ALL), any());
+                eq(TransactionFlowFilter.ALL), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("???? ?? ?? ?? ??? ???? ????")
+    void findTransactionsWithCustomPeriod() throws Exception {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.findTransactions(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(new BankingTransactionsResponse(
+                        accountId,
+                        TransactionPeriod.CUSTOM,
+                        TransactionFlowFilter.WITHDRAWAL,
+                        List.of(),
+                        1,
+                        20,
+                        false
+                ));
+
+        mockMvc.perform(get("/banking/{accountId}/transactions", accountId)
+                        .with(authentication(authToken))
+                        .param("period", "CUSTOM")
+                        .param("flow", "WITHDRAWAL")
+                        .param("from", "2026-05-10")
+                        .param("to", "2026-06-02")
+                        .param("page", "1")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.period").value("CUSTOM"))
+                .andExpect(jsonPath("$.data.flow").value("WITHDRAWAL"));
+
+        verify(bankingService).findTransactions(any(), eq(accountId), eq(TransactionPeriod.CUSTOM),
+                eq(TransactionFlowFilter.WITHDRAWAL), eq(java.time.LocalDate.of(2026, 5, 10)),
+                eq(java.time.LocalDate.of(2026, 6, 2)), any());
     }
 }

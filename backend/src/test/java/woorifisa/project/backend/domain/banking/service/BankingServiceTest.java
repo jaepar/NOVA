@@ -288,6 +288,7 @@ class BankingServiceTest {
                         10000,
                         50000,
                         "충전",
+                        "?? ??",
                         LocalDateTime.of(2026, 6, 2, 10, 30)
                 )),
                 0,
@@ -307,6 +308,8 @@ class BankingServiceTest {
                 pageable
         );
 
+                null,
+                null,
         ArgumentCaptor<CoreBankingTransactionQuery> captor = ArgumentCaptor.forClass(CoreBankingTransactionQuery.class);
         verify(coreBankingClient).findAccountTransactions(captor.capture());
         CoreBankingTransactionQuery query = captor.getValue();
@@ -323,11 +326,58 @@ class BankingServiceTest {
         assertThat(response.transactions().get(0).balanceAfter()).isEqualTo(50000);
         assertThat(response.transactions().get(0).memo()).isEqualTo("충전");
         assertThat(response.hasNext()).isFalse();
+        assertThat(response.transactions().get(0).counterParty()).isEqualTo("?? ??");
     }
 
     @Test
     @DisplayName("본인 계좌가 아니면 거래내역 조회를 코어뱅킹에 요청하지 않는다")
     void findTransactionsAccountNotFound() {
+    @Test
+    @DisplayName("?? ?? ???? ??? ???? ???? ??? ?????? ????")
+    void findTransactionsWithCustomPeriod() {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        LocalDate from = LocalDate.of(2026, 5, 10);
+        LocalDate to = LocalDate.of(2026, 6, 2);
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(accountId)
+                .hasAccount(true)
+                .build();
+        CoreBankingTransactionsResponse coreResponse = new CoreBankingTransactionsResponse(
+                accountId,
+                List.of(),
+                1,
+                20,
+                false
+        );
+
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId))
+                .thenReturn(Optional.of(accountRef));
+        when(coreBankingClient.findAccountTransactions(any())).thenReturn(coreResponse);
+
+        BankingTransactionsResponse response = bankingService.findTransactions(
+                userId,
+                accountId,
+                TransactionPeriod.CUSTOM,
+                TransactionFlowFilter.WITHDRAWAL,
+                from,
+                to,
+                PageRequest.of(1, 20)
+        );
+
+        ArgumentCaptor<CoreBankingTransactionQuery> captor = ArgumentCaptor.forClass(CoreBankingTransactionQuery.class);
+        verify(coreBankingClient).findAccountTransactions(captor.capture());
+        CoreBankingTransactionQuery query = captor.getValue();
+        assertThat(query.from()).isEqualTo(from);
+        assertThat(query.to()).isEqualTo(to);
+        assertThat(query.flow()).isEqualTo(TransactionFlowFilter.WITHDRAWAL);
+        assertThat(query.page()).isEqualTo(1);
+        assertThat(query.size()).isEqualTo(20);
+        assertThat(response.period()).isEqualTo(TransactionPeriod.CUSTOM);
+    }
+
         Long userId = 1L;
         Long accountId = 2001L;
         when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId))
@@ -341,6 +391,8 @@ class BankingServiceTest {
                 PageRequest.of(0, 20)
         ))
                 .isInstanceOf(CustomException.class)
+                null,
+                null,
                 .extracting("exceptionStatus")
                 .isEqualTo(BANKING_ACCOUNT_NOT_FOUND);
 
