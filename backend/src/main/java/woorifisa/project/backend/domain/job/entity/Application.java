@@ -39,15 +39,6 @@ public class Application extends BaseEntity {
     @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
-    @Column(name = "country_code", length = 10)
-    private String countryCode;
-
-    @Column(name = "phone", length = 30)
-    private String phone;
-
-    @Column(name = "recommender", length = 100)
-    private String recommender;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ApplicationStatus status;

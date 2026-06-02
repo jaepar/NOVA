@@ -69,11 +69,13 @@ public class JobService {
 				return new CustomException(JOB_NOT_FOUND);
 			});
 
+		// 사용자가 동일한 지원하는거 막기
 		if (applicationRepository.existsByUserAndJob(user, job)) {
 			log.warn("job application submit failed. reason=duplicate userId={}, jobId={}", userId, jobId);
 			throw new CustomException(APPLICATION_ALREADY_EXISTS);
 		}
 
+		// 지원내역 저장
 		Application application = applicationRepository.save(Application.builder()
 			.user(user)
 			.job(job)
@@ -98,6 +100,7 @@ public class JobService {
 				continue;
 			}
 
+			// 파일명 어떻게 지정하는지 설명
 			String fileUrl = portfolioFileS3Uploader.upload(
 				user.getUserId(),
 				application.getApplicationId(),

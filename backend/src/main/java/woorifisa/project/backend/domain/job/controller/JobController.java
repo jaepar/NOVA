@@ -18,6 +18,7 @@ import woorifisa.project.backend.domain.job.dto.response.CreateApplicationRespon
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
 import woorifisa.project.backend.domain.job.service.JobService;
+import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
 
 @RestController
@@ -40,14 +41,15 @@ public class JobController {
 	}
 
 	@PostMapping(value = "/{jobId}/applications", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	// 그냥 공통 null 응답
 	public BaseResponse<CreateApplicationResponse> createApplication(
-		@AuthenticationPrincipal(expression = "userId") Long userId,
+		@AuthenticationPrincipal SessionUserPrincipal principal,
 		@PathVariable Long jobId,
-		@RequestParam(value = "country_code", required = false) String countryCode,
-		@RequestParam(required = false) String phone,
-		@RequestParam(required = false) String recommender,
+		@RequestParam(value = "country_code", required = false) String countryCode, // 불필요
+		@RequestParam(required = false) String phone,	// 불필요
+		@RequestParam(required = false) String recommender,	// 불필요
 		@RequestPart(value = "files", required = false) MultipartFile[] files
 	) {
-		return BaseResponse.ok(jobService.createApplication(userId, jobId, countryCode, phone, recommender, files));
+		return BaseResponse.ok(jobService.createApplication(principal.userId(), jobId, countryCode, phone, recommender, files));
 	}
 }

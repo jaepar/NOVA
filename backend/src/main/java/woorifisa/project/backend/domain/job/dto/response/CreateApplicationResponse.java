@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import woorifisa.project.backend.domain.job.entity.Application;
 import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
 
+// 삭제?
 public record CreateApplicationResponse(
 	@JsonProperty("application_id")
 	Long applicationId,
