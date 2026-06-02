@@ -59,6 +59,9 @@ public class AccountTransaction extends BaseEntity {
     @Column(name = "amount", nullable = false)
     private Integer amount;
 
+    @Column(name = "balance_after", nullable = false)
+    private Integer balanceAfter;
+
     @Column(name = "memo", length = 100)
     private String memo;
 

@@ -1,12 +1,21 @@
 package woorifisa.project.coreBanking.domain.accountTransaction.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransactionFlowFilter;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.AccountTransactionRequestLookupResponse;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.AccountTransactionsResponse;
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
 import woorifisa.project.coreBanking.global.exception.CustomException;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSACTION_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_TRANSACTION_NOT_FOUND;
 import org.springframework.dao.DataIntegrityViolationException;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
@@ -35,6 +44,7 @@ public class AccountTransactionService {
 
     private static final String WALLET_CHARGE_COUNTERPARTY = "월렛 충전";
 
+    // 이체·충전 요청이 원장에 기록됐는지 확인해 처리 완료 여부를 반환한다.
     @Transactional(readOnly = true)
     public AccountTransactionRequestLookupResponse findRequestResult(String externalRequestId) {
         if (!accountTransactionRepository.existsByExternalRequestId(externalRequestId)) {
@@ -68,6 +78,7 @@ public class AccountTransactionService {
         if (account.getBalance() < chargeAmount) {
             throw new CustomException(WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE);
         }
+        int balanceAfter = account.getBalance() - chargeAmount;
 
         // 계좌 차감과 거래내역 저장은 같은 트랜잭션 안에서 확정한다.
         try {
@@ -77,6 +88,7 @@ public class AccountTransactionService {
                     .transactionType(TransactionType.WALLET_CHARGE)
                     .counterParty(WALLET_CHARGE_COUNTERPARTY)
                     .amount(chargeAmount)
+                    .balanceAfter(balanceAfter)
                     .externalRequestId(request.walletChargeRequestId())
                     .build());
         } catch (DataIntegrityViolationException exception) {
@@ -114,6 +126,8 @@ public class AccountTransactionService {
         if (withdrawAccount.getBalance() < request.transferAmount()) {
             throw new CustomException(ACCOUNT_TRANSFER_INSUFFICIENT_BALANCE);
         }
+        int withdrawBalanceAfter = withdrawAccount.getBalance() - request.transferAmount();
+        int depositBalanceAfter = depositAccount.getBalance() + request.transferAmount();
 
         try {
             // 출금 계좌의 거래 내역 저장
@@ -123,6 +137,7 @@ public class AccountTransactionService {
                     .transactionType(TransactionType.ACCOUNT_TRANSFER)
                     .counterParty(depositAccount.getCustomer().getName())
                     .amount(request.transferAmount())
+                    .balanceAfter(withdrawBalanceAfter)
                     .memo(request.withdrawMemo())
                     .externalRequestId(request.externalRequestId())
                     .build());
@@ -134,6 +149,7 @@ public class AccountTransactionService {
                     .transactionType(TransactionType.ACCOUNT_TRANSFER)
                     .counterParty(withdrawAccount.getCustomer().getName())
                     .amount(request.transferAmount())
+                    .balanceAfter(depositBalanceAfter)
                     .memo(request.depositMemo())
                     .externalRequestId(request.externalRequestId())
                     .build());
@@ -147,6 +163,43 @@ public class AccountTransactionService {
 
         withdrawAccount.debit(request.transferAmount());
         depositAccount.credit(request.transferAmount());
+    }
+
+    // 계좌의 기간·입출금 유형 조건에 맞는 거래내역을 최신순으로 페이징 조회한다.
+    @Transactional(readOnly = true)
+    public AccountTransactionsResponse findTransactions(
+            Long accountId,
+            LocalDate from,
+            LocalDate to,
+            TransactionFlowFilter flow,
+            int page,
+            int size
+    ) {
+        if (!accountRepository.existsById(accountId)) {
+            throw new CustomException(ACCOUNT_TRANSACTION_ACCOUNT_NOT_FOUND);
+        }
+
+        LocalDateTime fromDateTime = from.atStartOfDay();
+        LocalDateTime toDateTime = to.plusDays(1).atStartOfDay();
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        // ALL이면 입출금 구분 없이 전체 조회, 아니면 유형 필터를 추가한다.
+        Slice<AccountTransaction> transactions = flow == TransactionFlowFilter.ALL
+                ? accountTransactionRepository.findByAccount_AccountIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                accountId,
+                fromDateTime,
+                toDateTime,
+                pageRequest
+        )
+                : accountTransactionRepository.findByAccount_AccountIdAndTransactionFlowAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                accountId,
+                TransactionFlow.valueOf(flow.name()),
+                fromDateTime,
+                toDateTime,
+                pageRequest
+        );
+
+        return AccountTransactionsResponse.of(accountId, transactions);
     }
 
     private boolean isInvalidRequest(DebitWalletAccountRequest request) {
