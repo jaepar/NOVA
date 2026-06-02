@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.user.service;
+package woorifisa.project.backend.domain.user.service.ocr;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
@@ -16,8 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import woorifisa.project.backend.domain.user.dto.response.PassportOcrRawResponse;
-import woorifisa.project.backend.domain.user.dto.response.PassportResponse;
+import woorifisa.project.backend.domain.user.dto.response.ocr.PassportOcrRawResponse;
+import woorifisa.project.backend.domain.user.dto.response.ocr.PassportResponse;
 import woorifisa.project.backend.global.config.KycPassportOcrProperties;
 import woorifisa.project.backend.global.exception.CustomException;
 
