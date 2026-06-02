@@ -18,7 +18,7 @@ public enum TransactionPeriod {
     CUSTOM {
         @Override
         public LocalDate from(LocalDate today) {
-            return today;
+            throw new UnsupportedOperationException("CUSTOM period requires explicit from/to dates");
         }
     };
 
