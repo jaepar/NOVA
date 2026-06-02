@@ -157,6 +157,61 @@ Request
 }
 ```
 
+## BANK-004 거래 내역 조회(Cloud)
+
+- Method: `GET`
+- Path: `/banking/{accountId}/transactions`
+- Auth: `O` (USER 세션 필수)
+- Sort: 최신순 고정
+- Pagination: Spring `Pageable`, 기본 `size=20`, 응답은 무한 스크롤용 Slice 형태(`hasNext`)로 제공
+
+Query Parameters
+
+| Name | Type | Required | Default | Values | Description |
+|---|---|---|---|---|---|
+| `period` | enum | N | `ONE_MONTH` | `ONE_WEEK`, `ONE_MONTH`, `CUSTOM` | 조회 기간 |
+| `flow` | enum | N | `ALL` | `ALL`, `DEPOSIT`, `WITHDRAWAL` | 입출금 유형 |
+| `from` | date | N | - | `yyyy-MM-dd` | `period=CUSTOM`일 때 시작일 |
+| `to` | date | N | - | `yyyy-MM-dd` | `period=CUSTOM`일 때 종료일 |
+| `page` | integer | N | `0` | `0..` | 페이지 번호 |
+| `size` | integer | N | `20` | `1..` | 페이지 크기 |
+
+Validation
+
+- `period`가 `CUSTOM`이면 `from`, `to`가 모두 필요하다.
+- `period`가 `CUSTOM`이 아니면 `from`, `to`를 함께 전달할 수 없다.
+- `from`은 `to`보다 늦을 수 없다.
+
+Response (200)
+
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "accountId": 2001,
+    "period": "ONE_MONTH",
+    "flow": "ALL",
+    "transactions": [
+      {
+        "transactionId": 1,
+        "transactionFlow": "WITHDRAWAL",
+        "transactionType": "ACCOUNT_TRANSFER",
+        "counterParty": "PARK JAEHA",
+        "amount": 10000,
+        "balanceAfter": 90000,
+        "memo": "생활비",
+        "transactionDateTime": "2026-06-02T10:15:30"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "hasNext": false
+  }
+}
+```
+
 ## USER-005 여권 인증
 
 - Method: `POST`
