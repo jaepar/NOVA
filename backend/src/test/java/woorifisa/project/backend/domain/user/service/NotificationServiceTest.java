@@ -60,6 +60,16 @@ class NotificationServiceTest {
 	}
 
 	@Test
+	@DisplayName("외국인등록증 등록 완료 시 기간 알림을 삭제한다")
+	void deleteResidenceCardPeriodNotification() {
+		User user = User.builder().userId(1L).build();
+
+		notificationService.deleteResidenceCardPeriodNotification(user);
+
+		verify(notificationRepository).deleteByUserAndType(user, NotificationType.RESIDENCE_CARD_PERIOD);
+	}
+
+	@Test
 	@DisplayName("알림 클릭 시 본인 소유 알림만 삭제한다")
 	void deleteNotificationById() {
 		when(notificationRepository.deleteByNotificationIdAndUser_UserId(10L, 1L)).thenReturn(1L);

@@ -31,13 +31,15 @@ class IdentityVerificationServiceTest {
 		UserRepository userRepository = org.mockito.Mockito.mock(UserRepository.class);
 		IdCardOcrService idCardOcrService = org.mockito.Mockito.mock(IdCardOcrService.class);
 		GovernmentIdentityClient governmentIdentityClient = org.mockito.Mockito.mock(GovernmentIdentityClient.class);
+		NotificationService notificationService = org.mockito.Mockito.mock(NotificationService.class);
 
 		IdentityVerificationService service = new IdentityVerificationService(
 			org.mockito.Mockito.mock(PassportOcrService.class),
 			idCardOcrService,
 			userRepository,
 			governmentIdentityClient,
-			new RegistrationNumberHmacHasher("test-secret")
+			new RegistrationNumberHmacHasher("test-secret"),
+			notificationService
 		);
 
 		User user = User.builder()
@@ -67,6 +69,7 @@ class IdentityVerificationServiceTest {
 		assertThat(response.identityMatchWithGovDb()).isTrue();
 		assertThat(response.failureReasonCode()).isNull();
 		assertThat(user.getHasResidenceCard()).isTrue();
+		verify(notificationService).deleteResidenceCardPeriodNotification(user);
 	}
 
 	@Test
@@ -75,13 +78,15 @@ class IdentityVerificationServiceTest {
 		UserRepository userRepository = org.mockito.Mockito.mock(UserRepository.class);
 		IdCardOcrService idCardOcrService = org.mockito.Mockito.mock(IdCardOcrService.class);
 		GovernmentIdentityClient governmentIdentityClient = org.mockito.Mockito.mock(GovernmentIdentityClient.class);
+		NotificationService notificationService = org.mockito.Mockito.mock(NotificationService.class);
 
 		IdentityVerificationService service = new IdentityVerificationService(
 			org.mockito.Mockito.mock(PassportOcrService.class),
 			idCardOcrService,
 			userRepository,
 			governmentIdentityClient,
-			new RegistrationNumberHmacHasher("test-secret")
+			new RegistrationNumberHmacHasher("test-secret"),
+			notificationService
 		);
 
 		User user = User.builder()
@@ -107,6 +112,7 @@ class IdentityVerificationServiceTest {
 		assertThat(response.failureReasonCode()).isEqualTo("IDENTITY_NAME_MISMATCH_WITH_USER");
 		assertThat(response.nameMatchWithUser()).isFalse();
 		verify(governmentIdentityClient, never()).lookupByRegistrationNumberHash(org.mockito.ArgumentMatchers.any());
+		verify(notificationService, never()).deleteResidenceCardPeriodNotification(org.mockito.ArgumentMatchers.any());
 	}
 
 	@Test
@@ -115,13 +121,15 @@ class IdentityVerificationServiceTest {
 		UserRepository userRepository = org.mockito.Mockito.mock(UserRepository.class);
 		IdCardOcrService idCardOcrService = org.mockito.Mockito.mock(IdCardOcrService.class);
 		GovernmentIdentityClient governmentIdentityClient = org.mockito.Mockito.mock(GovernmentIdentityClient.class);
+		NotificationService notificationService = org.mockito.Mockito.mock(NotificationService.class);
 
 		IdentityVerificationService service = new IdentityVerificationService(
 			org.mockito.Mockito.mock(PassportOcrService.class),
 			idCardOcrService,
 			userRepository,
 			governmentIdentityClient,
-			new RegistrationNumberHmacHasher("test-secret")
+			new RegistrationNumberHmacHasher("test-secret"),
+			notificationService
 		);
 
 		User user = User.builder()
@@ -151,5 +159,6 @@ class IdentityVerificationServiceTest {
 		assertThat(response.identityMatchWithGovDb()).isFalse();
 		assertThat(response.failureReasonCode()).isEqualTo("GOVERNMENT_IDENTITY_MISMATCH");
 		assertThat(user.getHasResidenceCard()).isFalse();
+		verify(notificationService, never()).deleteResidenceCardPeriodNotification(org.mockito.ArgumentMatchers.any());
 	}
 }
