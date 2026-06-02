@@ -15,6 +15,7 @@ import woorifisa.project.backend.domain.user.dto.request.OcrDocumentType;
 import woorifisa.project.backend.domain.user.dto.response.ocr.IdCardOcrResponse;
 import woorifisa.project.backend.domain.user.dto.response.IdentityVerificationResponse;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.Gender;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.domain.user.service.ocr.IdCardOcrService;
@@ -50,7 +51,7 @@ class IdentityVerificationServiceTest {
 			.email("test@test.com")
 			.password("pw")
 			.hasResidenceCard(false)
-			.hasCertificate(false)
+			.certificateStatus(CertificateStatus.NOT_ISSUED)
 			.hasDelete(false)
 			.build();
 
@@ -97,7 +98,7 @@ class IdentityVerificationServiceTest {
 			.email("test@test.com")
 			.password("pw")
 			.hasResidenceCard(false)
-			.hasCertificate(false)
+			.certificateStatus(CertificateStatus.NOT_ISSUED)
 			.hasDelete(false)
 			.build();
 
@@ -140,7 +141,7 @@ class IdentityVerificationServiceTest {
 			.email("test@test.com")
 			.password("pw")
 			.hasResidenceCard(false)
-			.hasCertificate(false)
+			.certificateStatus(CertificateStatus.NOT_ISSUED)
 			.hasDelete(false)
 			.build();
 

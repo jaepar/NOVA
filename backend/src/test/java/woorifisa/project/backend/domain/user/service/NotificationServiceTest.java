@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import woorifisa.project.backend.domain.user.entity.Notification;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.NotificationType;
 import woorifisa.project.backend.domain.user.repository.NotificationRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
@@ -39,11 +40,11 @@ class NotificationServiceTest {
 	void createResidenceCardPeriodNotificationsBySchedule() {
 		User user = User.builder()
 			.userId(1L)
-			.hasCertificate(true)
+			.certificateStatus(CertificateStatus.NOT_ISSUED)
 			.hasResidenceCard(false)
 			.issuedTime(LocalDateTime.of(2026, 3, 1, 10, 0))
 			.build();
-		when(userRepository.findAllByHasCertificateTrueAndHasResidenceCardFalseAndIssuedTimeIsNotNull())
+		when(userRepository.findAllByCertificateStatusAndHasResidenceCardFalseAndIssuedTimeIsNotNull(CertificateStatus.NOT_ISSUED))
 			.thenReturn(List.of(user));
 
 		int oneMonth = notificationService.createResidenceCardPeriodNotifications(LocalDate.of(2026, 4, 1));
