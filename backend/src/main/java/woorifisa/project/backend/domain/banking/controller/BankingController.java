@@ -2,15 +2,23 @@ package woorifisa.project.backend.domain.banking.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
@@ -51,5 +59,17 @@ public class BankingController {
     ) {
         bankingService.verifyAccountPassword(principal.userId(), request);
         return BaseResponse.ok(null);
+    }
+
+    // 계좌 거래내역 조회
+    @GetMapping("/{accountId}/transactions")
+    public BaseResponse<BankingTransactionsResponse> findTransactions(
+            @AuthenticationPrincipal SessionUserPrincipal principal,
+            @PathVariable Long accountId,
+            @RequestParam(defaultValue = "ONE_MONTH") TransactionPeriod period,
+            @RequestParam(defaultValue = "ALL") TransactionFlowFilter flow,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return BaseResponse.ok(bankingService.findTransactions(principal.userId(), accountId, period, flow, pageable));
     }
 }

@@ -1,15 +1,21 @@
 package woorifisa.project.backend.domain.banking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransactionQuery;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
@@ -17,6 +23,7 @@ import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED;
@@ -120,6 +127,35 @@ public class BankingService {
         coreBankingClient.verifyAccountPassword(
                 CoreBankingPasswordVerifyRequest.of(request.accountId(), request.accountPassword())
         );
+    }
+
+    // 계좌 거래내역 조회
+    @Transactional(readOnly = true)
+    public BankingTransactionsResponse findTransactions(
+            Long userId,
+            Long accountId,
+            TransactionPeriod period,
+            TransactionFlowFilter flow,
+            Pageable pageable
+    ) {
+        // 요청한 계좌가 본인 계좌인지 검증
+        accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId)
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
+        // 조회 기간(period)을 오늘 기준 시작일로 변환하여 코어뱅킹 쿼리 생성
+        // 정렬은 코어뱅킹에서 내림차순 고정이므로 별도 sort 파라미터 없이 page/size만 전달
+        LocalDate today = LocalDate.now();
+        CoreBankingTransactionQuery query = new CoreBankingTransactionQuery(
+                accountId,
+                period.from(today),
+                today,
+                flow,
+                pageable.getPageNumber(),
+                pageable.getPageSize()
+        );
+        // 코어뱅킹에서 페이지 단위로 거래내역 조회 후 응답 변환
+        CoreBankingTransactionsResponse response = coreBankingClient.findAccountTransactions(query);
+        return BankingTransactionsResponse.of(period, flow, response);
     }
 
     // ProcessingKey 생성 메서드
