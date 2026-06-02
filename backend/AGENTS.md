@@ -135,7 +135,7 @@ flowchart TD
 - 서류 승인 완료 알림:
   - 두 문서가 모두 `APPROVED`일 때 생성한다.
 - 외국인등록증 기간 알림(`RESIDENCE_CARD_PERIOD`):
-  - 대상은 `hasCertificate=true`, `hasResidenceCard=false`, `issuedTime!=null` 사용자로 제한한다.
+  - 대상은 `certificateStatus=NOT_ISSUED`, `hasResidenceCard=false`, `issuedTime!=null` 사용자로 제한한다.
   - 발급 1개월/2개월 시점과 만료 7일 전부터 만료 전일까지 스케줄로 생성한다.
 - 알림 클릭 삭제 API는 본인 소유 알림만 삭제 가능해야 한다.
 
