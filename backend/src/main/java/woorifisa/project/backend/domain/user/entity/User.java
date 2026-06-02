@@ -62,4 +62,8 @@ public class User extends BaseEntity {
         this.hasCertificate = true;
         this.issuedTime = LocalDateTime.now();
     }
+
+    public void registerResidenceCard() {
+        this.hasResidenceCard = true;
+    }
 }
