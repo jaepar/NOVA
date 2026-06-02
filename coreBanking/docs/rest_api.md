@@ -24,7 +24,7 @@ coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.
 | `CB-002` | 계좌 비밀번호 검증(On-Prem) | POST | `/accounts/password/verify` | O | AUTHORIZED | account.password 일치 검증 |
 | `CB-003` | 계좌 이체(On-Prem) | POST | `/account-transactions/transfers` | O | AUTHORIZED | `externalRequestId` 기반 멱등 처리 |
 | `CB-004` | 이체 처리 결과 조회(On-Prem) | GET | `/account-transactions/requests/{externalRequestId}` | O | AUTHORIZED | 이체/월렛충전 공통 외부 요청 ID 기반 결과 조회 |
-| `CB-005` | 거래 내역 조회(On-Prem) | GET | `/core-banking/{accountId}/transactions` | O | AUTHORIZED | |
+| `CB-005` | 거래 내역 조회(On-Prem) | GET | `/account-transactions/accounts/{accountId}` | O | AUTHORIZED | |
 | `CB-006` | 거래 내역 메모 수정(On-Prem) | PATCH | `/core-banking/{accountId}/transactions/{transactionId}/memo` | O | AUTHORIZED | |
 | `CB-007` | 홈 계좌 정보 조회(On-Prem) | GET | `/core-banking/home` | O | AUTHORIZED | |
 | `CB-008` | 해외 송금(On-Prem) | TBD | `TBD` | O | AUTHORIZED | 명세 상세 확정 후 반영 |
