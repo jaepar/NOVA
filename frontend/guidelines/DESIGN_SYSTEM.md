@@ -48,6 +48,25 @@
 - `CommonInputGroup` 등 공통 입력 컴포넌트를 우선 사용한다.
 - 공통 컴포넌트가 존재하면 임의 입력 스타일을 추가하지 않는다.
 
+### 5.1) 이메일 인증 입력 규격
+
+- 이메일 인증 플로우는 공통 컴포넌트 조합을 표준으로 사용한다.
+  - `EmailVerificationFields`: 이메일 입력, 인증번호 입력, 상태 메시지 UI
+  - `useEmailVerification`: 인증번호 발송, 타이머, 검증 상태 로직
+- 회원가입, 계좌개설, 해외송금 페이지에서 동일 인증 UI를 각각 다시 구현하지 않는다.
+- 페이지는 인증 시작 조건, 완료 후 이동, 보조 문구만 조합하고 인증 자체 UI는 공통 블록을 사용한다.
+
+### 5.2) 국가 선택 입력 규격
+
+- 국가 검색/선택은 `CountrySelectBottomSheet`를 공통 컴포넌트로 사용한다.
+- 구성 규격:
+  - 상단: 제목 + 닫기 버튼
+  - 검색창: 라벨 없이 placeholder만 사용
+  - 검색창 위치: 상단 고정
+  - 리스트 영역: 하단 목록만 스크롤
+- 페이지에서 국가 검색 로직, 검색창, 리스트 아이템 UI를 반복 구현하지 않는다.
+- 국가 데이터는 `data` 폴더 정의 파일을 주입받아 사용한다.
+
 ## 6) 공통 레이아웃 컴포넌트
 
 - `FixedHeader`
@@ -115,12 +134,12 @@
   - `role="alert"`
   - `aria-live="polite"`
 
-
 ### Main 페이지 구현 정책 참조
 
 - `Main.tsx` 구조 규칙은 디자인 토큰 규칙과 별도로 관리한다.
 - Main 페이지 신규 UI는 `src/app/pages/main/` 하위 컴포넌트로 분리하고, `Main.tsx`는 조립 전용으로 유지한다.
 - 상세 구현 규칙은 `frontend/AGENTS.md`와 `frontend/guidelines/LAYOUT_GUIDELINES.md`를 따른다.
+
 ## 7) 상호작용 원칙
 
 - hover/active 동작은 기존 variant 규칙과 일치시킨다.
