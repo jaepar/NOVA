@@ -32,8 +32,8 @@ public class Resume extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "application_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "application_id")
     private Application application;
 
     @Column(name = "name", length = 100, nullable = false)
