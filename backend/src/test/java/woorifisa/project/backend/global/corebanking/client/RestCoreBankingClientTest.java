@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 import org.springframework.web.client.ResourceAccessException;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.net.SocketTimeoutException;

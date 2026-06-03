@@ -114,6 +114,10 @@ public class AdminService {
 			user.getUserId(), alienApproved, residenceApproved, user.getCertificateStatus());
 
 		if (alienApproved && residenceApproved && user.getCertificateStatus() != CertificateStatus.ISSUED) {
+			// 발급 전 사용자만 신청 중 상태를 거쳐 최종 발급으로 전이한다.
+			if (user.getCertificateStatus() == CertificateStatus.NOT_ISSUED) {
+				user.startCertificateIssuance();
+			}
 			user.issueCertificate();
 			log.info("[certificate:issued] userId={}, issuedTime={}", user.getUserId(), user.getIssuedTime());
 			log.info("[certificate:core_banking_customer_create_requested] userId={}, name={}, email={}",
