@@ -14,7 +14,7 @@ export interface ConsentCategory {
 }
 
 export interface ConsentDefinition {
-  domain: 'certificate' | 'account'
+  domain: 'certificate' | 'account' | 'transfer' | 'signup'
   version: 'v1'
   categories: ConsentCategory[]
 }

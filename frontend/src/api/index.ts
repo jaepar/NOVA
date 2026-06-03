@@ -31,3 +31,8 @@ export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
 export { walletApi } from './endpoints/wallet';
 export type { WalletNextStep, WalletStatusResponse } from './endpoints/wallet';
+export { transferApi } from "./endpoints/transfer";
+export type {
+  SubmitRemittanceRequest,
+  SubmitRemittanceResponse,
+} from "./endpoints/transfer";

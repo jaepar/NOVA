@@ -6,12 +6,14 @@ import { signupRoutes } from "./signupRoutes";
 import { loginRoutes } from "./loginRoutes";
 import { profileRoutes } from "./profileRoutes";
 import { jobRoutes } from "./jobRoutes";
+import { transferRoutes } from "./transferRoutes";
 
 import { accountRoutes } from "./accountRoutes";
 import { NotFound } from "../pages/common/NotFound";
 
 export const appRoutes = [
   ...mainRoutes,
+  ...transferRoutes,
   ...loginRoutes,
   ...signupRoutes,
   ...profileRoutes,
