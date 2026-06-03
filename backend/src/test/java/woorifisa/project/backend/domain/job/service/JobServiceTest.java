@@ -182,15 +182,16 @@ class JobServiceTest {
 	}
 
 	@Test
-	@DisplayName("find authenticated user's applications with attached portfolio")
+	@DisplayName("find authenticated user's paged applications without attached portfolio in list response")
 	void findApplications() {
+		Pageable requestedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 		User user = user(1L);
-		Job firstJob = job(10L, "Hospital", "Seoul", "피부과 상담실장 모집", LocalDateTime.of(2026, 6, 1, 9, 0));
-		Job secondJob = job(20L, "Clinic", "Busan", "간호사 채용 공고", LocalDateTime.of(2026, 6, 2, 9, 0));
+		Job firstJob = job(10L, "Hospital", "Seoul", "Clinic manager opening", LocalDateTime.of(2026, 6, 1, 9, 0));
+		Job secondJob = job(20L, "Clinic", "Busan", "Nurse opening", LocalDateTime.of(2026, 6, 2, 9, 0));
 		Resume portfolio = Resume.builder()
 			.resumeId(3L)
 			.user(user)
-			.name("조수재 포트폴리오.pdf")
+			.name("portfolio.pdf")
 			.url("https://cdn.test/portfolio.pdf")
 			.build();
 		Application firstApplication = application(100L, user, firstJob, portfolio, ApplicationStatus.FAILED,
@@ -198,28 +199,37 @@ class JobServiceTest {
 		Application secondApplication = application(200L, user, secondJob, null, ApplicationStatus.PASSED,
 			LocalDateTime.of(2026, 6, 12, 9, 0));
 
-		when(applicationRepository.findAllByUser_UserIdOrderByCreatedAtDesc(1L))
-			.thenReturn(List.of(firstApplication, secondApplication));
+		when(applicationRepository.findAllByUser_UserId(1L, requestedPageable))
+			.thenReturn(new SliceImpl<>(List.of(firstApplication, secondApplication), requestedPageable, true));
 
-		ApplicationListResponse response = jobService.findApplications(1L);
+		ApplicationListResponse response = jobService.findApplications(1L, requestedPageable);
 
-		verify(applicationRepository).findAllByUser_UserIdOrderByCreatedAtDesc(1L);
+		verify(applicationRepository).findAllByUser_UserId(1L, requestedPageable);
 		assertThat(response.items()).hasSize(2);
+		assertThat(response.page()).isZero();
+		assertThat(response.size()).isEqualTo(10);
+		assertThat(response.hasNext()).isTrue();
 		assertThat(response.items().get(0).applicationId()).isEqualTo(100L);
 		assertThat(response.items().get(0).jobId()).isEqualTo(10L);
-		assertThat(response.items().get(0).openingTitle()).isEqualTo("피부과 상담실장 모집");
+		assertThat(response.items().get(0).openingTitle()).isEqualTo("Clinic manager opening");
 		assertThat(response.items().get(0).appliedAt()).isEqualTo(LocalDateTime.of(2026, 6, 18, 9, 0));
 		assertThat(response.items().get(0).status()).isEqualTo(ApplicationStatus.FAILED);
 	}
 
 	@Test
-	@DisplayName("return empty application list when user has no applications")
+	@DisplayName("return empty paged application list when user has no applications")
 	void findApplicationsEmpty() {
-		when(applicationRepository.findAllByUser_UserIdOrderByCreatedAtDesc(1L)).thenReturn(List.of());
+		Pageable requestedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+		when(applicationRepository.findAllByUser_UserId(1L, requestedPageable))
+			.thenReturn(new SliceImpl<>(List.of(), requestedPageable, false));
 
-		ApplicationListResponse response = jobService.findApplications(1L);
+		ApplicationListResponse response = jobService.findApplications(1L, requestedPageable);
 
+		verify(applicationRepository).findAllByUser_UserId(1L, requestedPageable);
 		assertThat(response.items()).isEmpty();
+		assertThat(response.page()).isZero();
+		assertThat(response.size()).isEqualTo(10);
+		assertThat(response.hasNext()).isFalse();
 	}
 
 	@Test

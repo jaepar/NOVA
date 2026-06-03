@@ -1,6 +1,8 @@
 package woorifisa.project.backend.domain.job.controller;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -21,6 +23,7 @@ import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilte
 import org.springframework.boot.security.autoconfigure.web.servlet.ServletWebSecurityAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -57,18 +60,20 @@ class ApplicationControllerTest {
 	private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
 	@Test
-	@DisplayName("authenticated user can find application list without portfolio file")
+	@DisplayName("authenticated user can find paged application list without portfolio file")
 	void findApplications() throws Exception {
-		when(jobService.findApplications(1L))
+		when(jobService.findApplications(eq(1L), any(Pageable.class)))
 			.thenReturn(new ApplicationListResponse(List.of(new ApplicationItem(
 				99L,
 				10L,
-				"피부과 상담실장 모집",
+				"Clinic manager opening",
 				LocalDateTime.of(2026, 6, 18, 9, 0),
 				ApplicationStatus.FAILED
-			))));
+			)), 0, 10, true));
 
 		mockMvc.perform(get("/applications")
+				.param("page", "0")
+				.param("size", "10")
 				.with(authentication(authToken()))
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
@@ -77,15 +82,18 @@ class ApplicationControllerTest {
 			.andExpect(jsonPath("$.data.items", hasSize(1)))
 			.andExpect(jsonPath("$.data.items[0].application_id").value(99))
 			.andExpect(jsonPath("$.data.items[0].job_id").value(10))
-			.andExpect(jsonPath("$.data.items[0].opening_title").value("피부과 상담실장 모집"))
+			.andExpect(jsonPath("$.data.items[0].opening_title").value("Clinic manager opening"))
 			.andExpect(jsonPath("$.data.items[0].applied_at").value("2026-06-18T09:00:00"))
 			.andExpect(jsonPath("$.data.items[0].status").value("FAILED"))
+			.andExpect(jsonPath("$.data.page").value(0))
+			.andExpect(jsonPath("$.data.size").value(10))
+			.andExpect(jsonPath("$.data.has_next").value(true))
 			.andExpect(jsonPath("$.data.items[0].portfolio").doesNotExist())
 			.andExpect(jsonPath("$.data.items[0].country_code").doesNotExist())
 			.andExpect(jsonPath("$.data.items[0].phone").doesNotExist())
 			.andExpect(jsonPath("$.data.items[0].recommender").doesNotExist());
 
-		verify(jobService).findApplications(1L);
+		verify(jobService).findApplications(eq(1L), any(Pageable.class));
 	}
 
 	@Test

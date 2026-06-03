@@ -1,6 +1,9 @@
 package woorifisa.project.backend.domain.job.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,9 +25,10 @@ public class ApplicationController {
 	// 지원 내역 목록 조회
 	@GetMapping
 	public BaseResponse<ApplicationListResponse> findApplications(
-		@AuthenticationPrincipal SessionUserPrincipal principal
+		@AuthenticationPrincipal SessionUserPrincipal principal,
+		@PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
 	) {
-		return BaseResponse.ok(jobService.findApplications(principal.userId()));
+		return BaseResponse.ok(jobService.findApplications(principal.userId(), pageable));
 	}
 
 	// 지원 내역 세부 조회

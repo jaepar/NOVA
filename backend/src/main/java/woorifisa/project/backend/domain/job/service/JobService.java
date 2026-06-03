@@ -9,11 +9,11 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import woorifisa.project.backend.domain.job.dto.response.ApplicationItem;
 import woorifisa.project.backend.domain.job.dto.response.ApplicationFormResponse;
 import woorifisa.project.backend.domain.job.dto.response.ApplicationFormPortfolioResponse;
 import woorifisa.project.backend.domain.job.dto.response.ApplicationListResponse;
@@ -114,16 +114,16 @@ public class JobService {
 
 	// 지원 내역 전체 조회
 	@Transactional(readOnly = true)
-	public ApplicationListResponse findApplications(Long userId) {
-		log.info("[job_applications_list:requested] userId={}", userId);
+	public ApplicationListResponse findApplications(Long userId, Pageable pageable) {
+		log.info("[job_applications_list:requested] userId={}, page={}, size={}",
+			userId, pageable.getPageNumber(), pageable.getPageSize());
 
-		List<Application> applications = applicationRepository.findAllByUser_UserIdOrderByCreatedAtDesc(userId);
+		Slice<Application> applications = applicationRepository.findAllByUser_UserId(userId, pageable);
 
-		ApplicationListResponse response = new ApplicationListResponse(applications.stream()
-			.map(ApplicationItem::from)
-			.toList());
+		ApplicationListResponse response = ApplicationListResponse.from(applications);
 
-		log.info("[job_applications_list:completed] userId={}, count={}", userId, response.items().size());
+		log.info("[job_applications_list:completed] userId={}, page={}, size={}, count={}, hasNext={}",
+			userId, response.page(), response.size(), response.items().size(), response.hasNext());
 
 		return response;
 	}
