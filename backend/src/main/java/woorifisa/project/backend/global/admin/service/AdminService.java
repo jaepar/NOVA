@@ -15,7 +15,7 @@ import woorifisa.project.backend.domain.user.repository.DocumentRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.domain.user.service.NotificationService;
 import woorifisa.project.backend.domain.user.service.UserDocumentS3Uploader;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.global.exception.CustomException;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 
