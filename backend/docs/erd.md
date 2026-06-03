@@ -113,9 +113,6 @@ erDiagram
     BIGINT application_id PK
     BIGINT user_id FK
     BIGINT job_id FK
-    VARCHAR_10 country_code
-    VARCHAR_30 phone
-    VARCHAR_100 recommender
     ENUM status "PASSED | FAILED | READ | UNREAD"
     TIMESTAMP created_at
     TIMESTAMP updated_at
@@ -124,7 +121,7 @@ erDiagram
   RESUME {
     BIGINT resume_id PK
     BIGINT user_id FK
-    BIGINT application_id FK
+    BIGINT application_id FK "nullable"
     VARCHAR_100 name
     VARCHAR_255 url
     TIMESTAMP created_at
@@ -185,7 +182,7 @@ erDiagram
 
 - 모든 엔티티는 `BaseEntity`를 상속하며 `created_at`, `updated_at`을 가진다.
 - `wallet.user_account_id`는 `account_ref.account_ref_id`를 참조한다.
-- `resume.application_id`는 `application.application_id`를 참조한다.
+- `resume.application_id`는 `application.application_id`를 참조하며, `NULL`이면 프로필에 미리 등록한 포트폴리오로 사용한다.
 - `application.status`, `document.document_type`, `document.status`, `notification.type`은 문자열 enum으로 저장한다.
 - `cs.cs_status`는 코드상 `boolean`이며 의미상 `PENDING(false)`, `COMPLETED(true)`로 사용한다.
 
