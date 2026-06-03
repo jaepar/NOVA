@@ -243,22 +243,17 @@ public class RestCoreBankingClient implements CoreBankingClient {
 				log.error("[core_banking_account:create_failed] reason=null_response");
 				throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
 			}
-			if (!response.getSuccess()) {
-				log.error("[core_banking_account:create_failed] reason=unsuccessful_response code={}, message={}",
-					response.getCode(), response.getMessage());
-				throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
-			}
-			if (response.getData() == null || response.getData().accountId() == null) {
-				log.error("[core_banking_account:create_failed] reason=invalid_response_data");
-				throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
-			}
 			log.info("[core_banking_account:create_completed] accountId={}", response.getData().accountId());
 			return response.getData();
-		} catch (RestClientException exception) {
-			log.error("[core_banking_account:create_failed] reason=rest_client_exception message={}",
-				exception.getMessage());
-			throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
-		}
+		} catch (RestClientResponseException exception) {
+            CoreBankingBaseErrorResponse<Void> errorResponse = exception.getResponseBodyAs(new ParameterizedTypeReference<>() {
+            });
+
+            if (errorResponse != null && errorResponse.code() != null) {
+                throw new CustomException(toResponseStatus(errorResponse.code(), errorResponse.message()));
+            }
+            throw new CustomException(WALLET_DEBIT_COMMUNICATION_FAILED);
+        }
 	}
 
     private ResponseStatus toResponseStatus(String code, String message) {
