@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.banking.dto.corebanking.response;
+package woorifisa.project.backend.global.corebanking.dto.response;
 
 public record CoreBankingRequestLookupResponse(
         String externalRequestId

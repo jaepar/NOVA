@@ -7,10 +7,11 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
-import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
@@ -116,7 +117,11 @@ public class WalletService {
             if (accountRef == null || !accountRef.getHasAccount()) {
                 throw new CustomException(WALLET_ACCOUNT_NOT_FOUND);
             }
-            // 계좌에 대한 락 획득 메서드
+            coreBankingClient.verifyAccountPassword(
+                    CoreBankingPasswordVerifyRequest.of(accountRef.getAccountId(), request.accountPassword())
+            );
+
+            // 계좌 비밀번호 검증 성공 후에만 같은 계좌의 동시 차감 요청을 차단한다.
             String accountProcessingKey = formatAccountProcessingKey(accountRef.getAccountId());
             Boolean accountLockAcquired = stringRedisTemplate.opsForValue()
                     .setIfAbsent(accountProcessingKey, PROCESSING_VALUE, PROCESSING_TTL);

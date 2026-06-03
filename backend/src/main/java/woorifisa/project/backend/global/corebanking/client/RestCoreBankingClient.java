@@ -9,21 +9,25 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRequestLookupResponse;
-import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
-import woorifisa.project.backend.global.corebanking.client.response.CoreBankingBaseErrorResponse;
-import woorifisa.project.backend.domain.wallet.dto.corebanking.response.CoreBankingWalletDebitLookupResponse;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateCustomerRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRequestLookupResponse;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingBaseResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingWalletDebitLookupResponse;
 import woorifisa.project.backend.global.exception.CustomException;
 import woorifisa.project.backend.global.response.BaseResponse;
 import woorifisa.project.backend.global.response.status.ResponseStatus;
+import woorifisa.project.backend.global.corebanking.client.response.CoreBankingBaseErrorResponse;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INSUFFICIENT_BALANCE;
 
 @Component
 @Slf4j

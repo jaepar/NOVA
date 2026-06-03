@@ -10,8 +10,9 @@ class ChargeWalletRequestTest {
     @Test
     @DisplayName("월렛 충전 요청 필드를 보관한다")
     void success() {
-        ChargeWalletRequest request = new ChargeWalletRequest(10000);
+        ChargeWalletRequest request = new ChargeWalletRequest(10000, "1234");
 
         assertThat(request.chargeAmount()).isEqualTo(10000);
+        assertThat(request.accountPassword()).isEqualTo("1234");
     }
 }
