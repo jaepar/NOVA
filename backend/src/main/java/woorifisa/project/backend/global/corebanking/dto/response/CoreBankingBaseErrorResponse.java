@@ -1,4 +1,4 @@
-package woorifisa.project.backend.global.corebanking.client.response;
+package woorifisa.project.backend.global.corebanking.dto.response;
 
 public record CoreBankingBaseErrorResponse<T>(
         boolean success,
