@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.banking.dto.corebanking.request;
+package woorifisa.project.backend.global.corebanking.client.dto.request;
 
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 

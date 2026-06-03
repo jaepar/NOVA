@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.wallet.dto.corebanking.response;
+package woorifisa.project.backend.global.corebanking.client.dto.response;
 
 public record CoreBankingBaseResponse<T>(
         boolean success,

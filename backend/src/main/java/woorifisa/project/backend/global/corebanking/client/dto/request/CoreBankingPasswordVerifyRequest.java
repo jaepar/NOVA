@@ -1,4 +1,4 @@
-package woorifisa.project.backend.domain.banking.dto.corebanking.request;
+package woorifisa.project.backend.global.corebanking.client.dto.request;
 
 public record CoreBankingPasswordVerifyRequest(
         Long accountId,
