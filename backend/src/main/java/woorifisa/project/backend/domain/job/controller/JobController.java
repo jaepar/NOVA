@@ -28,6 +28,7 @@ public class JobController {
 
 	private final JobService jobService;
 
+	// 구인구직 공고 목록 조회
 	@GetMapping
 	public BaseResponse<JobOpeningListResponse> findJobOpenings(
 		@PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
@@ -35,6 +36,7 @@ public class JobController {
 		return BaseResponse.ok(jobService.getJobOpeningList(pageable));
 	}
 
+	// 구인구직 공고 상세 조회
 	@GetMapping("/{jobId}")
 	public BaseResponse<JobOpeningResponse> findJobOpening(@PathVariable Long jobId) {
 		return BaseResponse.ok(jobService.getJobOpeningDetail(jobId));
