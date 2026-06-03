@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletSummaryResponse;
 import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.service.WalletService;
@@ -43,6 +44,14 @@ public class WalletController {
             @PageableDefault(size = 20) Pageable pageable
     ) {
         return BaseResponse.ok(walletService.findWalletTransactions(principal.userId(), pageable));
+    }
+
+    // 월렛 요약 조회
+    @GetMapping("/summary")
+    public BaseResponse<WalletSummaryResponse> findSummary(
+            @AuthenticationPrincipal SessionUserPrincipal principal
+    ) {
+        return BaseResponse.ok(walletService.findSummary(principal.userId()));
     }
 
     // 월렛 충전

@@ -41,14 +41,15 @@ public class SecurityConfig {
                                 "/auth/signup",
                                 "/auth/email-verifications/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/jobs/*/applications").authenticated()
                         .requestMatchers(
                                 "/wallet/**",
                                 "/users/**",
                                 "/banking/**",
                                 "/hospital/**",
                                 "/auth/logout",
-                                "/auth/me"
+                                "/auth/me",
+                                "/jobs/*/applications",
+                                "/jobs/applications/form"
                         ).authenticated()
                         .anyRequest().permitAll()
                 )

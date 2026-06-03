@@ -14,7 +14,7 @@ erDiagram
     VARCHAR_100 email "UNIQUE"
     VARCHAR_255 password
     BOOLEAN has_residence_card
-    BOOLEAN has_certificate
+    ENUM certificate_status "NOT_ISSUED | PENDING | ISSUED"
     BOOLEAN has_delete
     TIMESTAMP issued_time
     TIMESTAMP created_at
@@ -113,9 +113,7 @@ erDiagram
     BIGINT application_id PK
     BIGINT user_id FK
     BIGINT job_id FK
-    VARCHAR_10 country_code
-    VARCHAR_30 phone
-    VARCHAR_100 recommender
+    BIGINT resume_id FK "nullable"
     ENUM status "PASSED | FAILED | READ | UNREAD"
     TIMESTAMP created_at
     TIMESTAMP updated_at
@@ -124,7 +122,6 @@ erDiagram
   RESUME {
     BIGINT resume_id PK
     BIGINT user_id FK
-    BIGINT application_id FK
     VARCHAR_100 name
     VARCHAR_255 url
     TIMESTAMP created_at
@@ -177,7 +174,7 @@ erDiagram
   WALLET ||--o{ WALLET_TRANSACTION : records
 
   JOB ||--o{ APPLICATION : receives
-  APPLICATION ||--o{ RESUME : has
+  RESUME ||--o{ APPLICATION : used_by
   HOSPITAL ||--o{ RESERVATION : receives
 ```
 
@@ -185,7 +182,7 @@ erDiagram
 
 - 모든 엔티티는 `BaseEntity`를 상속하며 `created_at`, `updated_at`을 가진다.
 - `wallet.user_account_id`는 `account_ref.account_ref_id`를 참조한다.
-- `resume.application_id`는 `application.application_id`를 참조한다.
+- `application.resume_id`는 `resume.resume_id`를 참조하며, 지원서에 연결된 대표 이력서/포트폴리오를 의미한다.
 - `application.status`, `document.document_type`, `document.status`, `notification.type`은 문자열 enum으로 저장한다.
 - `cs.cs_status`는 코드상 `boolean`이며 의미상 `PENDING(false)`, `COMPLETED(true)`로 사용한다.
 
@@ -194,6 +191,7 @@ erDiagram
 | Field | Values |
 |---|---|
 | `user.gender` | `MALE`, `FEMALE` |
+| `user.certificate_status` | `NOT_ISSUED`, `PENDING`, `ISSUED` |
 | `wallet_transaction.transaction_flow` | `DEPOSIT`, `WITHDRAWAL` |
 | `application.status` | `PASSED`, `FAILED`, `READ`, `UNREAD` |
 | `hospital.type` | `INTERNAL_MEDICINE`, `ORTHOPEDICS`, `DENTAL`, `OTHER` |
@@ -208,3 +206,4 @@ erDiagram
 - Hospital 도메인(`hospital`, `reservation`)의 `reservation.rsv_date`, `hospital.open_time`, `hospital.close_time`, `hospital.break_time`, `hospital.day_off`는 현재 문자열 기반으로 저장한다.
 - Residence Card 관련 필드(`registration_num`, `issue_date`, `expiration_date`)도 현재 문자열 기반으로 저장한다.
 - `job.gender`는 현재 enum이 아닌 문자열 컬럼이다.
+- `user.certificate_status` 상태 전이는 `NOT_ISSUED -> PENDING -> ISSUED` 순서만 허용한다.

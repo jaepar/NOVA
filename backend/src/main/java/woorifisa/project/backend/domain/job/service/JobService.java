@@ -4,6 +4,8 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.JOB_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import woorifisa.project.backend.domain.job.dto.response.CreateApplicationResponse;
+import woorifisa.project.backend.domain.job.dto.response.ApplicationFormResponse;
+import woorifisa.project.backend.domain.job.dto.response.ApplicationFormPortfolioResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
 import woorifisa.project.backend.domain.job.entity.Application;
@@ -52,13 +55,26 @@ public class JobService {
 			});
 	}
 
+	// 지원서 작성 화면에 필요한 사용자 기본 정보와 프로필 포트폴리오를 조회한다.
+	@Transactional(readOnly = true)
+	public ApplicationFormResponse getApplicationForm(Long userId) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+
+		List<ApplicationFormPortfolioResponse> portfolios = resumeRepository
+			.findByUserOrderByResumeIdDesc(user)
+			.stream()
+			.map(ApplicationFormPortfolioResponse::from)
+			.toList();
+
+		return ApplicationFormResponse.from(user, portfolios);
+	}
+
+	// 지원서는 로그인 사용자와 공고로 생성하고, 선택 첨부파일은 대표 이력서로 연결한다.
 	@Transactional
-	public CreateApplicationResponse createApplication(
+	public void createApplication(
 		Long userId,
 		Long jobId,
-		String countryCode,
-		String phone,
-		String recommender,
 		MultipartFile[] files
 	) {
 		User user = userRepository.findById(userId)
@@ -69,22 +85,22 @@ public class JobService {
 				return new CustomException(JOB_NOT_FOUND);
 			});
 
+		// 사용자가 동일한 구인공고에 중복 지원하는 경우를 막는다.
 		if (applicationRepository.existsByUserAndJob(user, job)) {
 			log.warn("job application submit failed. reason=duplicate userId={}, jobId={}", userId, jobId);
 			throw new CustomException(APPLICATION_ALREADY_EXISTS);
 		}
 
+		// 지원내역 저장
 		Application application = applicationRepository.save(Application.builder()
 			.user(user)
 			.job(job)
-			.countryCode(blankToNull(countryCode))
-			.phone(blankToNull(phone))
-			.recommender(blankToNull(recommender))
 			.status(ApplicationStatus.UNREAD)
 			.build());
 
-		saveFiles(user, application, files);
-		return CreateApplicationResponse.from(application);
+		if (files != null) {
+			saveFiles(user, application, files);
+		}
 	}
 
 	private void saveFiles(User user, Application application, MultipartFile[] files) {
@@ -98,18 +114,23 @@ public class JobService {
 				continue;
 			}
 
+			// 파일명 저장 형식
+			// portfolios/user-{userId}/application-{applicationId}/portfolio-{fileIndex}_{filename}
 			String fileUrl = portfolioFileS3Uploader.upload(
 				user.getUserId(),
 				application.getApplicationId(),
 				i,
 				file
 			);
-			resumeRepository.save(Resume.builder()
+			Resume resume = Resume.builder()
 				.user(user)
-				.application(application)
 				.name(resolveFilename(file))
 				.url(fileUrl)
-				.build());
+				.build();
+			resumeRepository.save(resume);
+			application.attachResume(resume);
+			applicationRepository.save(application);
+			return;
 		}
 	}
 
@@ -117,9 +138,5 @@ public class JobService {
 		return file.getOriginalFilename() == null || file.getOriginalFilename().isBlank()
 			? "attachment"
 			: file.getOriginalFilename();
-	}
-
-	private String blankToNull(String value) {
-		return value == null || value.isBlank() ? null : value;
 	}
 }
