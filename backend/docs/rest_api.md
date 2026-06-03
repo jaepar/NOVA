@@ -72,6 +72,7 @@
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST   | `/wallet/charges/debit`                                  | O    | USER   |                               |
 | `WALLET-004`   | 월렛 상태 조회 | GET | `/wallet/status` | O | USER | 월렛 페이지 화면 분기용 |
 | `WALLET-005`   | 월렛 생성 | POST | `/wallet` | O | USER | |
+| `WALLET-006`   | 월렛 요약 조회 | GET | `/wallet/summary` | O | USER | 충전/결제 화면 요약 정보 표시용 |
 | `JOB-001`      | 구인구직 공고 목록 조회        | GET    | `/`                                                      | X    | PUBLIC | 도메인 prefix 하위 루트              |
 | `JOB-002`      | 구인구직 공고 상세 조회        | GET    | `/{job_id}`                                              | X    | PUBLIC | 도메인 prefix 하위 경로              |
 | `JOB-003`      | 지원서 제출               | POST   | `/{job_id}/applications`                                 | O    | USER   | 도메인 prefix 하위 경로              |
@@ -101,6 +102,7 @@
 - `wallet_transaction.transaction_flow`는 `DEPOSIT | WITHDRAWAL`만 사용한다.
 - `application.status`는 `PASSED | FAILED | READ | UNREAD`만 사용한다.
 - `WALLET-004` 응답의 `nextStep`은 `CREATE_ACCOUNT | WALLET_TERMS | WALLET_HOME`만 사용한다.
+- `WALLET-006`은 화면 표시 목적의 `balance`, `linkedAccountNumber`만 반환한다.
 
 ## Docs Sync Rule
 
