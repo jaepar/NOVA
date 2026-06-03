@@ -30,8 +30,10 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import woorifisa.project.backend.domain.job.dto.response.ApplicationFormResponse;
+import woorifisa.project.backend.domain.job.dto.response.ApplicationListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
+import woorifisa.project.backend.domain.job.dto.response.PortfolioFileItem;
 import woorifisa.project.backend.domain.job.entity.Application;
 import woorifisa.project.backend.domain.job.entity.Job;
 import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
@@ -39,6 +41,7 @@ import woorifisa.project.backend.domain.job.repository.ApplicationRepository;
 import woorifisa.project.backend.domain.job.repository.JobRepository;
 import woorifisa.project.backend.domain.user.entity.Resume;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.repository.ResumeRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.domain.user.service.PortfolioFileS3Uploader;
@@ -179,6 +182,86 @@ class JobServiceTest {
 	}
 
 	@Test
+	@DisplayName("find authenticated user's applications with attached portfolio")
+	void findApplications() {
+		User user = user(1L);
+		Job firstJob = job(10L, "Hospital", "Seoul", "피부과 상담실장 모집", LocalDateTime.of(2026, 6, 1, 9, 0));
+		Job secondJob = job(20L, "Clinic", "Busan", "간호사 채용 공고", LocalDateTime.of(2026, 6, 2, 9, 0));
+		Resume portfolio = Resume.builder()
+			.resumeId(3L)
+			.user(user)
+			.name("조수재 포트폴리오.pdf")
+			.url("https://cdn.test/portfolio.pdf")
+			.build();
+		Application firstApplication = application(100L, user, firstJob, portfolio, ApplicationStatus.FAILED,
+			LocalDateTime.of(2026, 6, 18, 9, 0));
+		Application secondApplication = application(200L, user, secondJob, null, ApplicationStatus.PASSED,
+			LocalDateTime.of(2026, 6, 12, 9, 0));
+
+		when(applicationRepository.findAllByUser_UserIdOrderByCreatedAtDesc(1L))
+			.thenReturn(List.of(firstApplication, secondApplication));
+
+		ApplicationListResponse response = jobService.findApplications(1L);
+
+		verify(applicationRepository).findAllByUser_UserIdOrderByCreatedAtDesc(1L);
+		assertThat(response.items()).hasSize(2);
+		assertThat(response.items().get(0).applicationId()).isEqualTo(100L);
+		assertThat(response.items().get(0).jobId()).isEqualTo(10L);
+		assertThat(response.items().get(0).openingTitle()).isEqualTo("피부과 상담실장 모집");
+		assertThat(response.items().get(0).appliedAt()).isEqualTo(LocalDateTime.of(2026, 6, 18, 9, 0));
+		assertThat(response.items().get(0).status()).isEqualTo(ApplicationStatus.FAILED);
+	}
+
+	@Test
+	@DisplayName("return empty application list when user has no applications")
+	void findApplicationsEmpty() {
+		when(applicationRepository.findAllByUser_UserIdOrderByCreatedAtDesc(1L)).thenReturn(List.of());
+
+		ApplicationListResponse response = jobService.findApplications(1L);
+
+		assertThat(response.items()).isEmpty();
+	}
+
+	@Test
+	@DisplayName("find selected application's attached portfolio")
+	void findApplicationPortfolio() {
+		User user = user(1L);
+		Job job = job(10L);
+		Resume portfolio = Resume.builder()
+			.resumeId(3L)
+			.user(user)
+			.name("조수재 포트폴리오.pdf")
+			.url("https://cdn.test/portfolio.pdf")
+			.build();
+		Application application = application(100L, user, job, portfolio, ApplicationStatus.FAILED,
+			LocalDateTime.of(2026, 6, 18, 9, 0));
+
+		when(applicationRepository.findByApplicationIdAndUser_UserId(100L, 1L))
+			.thenReturn(Optional.of(application));
+
+		PortfolioFileItem response = jobService.findApplicationPortfolio(1L, 100L);
+
+		assertThat(response.name()).isEqualTo("조수재 포트폴리오.pdf");
+		assertThat(response.url()).isEqualTo("https://cdn.test/portfolio.pdf");
+	}
+
+	@Test
+	@DisplayName("return null portfolio when selected application has no attached portfolio")
+	void findApplicationPortfolioEmpty() {
+		User user = user(1L);
+		Job job = job(10L);
+		Application application = application(100L, user, job, null, ApplicationStatus.FAILED,
+			LocalDateTime.of(2026, 6, 18, 9, 0));
+
+		when(applicationRepository.findByApplicationIdAndUser_UserId(100L, 1L))
+			.thenReturn(Optional.of(application));
+
+		PortfolioFileItem response = jobService.findApplicationPortfolio(1L, 100L);
+
+		assertThat(response).isNull();
+	}
+
+	@Test
 	@DisplayName("authenticated user creates an unread application without files")
 	void createApplicationWithoutFiles() {
 		User user = user(1L);
@@ -274,7 +357,7 @@ class JobServiceTest {
 			.birth("950101")
 			.email("woojae.cho@example.com")
 			.password("password")
-			.hasCertificate(false)
+			.certificateStatus(CertificateStatus.NOT_ISSUED)
 			.hasResidenceCard(false)
 			.hasDelete(false)
 			.build();
@@ -299,5 +382,24 @@ class JobServiceTest {
 			.build();
 		ReflectionTestUtils.setField(job, "createdAt", createdAt);
 		return job;
+	}
+
+	private Application application(
+		Long applicationId,
+		User user,
+		Job job,
+		Resume resume,
+		ApplicationStatus status,
+		LocalDateTime createdAt
+	) {
+		Application application = Application.builder()
+			.applicationId(applicationId)
+			.user(user)
+			.job(job)
+			.resume(resume)
+			.status(status)
+			.build();
+		ReflectionTestUtils.setField(application, "createdAt", createdAt);
+		return application;
 	}
 }
