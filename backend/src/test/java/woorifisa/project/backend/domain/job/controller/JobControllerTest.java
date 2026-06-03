@@ -3,7 +3,6 @@ package woorifisa.project.backend.domain.job.controller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -34,13 +33,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.multipart.MultipartFile;
 
-import woorifisa.project.backend.domain.job.dto.response.CreateApplicationResponse;
+import woorifisa.project.backend.domain.job.dto.response.ApplicationFormResponse;
+import woorifisa.project.backend.domain.job.dto.response.ApplicationFormPortfolioResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningItem;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
-import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
 import woorifisa.project.backend.domain.job.service.JobService;
 import woorifisa.project.backend.global.auth.security.SessionAuthenticationEntryPoint;
 import woorifisa.project.backend.global.auth.security.SessionAuthenticationFilter;
@@ -179,38 +177,66 @@ class JobControllerTest {
 	}
 
 	@Test
-	@DisplayName("authenticated user can submit a job application with optional files")
-	void createApplication() throws Exception {
-		MockMultipartFile file = new MockMultipartFile("files", "resume.pdf", "application/pdf", "resume".getBytes());
-		when(jobService.createApplication(
-			nullable(Long.class),
-			nullable(Long.class),
-			nullable(String.class),
-			nullable(String.class),
-			nullable(String.class),
-			nullable(MultipartFile[].class)
-		))
-			.thenReturn(new CreateApplicationResponse(99L, ApplicationStatus.UNREAD));
+	@DisplayName("authenticated user can find job application form data")
+	void getApplicationForm() throws Exception {
+		ApplicationFormResponse response = new ApplicationFormResponse(
+			1L,
+			"Cho Woojae",
+			"woojae.cho@example.com",
+			List.of(new ApplicationFormPortfolioResponse(
+				3L,
+				"portfolio.pdf",
+				"https://s3.test/portfolios/user-1/profile/portfolio.pdf"
+			))
+		);
+		when(jobService.getApplicationForm(1L, 10L)).thenReturn(response);
 
-		mockMvc.perform(multipart("/jobs/{jobId}/applications", 10L)
-				.file(file)
-				.param("country_code", "+82")
-				.param("phone", "010-1234-5678")
-				.param("recommender", "Kim")
+		mockMvc.perform(get("/jobs/{jobId}/applications/form", 10L)
 				.with(authentication(authToken()))
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.code").value("20000"))
-			.andExpect(jsonPath("$.data.application_id").value(99))
-			.andExpect(jsonPath("$.data.status").value("UNREAD"));
+			.andExpect(jsonPath("$.data.user_id").value(1))
+			.andExpect(jsonPath("$.data.name").value("Cho Woojae"))
+			.andExpect(jsonPath("$.data.email").value("woojae.cho@example.com"))
+			.andExpect(jsonPath("$.data.portfolios", hasSize(1)))
+			.andExpect(jsonPath("$.data.portfolios[0].portfolio_id").value(3))
+			.andExpect(jsonPath("$.data.portfolios[0].name").value("portfolio.pdf"))
+			.andExpect(jsonPath("$.data.portfolios[0].url").value("https://s3.test/portfolios/user-1/profile/portfolio.pdf"));
+
+		verify(jobService).getApplicationForm(1L, 10L);
+	}
+
+	@Test
+	@DisplayName("unauthenticated user cannot find job application form data")
+	void getApplicationFormUnauthorized() throws Exception {
+		mockMvc.perform(get("/jobs/{jobId}/applications/form", 10L)
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.code").value(UNAUTHORIZED_SESSION.getCode()))
+			.andExpect(jsonPath("$.message").value(UNAUTHORIZED_SESSION.getMessage()))
+			.andExpect(jsonPath("$.data").doesNotExist());
+	}
+
+	@Test
+	@DisplayName("authenticated user can submit a job application with optional files")
+	void createApplication() throws Exception {
+		MockMultipartFile file = new MockMultipartFile("files", "resume.pdf", "application/pdf", "resume".getBytes());
+
+		mockMvc.perform(multipart("/jobs/{jobId}/applications", 10L)
+				.file(file)
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"))
+			.andExpect(jsonPath("$.data").doesNotExist());
 
 		verify(jobService).createApplication(
-			nullable(Long.class),
+			eq(1L),
 			eq(10L),
-			eq("+82"),
-			eq("010-1234-5678"),
-			eq("Kim"),
 			any()
 		);
 	}
