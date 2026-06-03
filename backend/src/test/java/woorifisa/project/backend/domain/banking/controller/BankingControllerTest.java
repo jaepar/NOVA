@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
@@ -18,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,6 +35,39 @@ class BankingControllerTest {
 
     @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
+
+    @Test
+    @DisplayName("홈 계좌 조회 요청을 처리하고 계좌 카드 정보를 반환한다")
+    void findHomeAccountSuccess() throws Exception {
+        Long userId = 1L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.findHomeAccount(any()))
+                .thenReturn(new AccountHomeResponse(
+                        2001L,
+                        "NOVA 임시 제한 계좌",
+                        "1002867390781",
+                        "우리은행",
+                        50000,
+                        true
+                ));
+
+        mockMvc.perform(get("/banking/home")
+                        .with(authentication(authToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data.accountId").value(2001))
+                .andExpect(jsonPath("$.data.accountName").value("NOVA 임시 제한 계좌"))
+                .andExpect(jsonPath("$.data.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.bankName").value("우리은행"))
+                .andExpect(jsonPath("$.data.balance").value(50000))
+                .andExpect(jsonPath("$.data.hasLimit").value(true));
+    }
 
     @Test
     @DisplayName("세션 사용자 기준으로 계좌 개설 요청을 처리한다")

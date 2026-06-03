@@ -1,0 +1,39 @@
+server:
+  port: 8002
+  servlet:
+    context-path: /
+
+spring:
+  datasource:
+    url: ${GOVERNMENT_DB_URL}
+    username: ${GOVERNMENT_DB_USERNAME}
+    password: ${GOVERNMENT_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  docker:
+    compose:
+      enabled: false
+
+logging:
+  level:
+    root: info
+    org.hibernate.SQL: debug
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+identity:
+  registration-number:
+    hmac-secret: ${REGISTRATION_NUMBER_HMAC_SECRET}

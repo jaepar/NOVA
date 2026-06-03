@@ -14,6 +14,7 @@ import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
@@ -54,6 +55,14 @@ public class BankingService {
     private final UserRepository userRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final CoreBankingClient coreBankingClient;
+
+    @Transactional(readOnly = true)
+    public AccountHomeResponse findHomeAccount(Long userId) {
+        AccountRef accountRef = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId)
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
+        return AccountHomeResponse.from(accountRef);
+    }
 
     @Transactional
     public AccountCreateResponse createAccount(Long userId, AccountCreateRequest request) {

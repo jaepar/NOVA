@@ -71,11 +71,16 @@ public class User extends BaseEntity {
     }
 
     public void issueCertificate() {
+        this.certificateStatus = CertificateStatus.ISSUED;
         // 최종 발급은 신청 중 상태에서만 가능하며, 발급 시각을 함께 기록한다.
         if (this.certificateStatus != CertificateStatus.PENDING) {
             throw new CustomException(USER_CERTIFICATE_STATUS_TRANSITION_INVALID);
         }
         this.certificateStatus = CertificateStatus.ISSUED;
         this.issuedTime = LocalDateTime.now();
+    }
+
+    public void registerResidenceCard() {
+        this.hasResidenceCard = true;
     }
 }

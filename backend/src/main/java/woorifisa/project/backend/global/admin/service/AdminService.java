@@ -62,7 +62,7 @@ public class AdminService {
 				log.info("[admin_review:status_updated] userId={}, documentType={}, from={}, to={}",
 					userId, documentType, previousStatus, targetStatus);
 
-				// 심사 결과에 맞춰 보완 필요/승인 완료 알림을 최신 1건으로 갱신한다.
+				// 심사 결과에 맞춰 보완 보완/승인 완료 알림을 최신 1건으로 갱신한다.
 				createDocumentReviewNotification(user, targetStatus);
 
 				// 해당 유저의 서류 2개가 모두 APPROVED 상태라면, 인증서 발급

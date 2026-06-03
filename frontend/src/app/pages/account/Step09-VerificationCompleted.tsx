@@ -11,7 +11,7 @@ export function VerificationCompleted() {
   return (
     <MobileLayout
       title="비대면 실명확인"
-      backPath="/account/step-08"
+      backPath="/account/step-07"
       bottomContent={<Btn_1Col onClick={() => navigate('/account/step-10')}>최종 제출하기</Btn_1Col>}
     >
       <div className="space-y-8 pb-2">
