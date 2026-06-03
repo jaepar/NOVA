@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: government-gateway
+  profiles:
+    default: local

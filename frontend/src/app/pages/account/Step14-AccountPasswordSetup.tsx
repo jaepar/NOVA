@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CircleAlert, Lock, Shield, Wallet } from "lucide-react";
+import { Lock, Shield, Wallet } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { PinInputBottomSheet } from "../../components/design-system/PinInputBottomSheet";
+import { novaToast } from "../../components/design-system/toast";
 
 export function Step14AccountPasswordSetup() {
   const navigate = useNavigate();
@@ -13,35 +14,30 @@ export function Step14AccountPasswordSetup() {
   );
   const [firstPin, setFirstPin] = useState("");
   const [isPinVerified, setIsPinVerified] = useState(false);
-  const [pinError, setPinError] = useState("");
   const [pinSheetKey, setPinSheetKey] = useState(0);
 
   const handlePinComplete = (pin: string) => {
     if (pinSetupStep === "first") {
       setFirstPin(pin);
       setPinSetupStep("confirm");
-      setPinError("");
       setPinSheetKey((prev) => prev + 1);
       return;
     }
 
     if (pin === firstPin) {
       setIsPinVerified(true);
-      setPinError("");
       setIsPinSheetOpen(false);
       return;
     }
 
-    setPinError("비밀번호가 일치하지 않습니다. 다시 입력해 주세요.");
     setIsPinVerified(false);
-    setFirstPin("");
-    setPinSetupStep("first");
+    novaToast.error("비밀번호가 일치하지 않습니다. 다시 입력해 주세요.");
+    setPinSetupStep("confirm");
     setPinSheetKey((prev) => prev + 1);
   };
 
   const handlePrimaryAction = () => {
     if (!isPinVerified) {
-      setPinError("");
       setPinSetupStep("first");
       setFirstPin("");
       setPinSheetKey((prev) => prev + 1);
@@ -108,9 +104,6 @@ export function Step14AccountPasswordSetup() {
             </div>
           </section>
 
-          {pinError && (
-            <p className="text-sm text-destructive text-center">{pinError}</p>
-          )}
         </div>
       </MobileLayout>
 

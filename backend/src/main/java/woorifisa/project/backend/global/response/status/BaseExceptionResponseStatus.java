@@ -61,6 +61,14 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
 	LIVENESS_REFERENCE_IMAGE_NOT_FOUND("USER-012", "Liveness 결과에서 참조 이미지를 찾을 수 없습니다."),
 	PASSPORT_OCR_FAILED("USER-013", "여권 OCR 처리에 실패했습니다."),
 	PASSPORT_OCR_INVALID_ID_TYPE("USER-014", "사진이 올바르지 않습니다."),
+	IDENTITY_OCR_INVALID_DOCUMENT_TYPE("USER-015", "지원하지 않는 OCR 문서 타입입니다."),
+	ID_CARD_OCR_FAILED("USER-016", "신분증 OCR 처리에 실패했습니다."),
+	ID_CARD_OCR_INVALID_ID_TYPE("USER-017", "신분증 사진이 올바르지 않습니다."),
+	IDENTITY_NAME_MISMATCH_WITH_USER("USER-018", "신분증 이름이 사용자 정보와 일치하지 않습니다."),
+	GOVERNMENT_IDENTITY_NOT_FOUND("USER-019", "정부 DB에서 사용자 신원 정보를 찾을 수 없습니다."),
+	GOVERNMENT_IDENTITY_MISMATCH("USER-020", "정부 DB의 신원 정보가 일치하지 않습니다."),
+	GOVERNMENT_DB_COMMUNICATION_FAILED("USER-021", "정부 DB 통신에 실패했습니다."),
+	REGISTRATION_NUMBER_HMAC_SECRET_NOT_CONFIGURED("USER-022", "생년월일 HMAC 설정이 필요합니다."),
 
 	/**
 	 * admin

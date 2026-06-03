@@ -14,7 +14,7 @@ erDiagram
     VARCHAR_100 email "UNIQUE"
     VARCHAR_255 password
     BOOLEAN has_residence_card
-    BOOLEAN has_certificate
+    VARCHAR certificate_status "NOT_ISSUED/PENDING/ISSUED"
     BOOLEAN has_delete
     TIMESTAMP issued_time
     TIMESTAMP created_at
