@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -53,7 +54,8 @@ class BankingControllerTest {
                         "1002867390781",
                         "우리은행",
                         50000,
-                        true
+                        true,
+                        CertificateStatus.ISSUED
                 ));
 
         mockMvc.perform(get("/banking/home")
@@ -66,7 +68,8 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.data.accountNumber").value("1002867390781"))
                 .andExpect(jsonPath("$.data.bankName").value("우리은행"))
                 .andExpect(jsonPath("$.data.balance").value(50000))
-                .andExpect(jsonPath("$.data.hasLimit").value(true));
+                .andExpect(jsonPath("$.data.hasLimit").value(true))
+                .andExpect(jsonPath("$.data.certificateStatus").value("ISSUED"));
     }
 
     @Test

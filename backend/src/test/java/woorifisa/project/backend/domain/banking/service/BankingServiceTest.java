@@ -79,7 +79,10 @@ class BankingServiceTest {
         Long userId = 1L;
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
-                .user(User.builder().userId(userId).build())
+                .user(User.builder()
+                        .userId(userId)
+                        .certificateStatus(CertificateStatus.ISSUED)
+                        .build())
                 .accountId(2001L)
                 .accountName("NOVA 임시 제한 계좌")
                 .accountNumber("1002867390781")
@@ -98,6 +101,7 @@ class BankingServiceTest {
         assertThat(response.bankName()).isEqualTo("우리은행");
         assertThat(response.balance()).isEqualTo(50000);
         assertThat(response.hasLimit()).isTrue();
+        assertThat(response.certificateStatus()).isEqualTo(CertificateStatus.ISSUED);
     }
 
     @Test

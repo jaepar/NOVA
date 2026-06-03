@@ -1,6 +1,7 @@
 package woorifisa.project.backend.domain.banking.dto.response;
 
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 
 public record AccountHomeResponse(
         Long accountId,
@@ -8,7 +9,8 @@ public record AccountHomeResponse(
         String accountNumber,
         String bankName,
         Integer balance,
-        Boolean hasLimit
+        Boolean hasLimit,
+        CertificateStatus certificateStatus
 ) {
     public static AccountHomeResponse from(AccountRef accountRef) {
         return new AccountHomeResponse(
@@ -17,7 +19,8 @@ public record AccountHomeResponse(
                 accountRef.getAccountNumber(),
                 AccountRef.BANK_NAME,
                 accountRef.getBalance(),
-                accountRef.getHasLimit()
+                accountRef.getHasLimit(),
+                accountRef.getUser().getCertificateStatus()
         );
     }
 }
