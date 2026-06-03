@@ -28,7 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import woorifisa.project.backend.domain.job.dto.response.CreateApplicationResponse;
+import woorifisa.project.backend.domain.job.dto.response.ApplicationFormResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
 import woorifisa.project.backend.domain.job.entity.Application;
@@ -152,6 +152,46 @@ class JobServiceTest {
 	}
 
 	@Test
+	@DisplayName("get application form data for authenticated user")
+	void getApplicationForm() {
+		User user = user(1L);
+		Job job = job(10L);
+		Resume portfolio = Resume.builder()
+			.resumeId(3L)
+			.user(user)
+			.name("portfolio.pdf")
+			.url("https://s3.test/portfolios/user-1/profile/portfolio.pdf")
+			.build();
+		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+		when(jobRepository.findById(10L)).thenReturn(Optional.of(job));
+		when(resumeRepository.findByUserAndApplicationIsNullOrderByResumeIdDesc(user))
+			.thenReturn(List.of(portfolio));
+
+		ApplicationFormResponse response = jobService.getApplicationForm(1L, 10L);
+
+		assertThat(response.userId()).isEqualTo(1L);
+		assertThat(response.name()).isEqualTo("Cho Woojae");
+		assertThat(response.email()).isEqualTo("woojae.cho@example.com");
+		assertThat(response.portfolios()).hasSize(1);
+		assertThat(response.portfolios().get(0).portfolioId()).isEqualTo(3L);
+		assertThat(response.portfolios().get(0).name()).isEqualTo("portfolio.pdf");
+		assertThat(response.portfolios().get(0).url())
+			.isEqualTo("https://s3.test/portfolios/user-1/profile/portfolio.pdf");
+	}
+
+	@Test
+	@DisplayName("missing job throws JOB_NOT_FOUND when finding application form data")
+	void getApplicationFormJobNotFound() {
+		when(userRepository.findById(1L)).thenReturn(Optional.of(user(1L)));
+		when(jobRepository.findById(404L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> jobService.getApplicationForm(1L, 404L))
+			.isInstanceOf(CustomException.class)
+			.extracting("exceptionStatus")
+			.isEqualTo(JOB_NOT_FOUND);
+	}
+
+	@Test
 	@DisplayName("authenticated user creates an unread application without files")
 	void createApplicationWithoutFiles() {
 		User user = user(1L);
@@ -162,18 +202,14 @@ class JobServiceTest {
 		when(applicationRepository.existsByUserAndJob(user, job)).thenReturn(false);
 		when(applicationRepository.save(any(Application.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CreateApplicationResponse response = jobService.createApplication(1L, 10L, null, null, null, null);
+		jobService.createApplication(1L, 10L, null);
 
 		ArgumentCaptor<Application> applicationCaptor = ArgumentCaptor.forClass(Application.class);
 		verify(applicationRepository).save(applicationCaptor.capture());
 		Application saved = applicationCaptor.getValue();
 		assertThat(saved.getUser()).isEqualTo(user);
 		assertThat(saved.getJob()).isEqualTo(job);
-		assertThat(saved.getCountryCode()).isNull();
-		assertThat(saved.getPhone()).isNull();
-		assertThat(saved.getRecommender()).isNull();
 		assertThat(saved.getStatus()).isEqualTo(ApplicationStatus.UNREAD);
-		assertThat(response.status()).isEqualTo(ApplicationStatus.UNREAD);
 		verify(portfolioFileS3Uploader, never()).upload(any(), any(), anyInt(), any());
 		verify(resumeRepository, never()).save(any());
 	}
@@ -187,9 +223,6 @@ class JobServiceTest {
 			.applicationId(99L)
 			.user(user)
 			.job(job)
-			.countryCode("+82")
-			.phone("010-1234-5678")
-			.recommender("Kim")
 			.status(ApplicationStatus.UNREAD)
 			.build();
 		MockMultipartFile file = new MockMultipartFile("files", "resume.pdf", "application/pdf", "resume".getBytes());
@@ -201,12 +234,9 @@ class JobServiceTest {
 		when(portfolioFileS3Uploader.upload(1L, 99L, 0, file))
 			.thenReturn("https://s3.test/portfolios/user-1/application-99/portfolio-0_resume.pdf");
 
-		CreateApplicationResponse response = jobService.createApplication(
+		jobService.createApplication(
 			1L,
 			10L,
-			"+82",
-			"010-1234-5678",
-			"Kim",
 			new MockMultipartFile[] {file}
 		);
 
@@ -217,7 +247,6 @@ class JobServiceTest {
 		assertThat(savedResume.getApplication()).isEqualTo(persisted);
 		assertThat(savedResume.getName()).isEqualTo("resume.pdf");
 		assertThat(savedResume.getUrl()).isEqualTo("https://s3.test/portfolios/user-1/application-99/portfolio-0_resume.pdf");
-		assertThat(response.applicationId()).isEqualTo(99L);
 	}
 
 	@Test
@@ -226,7 +255,7 @@ class JobServiceTest {
 		when(userRepository.findById(1L)).thenReturn(Optional.of(user(1L)));
 		when(jobRepository.findById(404L)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> jobService.createApplication(1L, 404L, null, null, null, null))
+		assertThatThrownBy(() -> jobService.createApplication(1L, 404L, null))
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
 			.isEqualTo(JOB_NOT_FOUND);
@@ -241,7 +270,7 @@ class JobServiceTest {
 		when(jobRepository.findById(10L)).thenReturn(Optional.of(job));
 		when(applicationRepository.existsByUserAndJob(user, job)).thenReturn(true);
 
-		assertThatThrownBy(() -> jobService.createApplication(1L, 10L, null, null, null, null))
+		assertThatThrownBy(() -> jobService.createApplication(1L, 10L, null))
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
 			.isEqualTo(APPLICATION_ALREADY_EXISTS);
