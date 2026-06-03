@@ -27,6 +27,7 @@ import woorifisa.project.backend.domain.wallet.repository.WalletRepository;
 import woorifisa.project.backend.domain.wallet.repository.WalletTransactionRepository;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
+import woorifisa.project.backend.global.response.status.ResponseStatus;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -43,7 +44,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_PASSWORD_NOT_MATCHED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_SIZE_PARAM;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ALREADY_EXISTS;
@@ -55,6 +55,22 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_TERMS_REQUIRED;
 
 class WalletServiceTest {
+    private static final ResponseStatus ACCOUNT_PASSWORD_NOT_MATCHED = new ResponseStatus() {
+        @Override
+        public boolean getSuccess() {
+            return false;
+        }
+
+        @Override
+        public String getCode() {
+            return "ACCOUNT-007";
+        }
+
+        @Override
+        public String getMessage() {
+            return "account password mismatch";
+        }
+    };
 
     private final WalletRepository walletRepository = mock(WalletRepository.class);
     private final WalletTransactionRepository walletTransactionRepository = mock(WalletTransactionRepository.class);
@@ -184,13 +200,13 @@ class WalletServiceTest {
         ChargeWalletRequest request = new ChargeWalletRequest(10000, "0000");
 
         givenNewCharge();
-        doThrow(new CustomException(BANKING_ACCOUNT_PASSWORD_NOT_MATCHED))
+        doThrow(new CustomException(ACCOUNT_PASSWORD_NOT_MATCHED))
                 .when(coreBankingClient).verifyAccountPassword(any());
 
         assertThatThrownBy(() -> walletService.chargeWallet(1L, "idempotency-key", request))
                 .isInstanceOfSatisfying(CustomException.class,
                         exception -> assertThat(exception.getExceptionStatus())
-                                .isEqualTo(BANKING_ACCOUNT_PASSWORD_NOT_MATCHED));
+                                .isEqualTo(ACCOUNT_PASSWORD_NOT_MATCHED));
 
         verify(coreBankingClient, never()).debitWalletAccount(any());
         verify(walletTransactionRepository, never()).save(any(WalletTransaction.class));
