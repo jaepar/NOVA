@@ -66,9 +66,9 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
 	ID_CARD_OCR_INVALID_ID_TYPE("USER-017", "신분증 사진이 올바르지 않습니다."),
 	IDENTITY_NAME_MISMATCH_WITH_USER("USER-018", "신분증 이름이 사용자 정보와 일치하지 않습니다."),
 	GOVERNMENT_IDENTITY_NOT_FOUND("USER-019", "정부 DB에서 사용자 신원 정보를 찾을 수 없습니다."),
-	GOVERNMENT_IDENTITY_MISMATCH("USER-020", "정부 DB의 신원 정보와 일치하지 않습니다."),
+	GOVERNMENT_IDENTITY_MISMATCH("USER-020", "정부 DB의 신원 정보가 일치하지 않습니다."),
 	GOVERNMENT_DB_COMMUNICATION_FAILED("USER-021", "정부 DB 통신에 실패했습니다."),
-	REGISTRATION_NUMBER_HMAC_SECRET_NOT_CONFIGURED("USER-022", "식별번호 HMAC 설정이 필요합니다."),
+	REGISTRATION_NUMBER_HMAC_SECRET_NOT_CONFIGURED("USER-022", "생년월일 HMAC 설정이 필요합니다."),
 
 	/**
 	 * admin
@@ -79,6 +79,12 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
 	DOCUMENT_REVIEW_SOURCE_STATUS_INVALID("ADMIN-004", "심사 가능한 문서 상태가 아닙니다."),
 
 	/**
+	 * job
+	 */
+	JOB_NOT_FOUND("JOB-001", "구인구직 공고를 찾을 수 없습니다."),
+	APPLICATION_ALREADY_EXISTS("JOB-002", "이미 지원한 구인공고입니다."),
+
+	/**
 	 * banking
 	 */
 	BANKING_ACCOUNT_NOT_FOUND("BANK-001", "계좌 정보를 찾을 수 없습니다."),
@@ -87,11 +93,7 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
 	BANKING_TRANSFER_FAILED("BANK-004", "계좌 이체 처리에 실패했습니다."),
 	BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED("BANK-005", "이체 처리 확인 재시도 대기 중 인터럽트가 발생했습니다."),
 	BANKING_RECIPIENT_NOT_FOUND("BANK-006", "수취인 계좌 정보를 찾을 수 없습니다."),
-
-  /**
-	 * job
-	 */
-  JOB_NOT_FOUND("JOB-001", "구인구직 공고를 찾을 수 없습니다.");
+	BANKING_ACCOUNT_PASSWORD_NOT_MATCHED("BANK-007", "계좌 비밀번호가 일치하지 않습니다.");
 
 	private final boolean success = false;
 	private final String code;
