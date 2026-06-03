@@ -45,28 +45,28 @@
 
 ## API Catalog
 
-| ID         | Name                 | Method | Path                                                     | Auth | Role   | Notes                         |
-|------------|----------------------|--------|----------------------------------------------------------|------|--------|-------------------------------|
-| `AUTH-001` | 회원가입 | POST | `/auth/signup` | X | PUBLIC | |
-| `AUTH-002` | 로그인 | POST | `/auth/login` | X | PUBLIC | |
-| `AUTH-003` | 로그아웃 | POST | `/auth/logout` | O | USER | 현재 `JSESSIONID` 서버 세션 무효화 |
-| `AUTH-004` | 이메일 인증번호 발송 | POST | `/auth/email-verifications` | X | PUBLIC | |
-| `AUTH-005` | 이메일 인증번호 확인 | POST | `/auth/email-verifications/confirm` | X | PUBLIC | |
-| `AUTH-006` | 세션 확인 | GET | `/auth/me` | X | PUBLIC | `JSESSIONID` 기준 로그인 세션 확인 |
-| `USER-001` | 회원 정보 조회 | GET | `/users` | O | USER | |
-| `USER-002` | 회원 정보 수정 | PATCH | `/users` | O | USER | |
-| `USER-003` | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |
-| `USER-004` | 서류 제출 | POST   | `/users/documents` | O | USER | 최초 업로드는 2개 필수, 재업로드는 반려(REJECTED) 문서만 허용(2개 반려 시 2개 모두 필수) |
-| `USER-005` | 여권 인증 | POST | `/users/verifications/passports` | O | USER | |
-| `USER-006` | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
-| `USER-007` | 인증서 발급 | POST | `/users/verifications` | O | USER | |
-| `USER-008` | 알림 조회 | GET | `/users/notifications` | O | USER | |
-| `USER-009` | 보완 서류 목록 조회 | GET | `/users/documents` | O | USER | |
-| `USER-010` | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED` |
-| `USER-011` | Liveness 얼굴 인증       | POST   | `/users/verifications/liveness`                          | O    | USER   |                               |
-| `USER-012` | Liveness 결과 조회       | GET    | `/users/verifications/liveness/{sessionId}`              | O    | USER   |                               |
-| `USER-013` | Liveness 동일인 비교      | POST   | `/users/verifications/liveness/{sessionId}/face-match`   | O    | USER   |                               |
-| `USER-014` | Liveness 최종 확정       | POST   | `/users/verifications/liveness/{sessionId}/finalize`     | O    | USER   |                               |
+| ID             | Name                 | Method | Path                                                     | Auth | Role   | Notes                         |
+|----------------|----------------------|--------|----------------------------------------------------------|------|--------|-------------------------------|
+| `AUTH-001`     | 회원가입 | POST | `/auth/signup` | X | PUBLIC | |
+| `AUTH-002`     | 로그인 | POST | `/auth/login` | X | PUBLIC | |
+| `AUTH-003`     | 로그아웃 | POST | `/auth/logout` | O | USER | 현재 `JSESSIONID` 서버 세션 무효화 |
+| `AUTH-004`     | 이메일 인증번호 발송 | POST | `/auth/email-verifications` | X | PUBLIC | |
+| `AUTH-005`     | 이메일 인증번호 확인 | POST | `/auth/email-verifications/confirm` | X | PUBLIC | |
+| `AUTH-006`     | 세션 확인 | GET | `/auth/me` | X | PUBLIC | `JSESSIONID` 기준 로그인 세션 확인 |
+| `USER-001`     | 회원 정보 조회 | GET | `/users` | O | USER | |
+| `USER-002`     | 회원 정보 수정 | PATCH | `/users` | O | USER | |
+| `USER-003`     | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |
+| `USER-004`     | 서류 제출 | POST   | `/users/documents` | O | USER | 최초 업로드는 2개 필수, 재업로드는 반려(REJECTED) 문서만 허용(2개 반려 시 2개 모두 필수) |
+| `USER-005`     | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
+| `USER-006`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
+| `USER-007`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
+| `USER-008`     | 보완 서류 목록 조회 | GET | `/users/documents/corrections` | O | USER | `missing` 필드를 `,` 기준으로 파싱해 리스트 반환 |
+| `USER-009`     | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED` |
+| `USER-010`     | Liveness 얼굴 인증       | POST   | `/users/verifications/liveness`                          | O    | USER   |                               |
+| `USER-011`     | Liveness 결과 조회       | GET    | `/users/verifications/liveness/{sessionId}`              | O    | USER   |                               |
+| `USER-012`     | Liveness 동일인 비교      | POST   | `/users/verifications/liveness/{sessionId}/face-match`   | O    | USER   |                               |
+| `USER-013`     | Liveness 최종 확정       | POST   | `/users/verifications/liveness/{sessionId}/finalize`     | O    | USER   |                               |
+| `USER-014`     | 신분증/여권 OCR 분기 인증 | POST   | `/users/verifications/identity`                          | O    | USER   | `ocrDocumentType=PASSPORT|ID_CARD` |
 | `WALLET-001`   | 월렛 계좌내역 조회           | GET    | `/wallet/transactions`                                   | O    | USER   |                               |
 | `WALLET-002`   | 월렛 충전                | POST   | `/wallet/charges`                                        | O    | USER   |                               |
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST   | `/wallet/charges/debit`                                  | O    | USER   |                               |
@@ -185,6 +185,39 @@ Response (200)
     "issueDate": "2020.01.01",
     "expireDate": "2030.01.01",
     "authority": "MOFA"
+  }
+}
+```
+
+## USER-015 신분증/여권 OCR 분기 인증
+
+- Method: `POST`
+- Path: `/users/verifications/identity`
+- Auth: `O` (USER 세션 필수)
+- Content-Type: `multipart/form-data`
+
+Request
+- `file`: OCR 대상 이미지 파일 1개
+- `ocrDocumentType`: `PASSPORT` | `ID_CARD`
+
+Response (ID_CARD 성공 예시)
+```json
+{
+  "success": true,
+  "code": "20000",
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "ocrDocumentType": "ID_CARD",
+    "passport": null,
+    "idCard": {
+      "name": "홍길동",
+      "residentRegistrationNumber": "900101-1234567",
+      "issueDate": "2020.01.01"
+    },
+    "nameMatchWithUser": true,
+    "identityMatchWithGovDb": true,
+    "verificationStatus": "VERIFIED",
+    "failureReasonCode": null
   }
 }
 ```

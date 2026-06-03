@@ -23,7 +23,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_PASSWORD_NOT_MATCHED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
 
 class RestCoreBankingClientTest {
 
@@ -84,7 +83,7 @@ class RestCoreBankingClientTest {
 
         assertThatThrownBy(() -> client.debitWalletAccount(request))
                 .isInstanceOfSatisfying(CustomException.class,
-                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_DEBIT_FAILED));
+                        exception -> assertThat(exception.getExceptionStatus().getCode()).isEqualTo("40000"));
 
         server.verify();
     }

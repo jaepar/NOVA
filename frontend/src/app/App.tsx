@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { authApi } from '../api'
+import { NovaToast } from './components/design-system'
 import { router } from './routes'
 import { useMainPageStore } from './stores/pageStores'
 
@@ -37,5 +38,10 @@ export default function App() {
     return null
   }
 
-  return <RouterProvider router={router} />
+  return (
+    <>
+      <RouterProvider router={router} />
+      <NovaToast />
+    </>
+  )
 }
