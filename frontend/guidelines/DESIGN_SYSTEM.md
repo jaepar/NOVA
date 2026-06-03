@@ -67,6 +67,17 @@
 - 페이지에서 국가 검색 로직, 검색창, 리스트 아이템 UI를 반복 구현하지 않는다.
 - 국가 데이터는 `data` 폴더 정의 파일을 주입받아 사용한다.
 
+### 5.3) 2분할 선택 박스 규격
+
+- 2개의 선택지 중 하나를 고르는 분할형 선택 UI는 `SegmentedOptionField`를 공통 사용한다.
+- 기본 규격:
+  - 레이아웃: `2열`, `rounded-2xl`, `border border-border`, `bg-background`
+  - 선택 상태: `bg-primary/10`, `text-primary`, `font-semibold`
+  - 비선택 상태: `text-foreground`
+  - 구분선: 두 번째 옵션 시작 지점에 `border-l border-border`
+- 페이지에서 동일 박스 구조를 직접 반복 구현하지 않는다.
+- 특정 기능 전용 컴포넌트로 보지 않고, 2개의 상호 배타 옵션을 보여주는 모든 화면에서 공통 선택 패턴으로 사용한다.
+
 ## 6) 공통 레이아웃 컴포넌트
 
 - `FixedHeader`
