@@ -26,6 +26,8 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 @Table(name = "account_ref")
 public class AccountRef extends BaseEntity {
 
+    public static final String BANK_NAME = "우리은행";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "account_ref_id")
@@ -50,8 +52,9 @@ public class AccountRef extends BaseEntity {
     @Column(name = "account_number", length = 100)
     private String accountNumber;
 
-    @Column(name = "balance")
-    private Integer balance;
+    @Builder.Default
+    @Column(name = "balance", nullable = false)
+    private Integer balance = 0;
 
     @Column(name = "has_limit", nullable = false)
     private Boolean hasLimit;

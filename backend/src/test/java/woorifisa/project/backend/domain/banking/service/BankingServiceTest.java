@@ -14,6 +14,7 @@ import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingReci
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
 
@@ -58,6 +60,46 @@ class BankingServiceTest {
                 coreBankingClient
         );
         lenient().when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+    }
+
+    @Test
+    @DisplayName("홈 계좌 조회 시 본인 계좌 카드 정보를 반환한다")
+    void findHomeAccountSuccess() {
+        Long userId = 1L;
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(2001L)
+                .accountName("NOVA 임시 제한 계좌")
+                .accountNumber("1002867390781")
+                .balance(50000)
+                .hasAccount(true)
+                .hasLimit(true)
+                .build();
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+                .thenReturn(Optional.of(accountRef));
+
+        AccountHomeResponse response = bankingService.findHomeAccount(userId);
+
+        assertThat(response.accountId()).isEqualTo(2001L);
+        assertThat(response.accountName()).isEqualTo("NOVA 임시 제한 계좌");
+        assertThat(response.accountNumber()).isEqualTo("1002867390781");
+        assertThat(response.bankName()).isEqualTo("우리은행");
+        assertThat(response.balance()).isEqualTo(50000);
+        assertThat(response.hasLimit()).isTrue();
+    }
+
+    @Test
+    @DisplayName("홈 계좌 조회 시 계좌가 없으면 예외를 반환한다")
+    void findHomeAccountNotFound() {
+        Long userId = 1L;
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bankingService.findHomeAccount(userId))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(BANKING_ACCOUNT_NOT_FOUND);
     }
 
     @Test
