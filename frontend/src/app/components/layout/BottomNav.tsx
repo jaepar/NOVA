@@ -31,7 +31,10 @@ export function BottomNav() {
       >
         <div className="flex items-center justify-around">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path
+            const isActive =
+              item.path === '/transfer'
+                ? location.pathname === item.path || location.pathname.startsWith('/transfer/')
+                : location.pathname === item.path
             return (
               <AppButton
                 variant="unstyled"
