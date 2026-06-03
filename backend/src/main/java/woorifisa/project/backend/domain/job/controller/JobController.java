@@ -43,12 +43,11 @@ public class JobController {
 	}
 
 	// 지원하기 화면 진입 시 로그인 사용자 정보와 기존 등록 포트폴리오를 한 번에 내려준다.
-	@GetMapping("/{jobId}/applications/form")
+	@GetMapping("/applications/form")
 	public BaseResponse<ApplicationFormResponse> getApplicationForm(
-		@AuthenticationPrincipal SessionUserPrincipal principal,
-		@PathVariable Long jobId
+		@AuthenticationPrincipal SessionUserPrincipal principal
 	) {
-		return BaseResponse.ok(jobService.getApplicationForm(principal.userId(), jobId));
+		return BaseResponse.ok(jobService.getApplicationForm(principal.userId()));
 	}
 
 	// 지원서 제출은 세션 사용자 기준으로 생성하므로 이름/이메일 입력값은 받지 않는다.

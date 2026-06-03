@@ -49,7 +49,7 @@ public class SecurityConfig {
                                 "/auth/logout",
                                 "/auth/me",
                                 "/jobs/*/applications",
-                                "/jobs/*/applications/form"
+                                "/jobs/applications/form"
                         ).authenticated()
                         .anyRequest().permitAll()
                 )

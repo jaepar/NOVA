@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.APPLICATION_ALREADY_EXISTS;
@@ -155,7 +156,6 @@ class JobServiceTest {
 	@DisplayName("get application form data for authenticated user")
 	void getApplicationForm() {
 		User user = user(1L);
-		Job job = job(10L);
 		Resume portfolio = Resume.builder()
 			.resumeId(3L)
 			.user(user)
@@ -163,11 +163,10 @@ class JobServiceTest {
 			.url("https://s3.test/portfolios/user-1/profile/portfolio.pdf")
 			.build();
 		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-		when(jobRepository.findById(10L)).thenReturn(Optional.of(job));
-		when(resumeRepository.findByUserAndApplicationIsNullOrderByResumeIdDesc(user))
+		when(resumeRepository.findByUserOrderByResumeIdDesc(user))
 			.thenReturn(List.of(portfolio));
 
-		ApplicationFormResponse response = jobService.getApplicationForm(1L, 10L);
+		ApplicationFormResponse response = jobService.getApplicationForm(1L);
 
 		assertThat(response.userId()).isEqualTo(1L);
 		assertThat(response.name()).isEqualTo("Cho Woojae");
@@ -177,18 +176,6 @@ class JobServiceTest {
 		assertThat(response.portfolios().get(0).name()).isEqualTo("portfolio.pdf");
 		assertThat(response.portfolios().get(0).url())
 			.isEqualTo("https://s3.test/portfolios/user-1/profile/portfolio.pdf");
-	}
-
-	@Test
-	@DisplayName("missing job throws JOB_NOT_FOUND when finding application form data")
-	void getApplicationFormJobNotFound() {
-		when(userRepository.findById(1L)).thenReturn(Optional.of(user(1L)));
-		when(jobRepository.findById(404L)).thenReturn(Optional.empty());
-
-		assertThatThrownBy(() -> jobService.getApplicationForm(1L, 404L))
-			.isInstanceOf(CustomException.class)
-			.extracting("exceptionStatus")
-			.isEqualTo(JOB_NOT_FOUND);
 	}
 
 	@Test
@@ -215,7 +202,7 @@ class JobServiceTest {
 	}
 
 	@Test
-	@DisplayName("uploaded files are saved to S3 and linked as resumes")
+	@DisplayName("uploaded file is saved to S3 and linked to application as resume")
 	void createApplicationWithFiles() {
 		User user = user(1L);
 		Job job = job(10L);
@@ -244,9 +231,13 @@ class JobServiceTest {
 		verify(resumeRepository).save(resumeCaptor.capture());
 		Resume savedResume = resumeCaptor.getValue();
 		assertThat(savedResume.getUser()).isEqualTo(user);
-		assertThat(savedResume.getApplication()).isEqualTo(persisted);
 		assertThat(savedResume.getName()).isEqualTo("resume.pdf");
 		assertThat(savedResume.getUrl()).isEqualTo("https://s3.test/portfolios/user-1/application-99/portfolio-0_resume.pdf");
+		assertThat(persisted.getResume()).isEqualTo(savedResume);
+
+		ArgumentCaptor<Application> applicationCaptor = ArgumentCaptor.forClass(Application.class);
+		verify(applicationRepository, times(2)).save(applicationCaptor.capture());
+		assertThat(applicationCaptor.getAllValues().get(1).getResume()).isEqualTo(savedResume);
 	}
 
 	@Test

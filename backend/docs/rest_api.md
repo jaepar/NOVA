@@ -74,7 +74,7 @@
 | `WALLET-005`   | 월렛 생성 | POST | `/wallet` | O | USER | |
 | `JOB-001`      | 구인구직 공고 목록 조회        | GET    | `/`                                                      | X    | PUBLIC | 도메인 prefix 하위 루트              |
 | `JOB-002`      | 구인구직 공고 상세 조회        | GET    | `/{job_id}`                                              | X    | PUBLIC | 도메인 prefix 하위 경로              |
-| `JOB-003`      | 지원서 작성 화면 초기 조회        | GET    | `/{job_id}/applications/form`                            | O    | USER   | 로그인 사용자 이름/이메일 및 포트폴리오 목록 |
+| `JOB-003`      | 지원서 작성 화면 초기 조회        | GET    | `/applications/form`                                     | O    | USER   | 로그인 사용자 이름/이메일 및 포트폴리오 목록 |
 | `JOB-004`      | 지원서 제출               | POST   | `/{job_id}/applications`                                 | O    | USER   | 첨부파일 선택 입력                   |
 | `JOB-005`      | 지원 내역 목록 조회          | GET    | `/applications`                                          | O    | USER   | 도메인 prefix 하위 경로              |
 | `HOSPITAL-001` | 예약                   | POST   | `/reservations`                                          | O    | USER   |                               |

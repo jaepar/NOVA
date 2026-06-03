@@ -57,18 +57,12 @@ public class JobService {
 
 	// 지원서 작성 화면에 필요한 사용자 기본 정보와 프로필 포트폴리오를 조회한다.
 	@Transactional(readOnly = true)
-	public ApplicationFormResponse getApplicationForm(Long userId, Long jobId) {
+	public ApplicationFormResponse getApplicationForm(Long userId) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
-		jobRepository.findById(jobId)
-			.orElseThrow(() -> {
-				log.warn("job application form lookup failed. reason=job_not_found userId={}, jobId={}", userId, jobId);
-				return new CustomException(JOB_NOT_FOUND);
-			});
 
-		// application_id가 없는 resume은 특정 지원서가 아닌 이미 프로필 페이지에서 개별적으로 등록된 포트폴리오다. (공통 포트폴리오)
 		List<ApplicationFormPortfolioResponse> portfolios = resumeRepository
-			.findByUserAndApplicationIsNullOrderByResumeIdDesc(user)
+			.findByUserOrderByResumeIdDesc(user)
 			.stream()
 			.map(ApplicationFormPortfolioResponse::from)
 			.toList();
@@ -76,7 +70,7 @@ public class JobService {
 		return ApplicationFormResponse.from(user, portfolios);
 	}
 
-	// 지원서는 로그인 사용자와 공고만으로 생성하고, 선택 첨부파일은 생성된 지원서에 연결한다.
+	// 지원서는 로그인 사용자와 공고로 생성하고, 선택 첨부파일은 대표 이력서로 연결한다.
 	@Transactional
 	public void createApplication(
 		Long userId,
@@ -104,7 +98,9 @@ public class JobService {
 			.status(ApplicationStatus.UNREAD)
 			.build());
 
-		saveFiles(user, application, files);
+		if (files != null) {
+			saveFiles(user, application, files);
+		}
 	}
 
 	private void saveFiles(User user, Application application, MultipartFile[] files) {
@@ -126,12 +122,15 @@ public class JobService {
 				i,
 				file
 			);
-			resumeRepository.save(Resume.builder()
+			Resume resume = Resume.builder()
 				.user(user)
-				.application(application)
 				.name(resolveFilename(file))
 				.url(fileUrl)
-				.build());
+				.build();
+			resumeRepository.save(resume);
+			application.attachResume(resume);
+			applicationRepository.save(application);
+			return;
 		}
 	}
 

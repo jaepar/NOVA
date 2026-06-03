@@ -189,9 +189,9 @@ class JobControllerTest {
 				"https://s3.test/portfolios/user-1/profile/portfolio.pdf"
 			))
 		);
-		when(jobService.getApplicationForm(1L, 10L)).thenReturn(response);
+		when(jobService.getApplicationForm(1L)).thenReturn(response);
 
-		mockMvc.perform(get("/jobs/{jobId}/applications/form", 10L)
+		mockMvc.perform(get("/jobs/applications/form")
 				.with(authentication(authToken()))
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
@@ -205,13 +205,13 @@ class JobControllerTest {
 			.andExpect(jsonPath("$.data.portfolios[0].name").value("portfolio.pdf"))
 			.andExpect(jsonPath("$.data.portfolios[0].url").value("https://s3.test/portfolios/user-1/profile/portfolio.pdf"));
 
-		verify(jobService).getApplicationForm(1L, 10L);
+		verify(jobService).getApplicationForm(1L);
 	}
 
 	@Test
 	@DisplayName("unauthenticated user cannot find job application form data")
 	void getApplicationFormUnauthorized() throws Exception {
-		mockMvc.perform(get("/jobs/{jobId}/applications/form", 10L)
+		mockMvc.perform(get("/jobs/applications/form")
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isUnauthorized())
 			.andExpect(jsonPath("$.success").value(false))
