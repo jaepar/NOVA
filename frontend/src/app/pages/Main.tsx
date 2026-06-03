@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CreditCard, Headphones, MessageSquare, Wallet } from 'lucide-react'
+import { CreditCard, MessageSquare, Wallet } from 'lucide-react'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import { BottomNav } from '../components/layout/BottomNav'
 import { SideMenu } from '../components/layout/SideMenu'
@@ -35,13 +35,6 @@ export function Main() {
   const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
 
   const services: ServiceItem[] = [
-    // 임시 연결: 계좌 개설 플로우 검증을 위해 화상상담 버튼을 account step-01로 라우팅
-    // TODO: 계좌 개설 진입 동선 확정 후 아래 path 제거
-    {
-      icon: <Headphones className="w-8 h-8" />,
-      label: "계좌개설",
-      path: "/account/step-01",
-    },
     { icon: <MessageSquare className="w-8 h-8" />, label: "병원예약" },
     { icon: <CreditCard className="w-8 h-8" />, label: "외국인등록증" },
     { icon: <Wallet className="w-8 h-8" />, label: "월렛", path: "/wallet" },
