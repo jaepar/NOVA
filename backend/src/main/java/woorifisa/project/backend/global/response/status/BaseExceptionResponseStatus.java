@@ -91,10 +91,10 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     BANKING_ACCOUNT_PASSWORD_NOT_MATCHED("BANK-007", "계좌 비밀번호가 일치하지 않습니다."),
     BANKING_CERTIFICATE_REQUIRED("BANK-008", "인증서 발급 완료 상태에서만 계좌 개설이 가능합니다."),
 
-  /**
+  	/**
 	 * job
 	 */
-  JOB_NOT_FOUND("JOB-001", "구인구직 공고를 찾을 수 없습니다."),
+  	JOB_NOT_FOUND("JOB-001", "구인구직 공고를 찾을 수 없습니다."),
     APPLICATION_ALREADY_EXISTS("JOB-002", "이미 지원한 구인공고입니다.");
 
 	private final boolean success = false;
