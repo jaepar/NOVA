@@ -11,7 +11,6 @@ import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTrans
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
-import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
@@ -136,6 +135,10 @@ public class BankingService {
             // 같은 계좌의 동일 이체를 막기 위한 락을 거는 로직
             AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountId(userId, request.withdrawAccountId())
                     .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+            coreBankingClient.verifyAccountPassword(
+                    CoreBankingPasswordVerifyRequest.of(accountRef.getAccountId(), request.accountPassword())
+            );
+
             String accountProcessingKey = formatAccountProcessingKey(accountRef.getAccountId());
             Boolean accountLockAcquired = stringRedisTemplate.opsForValue()
                     .setIfAbsent(accountProcessingKey, PROCESSING_VALUE, PROCESSING_TTL);
@@ -180,15 +183,6 @@ public class BankingService {
                 myAccount.getAccountName(),
                 myAccount.getAccountNumber(),
                 recipientName
-        );
-    }
-
-    public void verifyAccountPassword(Long userId, AccountPasswordVerifyRequest request) {
-        accountRefRepository.findByUser_UserIdAndAccountId(userId, request.accountId())
-                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
-
-        coreBankingClient.verifyAccountPassword(
-                CoreBankingPasswordVerifyRequest.of(request.accountId(), request.accountPassword())
         );
     }
 

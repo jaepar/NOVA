@@ -132,6 +132,7 @@ class BankingControllerTest {
                                   "withdrawAccountId": 2001,
                                   "depositAccountId": 2002,
                                   "transferAmount": 5000,
+                                  "accountPassword": "1234",
                                   "withdrawMemo": "박재하",
                                   "depositMemo": "박재하"
                                 }
@@ -179,15 +180,14 @@ class BankingControllerTest {
     }
 
     @Test
-    @DisplayName("계좌 비밀번호 검증 요청을 처리한다")
-    void verifyAccountPasswordSuccess() throws Exception {
+    @DisplayName("계좌 비밀번호 검증 API는 더 이상 제공하지 않는다")
+    void verifyAccountPasswordRemoved() throws Exception {
         Long userId = 1L;
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 new SessionUserPrincipal(userId),
                 null,
                 AuthorityUtils.NO_AUTHORITIES
         );
-        doNothing().when(bankingService).verifyAccountPassword(any(), any());
 
         mockMvc.perform(post("/banking/password/verify")
                         .with(authentication(authToken))
@@ -198,9 +198,6 @@ class BankingControllerTest {
                                   "accountPassword": "1234"
                                 }
                                 """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data").doesNotExist());
+                .andExpect(status().isNotFound());
     }
 }

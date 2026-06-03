@@ -19,6 +19,7 @@ import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletSummaryResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
 import woorifisa.project.backend.domain.wallet.entity.WalletTransaction;

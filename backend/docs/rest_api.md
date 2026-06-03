@@ -87,7 +87,6 @@
 | `CS-003`       | 화상 상담 상태 변경          | PATCH  | `/consultations/{cs_id}/status`                          | X    | PUBLIC | 상담 내역 저장 여부 논의                |
 | `CS-004`       | 화상 상담 입장             | POST   | `/consultations/{cs_id}/join`                            | O    | USER   |                               |
 | `BANK-001`     | 계좌 개설(Cloud)         | POST   | `/banking`                                               | O    | USER   |                               |
-| `BANK-002`     | 계좌 비밀번호 검증(Cloud)    | POST   | `/banking/{accountId}/password/verify`                   | O    | USER   |                               |
 | `BANK-003`     | 계좌 이체(Cloud)         | POST   | `/banking/transfers`                                     | O    | USER   |                               |
 | `BANK-004`     | 거래 내역 조회(Cloud)      | GET    | `/banking/{accountId}/transactions`                      | O    | USER   |                               |
 | `BANK-005`     | 거래 내역 메모 수정(Cloud)   | PATCH  | `/banking/{accountId}/transactions/{transactionId}/memo` | O    | USER   |                               |
@@ -112,6 +111,25 @@
 - 경로/메서드/권한 변경
 - 요청/응답 계약 변경
 - 보류(`Hold`) 상태 변경
+
+## BANK-003 계좌 이체(Cloud)
+
+- Method: `POST`
+- Path: `/banking/transfers`
+- Auth: `O` (USER 세션 필수)
+- Header: `Idempotency-Key`
+
+Request
+```json
+{
+  "withdrawAccountId": 2001,
+  "depositAccountId": 2002,
+  "transferAmount": 5000,
+  "accountPassword": "1234",
+  "withdrawMemo": "박재하",
+  "depositMemo": "박재하"
+}
+```
 
 ## BANK-008 이체 사전 조회(Cloud)
 
@@ -162,20 +180,6 @@ Error Response (coreBanking 비즈니스 실패 예시)
   "code": "ACCOUNT-014",
   "message": "동일한 상품이 존재합니다.",
   "data": null
-}
-```
-
-## BANK-002 계좌 비밀번호 검증(Cloud)
-
-- Method: `POST`
-- Path: `/banking/password/verify`
-- Auth: `O` (USER 세션 필수)
-
-Request
-```json
-{
-  "accountId": 1,
-  "accountPassword": "1234"
 }
 ```
 

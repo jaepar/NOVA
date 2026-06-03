@@ -5,15 +5,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
-import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
@@ -34,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -116,7 +118,7 @@ class BankingServiceTest {
     void transferSuccess() {
         Long userId = 1L;
         String idempotencyKey = "key-1";
-        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하");
+        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
@@ -144,13 +146,43 @@ class BankingServiceTest {
     }
 
     @Test
+    @DisplayName("이체 전에 출금 계좌 비밀번호를 CoreBanking으로 검증한다")
+    void verifiesAccountPasswordBeforeTransfer() {
+        Long userId = 1L;
+        String idempotencyKey = "key-password";
+        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하");
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .customerId(1001L)
+                .accountId(2001L)
+                .accountNumber("1122261925001")
+                .balance(10000)
+                .hasAccount(true)
+                .build();
+        when(valueOperations.get("banking:transfer:result:key-password")).thenReturn(null);
+        when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+
+        bankingService.transfer(userId, idempotencyKey, request);
+
+        InOrder inOrder = inOrder(coreBankingClient);
+        inOrder.verify(coreBankingClient).verifyAccountPassword(
+                org.mockito.ArgumentMatchers.argThat((CoreBankingPasswordVerifyRequest passwordRequest) ->
+                        passwordRequest.accountId().equals(2001L)
+                                && passwordRequest.accountPassword().equals("1234"))
+        );
+        inOrder.verify(coreBankingClient).transfer(any());
+    }
+
+    @Test
     @DisplayName("동일 멱등키가 이미 처리중이면 예외를 반환한다")
     void transferProcessing() {
         when(valueOperations.get("banking:transfer:result:key-1")).thenReturn(null);
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(false);
 
         assertThatThrownBy(() -> bankingService.transfer(1L, "key-1",
-                new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하")))
+                new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하")))
                 .isInstanceOf(CustomException.class)
                 .extracting("exceptionStatus")
                 .isEqualTo(BANKING_TRANSFER_PROCESSING);
@@ -162,7 +194,7 @@ class BankingServiceTest {
     @DisplayName("같은 출금 계좌가 이미 처리중이면 예외를 반환한다")
     void transferProcessingByAccountLock() {
         Long userId = 1L;
-        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하");
+        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
@@ -197,7 +229,7 @@ class BankingServiceTest {
         bankingService.transfer(
                 1L,
                 "key-1",
-                new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하")
+                new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하")
         );
 
         verify(coreBankingClient, never()).transfer(any());
@@ -208,7 +240,7 @@ class BankingServiceTest {
     void transferSuccessWhenLookupExistsAfterFailure() {
         Long userId = 1L;
         String idempotencyKey = "key-lookup-exists";
-        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하");
+        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
@@ -239,7 +271,7 @@ class BankingServiceTest {
     void transferRetryWhenLookupNotExists() {
         Long userId = 1L;
         String idempotencyKey = "key-retry";
-        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "박재하", "박재하");
+        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
@@ -287,25 +319,6 @@ class BankingServiceTest {
         assertThat(response.myAccount().accountName()).isEqualTo("우리SUPER주거래통장");
         assertThat(response.myAccount().accountNumber()).isEqualTo("1002867390781");
         assertThat(response.recipient().recipientName()).isEqualTo("백민정");
-    }
-
-    @Test
-    @DisplayName("본인 계좌 비밀번호 검증 요청을 코어뱅킹으로 전달한다")
-    void verifyAccountPasswordSuccess() {
-        Long userId = 1L;
-        AccountRef accountRef = AccountRef.builder()
-                .accountRefId(1L)
-                .user(User.builder().userId(userId).build())
-                .accountId(2001L)
-                .hasAccount(true)
-                .build();
-
-        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
-        doNothing().when(coreBankingClient).verifyAccountPassword(any());
-
-        bankingService.verifyAccountPassword(userId, new AccountPasswordVerifyRequest(2001L, "1234"));
-
-        verify(coreBankingClient).verifyAccountPassword(any());
     }
 
     @Test
