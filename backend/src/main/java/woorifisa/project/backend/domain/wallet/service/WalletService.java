@@ -15,6 +15,7 @@ import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalle
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletSummaryResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
 import woorifisa.project.backend.domain.wallet.entity.Wallet;
 import woorifisa.project.backend.domain.wallet.entity.WalletTransaction;
@@ -59,6 +60,7 @@ public class WalletService {
     private final CoreBankingClient coreBankingClient;
     private final StringRedisTemplate stringRedisTemplate;
 
+    // 월렛 잔액 + 거래내역 페이지 조회 (무한스크롤용 Slice 반환)
     @Transactional(readOnly = true)
     public WalletTransactionsResponse findWalletTransactions(Long userId, Pageable pageable) {
         // size 상한(100)은 대량 조회로 인한 DB 부하 방지 (page/size 음수·0은 Spring MVC가 사전 차단)
@@ -74,6 +76,20 @@ public class WalletService {
         return WalletTransactionsResponse.from(wallet, transactions);
     }
 
+    // 월렛 홈 상단 요약 정보 조회 (잔액 + 연결 계좌번호)
+    @Transactional(readOnly = true)
+    public WalletSummaryResponse findSummary(Long userId) {
+        Wallet wallet = walletRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new CustomException(WALLET_NOT_FOUND));
+        AccountRef accountRef = wallet.getUserAccount();
+        if (accountRef == null || !accountRef.getHasAccount()) {
+            throw new CustomException(WALLET_ACCOUNT_NOT_FOUND);
+        }
+
+        return new WalletSummaryResponse(wallet.getBalance(), accountRef.getAccountNumber());
+    }
+
+    // 월렛 충전 — 멱등키 기반 중복 방지 + 코어뱅킹 계좌 차감 후 월렛 잔액 반영
     @Transactional
     public void chargeWallet(Long userId, String idempotencyKey, ChargeWalletRequest request) {
         // 헤더 누락 시 Spring 기본 400 대신 커스텀 응답을 내려주기 위해 서비스에서 검증
@@ -137,6 +153,7 @@ public class WalletService {
         }
     }
 
+    // 월렛·계좌 보유 여부에 따라 다음 진입 화면(상태) 반환
     @Transactional(readOnly = true)
     public WalletStatusResponse findWalletStatus(Long userId) {
         // 사용자의 월렛 소유 여부 체크
@@ -234,6 +251,7 @@ public class WalletService {
                 .build());
     }
 
+    // 약관 동의 확인 후 월렛 생성 (중복 생성은 DB unique 제약으로 차단)
     @Transactional
     public void createWallet(Long userId, WalletCreateRequest request) {
         if (!Boolean.TRUE.equals(request.termsAgreed())) {

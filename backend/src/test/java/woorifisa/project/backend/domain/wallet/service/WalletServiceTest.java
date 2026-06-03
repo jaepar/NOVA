@@ -157,6 +157,57 @@ class WalletServiceTest {
     }
 
     @Test
+    @DisplayName("월렛 잔액과 연결 계좌번호를 요약 조회한다")
+    void summaryFound() {
+        Long userId = 1L;
+        AccountRef accountRef = AccountRef.builder()
+                .accountNumber("1002867390781")
+                .hasAccount(true)
+                .build();
+        Wallet wallet = Wallet.builder()
+                .walletId(10L)
+                .balance(30000)
+                .userAccount(accountRef)
+                .build();
+        when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.of(wallet));
+
+        WalletSummaryResponse response = walletService.findSummary(userId);
+
+        assertThat(response.balance()).isEqualTo(30000);
+        assertThat(response.linkedAccountNumber()).isEqualTo("1002867390781");
+    }
+
+    @Test
+    @DisplayName("월렛이 없으면 요약 조회 시 예외를 던진다")
+    void summaryWalletNotFound() {
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> walletService.findSummary(1L))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("월렛에 연결된 사용 가능 계좌가 없으면 요약 조회 시 예외를 던진다")
+    void summaryAccountNotFound() {
+        Long userId = 1L;
+        AccountRef accountRef = AccountRef.builder()
+                .accountNumber("1002867390781")
+                .hasAccount(false)
+                .build();
+        Wallet wallet = Wallet.builder()
+                .walletId(10L)
+                .balance(30000)
+                .userAccount(accountRef)
+                .build();
+        when(walletRepository.findByUser_UserId(userId)).thenReturn(Optional.of(wallet));
+
+        assertThatThrownBy(() -> walletService.findSummary(userId))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_ACCOUNT_NOT_FOUND));
+    }
+
+    @Test
     @DisplayName("신규 충전이면 CoreBanking 차감 후 월렛 충전을 확정하고 완료 키를 저장한다")
     void success() {
         ChargeWalletRequest request = new ChargeWalletRequest(10000, "1234");
