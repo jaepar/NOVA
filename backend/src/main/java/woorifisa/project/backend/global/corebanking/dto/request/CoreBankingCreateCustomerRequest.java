@@ -1,4 +1,4 @@
-package woorifisa.project.backend.global.corebanking.client.dto.request;
+package woorifisa.project.backend.global.corebanking.dto.request;
 
 import woorifisa.project.backend.domain.user.entity.User;
 

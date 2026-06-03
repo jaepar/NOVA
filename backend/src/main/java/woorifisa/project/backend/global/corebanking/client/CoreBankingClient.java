@@ -1,13 +1,13 @@
 package woorifisa.project.backend.global.corebanking.client;
 
-import woorifisa.project.backend.global.corebanking.client.dto.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.global.corebanking.client.dto.request.CoreBankingRecipientLookupRequest;
-import woorifisa.project.backend.global.corebanking.client.dto.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.global.corebanking.client.dto.request.CoreBankingCreateAccountRequest;
-import woorifisa.project.backend.global.corebanking.client.dto.request.CoreBankingCreateCustomerRequest;
-import woorifisa.project.backend.global.corebanking.client.dto.response.CoreBankingCreateAccountResponse;
-import woorifisa.project.backend.global.corebanking.client.dto.response.CoreBankingRecipientLookupResponse;
-import woorifisa.project.backend.global.corebanking.client.dto.request.CoreBankingWalletDebitRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateCustomerRequest;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 
 public interface CoreBankingClient {
 

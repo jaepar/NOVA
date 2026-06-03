@@ -2,7 +2,7 @@ package woorifisa.project.backend.domain.wallet.dto.corebanking.request;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import woorifisa.project.backend.global.corebanking.client.dto.request.CoreBankingWalletDebitRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
-import woorifisa.project.backend.global.corebanking.client.dto.request.CoreBankingWalletDebitRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
