@@ -59,5 +59,5 @@ public class JobController {
 	) {
 		jobService.createApplication(principal.userId(), jobId, files);
 		return BaseResponse.ok(null);
-	}
+	}	
 }
