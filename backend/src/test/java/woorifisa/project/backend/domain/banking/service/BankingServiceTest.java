@@ -15,8 +15,10 @@ import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTrans
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
+import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
@@ -43,6 +45,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSACTION_MEMO_TOO_LONG;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CERTIFICATE_REQUIRED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
 
@@ -392,5 +395,33 @@ class BankingServiceTest {
                 .isEqualTo(BANKING_CERTIFICATE_REQUIRED);
 
         verify(coreBankingClient, never()).createAccount(any());
+    }
+
+    @Test
+    @DisplayName("거래내역 메모 수정 요청을 코어뱅킹으로 전달한다")
+    void updateTransactionMemoSuccess() {
+        Long transactionId = 9001L;
+        UpdateTransactionMemoRequest request = new UpdateTransactionMemoRequest("  12345678901234567890  ");
+        UpdateTransactionMemoRequest normalizedRequest = new UpdateTransactionMemoRequest("12345678901234567890");
+
+        doNothing().when(coreBankingClient).updateTransactionMemo(transactionId, normalizedRequest);
+
+        bankingService.updateTransactionMemo(transactionId, request);
+
+        verify(coreBankingClient).updateTransactionMemo(transactionId, normalizedRequest);
+    }
+
+    @Test
+    @DisplayName("거래내역 메모는 앞뒤 공백 제거 후 20자를 초과하면 예외를 반환한다")
+    void updateTransactionMemoTooLong() {
+        Long transactionId = 9001L;
+        UpdateTransactionMemoRequest request = new UpdateTransactionMemoRequest("123456789012345678901");
+
+        assertThatThrownBy(() -> bankingService.updateTransactionMemo(transactionId, request))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(BANKING_TRANSACTION_MEMO_TOO_LONG);
+
+        verify(coreBankingClient, never()).updateTransactionMemo(any(), any());
     }
 }

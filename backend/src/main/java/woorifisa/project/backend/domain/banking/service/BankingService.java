@@ -11,8 +11,10 @@ import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTrans
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
+import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
@@ -25,12 +27,13 @@ import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.time.Duration;
+
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CERTIFICATE_REQUIRED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
 
@@ -187,6 +190,20 @@ public class BankingService {
                 myAccount.getTransferLimit(),
                 recipientName
         );
+    }
+
+    public void verifyAccountPassword(Long userId, AccountPasswordVerifyRequest request) {
+        accountRefRepository.findByUser_UserIdAndAccountId(userId, request.accountId())
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
+        coreBankingClient.verifyAccountPassword(
+                CoreBankingPasswordVerifyRequest.of(request.accountId(), request.accountPassword())
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public void updateTransactionMemo(Long transactionId, UpdateTransactionMemoRequest request) {
+        coreBankingClient.updateTransactionMemo(transactionId, request.normalized());
     }
 
     // ProcessingKey 생성 메서드

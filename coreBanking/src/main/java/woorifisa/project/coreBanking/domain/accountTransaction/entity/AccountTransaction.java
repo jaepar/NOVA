@@ -64,4 +64,8 @@ public class AccountTransaction extends BaseEntity {
 
     @Column(name = "external_request_id", length = 100)
     private String externalRequestId;
+
+    public void updateMemo(String memo) {
+        this.memo = memo;
+    }
 }

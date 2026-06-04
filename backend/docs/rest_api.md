@@ -91,7 +91,7 @@
 | `BANK-001`     | 계좌 개설(Cloud)         | POST   | `/banking`                                               | O    | USER   |                               |
 | `BANK-003`     | 계좌 이체(Cloud)         | POST   | `/banking/transfers`                                     | O    | USER   |                               |
 | `BANK-004`     | 거래 내역 조회(Cloud)      | GET    | `/banking/{accountId}/transactions`                      | O    | USER   |                               |
-| `BANK-005`     | 거래 내역 메모 수정(Cloud)   | PATCH  | `/banking/{accountId}/transactions/{transactionId}/memo` | O    | USER   |                               |
+| `BANK-005`     | 거래 내역 메모 수정(Cloud)   | PATCH  | `/banking/transactions/{transactionId}/memo`             | O    | USER   | 응답 data는 null                  |
 | `BANK-006`     | 홈 계좌 정보 조회(Cloud)    | GET    | `/banking/home`                                          | O    | USER   |                               |
 | `BANK-007`     | 해외 송금(Cloud)         | TBD    | `TBD`                                                    | O    | USER   | 프로세스 정의 중 (추후 작성)             |
 | `BANK-008`     | 이체 사전 조회(Cloud) | POST | `/banking/transfers/preview` | O | USER | 내 계좌(account_ref) + 수취인(coreBanking) 통합 조회 |
