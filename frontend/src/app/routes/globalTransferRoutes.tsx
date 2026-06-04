@@ -13,7 +13,7 @@ import { Step05TransferSwiftCodeLookup } from "../pages/global-transfer/Step05-T
 import { Step06TransferSubmitFailed } from "../pages/global-transfer/Step06-TransferSubmitFailed";
 import { Step06TransferSubmitSuccess } from "../pages/global-transfer/Step06-TransferSubmitSuccess";
 
-export const transferRoutes: RouteObject[] = [
+export const globalTransferRoutes: RouteObject[] = [
   { path: "/global-transfer", Component: TransferHome },
   { path: "/global-transfer/history", Component: TransferHistory },
   { path: "/global-transfer/send/step-01", Component: TransferTermsAgreement },
