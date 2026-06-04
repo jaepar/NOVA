@@ -1,22 +1,21 @@
 package woorifisa.project.backend.domain.banking.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
+
+import java.time.Duration;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
-import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
@@ -24,18 +23,13 @@ import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.global.exception.CustomException;
-
-import java.time.Duration;
-
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CERTIFICATE_REQUIRED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
+import woorifisa.project.backend.global.response.BaseResponse;
 
 @Service
 @Slf4j
@@ -67,7 +61,7 @@ public class BankingService {
     }
 
     @Transactional
-    public AccountCreateResponse createAccount(Long userId, AccountCreateRequest request) {
+    public BaseResponse<Void> createAccount(Long userId, AccountCreateRequest request) {
         log.info("[banking_account_create:requested] userId={}, accountType={}, accountName={}, hasForeignTax={}",
                 userId, request.accountType(), request.accountName(), request.hasForeignTax());
         User user = userRepository.findById(userId)
@@ -102,11 +96,7 @@ public class BankingService {
         log.info("[banking_account_create:completed] userId={}, accountId={}, maskedAccountNumber={}",
                 userId, created.accountId(), maskAccountNumber(created.accountNumber()));
 
-        return AccountCreateResponse.of(
-                created.accountId(),
-                "WOORI",
-                created.accountNumber()
-        );
+        return BaseResponse.ok(null);
     }
 
     private String maskAccountNumber(String accountNumber) {

@@ -1,5 +1,12 @@
 package woorifisa.project.backend.domain.banking.service;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
+
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,44 +17,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
-import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
-import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.global.exception.CustomException;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSACTION_MEMO_TOO_LONG;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CERTIFICATE_REQUIRED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
 
 @ExtendWith(MockitoExtension.class)
 class BankingServiceTest {
