@@ -49,12 +49,12 @@ export function Step03TransferRateSummary() {
   return (
     <MobileLayout
       title="해외송금"
-      backPath="/transfer/send/step-02"
+      backPath="/global-transfer/send/step-02"
       bottomContent={
         <div className="flex w-full gap-4">
           <AppButton
             variant="outline"
-            onClick={() => navigate('/transfer/send/step-02')}
+            onClick={() => navigate('/global-transfer/send/step-02')}
             className="flex-1 rounded-xl px-6 py-4"
           >
             이전
@@ -64,7 +64,7 @@ export function Step03TransferRateSummary() {
             onClick={() => {
               resetTransferSenderInfo()
               resetTransferRecipientInfo()
-              navigate('/transfer/send/step-04')
+              navigate('/global-transfer/send/step-04')
             }}
             className="flex-1 rounded-xl px-6 py-4"
           >

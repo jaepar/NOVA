@@ -29,7 +29,7 @@ export function Step06TransferSubmitSuccess() {
         resetTransferBasicInfo();
         resetTransferSenderInfo();
         resetTransferRecipientInfo();
-        navigate("/transfer");
+        navigate("/global-transfer");
       }}
     />
   );

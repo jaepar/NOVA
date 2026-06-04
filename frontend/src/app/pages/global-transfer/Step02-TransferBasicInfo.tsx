@@ -85,12 +85,12 @@ export function Step02TransferBasicInfo() {
     <>
       <MobileLayout
         title="해외송금"
-        backPath="/transfer/send/step-01"
+        backPath="/global-transfer/send/step-01"
         bottomContent={
           <div className="flex w-full gap-4">
             <AppButton
               variant="outline"
-              onClick={() => navigate('/transfer/send/step-01')}
+              onClick={() => navigate('/global-transfer/send/step-01')}
               className="flex-1 rounded-xl px-6 py-4"
             >
               이전
@@ -101,7 +101,7 @@ export function Step02TransferBasicInfo() {
               onClick={() => {
                 resetTransferSenderInfo()
                 resetTransferRecipientInfo()
-                navigate('/transfer/send/step-03')
+                navigate('/global-transfer/send/step-03')
               }}
               className="flex-1 rounded-xl px-6 py-4"
             >

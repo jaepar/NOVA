@@ -57,7 +57,7 @@ export function TransferHistory() {
       <MobileLayout
         title="송금 내역 조회"
         headerType="back"
-        backPath="/transfer"
+        backPath="/global-transfer"
         headerRightContent={
           <AppButton
             variant="unstyled"

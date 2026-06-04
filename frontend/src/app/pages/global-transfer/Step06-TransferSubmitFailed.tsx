@@ -55,12 +55,12 @@ export function Step06TransferSubmitFailed() {
     resetTransferBasicInfo();
     resetTransferSenderInfo();
     resetTransferRecipientInfo();
-    navigate("/transfer");
+    navigate("/global-transfer");
   };
 
   const handleRetry = async () => {
     if (!state.payload) {
-      navigate("/transfer/send/step-05");
+      navigate("/global-transfer/send/step-05");
       return;
     }
 
@@ -72,7 +72,7 @@ export function Step06TransferSubmitFailed() {
 
     try {
       await transferApi.submitRemittance(state.payload);
-      navigate("/transfer/send/step-06", { replace: true });
+      navigate("/global-transfer/send/step-06", { replace: true });
     } catch (error) {
       setErrorMessage(getTransferSubmitErrorMessage(error));
       setIsRetrying(false);

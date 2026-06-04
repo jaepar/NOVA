@@ -95,14 +95,14 @@ export function Step05TransferSwiftCodeLookup() {
     setBankBranchName(
       item.branchName ? `${item.bankName} / ${item.branchName}` : item.bankName
     )
-    navigate('/transfer/send/step-05')
+    navigate('/global-transfer/send/step-05')
   }
 
   return (
     <MobileLayout
       title="SWIFT CODE 조회"
       headerType="close"
-      closePath="/transfer/send/step-05"
+      closePath="/global-transfer/send/step-05"
       bottomContent={<Btn_1Col onClick={handleSearch}>조회</Btn_1Col>}
     >
       <div className="space-y-8 pb-4 pt-3">

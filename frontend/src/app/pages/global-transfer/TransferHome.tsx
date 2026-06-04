@@ -46,11 +46,11 @@ export function TransferHome() {
   );
 
   const handleSendEntry = () => {
-      navigate(
-        isInitialVerificationComplete
-        ? "/transfer/send/step-01"
-        : "/transfer/send/verification"
-      );
+    navigate(
+      isInitialVerificationComplete
+        ? "/global-transfer/send/step-01"
+        : "/global-transfer/send/verification"
+    );
   };
 
   return (
@@ -59,7 +59,7 @@ export function TransferHome() {
         <section className="space-y-2">
           <h1 className="text-2xl font-semibold text-foreground">해외송금</h1>
           <p className="text-sm leading-6 text-muted-foreground">
-            송금 보내기와 송금 내역 조회를 한 곳에서 바로 시작할 수 있습니다.
+            송금과 내역 조회를 한 곳에서 바로 시작할 수 있습니다.
           </p>
         </section>
 
@@ -73,7 +73,7 @@ export function TransferHome() {
           <TransferEntryCard
             title="해외송금관리"
             description="송금 진행 상태와 완료 내역을 확인할 수 있습니다."
-            onClick={() => navigate("/transfer/history")}
+            onClick={() => navigate("/global-transfer/history")}
           />
         </div>
       </div>

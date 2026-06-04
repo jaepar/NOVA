@@ -195,12 +195,12 @@ export function Step05TransferRecipientInfo() {
     <>
       <MobileLayout
         title="해외송금"
-        backPath="/transfer/send/step-04"
+        backPath="/global-transfer/send/step-04"
         bottomContent={
           <div className="flex w-full gap-4">
             <AppButton
               variant="outline"
-              onClick={() => navigate("/transfer/send/step-04")}
+              onClick={() => navigate("/global-transfer/send/step-04")}
               className="flex-1 rounded-xl px-6 py-4"
             >
               이전
@@ -208,7 +208,7 @@ export function Step05TransferRecipientInfo() {
             <AppButton
               variant="primary"
               disabled={!canProceed}
-              onClick={() => navigate("/transfer/send/step-06")}
+              onClick={() => navigate("/global-transfer/send/step-06")}
               className="flex-1 rounded-xl px-6 py-4"
             >
               다음
@@ -313,7 +313,7 @@ export function Step05TransferRecipientInfo() {
                 <AppButton
                   type="button"
                   variant="unstyled"
-                  onClick={() => navigate("/transfer/send/step-05/swift-code-lookup")}
+                  onClick={() => navigate("/global-transfer/send/step-05/swift-code-lookup")}
                   className="flex items-center gap-1 text-base font-medium text-primary"
                 >
                   SWIFT CODE 조회

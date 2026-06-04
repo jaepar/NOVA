@@ -87,7 +87,7 @@ export function TransferInitialVerification() {
 
   useEffect(() => {
     if (isInitialVerificationComplete) {
-      navigate("/transfer/send/step-01", { replace: true });
+      navigate("/global-transfer/send/step-01", { replace: true });
     }
   }, [isInitialVerificationComplete, navigate]);
 
@@ -143,14 +143,14 @@ export function TransferInitialVerification() {
 
   const handleCompleteVerification = () => {
     completeInitialVerification();
-    navigate("/transfer/send/step-01");
+    navigate("/global-transfer/send/step-01");
   };
 
   return (
     <MobileLayout
       title="해외송금"
       headerType="back"
-      backPath="/transfer"
+      backPath="/global-transfer"
       bottomContent={
         <Btn_1Col disabled={!canCompleteVerification} onClick={handleCompleteVerification}>
           인증 완료
@@ -178,7 +178,7 @@ export function TransferInitialVerification() {
                 value={registrationFront}
                 onChange={(event) => handleRegistrationFrontChange(event.target.value)}
                 disabled={isRegistrationVerified}
-                className="h-16 w-[45%] rounded-2xl border border-border bg-background px-5 text-lg text-[#132347] placeholder:text-[#B6C0D1] focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:bg-[#F7F9FC] disabled:text-[#8A94A6]"
+                className="h-16 min-w-0 flex-1 rounded-2xl border border-border bg-background px-5 text-lg text-[#132347] placeholder:text-[#B6C0D1] focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:bg-[#F7F9FC] disabled:text-[#8A94A6]"
                 style={{ fontSize: "16px" }}
               />
               <span className="text-xl font-semibold text-[#90A0B8]">-</span>
@@ -189,7 +189,7 @@ export function TransferInitialVerification() {
                 value={registrationBack}
                 onChange={(event) => handleRegistrationBackChange(event.target.value)}
                 disabled={isRegistrationVerified}
-                className="h-16 flex-1 rounded-2xl border border-border bg-background px-5 text-lg tracking-[0.25em] text-[#132347] placeholder:tracking-normal placeholder:text-[#B6C0D1] focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:bg-[#F7F9FC] disabled:text-[#8A94A6]"
+                className="h-16 min-w-0 flex-1 rounded-2xl border border-border bg-background px-5 text-lg tracking-[0.25em] text-[#132347] placeholder:tracking-normal placeholder:text-[#B6C0D1] focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:bg-[#F7F9FC] disabled:text-[#8A94A6]"
                 style={{ fontSize: "16px" }}
               />
             </div>

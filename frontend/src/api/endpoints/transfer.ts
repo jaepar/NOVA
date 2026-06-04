@@ -40,7 +40,7 @@ export type SubmitRemittanceResponse = {
   status?: string;
 };
 
-const SUBMIT_REMITTANCE_ENDPOINT = "/transfer/remittance";
+const SUBMIT_REMITTANCE_ENDPOINT = "/global-transfer/remittance";
 
 export const transferApi = {
   submitRemittance: async (

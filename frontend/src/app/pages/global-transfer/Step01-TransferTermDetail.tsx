@@ -9,7 +9,7 @@ export function TransferTermDetail() {
     <ConsentTermDetailView
       definition={transferConsentDefinition}
       termId={termId}
-      basePath="/transfer/send/step-01"
+      basePath="/global-transfer/send/step-01"
       preserveStateKey="preserveConsentState"
     />
   );

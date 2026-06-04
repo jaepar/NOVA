@@ -26,12 +26,12 @@ export function TransferTermsAgreement() {
   return (
     <MobileLayout
       title="해외송금"
-      backPath="/transfer"
+      backPath="/global-transfer"
       bottomContent={
         <div className="flex w-full gap-4">
           <AppButton
             variant="outline"
-            onClick={() => navigate("/transfer")}
+            onClick={() => navigate("/global-transfer")}
             className="flex-1 rounded-xl px-6 py-4"
           >
             취소
@@ -43,7 +43,7 @@ export function TransferTermsAgreement() {
               resetTransferBasicInfo();
               resetTransferSenderInfo();
               resetTransferRecipientInfo();
-              navigate('/transfer/send/step-02');
+              navigate('/global-transfer/send/step-02');
             }}
             className="flex-1 rounded-xl px-6 py-4"
           >
@@ -62,7 +62,7 @@ export function TransferTermsAgreement() {
         <ConsentOverviewAccordion
           definition={transferConsentDefinition}
           preserveState={preserveState}
-          basePath="/transfer/send/step-01"
+          basePath="/global-transfer/send/step-01"
           preserveStateKey="preserveConsentState"
           resetCarouselCursorKey="resetCategoryCursor"
           title=""

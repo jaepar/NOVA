@@ -111,12 +111,12 @@ export function Step04TransferSenderInfo() {
     <>
       <MobileLayout
         title="해외송금"
-        backPath="/transfer/send/step-03"
+        backPath="/global-transfer/send/step-03"
         bottomContent={
           <div className="flex w-full gap-4">
             <AppButton
               variant="outline"
-              onClick={() => navigate('/transfer/send/step-03')}
+              onClick={() => navigate('/global-transfer/send/step-03')}
               className="flex-1 rounded-xl px-6 py-4"
             >
               이전
@@ -126,7 +126,7 @@ export function Step04TransferSenderInfo() {
               disabled={!canProceed}
               onClick={() => {
                 resetTransferRecipientInfo()
-                navigate('/transfer/send/step-05')
+                navigate('/global-transfer/send/step-05')
               }}
               className="flex-1 rounded-xl px-6 py-4"
             >

@@ -9,7 +9,7 @@ export function TransferAllTermsAgreements() {
     <ConsentCategoryCarouselView
       definition={transferConsentDefinition}
       categoryId={categoryId}
-      basePath="/transfer/send/step-01"
+      basePath="/global-transfer/send/step-01"
       preserveStateKey="preserveConsentState"
       resetCarouselCursorKey="resetCategoryCursor"
     />
