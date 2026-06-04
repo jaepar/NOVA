@@ -1,5 +1,7 @@
 package woorifisa.project.backend.domain.job.controller;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import woorifisa.project.backend.domain.job.dto.request.ApplicationCreateRequest;
 import woorifisa.project.backend.domain.job.dto.response.ApplicationFormResponse;
 import woorifisa.project.backend.domain.job.dto.response.ApplicationListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
@@ -63,7 +66,7 @@ public class JobController {
 
 	// 지원 내역 상세 조회
 	@GetMapping("/applications/{applicationId}/portfolios")
-	public BaseResponse<PortfolioFileResponse> findApplicationPortfolio(
+	public BaseResponse<List<PortfolioFileResponse>> findApplicationPortfolio(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
 		@PathVariable Long applicationId
 	) {
@@ -75,9 +78,10 @@ public class JobController {
 	public BaseResponse<Void> createApplication(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
 		@PathVariable Long jobId,
-		@RequestPart(value = "files", required = false) MultipartFile[] files
+		@RequestPart(value = "body", required = false) ApplicationCreateRequest request,
+		@RequestPart(value = "files", required = false) List<MultipartFile> files
 	) {
-		jobService.createApplication(principal.userId(), jobId, files);
+		jobService.createApplication(principal.userId(), jobId, request, files);
 		return BaseResponse.ok(null);
 	}
 }
