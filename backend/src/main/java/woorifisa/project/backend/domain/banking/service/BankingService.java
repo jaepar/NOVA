@@ -18,7 +18,6 @@ import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMem
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
-import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
@@ -203,16 +202,8 @@ public class BankingService {
     }
 
     @Transactional(readOnly = true)
-    public UpdateTransactionMemoResponse updateTransactionMemo(
-            Long userId,
-            Long accountId,
-            Long transactionId,
-            UpdateTransactionMemoRequest request
-    ) {
-        accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId)
-                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
-
-        return coreBankingClient.updateTransactionMemo(accountId, transactionId, request.normalized());
+    public void updateTransactionMemo(Long transactionId, UpdateTransactionMemoRequest request) {
+        coreBankingClient.updateTransactionMemo(transactionId, request.normalized());
     }
 
     // ProcessingKey 생성 메서드

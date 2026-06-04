@@ -19,7 +19,6 @@ import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerif
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
@@ -399,76 +398,30 @@ class BankingServiceTest {
     }
 
     @Test
-    @DisplayName("본인 계좌 거래내역 메모 수정 요청을 코어뱅킹으로 전달하고 수정된 메모를 반환한다")
+    @DisplayName("거래내역 메모 수정 요청을 코어뱅킹으로 전달한다")
     void updateTransactionMemoSuccess() {
-        Long userId = 1L;
-        Long accountId = 2001L;
         Long transactionId = 9001L;
         UpdateTransactionMemoRequest request = new UpdateTransactionMemoRequest("  12345678901234567890  ");
         UpdateTransactionMemoRequest normalizedRequest = new UpdateTransactionMemoRequest("12345678901234567890");
-        AccountRef accountRef = AccountRef.builder()
-                .accountRefId(1L)
-                .user(User.builder().userId(userId).build())
-                .accountId(accountId)
-                .hasAccount(true)
-                .build();
-        UpdateTransactionMemoResponse coreResponse = new UpdateTransactionMemoResponse("12345678901234567890");
 
-        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId))
-                .thenReturn(Optional.of(accountRef));
-        when(coreBankingClient.updateTransactionMemo(accountId, transactionId, normalizedRequest)).thenReturn(coreResponse);
+        doNothing().when(coreBankingClient).updateTransactionMemo(transactionId, normalizedRequest);
 
-        UpdateTransactionMemoResponse response = bankingService.updateTransactionMemo(
-                userId,
-                accountId,
-                transactionId,
-                request
-        );
-        assertThat(response.memo()).isEqualTo("12345678901234567890");
-        verify(coreBankingClient).updateTransactionMemo(accountId, transactionId, normalizedRequest);
+        bankingService.updateTransactionMemo(transactionId, request);
+
+        verify(coreBankingClient).updateTransactionMemo(transactionId, normalizedRequest);
     }
 
     @Test
     @DisplayName("거래내역 메모는 앞뒤 공백 제거 후 20자를 초과하면 예외를 반환한다")
     void updateTransactionMemoTooLong() {
-        Long userId = 1L;
-        Long accountId = 2001L;
         Long transactionId = 9001L;
         UpdateTransactionMemoRequest request = new UpdateTransactionMemoRequest("123456789012345678901");
-        AccountRef accountRef = AccountRef.builder()
-                .accountRefId(1L)
-                .user(User.builder().userId(userId).build())
-                .accountId(accountId)
-                .hasAccount(true)
-                .build();
 
-        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId))
-                .thenReturn(Optional.of(accountRef));
-
-        assertThatThrownBy(() -> bankingService.updateTransactionMemo(userId, accountId, transactionId, request))
+        assertThatThrownBy(() -> bankingService.updateTransactionMemo(transactionId, request))
                 .isInstanceOf(CustomException.class)
                 .extracting("exceptionStatus")
                 .isEqualTo(BANKING_TRANSACTION_MEMO_TOO_LONG);
 
-        verify(coreBankingClient, never()).updateTransactionMemo(any(), any(), any());
-    }
-
-    @Test
-    @DisplayName("본인 계좌가 아니면 거래내역 메모 수정을 코어뱅킹에 요청하지 않는다")
-    void updateTransactionMemoAccountNotFound() {
-        Long userId = 1L;
-        Long accountId = 2001L;
-        Long transactionId = 9001L;
-        UpdateTransactionMemoRequest request = new UpdateTransactionMemoRequest("월세");
-
-        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId))
-                .thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> bankingService.updateTransactionMemo(userId, accountId, transactionId, request))
-                .isInstanceOf(CustomException.class)
-                .extracting("exceptionStatus")
-                .isEqualTo(BANKING_ACCOUNT_NOT_FOUND);
-
-        verify(coreBankingClient, never()).updateTransactionMemo(any(), any(), any());
+        verify(coreBankingClient, never()).updateTransactionMemo(any(), any());
     }
 }

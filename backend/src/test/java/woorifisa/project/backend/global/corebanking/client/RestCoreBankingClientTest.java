@@ -7,7 +7,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.ResourceAccessException;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -144,32 +143,28 @@ class RestCoreBankingClientTest {
     }
 
     @Test
-    @DisplayName("CoreBanking 거래내역 메모 수정 API를 호출하고 수정된 메모를 반환한다")
+    @DisplayName("CoreBanking 거래내역 메모 수정 API를 호출한다")
     void updateTransactionMemo() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         RestCoreBankingClient client = new RestCoreBankingClient(builder);
 
         setField(client, "coreBankingBaseUrl", "http://core-banking.test");
-        server.expect(requestTo("http://core-banking.test/account-transactions/accounts/2001/transactions/9001/memo"))
+        server.expect(requestTo("http://core-banking.test/account-transactions/transactions/9001/memo"))
                 .andExpect(method(PATCH))
                 .andRespond(withSuccess("""
                         {
                           "success": true,
                           "code": "20000",
                           "message": "OK",
-                          "data": {
-                            "memo": "월세"
-                          }
+                          "data": null
                         }
                         """, MediaType.APPLICATION_JSON));
 
-        UpdateTransactionMemoResponse response = client.updateTransactionMemo(
-                2001L,
+        client.updateTransactionMemo(
                 9001L,
                 new UpdateTransactionMemoRequest("월세")
         );
-        assertThat(response.memo()).isEqualTo("월세");
 
         server.verify();
     }

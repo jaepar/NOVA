@@ -13,7 +13,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
-import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
@@ -22,6 +21,7 @@ import woorifisa.project.backend.global.exception.CustomException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -220,10 +220,9 @@ class BankingControllerTest {
     }
 
     @Test
-    @DisplayName("거래내역 메모 수정 요청을 처리하고 수정된 메모를 반환한다")
+    @DisplayName("거래내역 메모 수정 요청을 처리하고 null data를 반환한다")
     void updateTransactionMemoSuccess() throws Exception {
         Long userId = 1L;
-        Long accountId = 2001L;
         Long transactionId = 9001L;
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 new SessionUserPrincipal(userId),
@@ -231,10 +230,9 @@ class BankingControllerTest {
                 AuthorityUtils.NO_AUTHORITIES
         );
 
-        when(bankingService.updateTransactionMemo(any(), any(), any(), any()))
-                .thenReturn(new UpdateTransactionMemoResponse("월세"));
+        doNothing().when(bankingService).updateTransactionMemo(any(), any());
 
-        mockMvc.perform(patch("/banking/{accountId}/transactions/{transactionId}/memo", accountId, transactionId)
+        mockMvc.perform(patch("/banking/transactions/{transactionId}/memo", transactionId)
                         .with(authentication(authToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -245,17 +243,15 @@ class BankingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data.memo").value("월세"));
+                .andExpect(jsonPath("$.data").doesNotExist());
 
-        verify(bankingService).updateTransactionMemo(any(), eq(accountId), eq(transactionId),
-                any(UpdateTransactionMemoRequest.class));
+        verify(bankingService).updateTransactionMemo(eq(transactionId), any(UpdateTransactionMemoRequest.class));
     }
 
     @Test
     @DisplayName("거래내역 메모가 20자를 초과하면 400 응답을 반환한다")
     void updateTransactionMemoTooLong() throws Exception {
         Long userId = 1L;
-        Long accountId = 2001L;
         Long transactionId = 9001L;
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 new SessionUserPrincipal(userId),
@@ -263,10 +259,10 @@ class BankingControllerTest {
                 AuthorityUtils.NO_AUTHORITIES
         );
 
-        when(bankingService.updateTransactionMemo(any(), eq(accountId), eq(transactionId), any()))
-                .thenThrow(new CustomException(BANKING_TRANSACTION_MEMO_TOO_LONG));
+        doThrow(new CustomException(BANKING_TRANSACTION_MEMO_TOO_LONG))
+                .when(bankingService).updateTransactionMemo(eq(transactionId), any());
 
-        mockMvc.perform(patch("/banking/{accountId}/transactions/{transactionId}/memo", accountId, transactionId)
+        mockMvc.perform(patch("/banking/transactions/{transactionId}/memo", transactionId)
                         .with(authentication(authToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""

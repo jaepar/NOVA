@@ -10,7 +10,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
@@ -144,26 +143,24 @@ public class RestCoreBankingClient implements CoreBankingClient {
     }
 
     @Override
-    public UpdateTransactionMemoResponse updateTransactionMemo(
-            Long accountId,
+    public void updateTransactionMemo(
             Long transactionId,
             UpdateTransactionMemoRequest request
     ) {
         try {
-            BaseResponse<UpdateTransactionMemoResponse> response = restClientBuilder
+            BaseResponse<Void> response = restClientBuilder
                     .baseUrl(coreBankingBaseUrl)
                     .build()
                     .patch()
-                    .uri("/account-transactions/accounts/{accountId}/transactions/{transactionId}/memo", accountId, transactionId)
+                    .uri("/account-transactions/transactions/{transactionId}/memo", transactionId)
                     .body(request)
                     .retrieve()
                     .body(new ParameterizedTypeReference<>() {
                     });
 
-            if (response == null || response.getData() == null) {
+            if (response == null) {
                 throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
             }
-            return response.getData();
         } catch (RestClientResponseException exception) {
             CoreBankingBaseErrorResponse<Void> errorResponse = exception.getResponseBodyAs(new ParameterizedTypeReference<>() {
             });

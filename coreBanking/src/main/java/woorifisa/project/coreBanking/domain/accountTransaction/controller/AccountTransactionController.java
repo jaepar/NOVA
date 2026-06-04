@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.AccountTransactionRequestLookupResponse;
-import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.UpdateTransactionMemoResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
@@ -43,12 +42,12 @@ public class AccountTransactionController {
         return BaseResponse.ok(null);
     }
 
-    @PatchMapping("/accounts/{accountId}/transactions/{transactionId}/memo")
-    public BaseResponse<UpdateTransactionMemoResponse> updateMemo(
-            @PathVariable Long accountId,
+    @PatchMapping("/transactions/{transactionId}/memo")
+    public BaseResponse<Void> updateMemo(
             @PathVariable Long transactionId,
             @Valid @RequestBody UpdateTransactionMemoRequest request
     ) {
-        return BaseResponse.ok(accountTransactionService.updateMemo(accountId, transactionId, request));
+        accountTransactionService.updateMemo(transactionId, request);
+        return BaseResponse.ok(null);
     }
 }

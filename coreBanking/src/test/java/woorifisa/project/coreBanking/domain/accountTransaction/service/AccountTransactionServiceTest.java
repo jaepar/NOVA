@@ -10,7 +10,6 @@ import woorifisa.project.coreBanking.domain.account.repository.AccountRepository
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransferAccountRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionFlow;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
@@ -341,71 +340,59 @@ class AccountTransactionServiceTest {
     }
 
     @Test
-    @DisplayName("계좌 거래내역 메모를 수정하고 수정된 메모를 반환한다")
+    @DisplayName("거래내역 ID로 메모를 수정한다")
     void updateMemoSuccess() {
-        Long accountId = 2001L;
         Long transactionId = 9001L;
-        Account account = Account.builder().accountId(accountId).build();
         AccountTransaction transaction = AccountTransaction.builder()
                 .accountTransactionId(transactionId)
-                .account(account)
                 .transactionFlow(TransactionFlow.WITHDRAWAL)
                 .transactionType(TransactionType.ACCOUNT_TRANSFER)
                 .amount(5000)
                 .memo("기존")
                 .build();
 
-        when(accountTransactionRepository.findByAccount_AccountIdAndAccountTransactionId(accountId, transactionId))
+        when(accountTransactionRepository.findById(transactionId))
                 .thenReturn(Optional.of(transaction));
 
-        UpdateTransactionMemoResponse response = accountTransactionService.updateMemo(
-                accountId,
+        accountTransactionService.updateMemo(
                 transactionId,
                 new UpdateTransactionMemoRequest("월세")
         );
 
         assertThat(transaction.getMemo()).isEqualTo("월세");
-        assertThat(response.memo()).isEqualTo("월세");
     }
 
     @Test
     @DisplayName("거래내역 메모 수정 시 공백 메모는 null로 정규화한다")
     void updateMemoBlankToNull() {
-        Long accountId = 2001L;
         Long transactionId = 9001L;
-        Account account = Account.builder().accountId(accountId).build();
         AccountTransaction transaction = AccountTransaction.builder()
                 .accountTransactionId(transactionId)
-                .account(account)
                 .transactionFlow(TransactionFlow.WITHDRAWAL)
                 .transactionType(TransactionType.ACCOUNT_TRANSFER)
                 .amount(5000)
                 .memo("기존")
                 .build();
 
-        when(accountTransactionRepository.findByAccount_AccountIdAndAccountTransactionId(accountId, transactionId))
+        when(accountTransactionRepository.findById(transactionId))
                 .thenReturn(Optional.of(transaction));
 
-        UpdateTransactionMemoResponse response = accountTransactionService.updateMemo(
-                accountId,
+        accountTransactionService.updateMemo(
                 transactionId,
                 new UpdateTransactionMemoRequest(" ")
         );
 
         assertThat(transaction.getMemo()).isNull();
-        assertThat(response.memo()).isNull();
     }
 
     @Test
-    @DisplayName("계좌에 속한 거래내역이 아니면 메모 수정 예외를 반환한다")
+    @DisplayName("거래내역이 없으면 메모 수정 예외를 반환한다")
     void updateMemoNotFound() {
-        Long accountId = 2001L;
         Long transactionId = 9001L;
-        when(accountTransactionRepository.findByAccount_AccountIdAndAccountTransactionId(accountId, transactionId))
+        when(accountTransactionRepository.findById(transactionId))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> accountTransactionService.updateMemo(
-                accountId,
                 transactionId,
                 new UpdateTransactionMemoRequest("월세")
         ))

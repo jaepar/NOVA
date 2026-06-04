@@ -1,7 +1,6 @@
 package woorifisa.project.backend.global.corebanking.client;
 
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
@@ -21,8 +20,7 @@ public interface CoreBankingClient {
 
     void verifyAccountPassword(CoreBankingPasswordVerifyRequest request);
 
-    UpdateTransactionMemoResponse updateTransactionMemo(
-            Long accountId,
+    void updateTransactionMemo(
             Long transactionId,
             UpdateTransactionMemoRequest request
     );

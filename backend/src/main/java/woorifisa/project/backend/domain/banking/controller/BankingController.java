@@ -19,7 +19,6 @@ import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMem
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
-import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
@@ -79,18 +78,13 @@ public class BankingController {
     }
 
     // 거래내역 메모 수정
-    @PatchMapping("/{accountId}/transactions/{transactionId}/memo")
-    public BaseResponse<UpdateTransactionMemoResponse> updateTransactionMemo(
+    @PatchMapping("/transactions/{transactionId}/memo")
+    public BaseResponse<Void> updateTransactionMemo(
             @AuthenticationPrincipal SessionUserPrincipal principal,
-            @PathVariable Long accountId,
             @PathVariable Long transactionId,
             @Valid @RequestBody UpdateTransactionMemoRequest request
     ) {
-        return BaseResponse.ok(bankingService.updateTransactionMemo(
-                principal.userId(),
-                accountId,
-                transactionId,
-                request
-        ));
+        bankingService.updateTransactionMemo(transactionId, request);
+        return BaseResponse.ok(null);
     }
 }
