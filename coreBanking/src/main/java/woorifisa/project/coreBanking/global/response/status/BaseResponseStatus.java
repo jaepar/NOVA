@@ -37,7 +37,6 @@ public enum BaseResponseStatus implements ResponseStatus {
 	 * accountTransaction
 	 */
 	ACCOUNT_TRANSACTION_NOT_FOUND("ACCOUNT_TRANSACTION-001", "거래 처리 내역을 찾을 수 없습니다."),
-	ACCOUNT_TRANSACTION_MEMO_TOO_LONG("ACCOUNT_TRANSACTION-002", "메모는 20자 이내로 입력해야 합니다."),
 	ACCOUNT_TRANSFER_INVALID_REQUEST("ACCOUNT_TRANSFER-001", "계좌 이체 요청이 올바르지 않습니다."),
 	ACCOUNT_TRANSFER_WITHDRAW_ACCOUNT_NOT_FOUND("ACCOUNT_TRANSFER-002", "출금 계좌를 찾을 수 없습니다."),
 	ACCOUNT_TRANSFER_DEPOSIT_ACCOUNT_NOT_FOUND("ACCOUNT_TRANSFER-003", "입금 계좌를 찾을 수 없습니다."),
