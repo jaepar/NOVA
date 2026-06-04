@@ -161,6 +161,8 @@ class BankingControllerTest {
                         woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse.of(
                                 "우리SUPER주거래통장",
                                 "1002867390781",
+                                50_000,
+                                300_000,
                                 "백민정"
                         )
                 );
@@ -179,6 +181,8 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.code").value("20000"))
                 .andExpect(jsonPath("$.data.myAccount.accountName").value("우리SUPER주거래통장"))
                 .andExpect(jsonPath("$.data.myAccount.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.myAccount.balance").value(50000))
+                .andExpect(jsonPath("$.data.myAccount.transferLimit").value(300000))
                 .andExpect(jsonPath("$.data.recipient.recipientName").value("백민정"));
     }
 

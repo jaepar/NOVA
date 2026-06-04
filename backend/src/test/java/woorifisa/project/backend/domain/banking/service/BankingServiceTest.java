@@ -311,7 +311,9 @@ class BankingServiceTest {
                 .accountId(2001L)
                 .accountName("우리SUPER주거래통장")
                 .accountNumber("1002867390781")
+                .balance(50_000)
                 .hasAccount(true)
+                .transferLimit(300_000)
                 .build();
         when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
                 .thenReturn(Optional.of(accountRef));
@@ -322,6 +324,8 @@ class BankingServiceTest {
 
         assertThat(response.myAccount().accountName()).isEqualTo("우리SUPER주거래통장");
         assertThat(response.myAccount().accountNumber()).isEqualTo("1002867390781");
+        assertThat(response.myAccount().balance()).isEqualTo(50_000);
+        assertThat(response.myAccount().transferLimit()).isEqualTo(300_000);
         assertThat(response.recipient().recipientName()).isEqualTo("백민정");
     }
 
