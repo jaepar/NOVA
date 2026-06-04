@@ -11,7 +11,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'home', label: '홈', icon: <Home className="w-6 h-6" />, path: '/main' },
-  { id: 'transfer', label: '송금', icon: <Send className="w-6 h-6" />, path: '/transfer' },
+  { id: 'transfer', label: '송금', icon: <Send className="w-6 h-6" />, path: '/global-transfer' },
   { id: 'exchange', label: '환율', icon: <TrendingUp className="w-6 h-6" />, path: '/exchange' },
   { id: 'mypage', label: '마이페이지', icon: <User className="w-6 h-6" />, path: '/mypage' },
 ]
@@ -31,7 +31,10 @@ export function BottomNav() {
       >
         <div className="flex items-center justify-around">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path
+            const isActive =
+              item.path === '/global-transfer'
+                ? location.pathname === item.path || location.pathname.startsWith('/global-transfer/')
+                : location.pathname === item.path
             return (
               <AppButton
                 variant="unstyled"

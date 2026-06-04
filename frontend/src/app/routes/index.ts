@@ -6,6 +6,7 @@ import { signupRoutes } from "./signupRoutes";
 import { loginRoutes } from "./loginRoutes";
 import { profileRoutes } from "./profileRoutes";
 import { jobRoutes } from "./jobRoutes";
+import { globalTransferRoutes } from "./globalTransferRoutes";
 import { transferRoutes } from "./transferRoutes";
 
 import { accountRoutes } from "./accountRoutes";
@@ -13,6 +14,7 @@ import { NotFound } from "../pages/common/NotFound";
 
 export const appRoutes = [
   ...mainRoutes,
+  ...globalTransferRoutes,
   ...loginRoutes,
   ...signupRoutes,
   ...profileRoutes,

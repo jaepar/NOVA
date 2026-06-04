@@ -130,6 +130,166 @@ export const useTransactionHistoryPageStore = create<TransactionHistoryPageState
   setSelectedType: (selectedType) => set({ selectedType }),
 }))
 
+interface TransferSendPageState {
+  isInitialVerificationComplete: boolean
+  completeInitialVerification: () => void
+  resetInitialVerification: () => void
+}
+
+export const useTransferSendPageStore = create<TransferSendPageState>((set) => ({
+  isInitialVerificationComplete: false,
+  completeInitialVerification: () => set({ isInitialVerificationComplete: true }),
+  resetInitialVerification: () => set({ isInitialVerificationComplete: false }),
+}))
+
+type TransferFeeBurden = 'sender' | 'receiver'
+
+interface TransferBasicInfoPageState {
+  purpose: string
+  countryId: string
+  currencyCode: string
+  amount: string
+  feeBurden: TransferFeeBurden
+  setPurpose: (purpose: string) => void
+  setCountryId: (countryId: string) => void
+  setCurrencyCode: (currencyCode: string) => void
+  setAmount: (amount: string) => void
+  setFeeBurden: (feeBurden: TransferFeeBurden) => void
+  reset: () => void
+}
+
+const transferBasicInfoInitialState = {
+  purpose: '거주자(외국인 제외)의 무증빙 해외송금',
+  countryId: 'us',
+  currencyCode: 'USD',
+  amount: '',
+  feeBurden: 'sender' as TransferFeeBurden,
+}
+
+export const useTransferBasicInfoPageStore = create<TransferBasicInfoPageState>((set) => ({
+  ...transferBasicInfoInitialState,
+  setPurpose: (purpose) => set({ purpose }),
+  setCountryId: (countryId) => set({ countryId }),
+  setCurrencyCode: (currencyCode) => set({ currencyCode }),
+  setAmount: (amount) => set({ amount }),
+  setFeeBurden: (feeBurden) => set({ feeBurden }),
+  reset: () => set(transferBasicInfoInitialState),
+}))
+
+interface TransferSenderInfoPageState {
+  senderName: string
+  phoneNumber: string
+  address: string
+  detailAddress: string
+  district: string
+  city: string
+  postalCode: string
+  countryId: string
+  setSenderName: (senderName: string) => void
+  setPhoneNumber: (phoneNumber: string) => void
+  setAddress: (address: string) => void
+  setDetailAddress: (detailAddress: string) => void
+  setDistrict: (district: string) => void
+  setCity: (city: string) => void
+  setPostalCode: (postalCode: string) => void
+  setCountryId: (countryId: string) => void
+  reset: () => void
+}
+
+const transferSenderInfoInitialState = {
+  senderName: '',
+  phoneNumber: '',
+  address: '',
+  detailAddress: '',
+  district: '',
+  city: '',
+  postalCode: '',
+  countryId: 'kr',
+}
+
+export const useTransferSenderInfoPageStore = create<TransferSenderInfoPageState>((set) => ({
+  ...transferSenderInfoInitialState,
+  setSenderName: (senderName) => set({ senderName }),
+  setPhoneNumber: (phoneNumber) => set({ phoneNumber }),
+  setAddress: (address) => set({ address }),
+  setDetailAddress: (detailAddress) => set({ detailAddress }),
+  setDistrict: (district) => set({ district }),
+  setCity: (city) => set({ city }),
+  setPostalCode: (postalCode) => set({ postalCode }),
+  setCountryId: (countryId) => set({ countryId }),
+  reset: () => set(transferSenderInfoInitialState),
+}))
+
+type TransferPaymentDetailMode = 'reason-select' | 'manual-input'
+
+interface TransferRecipientInfoPageState {
+  recipientName: string
+  recipientAddress: string
+  recipientDetailAddress: string
+  recipientDistrict: string
+  recipientCity: string
+  recipientPostalCode: string
+  recipientPhoneNumber: string
+  swiftCode: string
+  accountNumber: string
+  routingNumber: string
+  bankBranchName: string
+  paymentDetailMode: TransferPaymentDetailMode
+  paymentReason: string
+  manualPaymentDetail: string
+  setRecipientName: (recipientName: string) => void
+  setRecipientAddress: (recipientAddress: string) => void
+  setRecipientDetailAddress: (recipientDetailAddress: string) => void
+  setRecipientDistrict: (recipientDistrict: string) => void
+  setRecipientCity: (recipientCity: string) => void
+  setRecipientPostalCode: (recipientPostalCode: string) => void
+  setRecipientPhoneNumber: (recipientPhoneNumber: string) => void
+  setSwiftCode: (swiftCode: string) => void
+  setAccountNumber: (accountNumber: string) => void
+  setRoutingNumber: (routingNumber: string) => void
+  setBankBranchName: (bankBranchName: string) => void
+  setPaymentDetailMode: (paymentDetailMode: TransferPaymentDetailMode) => void
+  setPaymentReason: (paymentReason: string) => void
+  setManualPaymentDetail: (manualPaymentDetail: string) => void
+  reset: () => void
+}
+
+const transferRecipientInfoInitialState = {
+  recipientName: '',
+  recipientAddress: '',
+  recipientDetailAddress: '',
+  recipientDistrict: '',
+  recipientCity: '',
+  recipientPostalCode: '',
+  recipientPhoneNumber: '',
+  swiftCode: '',
+  accountNumber: '',
+  routingNumber: '',
+  bankBranchName: '',
+  paymentDetailMode: 'reason-select' as TransferPaymentDetailMode,
+  paymentReason: '',
+  manualPaymentDetail: '',
+}
+
+export const useTransferRecipientInfoPageStore = create<TransferRecipientInfoPageState>((set) => ({
+  ...transferRecipientInfoInitialState,
+  setRecipientName: (recipientName) => set({ recipientName }),
+  setRecipientAddress: (recipientAddress) => set({ recipientAddress }),
+  setRecipientDetailAddress: (recipientDetailAddress) => set({ recipientDetailAddress }),
+  setRecipientDistrict: (recipientDistrict) => set({ recipientDistrict }),
+  setRecipientCity: (recipientCity) => set({ recipientCity }),
+  setRecipientPostalCode: (recipientPostalCode) => set({ recipientPostalCode }),
+  setRecipientPhoneNumber: (recipientPhoneNumber) => set({ recipientPhoneNumber }),
+  setSwiftCode: (swiftCode) => set({ swiftCode }),
+  setAccountNumber: (accountNumber) => set({ accountNumber }),
+  setRoutingNumber: (routingNumber) => set({ routingNumber }),
+  setBankBranchName: (bankBranchName) => set({ bankBranchName }),
+  setPaymentDetailMode: (paymentDetailMode) => set({ paymentDetailMode }),
+  setPaymentReason: (paymentReason) => set({ paymentReason }),
+  setManualPaymentDetail: (manualPaymentDetail) => set({ manualPaymentDetail }),
+  reset: () => set(transferRecipientInfoInitialState),
+}))
+
 interface DesignSystemPageState {
   inputValue: string
   isBottomSheetOpen: boolean
