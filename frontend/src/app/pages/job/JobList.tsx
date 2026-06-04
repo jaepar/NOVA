@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BriefcaseBusiness } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { jobApi, type JobOpeningItemResponse } from '../../../api'
 import { AppButton } from '../../components/design-system/AppButton'
 import { HeaderActionButton } from '../../components/layout/HeaderActionButton'
 import { MobileLayout } from '../../components/layout/MobileLayout'
@@ -11,20 +12,74 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select'
-import { jobPostings, jobRegionLabels, jobRegions } from '../../domains/job/mock'
-import type { JobRegion } from '../../domains/job/types'
+
+function formatDate(value: string) {
+  if (!value) {
+    return ''
+  }
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+}
 
 export function JobList() {
   const navigate = useNavigate()
-  const [selectedRegion, setSelectedRegion] = useState<JobRegion>('ALL')
+  const [selectedRegion, setSelectedRegion] = useState('ALL')
+  const [jobs, setJobs] = useState<JobOpeningItemResponse[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadJobs() {
+      setIsLoading(true)
+      setErrorMessage('')
+
+      try {
+        const response = await jobApi.listOpenings()
+        if (isMounted) {
+          setJobs(response.items)
+        }
+      } catch {
+        if (isMounted) {
+          setErrorMessage('공고 목록을 불러오지 못했습니다.')
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadJobs()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const filteredJobs = useMemo(() => {
     if (selectedRegion === 'ALL') {
-      return jobPostings
+      return jobs
     }
 
-    return jobPostings.filter((job) => job.region === selectedRegion)
-  }, [selectedRegion])
+    return jobs.filter((job) => job.region === selectedRegion)
+  }, [jobs, selectedRegion])
+
+  const regionOptions = useMemo(() => {
+    return Array.from(new Set(jobs.map((job) => job.region).filter(Boolean))).filter(
+      (region) => region !== '전국'
+    )
+  }, [jobs])
 
   return (
     <MobileLayout
@@ -40,7 +95,7 @@ export function JobList() {
         <div className="flex items-center justify-between gap-3">
           <Select
             value={selectedRegion}
-            onValueChange={(value) => setSelectedRegion(value as JobRegion)}
+            onValueChange={setSelectedRegion}
           >
             <SelectTrigger
               aria-label="지역 선택"
@@ -51,9 +106,12 @@ export function JobList() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent align="start" className="max-h-[280px] rounded-xl">
-              {jobRegions.map((region) => (
+              <SelectItem value="ALL" className="h-10">
+                전국
+              </SelectItem>
+              {regionOptions.map((region) => (
                 <SelectItem key={region} value={region} className="h-10">
-                  {jobRegionLabels[region]}
+                  {region}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -66,38 +124,48 @@ export function JobList() {
       </div>
 
       <section className="-mx-5">
-        {filteredJobs.map((job) => (
-          <AppButton
-            key={job.jobId}
-            type="button"
-            variant="unstyled"
-            onClick={() => navigate(`/jobs/${job.jobId}`)}
-            className="block w-full border-b border-border px-5 py-6 text-left transition-colors hover:bg-blue-50"
-          >
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <span className="rounded-lg bg-blue-50 px-3 py-1 text-sm font-semibold text-[#0057ff]">
-                {jobRegionLabels[job.region]}
-              </span>
-              <span className="shrink-0 text-[15px] text-muted-foreground">{job.createdAt}</span>
-            </div>
+        {isLoading && (
+          <div className="px-5 py-20 text-center">
+            <p className="text-muted-foreground">공고를 불러오는 중입니다.</p>
+          </div>
+        )}
 
-            <h2 className="mb-3 text-[21px] font-semibold leading-8 text-[#111827]">
-              {job.openingTitle}
-            </h2>
+        {!isLoading && errorMessage && (
+          <div className="px-5 py-20 text-center">
+            <p className="text-muted-foreground">{errorMessage}</p>
+          </div>
+        )}
 
-            <p className="text-[16px] leading-7 text-muted-foreground">
-              {[
-                job.employmentType,
-                job.experience,
-                job.jobCategory,
-                job.workDays,
-                job.salary,
-              ].join('  ·  ')}
-            </p>
-          </AppButton>
-        ))}
+        {!isLoading &&
+          !errorMessage &&
+          filteredJobs.map((job) => (
+            <AppButton
+              key={job.job_id}
+              type="button"
+              variant="unstyled"
+              onClick={() => navigate(`/jobs/${job.job_id}`)}
+              className="block w-full border-b border-border px-5 py-6 text-left transition-colors hover:bg-blue-50"
+            >
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <span className="rounded-lg bg-blue-50 px-3 py-1 text-sm font-semibold text-[#0057ff]">
+                  {job.region}
+                </span>
+                <span className="shrink-0 text-[15px] text-muted-foreground">
+                  {formatDate(job.created_at)}
+                </span>
+              </div>
 
-        {filteredJobs.length === 0 && (
+              <h2 className="mb-3 text-[21px] font-semibold leading-8 text-[#111827]">
+                {job.opening_title}
+              </h2>
+
+              <p className="text-[16px] leading-7 text-muted-foreground">
+                {[job.experience, job.job_category, job.work_period, job.salary].join('  ·  ')}
+              </p>
+            </AppButton>
+          ))}
+
+        {!isLoading && !errorMessage && filteredJobs.length === 0 && (
           <div className="px-5 py-20 text-center">
             <p className="text-muted-foreground">해당 지역의 공고가 없습니다.</p>
           </div>
