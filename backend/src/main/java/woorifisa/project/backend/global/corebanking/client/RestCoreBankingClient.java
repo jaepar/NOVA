@@ -14,6 +14,8 @@ import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBank
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRequestLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
+import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.response.CoreBankingBaseResponse;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.response.CoreBankingWalletDebitLookupResponse;
@@ -128,6 +130,39 @@ public class RestCoreBankingClient implements CoreBankingClient {
             if (!response.getSuccess()) {
                 throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
             }
+        } catch (RestClientException exception) {
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+        }
+    }
+
+    @Override
+    public UpdateTransactionMemoResponse updateTransactionMemo(
+            Long accountId,
+            Long transactionId,
+            UpdateTransactionMemoRequest request
+    ) {
+        try {
+            BaseResponse<UpdateTransactionMemoResponse> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .patch()
+                    .uri("/account-transactions/accounts/{accountId}/transactions/{transactionId}/memo", accountId, transactionId)
+                    .body(request)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+
+            if (!response.getSuccess()) {
+                throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
+            }
+            if (response.getData() == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+            return response.getData();
         } catch (RestClientException exception) {
             throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
         }

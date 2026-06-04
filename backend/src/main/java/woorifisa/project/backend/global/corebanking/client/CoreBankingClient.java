@@ -1,10 +1,12 @@
 package woorifisa.project.backend.global.corebanking.client;
 
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
+import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
 
 public interface CoreBankingClient {
@@ -16,6 +18,12 @@ public interface CoreBankingClient {
     CoreBankingRecipientLookupResponse lookupRecipient(CoreBankingRecipientLookupRequest request);
 
     void verifyAccountPassword(CoreBankingPasswordVerifyRequest request);
+
+    UpdateTransactionMemoResponse updateTransactionMemo(
+            Long accountId,
+            Long transactionId,
+            UpdateTransactionMemoRequest request
+    );
 
     void debitWalletAccount(CoreBankingWalletDebitRequest request);
 

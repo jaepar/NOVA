@@ -3,15 +3,19 @@ package woorifisa.project.backend.domain.banking.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
+import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
@@ -51,5 +55,21 @@ public class BankingController {
     ) {
         bankingService.verifyAccountPassword(principal.userId(), request);
         return BaseResponse.ok(null);
+    }
+
+    // 거래내역 메모 수정
+    @PatchMapping("/{accountId}/transactions/{transactionId}/memo")
+    public BaseResponse<UpdateTransactionMemoResponse> updateTransactionMemo(
+            @AuthenticationPrincipal SessionUserPrincipal principal,
+            @PathVariable Long accountId,
+            @PathVariable Long transactionId,
+            @Valid @RequestBody UpdateTransactionMemoRequest request
+    ) {
+        return BaseResponse.ok(bankingService.updateTransactionMemo(
+                principal.userId(),
+                accountId,
+                transactionId,
+                request
+        ));
     }
 }
