@@ -76,9 +76,9 @@
 | `JOB-001`      | 구인구직 공고 목록 조회        | GET    | `/`                                                      | X    | PUBLIC | 도메인 prefix 하위 루트              |
 | `JOB-002`      | 구인구직 공고 상세 조회        | GET    | `/{job_id}`                                              | X    | PUBLIC | 도메인 prefix 하위 경로              |
 | `JOB-003`      | 지원서 작성 화면 초기 조회        | GET    | `/applications/form`                                     | O    | USER   | 로그인 사용자 이름/이메일 및 포트폴리오 목록 |
-| `JOB-004`      | 지원서 제출               | POST   | `/{job_id}/applications`                                 | O    | USER   | 첨부파일 선택 입력                   |
+| `JOB-004`      | 지원서 제출               | POST   | `/{job_id}/applications`                                 | O    | USER   | multipart `body.portfolio_urls` + `files` |
 | `JOB-005`      | 지원 내역 목록 조회          | GET    | `/applications`                                          | O    | USER   | 목록에는 포트폴리오 미포함           |
-| `JOB-006`      | 지원 내역 포트폴리오 조회     | GET    | `/applications/{application_id}/portfolios`              | O    | USER   | 지원 건 클릭 시 포트폴리오 조회      |
+| `JOB-006`      | 지원 내역 포트폴리오 조회     | GET    | `/applications/{application_id}/portfolios`              | O    | USER   | 지원 건 클릭 시 포트폴리오 목록 조회 |
 | `HOSPITAL-001` | 예약                   | POST   | `/reservations`                                          | O    | USER   |                               |
 | `HOSPITAL-002` | 예약 내역 확인             | GET    | `/{user_id}/reservations`                                | O    | USER   |                               |
 | `HOSPITAL-003` | 예약 취소 & 변경           | PATCH  | `/reservations/{reservation_id}`                         | O    | USER   | action enum=`CANCEL`,`CHANGE` |
