@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AppButton } from '../../components/design-system'
+import { AppButton, Btn_1Col } from '../../components/design-system'
 import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { formatCurrency } from './types'
@@ -31,8 +31,9 @@ export function TransferAmount() {
   const balanceText = formatCurrency(String(balance))
 
   useEffect(() => {
+    setAmount('')
     setIsAmountKeypadOpen(true)
-  }, [])
+  }, [setAmount])
 
   return (
     <>
@@ -89,7 +90,7 @@ export function TransferAmount() {
                 key={chip}
                 type="button"
                 variant="unstyled"
-                onClick={() => setAmount(chip === '전액' ? '1000000' : chip.replace(/\D/g, '0000'))}
+                onClick={() => setAmount(chip === '전액' ? String(balance) : chip.replace(/\D/g, '0000'))}
                 className="h-9 rounded-md bg-[#F1F3F5] text-[13px] font-bold text-[#454B52]"
               >
                 {chip}
@@ -99,18 +100,17 @@ export function TransferAmount() {
           <div className="mt-7">
             <NumericKeypad onPress={appendAmount} onBackspace={backspaceAmount} />
           </div>
-          <AppButton
-            type="button"
-            variant="unstyled"
-            disabled={!hasTransferAmount}
-            onClick={() => {
-              setIsAmountKeypadOpen(false)
-              navigate('/transfer/amount-confirm')
-            }}
-            className="mt-auto h-[58px] w-full rounded-xl bg-[#006BFF] text-[18px] font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:bg-[#BFDAFA]"
-          >
-            확인
-          </AppButton>
+          <div className="mt-auto">
+            <Btn_1Col
+              disabled={!hasTransferAmount}
+              onClick={() => {
+                setIsAmountKeypadOpen(false)
+                navigate('/transfer/amount-confirm')
+              }}
+            >
+              확인
+            </Btn_1Col>
+          </div>
         </div>
       </BottomSheet>
     </>

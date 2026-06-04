@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AppButton } from '../../components/design-system'
+import { AppButton, Btn_1Col } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import {
   BANK_OPTIONS,
@@ -53,15 +53,12 @@ export function TransferMemoEdit({ type }: { type: MemoType }) {
       headerType="back"
       onBack={() => navigate('/transfer/amount-confirm')}
       bottomContent={
-        <AppButton
-          type="button"
-          variant="unstyled"
+        <Btn_1Col
           disabled={!memoDraft.trim()}
           onClick={handleComplete}
-          className="h-[54px] w-full rounded-lg bg-[#006BFF] text-[17px] font-semibold text-white transition-colors disabled:bg-[#BFDAFA]"
         >
           완료
-        </AppButton>
+        </Btn_1Col>
       }
     >
       <section className="pt-5 text-[#202633]">

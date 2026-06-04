@@ -1,6 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { AppButton } from '../../components/design-system'
+import { AppButton, Btn_1Col } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { formatCurrency } from './types'
 import { useTransferStore } from './transferStore'
@@ -21,14 +21,9 @@ export function TransferAmountConfirm() {
       headerType="back"
       onBack={() => navigate('/transfer/amount')}
       bottomContent={
-        <AppButton
-          type="button"
-          variant="unstyled"
-          onClick={() => navigate('/transfer/review')}
-          className="h-[54px] w-full rounded-lg bg-[#006BFF] text-[17px] font-semibold text-white"
-        >
+        <Btn_1Col onClick={() => navigate('/transfer/review')}>
           다음
-        </AppButton>
+        </Btn_1Col>
       }
     >
       <section className="pt-2 text-[#202633]">

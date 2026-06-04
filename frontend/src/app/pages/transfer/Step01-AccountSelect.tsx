@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { AppButton, novaToast } from '../../components/design-system'
+import { AppButton, Btn_1Col, novaToast } from '../../components/design-system'
 import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { bankingApi, getBankingApiError } from '../../../api'
@@ -86,15 +86,12 @@ export function TransferAccountSelect() {
         onBack={() => navigate('/main')}
         headerTextColor="#020A2F"
         bottomContent={
-          <AppButton
-            type="button"
-            variant="unstyled"
+          <Btn_1Col
             disabled={!isNextEnabled || isPreviewLoading}
             onClick={handleNext}
-            className="h-16 w-full rounded-xl bg-[#006BFF] px-6 text-[18px] font-semibold text-white transition-colors disabled:bg-[#AEB2F3] disabled:font-medium disabled:cursor-not-allowed"
           >
             {isPreviewLoading ? '확인 중' : '다음'}
-          </AppButton>
+          </Btn_1Col>
         }
       >
         <section className="pt-5 text-[#020A2F]">

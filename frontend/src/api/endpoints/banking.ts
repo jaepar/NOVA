@@ -41,7 +41,19 @@ export type BankingApiErrorBody = {
 }
 
 export function getBankingApiError(error: unknown): BankingApiErrorBody | null {
-  if (!(error instanceof AxiosError)) return null
+  if (!(error instanceof AxiosError)) {
+    if (!error || typeof error !== 'object') return null
+
+    const errorBody = error as Partial<BankingApiErrorBody>
+    if (typeof errorBody.code !== 'string' || typeof errorBody.message !== 'string') return null
+
+    return {
+      success: false,
+      code: errorBody.code,
+      message: errorBody.message,
+      data: null,
+    }
+  }
 
   const data = error.response?.data
   if (!data || typeof data !== 'object') return null
@@ -69,10 +81,14 @@ export const bankingApi = {
     return response.data.data
   },
   transfer: async (request: TransferRequest, idempotencyKey: string): Promise<void> => {
-    await apiClient.post<BankingApiResponse<null>>('/banking/transfers', request, {
+    const response = await apiClient.post<BankingApiResponse<null>>('/banking/transfers', request, {
       headers: {
         'Idempotency-Key': idempotencyKey,
       },
     })
+
+    if (!response.data.success) {
+      throw response.data
+    }
   },
 }

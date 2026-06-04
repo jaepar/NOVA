@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { bankingApi, getBankingApiError } from '../../../api'
-import { AppButton, novaToast } from '../../components/design-system'
+import { AppButton, Btn_1Col, novaToast } from '../../components/design-system'
 import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { Loading } from '../common/Loading'
 import { BANK_OPTIONS, formatCurrency, RECIPIENT_NAME, SOURCE_BANK } from './types'
 import { useTransferStore } from './transferStore'
 import { BankMark } from './components/BankMark'
@@ -60,12 +61,18 @@ export function TransferReview() {
       const apiError = getBankingApiError(error)
       const isPasswordError = apiError?.code === 'ACCOUNT-007' || apiError?.code === 'BANK-007'
 
-      novaToast.error(
-        isPasswordError
-          ? '계좌 비밀번호가 일치하지 않습니다.'
-          : apiError?.message || '이체 요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.'
-      )
       setPassword('')
+      if (isPasswordError) {
+        novaToast.error('계좌 비밀번호가 일치하지 않습니다.')
+        return
+      }
+
+      setIsPasswordSheetOpen(false)
+      navigate('/transfer/failed', {
+        state: {
+          message: apiError?.message || '이체 요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.',
+        },
+      })
     } finally {
       setIsTransferLoading(false)
     }
@@ -90,18 +97,15 @@ export function TransferReview() {
         headerType="back"
         onBack={() => navigate('/transfer/amount-confirm')}
         bottomContent={
-          <AppButton
-            type="button"
-            variant="unstyled"
+          <Btn_1Col
             onClick={() => {
               setPassword('')
               setIsPasswordSheetOpen(true)
             }}
             disabled={isTransferLoading}
-            className="h-[54px] w-full rounded-lg bg-[#2F80ED] text-[17px] font-semibold text-white"
           >
             {isTransferLoading ? '이체 중' : '이체'}
-          </AppButton>
+          </Btn_1Col>
         }
       >
         <section className="pt-12 text-[#202633]">
@@ -175,6 +179,17 @@ export function TransferReview() {
           </div>
         </div>
       </BottomSheet>
+
+      {isTransferLoading ? (
+        <div className="fixed inset-0 z-[100] bg-white">
+          <Loading
+            headerTitle="이체"
+            task="이체를 처리하고 있어요"
+            description="잠시만 기다려주세요."
+            spinnerSize="lg"
+          />
+        </div>
+      ) : null}
     </>
   )
 }

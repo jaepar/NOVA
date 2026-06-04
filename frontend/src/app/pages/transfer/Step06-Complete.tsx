@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { AppButton } from '../../components/design-system'
+import { Btn_1Col } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { BANK_OPTIONS, formatCurrency, RECIPIENT_NAME } from './types'
 import { useTransferStore } from './transferStore'
@@ -27,14 +27,9 @@ export function TransferComplete() {
       title="이체"
       headerType="none"
       bottomContent={
-        <AppButton
-          type="button"
-          variant="unstyled"
-          onClick={goMain}
-          className="h-[54px] w-full rounded-lg bg-[#2F80ED] text-[17px] font-semibold text-white"
-        >
+        <Btn_1Col onClick={goMain}>
           확인
-        </AppButton>
+        </Btn_1Col>
       }
     >
       <section className="pt-20 text-center text-[#30343B]">

@@ -2,6 +2,7 @@ package woorifisa.project.backend.domain.banking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +58,9 @@ public class BankingService {
     private final UserRepository userRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final CoreBankingClient coreBankingClient;
+
+    @Value("${banking.transfer.password-verified-sleep-ms:0}")
+    private long passwordVerifiedSleepMillis;
 
     @Transactional(readOnly = true)
     public AccountHomeResponse findHomeAccount(Long userId) {
@@ -142,6 +146,9 @@ public class BankingService {
             coreBankingClient.verifyAccountPassword(
                     CoreBankingPasswordVerifyRequest.of(accountRef.getAccountId(), request.accountPassword())
             );
+
+            // 계좌 이체 실패 페이지를 확인하기 위한 테스트 코드
+//            sleepAfterPasswordVerificationIfConfigured();
 
             String accountProcessingKey = formatAccountProcessingKey(accountRef.getAccountId());
             Boolean accountLockAcquired = stringRedisTemplate.opsForValue()
@@ -281,5 +288,20 @@ public class BankingService {
             Thread.currentThread().interrupt();
             throw new CustomException(BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED);
         }
+    }
+
+    private void sleepAfterPasswordVerificationIfConfigured() {
+        if (passwordVerifiedSleepMillis <= 0) {
+            return;
+        }
+
+        log.info("[banking_transfer:password_verified_sleep_started] sleepMillis={}", passwordVerifiedSleepMillis);
+        try {
+            Thread.sleep(passwordVerifiedSleepMillis);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new CustomException(BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED);
+        }
+        log.info("[banking_transfer:password_verified_sleep_finished]");
     }
 }
