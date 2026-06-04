@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { AppButton } from '../../components/design-system'
+import { AppButton, novaToast } from '../../components/design-system'
 import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { bankingApi, getBankingApiError } from '../../../api'
 import { detectAccountNumber } from '../../data/accountNumberDetector'
 import {
   BANK_OPTIONS,
+  BANK_CODE_BY_ID,
   REQUIRED_ACCOUNT_LENGTH,
   normalizeAccountNumber,
   type BankOption,
@@ -21,7 +23,9 @@ export function TransferAccountSelect() {
   const selectedBank = useTransferStore((state) => state.selectedBank)
   const setAccountNumber = useTransferStore((state) => state.setAccountNumber)
   const setSelectedBank = useTransferStore((state) => state.setSelectedBank)
+  const setPreview = useTransferStore((state) => state.setPreview)
   const [isBankSheetOpen, setIsBankSheetOpen] = useState(false)
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false)
 
   const detectedBanks = useMemo(() => detectAccountNumber(accountNumber), [accountNumber])
   const suggestedBanks = useMemo(() => {
@@ -49,6 +53,31 @@ export function TransferAccountSelect() {
     setIsBankSheetOpen(false)
   }
 
+  const handleNext = async () => {
+    if (!selectedBank || !isNextEnabled || isPreviewLoading) return
+
+    setIsPreviewLoading(true)
+    try {
+      const preview = await bankingApi.previewTransfer({
+        recipientBankCode: BANK_CODE_BY_ID[selectedBank.id] ?? selectedBank.id.toUpperCase(),
+        recipientAccountNumber: accountNumber,
+      })
+
+      setPreview(preview)
+      navigate('/transfer/amount')
+    } catch (error) {
+      const apiError = getBankingApiError(error)
+      if (apiError?.code === 'BANK-006') {
+        novaToast.error(apiError.message || '수취인 계좌 정보를 찾을 수 없습니다.')
+        return
+      }
+
+      novaToast.error(apiError?.message || '이체 정보를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setIsPreviewLoading(false)
+    }
+  }
+
   return (
     <>
       <MobileLayout
@@ -60,11 +89,11 @@ export function TransferAccountSelect() {
           <AppButton
             type="button"
             variant="unstyled"
-            disabled={!isNextEnabled}
-            onClick={() => navigate('/transfer/amount')}
+            disabled={!isNextEnabled || isPreviewLoading}
+            onClick={handleNext}
             className="h-16 w-full rounded-xl bg-[#006BFF] px-6 text-[18px] font-semibold text-white transition-colors disabled:bg-[#AEB2F3] disabled:font-medium disabled:cursor-not-allowed"
           >
-            다음
+            {isPreviewLoading ? '확인 중' : '다음'}
           </AppButton>
         }
       >

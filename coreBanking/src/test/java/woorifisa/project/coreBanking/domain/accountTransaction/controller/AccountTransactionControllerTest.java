@@ -132,11 +132,9 @@ class AccountTransactionControllerTest {
                         .content("""
                                 {
                                   "externalRequestId": "REQ-20260526-0001",
-                                  "withdrawAccountId": 2001,
-                                  "depositAccountId": 2002,
-                                  "transferAmount": 5000,
-                                  "withdrawMemo": "박재하",
-                                  "depositMemo": "박재하"
+                                  "withdrawAccountId": "1122261925001",
+                                  "depositAccountId": "1122261925002",
+                                  "transferAmount": 5000
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -149,7 +147,7 @@ class AccountTransactionControllerTest {
         verify(accountTransactionService).transfer(requestCaptor.capture());
         TransferAccountRequest request = requestCaptor.getValue();
         assertThat(request.externalRequestId()).isEqualTo("REQ-20260526-0001");
-        assertThat(request.withdrawAccountId()).isEqualTo(2001L);
+        assertThat(request.withdrawAccountId()).isEqualTo("1122261925001");
     }
 
     @Test
@@ -164,11 +162,9 @@ class AccountTransactionControllerTest {
                         .content("""
                                 {
                                   "externalRequestId": "REQ-20260526-0001",
-                                  "withdrawAccountId": 2001,
-                                  "depositAccountId": 2002,
-                                  "transferAmount": 5000,
-                                  "withdrawMemo": "박재하",
-                                  "depositMemo": "박재하"
+                                  "withdrawAccountId": "1122261925001",
+                                  "depositAccountId": "1122261925002",
+                                  "transferAmount": 5000
                                 }
                                 """))
                 .andExpect(status().isBadRequest())

@@ -9,10 +9,11 @@ public record TransferPreviewResponse(
             String accountNumber,
             Integer balance,
             Integer transferLimit,
+            String userName,
             String recipientName
     ) {
         return new TransferPreviewResponse(
-                new MyAccount(accountName, accountNumber, balance, transferLimit),
+                new MyAccount(accountName, accountNumber, balance, transferLimit, userName),
                 new Recipient(recipientName)
         );
     }
@@ -21,7 +22,8 @@ public record TransferPreviewResponse(
             String accountName,
             String accountNumber,
             Integer balance,
-            Integer transferLimit
+            Integer transferLimit,
+            String userName
     ) {
     }
 

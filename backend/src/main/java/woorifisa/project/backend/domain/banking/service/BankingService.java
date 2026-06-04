@@ -137,7 +137,7 @@ public class BankingService {
 
         try {
             // 같은 계좌의 동일 이체를 막기 위한 락을 거는 로직
-            AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountId(userId, request.withdrawAccountId())
+            AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountNumber(userId, request.withdrawAccountId())
                     .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
             coreBankingClient.verifyAccountPassword(
                     CoreBankingPasswordVerifyRequest.of(accountRef.getAccountId(), request.accountPassword())
@@ -154,7 +154,7 @@ public class BankingService {
                 // 이체 처리는 계좌에 대한 락을 얻은 뒤 처리
                 CoreBankingTransferRequest coreBankingTransferRequest = CoreBankingTransferRequest.of(
                         createExternalRequestId(idempotencyKey),
-                        accountRef.getAccountId(),
+                        accountRef.getAccountNumber(),
                         request
                 );
 
@@ -188,6 +188,7 @@ public class BankingService {
                 myAccount.getAccountNumber(),
                 myAccount.getBalance(),
                 myAccount.getTransferLimit(),
+                myAccount.getUser().getName(),
                 recipientName
         );
     }

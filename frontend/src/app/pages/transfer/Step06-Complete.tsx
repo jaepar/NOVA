@@ -9,10 +9,12 @@ export function TransferComplete() {
   const navigate = useNavigate()
   const accountNumber = useTransferStore((state) => state.accountNumber)
   const selectedBank = useTransferStore((state) => state.selectedBank)
+  const preview = useTransferStore((state) => state.preview)
   const amount = useTransferStore((state) => state.amount)
   const resetTransfer = useTransferStore((state) => state.resetTransfer)
   const recipientBank = selectedBank ?? BANK_OPTIONS.find((bank) => bank.id === 'nonghyup') ?? BANK_OPTIONS[0]
   const recipientAccount = accountNumber || '1122261925003'
+  const recipientName = preview?.recipient.recipientName ?? RECIPIENT_NAME
   const amountText = formatCurrency(amount)
 
   const goMain = () => {
@@ -40,7 +42,7 @@ export function TransferComplete() {
           <Check className="h-9 w-9 text-white" strokeWidth={4} />
         </div>
         <h2 className="mt-8 text-[24px] font-bold leading-snug">
-          {RECIPIENT_NAME} 님에게
+          {recipientName} 님에게
           <br />
           이체했어요
         </h2>

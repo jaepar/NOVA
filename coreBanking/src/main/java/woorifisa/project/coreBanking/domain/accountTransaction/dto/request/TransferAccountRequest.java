@@ -7,16 +7,12 @@ import jakarta.validation.constraints.Positive;
 public record TransferAccountRequest(
         @NotBlank
         String externalRequestId,
-        @NotNull
-        Long withdrawAccountId,
-        @NotNull
-        Long depositAccountId,
+        @NotBlank
+        String withdrawAccountId,
+        @NotBlank
+        String depositAccountId,
         @NotNull
         @Positive
-        Integer transferAmount,
-        @NotBlank
-        String withdrawMemo,
-        @NotBlank
-        String depositMemo
+        Integer transferAmount
 ) {
 }

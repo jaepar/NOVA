@@ -17,12 +17,16 @@ export function TransferMemoEdit({ type }: { type: MemoType }) {
   const navigate = useNavigate()
   const accountNumber = useTransferStore((state) => state.accountNumber)
   const selectedBank = useTransferStore((state) => state.selectedBank)
+  const preview = useTransferStore((state) => state.preview)
   const recipientMemoName = useTransferStore((state) => state.recipientMemoName)
   const senderMemoName = useTransferStore((state) => state.senderMemoName)
   const setRecipientMemoName = useTransferStore((state) => state.setRecipientMemoName)
   const setSenderMemoName = useTransferStore((state) => state.setSenderMemoName)
   const recipientBank = selectedBank ?? BANK_OPTIONS.find((bank) => bank.id === 'nonghyup') ?? BANK_OPTIONS[0]
   const recipientAccount = accountNumber || '1122261925003'
+  const recipientName = preview?.recipient.recipientName ?? RECIPIENT_NAME
+  const sourceAccountName = preview?.myAccount.accountName ?? '우리SUPER주거래통장'
+  const sourceAccountNumber = preview?.myAccount.accountNumber ?? SOURCE_ACCOUNT
   const isRecipientMemo = type === 'recipient'
   const [memoDraft, setMemoDraft] = useState(isRecipientMemo ? recipientMemoName : senderMemoName)
 
@@ -64,12 +68,12 @@ export function TransferMemoEdit({ type }: { type: MemoType }) {
         <div>
           <div className="flex items-center gap-2 text-[16px] font-bold">
             <BankMark bank={isRecipientMemo ? recipientBank : SOURCE_BANK} size="md" />
-            <span>{isRecipientMemo ? `${RECIPIENT_NAME} 님 계좌로` : '우리은행 계좌에서'}</span>
+            <span>{isRecipientMemo ? `${recipientName} 님 계좌로` : '우리은행 계좌에서'}</span>
           </div>
           <p className="mt-2 text-[13px] font-semibold text-[#8A9099]">
             {isRecipientMemo
               ? `${recipientBank.name.replace('은행', '')} ${recipientAccount}`
-              : `우리SUPER주거래통장 ${SOURCE_ACCOUNT}`}
+              : `${sourceAccountName} ${sourceAccountNumber}`}
           </p>
         </div>
 

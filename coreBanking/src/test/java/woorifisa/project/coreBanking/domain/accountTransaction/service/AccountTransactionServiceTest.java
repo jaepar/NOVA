@@ -261,7 +261,7 @@ class AccountTransactionServiceTest {
     @DisplayName("계좌 이체 성공 시 출금/입금 거래내역을 저장하고 양 계좌 잔액을 갱신한다")
     void transferSuccess() {
         TransferAccountRequest request = new TransferAccountRequest(
-                "REQ-20260526-0001", 2001L, 2002L, 5000, "박재하", "박재하"
+                "REQ-20260526-0001", "1122261925001", "1122261925003", 5000
         );
         Account withdraw = Account.builder()
                 .accountId(2001L)
@@ -279,8 +279,8 @@ class AccountTransactionServiceTest {
         when(accountTransactionRepository.existsByExternalRequestId("REQ-20260526-0001"))
                 .thenReturn(false)
                 .thenReturn(false);
-        when(accountRepository.findByAccountId(2001L)).thenReturn(Optional.of(withdraw));
-        when(accountRepository.findById(2002L)).thenReturn(Optional.of(deposit));
+        when(accountRepository.findByAccountNumber("1122261925001")).thenReturn(Optional.of(withdraw));
+        when(accountRepository.findByAccountNumber("1122261925003")).thenReturn(Optional.of(deposit));
 
         accountTransactionService.transfer(request);
 
@@ -292,20 +292,22 @@ class AccountTransactionServiceTest {
         verify(accountTransactionRepository, times(2)).save(captor.capture());
         assertThat(captor.getAllValues().get(0).getCounterParty()).isEqualTo("박재하");
         assertThat(captor.getAllValues().get(1).getCounterParty()).isEqualTo("홍길동");
+        assertThat(captor.getAllValues().get(0).getMemo()).isNull();
+        assertThat(captor.getAllValues().get(1).getMemo()).isNull();
     }
 
     @Test
     @DisplayName("계좌 이체 요청 식별자가 중복이면 재처리하지 않는다")
     void transferDuplicate() {
         TransferAccountRequest request = new TransferAccountRequest(
-                "REQ-20260526-0001", 2001L, 2002L, 5000, "박재하", "박재하"
+                "REQ-20260526-0001", "1122261925001", "1122261925003", 5000
         );
 
         when(accountTransactionRepository.existsByExternalRequestId("REQ-20260526-0001")).thenReturn(true);
 
         accountTransactionService.transfer(request);
 
-        verify(accountRepository, never()).findByAccountId(any());
+        verify(accountRepository, never()).findByAccountNumber(any());
         verify(accountTransactionRepository, never()).save(any(AccountTransaction.class));
     }
 
@@ -313,7 +315,7 @@ class AccountTransactionServiceTest {
     @DisplayName("계좌 이체 잔액 부족이면 예외를 던진다")
     void transferInsufficientBalance() {
         TransferAccountRequest request = new TransferAccountRequest(
-                "REQ-20260526-0001", 2001L, 2002L, 5000, "박재하", "박재하"
+                "REQ-20260526-0001", "1122261925001", "1122261925003", 5000
         );
         Account withdraw = Account.builder()
                 .accountId(2001L)
@@ -331,8 +333,8 @@ class AccountTransactionServiceTest {
         when(accountTransactionRepository.existsByExternalRequestId("REQ-20260526-0001"))
                 .thenReturn(false)
                 .thenReturn(false);
-        when(accountRepository.findByAccountId(2001L)).thenReturn(Optional.of(withdraw));
-        when(accountRepository.findById(2002L)).thenReturn(Optional.of(deposit));
+        when(accountRepository.findByAccountNumber("1122261925001")).thenReturn(Optional.of(withdraw));
+        when(accountRepository.findByAccountNumber("1122261925003")).thenReturn(Optional.of(deposit));
 
         assertThatThrownBy(() -> accountTransactionService.transfer(request))
                 .isInstanceOf(CustomException.class)

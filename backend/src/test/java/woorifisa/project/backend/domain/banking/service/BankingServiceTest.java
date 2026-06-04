@@ -125,7 +125,7 @@ class BankingServiceTest {
     void transferSuccess() {
         Long userId = 1L;
         String idempotencyKey = "key-1";
-        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하");
+        TransferRequest request = new TransferRequest("1122261925001", "1122261925002", 5000, "1234");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
@@ -137,7 +137,7 @@ class BankingServiceTest {
                 .build();
         when(valueOperations.get("banking:transfer:result:key-1")).thenReturn(null);
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
-        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(accountRefRepository.findByUser_UserIdAndAccountNumber(userId, "1122261925001")).thenReturn(Optional.of(accountRef));
         doNothing().when(coreBankingClient).transfer(any());
 
         bankingService.transfer(userId, idempotencyKey, request);
@@ -145,8 +145,8 @@ class BankingServiceTest {
         ArgumentCaptor<CoreBankingTransferRequest> captor = ArgumentCaptor.forClass(CoreBankingTransferRequest.class);
         verify(coreBankingClient).transfer(captor.capture());
         CoreBankingTransferRequest coreRequest = captor.getValue();
-        assertThat(coreRequest.withdrawAccountId()).isEqualTo(2001L);
-        assertThat(coreRequest.depositAccountId()).isEqualTo(2002L);
+        assertThat(coreRequest.withdrawAccountId()).isEqualTo("1122261925001");
+        assertThat(coreRequest.depositAccountId()).isEqualTo("1122261925002");
         assertThat(coreRequest.externalRequestId()).isEqualTo(idempotencyKey);
         assertThat(accountRef.getBalance()).isEqualTo(5000);
         verify(stringRedisTemplate).delete("banking:transfer:processing:key-1");
@@ -157,7 +157,7 @@ class BankingServiceTest {
     void verifiesAccountPasswordBeforeTransfer() {
         Long userId = 1L;
         String idempotencyKey = "key-password";
-        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하");
+        TransferRequest request = new TransferRequest("1122261925001", "1122261925002", 5000, "1234");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
@@ -169,7 +169,7 @@ class BankingServiceTest {
                 .build();
         when(valueOperations.get("banking:transfer:result:key-password")).thenReturn(null);
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
-        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(accountRefRepository.findByUser_UserIdAndAccountNumber(userId, "1122261925001")).thenReturn(Optional.of(accountRef));
 
         bankingService.transfer(userId, idempotencyKey, request);
 
@@ -189,7 +189,7 @@ class BankingServiceTest {
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(false);
 
         assertThatThrownBy(() -> bankingService.transfer(1L, "key-1",
-                new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하")))
+                new TransferRequest("1122261925001", "1122261925002", 5000, "1234")))
                 .isInstanceOf(CustomException.class)
                 .extracting("exceptionStatus")
                 .isEqualTo(BANKING_TRANSFER_PROCESSING);
@@ -201,7 +201,7 @@ class BankingServiceTest {
     @DisplayName("같은 출금 계좌가 이미 처리중이면 예외를 반환한다")
     void transferProcessingByAccountLock() {
         Long userId = 1L;
-        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하");
+        TransferRequest request = new TransferRequest("1122261925001", "1122261925002", 5000, "1234");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
@@ -217,7 +217,7 @@ class BankingServiceTest {
                 .thenReturn(true);
         when(valueOperations.setIfAbsent("account:debit:processing:2001", "1", java.time.Duration.ofMinutes(5)))
                 .thenReturn(false);
-        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(accountRefRepository.findByUser_UserIdAndAccountNumber(userId, "1122261925001")).thenReturn(Optional.of(accountRef));
 
         assertThatThrownBy(() -> bankingService.transfer(userId, "key-acc-lock", request))
                 .isInstanceOf(CustomException.class)
@@ -236,7 +236,7 @@ class BankingServiceTest {
         bankingService.transfer(
                 1L,
                 "key-1",
-                new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하")
+                new TransferRequest("1122261925001", "1122261925002", 5000, "1234")
         );
 
         verify(coreBankingClient, never()).transfer(any());
@@ -247,7 +247,7 @@ class BankingServiceTest {
     void transferSuccessWhenLookupExistsAfterFailure() {
         Long userId = 1L;
         String idempotencyKey = "key-lookup-exists";
-        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하");
+        TransferRequest request = new TransferRequest("1122261925001", "1122261925002", 5000, "1234");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
@@ -260,7 +260,7 @@ class BankingServiceTest {
 
         when(valueOperations.get("banking:transfer:result:key-lookup-exists")).thenReturn(null);
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
-        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(accountRefRepository.findByUser_UserIdAndAccountNumber(userId, "1122261925001")).thenReturn(Optional.of(accountRef));
         doThrow(new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED)).when(coreBankingClient).transfer(any());
         when(coreBankingClient.existsTransferRequest(idempotencyKey))
                 .thenReturn(false)
@@ -278,7 +278,7 @@ class BankingServiceTest {
     void transferRetryWhenLookupNotExists() {
         Long userId = 1L;
         String idempotencyKey = "key-retry";
-        TransferRequest request = new TransferRequest(2001L, 2002L, 5000, "1234", "박재하", "박재하");
+        TransferRequest request = new TransferRequest("1122261925001", "1122261925002", 5000, "1234");
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
                 .user(User.builder().userId(userId).build())
@@ -291,7 +291,7 @@ class BankingServiceTest {
 
         when(valueOperations.get("banking:transfer:result:key-retry")).thenReturn(null);
         when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
-        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(accountRefRepository.findByUser_UserIdAndAccountNumber(userId, "1122261925001")).thenReturn(Optional.of(accountRef));
         doThrow(new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED))
                 .doNothing()
                 .when(coreBankingClient).transfer(any());
@@ -310,7 +310,7 @@ class BankingServiceTest {
         Long userId = 1L;
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
-                .user(User.builder().userId(userId).build())
+                .user(User.builder().userId(userId).name("홍길동").build())
                 .accountId(2001L)
                 .accountName("우리SUPER주거래통장")
                 .accountNumber("1002867390781")
@@ -329,6 +329,7 @@ class BankingServiceTest {
         assertThat(response.myAccount().accountNumber()).isEqualTo("1002867390781");
         assertThat(response.myAccount().balance()).isEqualTo(50_000);
         assertThat(response.myAccount().transferLimit()).isEqualTo(300_000);
+        assertThat(response.myAccount().userName()).isEqualTo("홍길동");
         assertThat(response.recipient().recipientName()).isEqualTo("백민정");
     }
 

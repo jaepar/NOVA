@@ -139,12 +139,10 @@ class BankingControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "withdrawAccountId": 2001,
-                                  "depositAccountId": 2002,
+                                  "withdrawAccountId": "1122261925001",
+                                  "depositAccountId": "1122261925002",
                                   "transferAmount": 5000,
-                                  "accountPassword": "1234",
-                                  "withdrawMemo": "박재하",
-                                  "depositMemo": "박재하"
+                                  "accountPassword": "1234"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -170,6 +168,7 @@ class BankingControllerTest {
                                 "1002867390781",
                                 50_000,
                                 300_000,
+                                "홍길동",
                                 "백민정"
                         )
                 );
@@ -190,6 +189,7 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.data.myAccount.accountNumber").value("1002867390781"))
                 .andExpect(jsonPath("$.data.myAccount.balance").value(50000))
                 .andExpect(jsonPath("$.data.myAccount.transferLimit").value(300000))
+                .andExpect(jsonPath("$.data.myAccount.userName").value("홍길동"))
                 .andExpect(jsonPath("$.data.recipient.recipientName").value("백민정"));
     }
 

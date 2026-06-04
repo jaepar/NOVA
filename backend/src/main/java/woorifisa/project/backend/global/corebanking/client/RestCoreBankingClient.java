@@ -17,7 +17,6 @@ import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecip
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingBaseErrorResponse;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingBaseResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRequestLookupResponse;

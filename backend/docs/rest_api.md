@@ -124,12 +124,10 @@
 Request
 ```json
 {
-  "withdrawAccountId": 2001,
-  "depositAccountId": 2002,
+  "withdrawAccountId": "1080863698115",
+  "depositAccountId": "1002123456789",
   "transferAmount": 5000,
-  "accountPassword": "1234",
-  "withdrawMemo": "박재하",
-  "depositMemo": "박재하"
+  "accountPassword": "1234"
 }
 ```
 
@@ -156,7 +154,10 @@ Response (200)
   "data": {
     "myAccount": {
       "accountName": "우리SUPER주거래통장",
-      "accountNumber": "1002867390781"
+      "accountNumber": "1002867390781",
+      "balance": 50000,
+      "transferLimit": 300000,
+      "userName": "홍길동"
     },
     "recipient": {
       "recipientName": "백민정"
