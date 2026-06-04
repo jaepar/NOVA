@@ -11,6 +11,7 @@ import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBank
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionDateRange;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
@@ -138,7 +139,7 @@ public class BankingService {
         // 고정 기간이면 오늘을 기준으로 시작일과 종료일을 계산한다.
         // 정렬은 코어뱅킹에서 내림차순 고정이므로 별도 sort 파라미터 없이 page/size만 전달한다.
         LocalDate today = LocalDate.now();
-        DateRange range = resolveDateRange(period, today, customFrom, customTo);
+        TransactionDateRange range = resolveDateRange(period, today, customFrom, customTo);
         CoreBankingTransactionQuery query = new CoreBankingTransactionQuery(
                 accountId,
                 range.from(),
@@ -153,20 +154,17 @@ public class BankingService {
 
     // 고정 기간에서는 customFrom/customTo가 포함되면 잘못된 요청으로 처리한다.
     // CUSTOM 기간은 시작일과 종료일이 모두 있어야 하며, 시작일이 종료일보다 늦을 수 없다.
-    private DateRange resolveDateRange(TransactionPeriod period, LocalDate today, LocalDate customFrom, LocalDate customTo) {
+    private TransactionDateRange resolveDateRange(TransactionPeriod period, LocalDate today, LocalDate customFrom, LocalDate customTo) {
         if (period != TransactionPeriod.CUSTOM) {
             if (customFrom != null || customTo != null) {
                 throw new CustomException(BAD_REQUEST);
             }
-            return new DateRange(period.from(today), today);
+            return new TransactionDateRange(period.from(today), today);
         }
         if (customFrom == null || customTo == null || customFrom.isAfter(customTo)) {
             throw new CustomException(BAD_REQUEST);
         }
-        return new DateRange(customFrom, customTo);
-    }
-
-    private record DateRange(LocalDate from, LocalDate to) {
+        return new TransactionDateRange(customFrom, customTo);
     }
 
     private String formatProcessingKey(String idempotencyKey) {
