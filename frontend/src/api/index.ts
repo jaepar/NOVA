@@ -19,6 +19,7 @@ export * from './types'
  */
 
 export { authApi } from './endpoints/auth';
+export { bankingApi } from './endpoints/banking';
 export { certificateApi } from './endpoints/certificate';
 export type {
   AuthMessageResponse,
@@ -27,6 +28,12 @@ export type {
   SessionCheckResponse,
   SignupRequest,
 } from './endpoints/auth';
+export type {
+  AccountHomeResponse,
+  AccountHomeUiState,
+  AccountSummary,
+  CertificateStatus,
+} from './endpoints/banking';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
 export { walletApi } from './endpoints/wallet';

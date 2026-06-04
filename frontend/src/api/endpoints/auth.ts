@@ -33,7 +33,10 @@ export type SessionCheckResponse = {
 
 export const authApi = {
   signup: async (payload: SignupRequest): Promise<AuthMessageResponse> => {
-    const response = await apiClient.post<AuthMessageResponse>("/auth/signup", payload);
+    const response = await apiClient.post<AuthMessageResponse>(
+      "/auth/signup",
+      payload
+    );
 
     return response.data;
   },
@@ -43,12 +46,17 @@ export const authApi = {
     return response.data;
   },
   login: async (payload: LoginRequest): Promise<LoginResponse> => {
-    const response = await apiClient.post<AuthApiResponse<LoginResponse>>("/auth/login", payload);
-
+    const response = await apiClient.post<AuthApiResponse<LoginResponse>>(
+      "/auth/login",
+      payload
+    );
+    console.log(response.data.data);
     return response.data.data;
   },
   me: async (): Promise<SessionCheckResponse> => {
-    const response = await apiClient.get<AuthApiResponse<SessionCheckResponse>>("/auth/me");
+    const response = await apiClient.get<AuthApiResponse<SessionCheckResponse>>(
+      "/auth/me"
+    );
 
     return response.data.data;
   },

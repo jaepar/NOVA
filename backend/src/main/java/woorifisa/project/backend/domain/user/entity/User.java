@@ -1,5 +1,9 @@
 package woorifisa.project.backend.domain.user.entity;
 
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
+
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,11 +18,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.Gender;
-import woorifisa.project.backend.global.exception.CustomException;
 import woorifisa.project.backend.global.entity.BaseEntity;
-
-import java.time.LocalDateTime;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_CERTIFICATE_STATUS_TRANSITION_INVALID;
+import woorifisa.project.backend.global.exception.CustomException;
 
 @Getter
 @Entity
@@ -71,7 +72,6 @@ public class User extends BaseEntity {
     }
 
     public void issueCertificate() {
-        this.certificateStatus = CertificateStatus.ISSUED;
         // 최종 발급은 신청 중 상태에서만 가능하며, 발급 시각을 함께 기록한다.
         if (this.certificateStatus != CertificateStatus.PENDING) {
             throw new CustomException(USER_CERTIFICATE_STATUS_TRANSITION_INVALID);
