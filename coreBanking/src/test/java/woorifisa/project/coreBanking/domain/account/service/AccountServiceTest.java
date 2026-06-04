@@ -122,7 +122,7 @@ class AccountServiceTest {
 				.accountName(saved.getAccountName())
 				.balance(saved.getBalance())
 				.password(saved.getPassword())
-				.dailyTransferLimit(saved.getDailyTransferLimit())
+				.transferLimit(saved.getTransferLimit())
 				.bankCode(saved.getBankCode())
 				.build();
 		});
@@ -133,6 +133,7 @@ class AccountServiceTest {
 		assertThat(response.customerId()).isEqualTo(1001L);
 		assertThat(response.accountName()).isEqualTo("우리 SUPER주거래 통장");
 		assertThat(response.accountNumber()).hasSize(13);
+		assertThat(response.transferLimit()).isEqualTo(300_000);
 		verify(passwordEncoder).encode("1234");
 		verify(accountRepository).save(any(Account.class));
 	}

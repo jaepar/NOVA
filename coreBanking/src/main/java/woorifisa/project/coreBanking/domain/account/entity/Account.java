@@ -60,8 +60,8 @@ public class Account extends BaseEntity {
     @Column(name = "password", length = 100, nullable = false)
     private String password;
 
-    @Column(name = "daily_transfer_limit", nullable = false)
-    private Integer dailyTransferLimit;
+    @Column(name = "transfer_limit", nullable = false)
+    private Integer transferLimit;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "bank_code", nullable = false)

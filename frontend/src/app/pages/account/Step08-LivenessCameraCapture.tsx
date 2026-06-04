@@ -6,6 +6,7 @@ import "@aws-amplify/ui-react-liveness/styles.css";
 import "../../styles/liveness/LivenessCameraCapture.css";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { InlineBanner } from "../../components/design-system/InlineBanner";
 import { certificateApi } from "../../../api";
 import { useLivenessFlowStore } from "../../stores/pageStores";
 
@@ -65,6 +66,7 @@ export function LivenessCameraCapture() {
   const [isRetrying, setIsRetrying] = useState(false);
   const [liveHintText, setLiveHintText] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [hasStartedLiveness, setHasStartedLiveness] = useState(false);
 
   const navigateToStep08 = () => {
     navigate(STEP08_PATH, {
@@ -116,15 +118,6 @@ export function LivenessCameraCapture() {
   const stopCameraTracksRepeatedly = () => {
     stopCameraTracks();
     window.setTimeout(stopCameraTracks, 500);
-  };
-
-  const triggerSdkCancel = () => {
-    const cancelButton =
-      document.querySelector<HTMLButtonElement>(
-        ".amplify-liveness-cancel-button"
-      ) ??
-      document.querySelector<HTMLButtonElement>(".amplify-modal__close-button");
-    cancelButton?.click();
   };
 
   useEffect(() => {
@@ -274,81 +267,30 @@ export function LivenessCameraCapture() {
   useEffect(() => {
     if (!isDetectorVisible) return;
 
-    const alignOvalToCameraCenter = () => {
-      const root = detectorContainerRef.current;
-      if (!root) return;
+    const root = detectorContainerRef.current;
+    if (!root) return;
 
-      const canvas = root.querySelector<HTMLCanvasElement>(
-        ".amplify-liveness-oval-canvas canvas, canvas.amplify-liveness-oval-canvas"
+    const attachStartButtonHandler = () => {
+      const startButton = Array.from(root.querySelectorAll<HTMLButtonElement>("button")).find(
+        (button) => button.textContent?.trim() === "얼굴 인증 시작"
       );
-      const video = root.querySelector<HTMLVideoElement>("video");
-      if (!canvas || !video) return;
+      if (!startButton) return () => {};
 
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      if (!ctx) return;
-
-      const width = canvas.width;
-      const height = canvas.height;
-      if (!width || !height) return;
-
-      let imageData: ImageData;
-      try {
-        imageData = ctx.getImageData(0, 0, width, height);
-      } catch {
-        return;
-      }
-
-      const data = imageData.data;
-      let minX = width;
-      let maxX = -1;
-      let minY = height;
-      let maxY = -1;
-
-      for (let y = 0; y < height; y += 1) {
-        for (let x = 0; x < width; x += 1) {
-          const alpha = data[(y * width + x) * 4 + 3];
-          if (alpha === 0) {
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
-          }
-        }
-      }
-
-      if (maxX < minX || maxY < minY) return;
-
-      const ovalCenterX = (minX + maxX) / 2;
-      const ovalCenterY = (minY + maxY) / 2;
-
-      const canvasRect = canvas.getBoundingClientRect();
-      const videoRect = video.getBoundingClientRect();
-      const scaleX = canvasRect.width / width;
-      const scaleY = canvasRect.height / height;
-
-      const currentCenterX = canvasRect.left + ovalCenterX * scaleX;
-      const currentCenterY = canvasRect.top + ovalCenterY * scaleY;
-      const targetCenterX = videoRect.left + videoRect.width / 2;
-      const targetCenterY = videoRect.top + videoRect.height / 2;
-
-      const offsetX = targetCenterX - currentCenterX;
-      const offsetY = targetCenterY - currentCenterY;
-
-      canvas.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      const onStart = () => setHasStartedLiveness(true);
+      startButton.addEventListener("click", onStart);
+      return () => startButton.removeEventListener("click", onStart);
     };
 
-    const intervalId = window.setInterval(alignOvalToCameraCenter, 300);
-    alignOvalToCameraCenter();
+    let detach = attachStartButtonHandler();
+    const observer = new MutationObserver(() => {
+      detach();
+      detach = attachStartButtonHandler();
+    });
+    observer.observe(root, { subtree: true, childList: true });
 
     return () => {
-      window.clearInterval(intervalId);
-      const root = detectorContainerRef.current;
-      const canvas = root?.querySelector<HTMLCanvasElement>(
-        ".amplify-liveness-oval-canvas canvas, canvas.amplify-liveness-oval-canvas"
-      );
-      if (canvas) {
-        canvas.style.transform = "";
-      }
+      observer.disconnect();
+      detach();
     };
   }, [detectorRenderKey, isDetectorVisible]);
 
@@ -372,15 +314,18 @@ export function LivenessCameraCapture() {
       });
       if (result.decision === "PASS") {
         setIsDetectorVisible(false);
+        setHasStartedLiveness(false);
         stopCameraTracksRepeatedly();
         window.setTimeout(() => navigate("/account/step-09"), 120);
         return;
       }
       setIsDetectorVisible(false);
+      setHasStartedLiveness(false);
       stopCameraTracksRepeatedly();
       setFailureMessage("실명 인증에 실패했습니다. 다시 시도해 주세요.");
     } catch {
       setIsDetectorVisible(false);
+      setHasStartedLiveness(false);
       stopCameraTracksRepeatedly();
       setFailureMessage("인증 결과 확인에 실패했습니다. 다시 시도해 주세요.");
     }
@@ -388,6 +333,9 @@ export function LivenessCameraCapture() {
 
   const handleRetry = () => {
     if (isRetrying) return;
+    setFailureMessage("");
+    setLiveHintText("");
+    setHasStartedLiveness(false);
     setIsRetrying(true);
     (async () => {
       try {
@@ -412,8 +360,8 @@ export function LivenessCameraCapture() {
   const handleExitToStep08 = () => {
     if (isExiting) return;
     setIsExiting(true);
-    triggerSdkCancel();
     setIsDetectorVisible(false);
+    setHasStartedLiveness(false);
     stopCameraTracksRepeatedly();
     resetSession();
     window.setTimeout(() => {
@@ -457,7 +405,9 @@ export function LivenessCameraCapture() {
       }
     >
       <div
-        className="space-y-4 nova-liveness-surface"
+        className={`space-y-4 nova-liveness-surface ${
+          hasStartedLiveness ? "nova-liveness-active" : ""
+        }`}
         ref={detectorContainerRef}
       >
         {isDetectorVisible && sessionId && credentialProvider && (
@@ -478,16 +428,11 @@ export function LivenessCameraCapture() {
           />
         )}
         {isDetectorVisible &&
+          hasStartedLiveness &&
           isCameraActive &&
           liveHintText &&
           !failureMessage && (
-            <div
-              className="nova-liveness-guidance-toast"
-              role="status"
-              aria-live="polite"
-            >
-              {liveHintText}
-            </div>
+            <InlineBanner message={liveHintText} variant="info" />
           )}
         {!isDetectorVisible && failureMessage && (
           <div className="nova-liveness-placeholder" aria-hidden="true">
@@ -495,9 +440,7 @@ export function LivenessCameraCapture() {
           </div>
         )}
         {failureMessage && (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {failureMessage}
-          </p>
+          <InlineBanner message={failureMessage} variant="error" />
         )}
       </div>
     </MobileLayout>

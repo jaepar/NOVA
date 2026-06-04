@@ -1,20 +1,29 @@
 package woorifisa.project.backend.domain.banking.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
+import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
+import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
+import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -26,8 +35,11 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CERTIFICATE_REQUIRED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class BankingService {
     // 동일 멱등키 이체 요청의 완료 결과를 재사용하기 위한 캐시 키
@@ -43,8 +55,67 @@ public class BankingService {
     private static final long REQUEST_LOOKUP_RETRY_DELAY_MILLIS = 1000L;
 
     private final AccountRefRepository accountRefRepository;
+    private final UserRepository userRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final CoreBankingClient coreBankingClient;
+
+    @Transactional(readOnly = true)
+    public AccountHomeResponse findHomeAccount(Long userId) {
+        AccountRef accountRef = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId)
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
+        return AccountHomeResponse.from(accountRef);
+    }
+
+    @Transactional
+    public AccountCreateResponse createAccount(Long userId, AccountCreateRequest request) {
+        log.info("[banking_account_create:requested] userId={}, accountType={}, accountName={}, hasForeignTax={}",
+                userId, request.accountType(), request.accountName(), request.hasForeignTax());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+        // 계좌 개설은 인증서 발급 완료 사용자만 허용한다.
+        if (user.getCertificateStatus() != CertificateStatus.ISSUED) {
+            log.warn("[banking_account_create:rejected_certificate_status] userId={}, certificateStatus={}",
+                    userId, user.getCertificateStatus());
+            throw new CustomException(BANKING_CERTIFICATE_REQUIRED);
+        }
+
+        // 백엔드 사용자 정보를 포함해 코어뱅킹 계좌 개설 API를 호출한다.
+        CoreBankingCreateAccountResponse created = coreBankingClient.createAccount(
+                CoreBankingCreateAccountRequest.of(user, request)
+        );
+        log.info("[banking_account_create:core_banking_completed] userId={}, accountId={}",
+                userId, created.accountId());
+
+        // 코어뱅킹 계좌 식별자와 계좌 정보를 클라우드 account_ref에 동기화한다.
+        AccountRef accountRef = AccountRef.builder()
+                .user(user)
+                .customerId(created.customerId())
+                .accountId(created.accountId())
+                .hasAccount(true)
+                .accountName(created.accountName())
+                .accountNumber(created.accountNumber())
+                .balance(0)
+                .hasLimit(true)
+                .transferLimit(created.transferLimit())
+                .build();
+        accountRefRepository.save(accountRef);
+        log.info("[banking_account_create:completed] userId={}, accountId={}, maskedAccountNumber={}",
+                userId, created.accountId(), maskAccountNumber(created.accountNumber()));
+
+        return AccountCreateResponse.of(
+                created.accountId(),
+                "WOORI",
+                created.accountNumber()
+        );
+    }
+
+    private String maskAccountNumber(String accountNumber) {
+        if (accountNumber == null || accountNumber.length() < 4) {
+            return "****";
+        }
+        return accountNumber.substring(0, 4) + "********";
+    }
 
     @Transactional
     public void transfer(Long userId, String idempotencyKey, TransferRequest request) {
@@ -69,6 +140,10 @@ public class BankingService {
             // 같은 계좌의 동일 이체를 막기 위한 락을 거는 로직
             AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountId(userId, request.withdrawAccountId())
                     .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+            coreBankingClient.verifyAccountPassword(
+                    CoreBankingPasswordVerifyRequest.of(accountRef.getAccountId(), request.accountPassword())
+            );
+
             String accountProcessingKey = formatAccountProcessingKey(accountRef.getAccountId());
             Boolean accountLockAcquired = stringRedisTemplate.opsForValue()
                     .setIfAbsent(accountProcessingKey, PROCESSING_VALUE, PROCESSING_TTL);
@@ -112,6 +187,8 @@ public class BankingService {
         return TransferPreviewResponse.of(
                 myAccount.getAccountName(),
                 myAccount.getAccountNumber(),
+                myAccount.getBalance(),
+                myAccount.getTransferLimit(),
                 recipientName
         );
     }

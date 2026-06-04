@@ -3,8 +3,12 @@ package woorifisa.project.backend.domain.user.service;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +28,7 @@ import software.amazon.awssdk.services.rekognition.model.Image;
 import software.amazon.awssdk.services.rekognition.model.LivenessOutputConfig;
 import software.amazon.awssdk.services.rekognition.model.S3Object;
 import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
+import woorifisa.project.backend.domain.user.dto.response.CorrectionDocumentResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
@@ -63,9 +68,42 @@ public class UserService {
 		}
 
 		// 문서를 보완해야하는 경우(다시 제출하는 경우)
-		uploadCorrectionDocuments(user, residenceVerificationPdf, alienRegistrationApplicationPdf);
-		// 보완 서류 제출 시 보완 알림 삭제
-		notificationService.deleteSupplementDocumentNotification(user);
+			uploadCorrectionDocuments(user, residenceVerificationPdf, alienRegistrationApplicationPdf);
+			// 보완 서류 제출 시 보완 알림 삭제
+			notificationService.deleteSupplementDocumentNotification(user);
+	}
+
+	@Transactional(readOnly = true)
+	public List<CorrectionDocumentResponse> getCorrectionDocuments(Long userId) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+
+		return List.of(
+				DocumentType.RESIDENCE_VERIFICATION_DOCUMENT,
+				DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT
+			).stream()
+			.map(documentType -> documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(user, documentType)
+				.filter(document -> document.getStatus() == DocumentStatus.REJECTED || document.getStatus() == DocumentStatus.APPROVED)
+				.map(document -> new CorrectionDocumentResponse(
+					document.getDocumentType().name(),
+					document.getStatus().name(),
+					parseMissingItems(document.getMissing())
+				))
+				.orElse(null))
+			.filter(java.util.Objects::nonNull)
+			.collect(Collectors.toList());
+	}
+
+	// document의 missing을 컴마(,) 단위로 파싱
+	private List<String> parseMissingItems(String missing) {
+		if (missing == null || missing.isBlank()) {
+			return Collections.emptyList();
+		}
+
+		return Arrays.stream(missing.split(","))
+			.map(String::trim)
+			.filter(item -> !item.isBlank())
+			.collect(Collectors.toList());
 	}
 
 	private void uploadInitialDocuments(User user, MultipartFile residenceVerificationPdf,
