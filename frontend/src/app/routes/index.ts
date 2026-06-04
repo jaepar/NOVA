@@ -10,6 +10,7 @@ import { globalTransferRoutes } from "./globalTransferRoutes";
 import { transferRoutes } from "./transferRoutes";
 
 import { accountRoutes } from "./accountRoutes";
+import { transactionHistoryRoutes } from "./transactionHistoryRoutes";
 import { NotFound } from "../pages/common/NotFound";
 
 export const appRoutes = [
@@ -22,6 +23,7 @@ export const appRoutes = [
   ...transferRoutes,
   ...walletRoutes,
   ...accountRoutes,
+  ...transactionHistoryRoutes,
   ...certificateRoutes,
   ...commonTemplateRoutes,
   { path: "*", Component: NotFound },
