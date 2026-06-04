@@ -9,7 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.APPLICATION_ALREADY_EXISTS;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.JOB_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.APPLICATION_NOT_FOUND;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,8 +30,10 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import woorifisa.project.backend.domain.job.dto.response.ApplicationFormResponse;
+import woorifisa.project.backend.domain.job.dto.response.ApplicationListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
+import woorifisa.project.backend.domain.job.dto.response.PortfolioFileResponse;
 import woorifisa.project.backend.domain.job.entity.Application;
 import woorifisa.project.backend.domain.job.entity.Job;
 import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
@@ -150,7 +152,7 @@ class JobServiceTest {
 		assertThatThrownBy(() -> jobService.getJobOpeningDetail(999L))
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
-			.isEqualTo(JOB_NOT_FOUND);
+			.isEqualTo(APPLICATION_NOT_FOUND);
 	}
 
 	@Test
@@ -177,6 +179,96 @@ class JobServiceTest {
 		assertThat(response.portfolios().get(0).name()).isEqualTo("portfolio.pdf");
 		assertThat(response.portfolios().get(0).url())
 			.isEqualTo("https://s3.test/portfolios/user-1/profile/portfolio.pdf");
+	}
+
+	@Test
+	@DisplayName("find authenticated user's paged applications without attached portfolio in list response")
+	void findApplications() {
+		Pageable requestedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+		User user = user(1L);
+		Job firstJob = job(10L, "Hospital", "Seoul", "Clinic manager opening", LocalDateTime.of(2026, 6, 1, 9, 0));
+		Job secondJob = job(20L, "Clinic", "Busan", "Nurse opening", LocalDateTime.of(2026, 6, 2, 9, 0));
+		Resume portfolio = Resume.builder()
+			.resumeId(3L)
+			.user(user)
+			.name("portfolio.pdf")
+			.url("https://cdn.test/portfolio.pdf")
+			.build();
+		Application firstApplication = application(100L, user, firstJob, portfolio, ApplicationStatus.FAILED,
+			LocalDateTime.of(2026, 6, 18, 9, 0));
+		Application secondApplication = application(200L, user, secondJob, null, ApplicationStatus.PASSED,
+			LocalDateTime.of(2026, 6, 12, 9, 0));
+
+		when(applicationRepository.findAllByUser_UserId(1L, requestedPageable))
+			.thenReturn(new SliceImpl<>(List.of(firstApplication, secondApplication), requestedPageable, true));
+
+		ApplicationListResponse response = jobService.findApplications(1L, requestedPageable);
+
+		verify(applicationRepository).findAllByUser_UserId(1L, requestedPageable);
+		assertThat(response.items()).hasSize(2);
+		assertThat(response.page()).isZero();
+		assertThat(response.size()).isEqualTo(10);
+		assertThat(response.hasNext()).isTrue();
+		assertThat(response.items().get(0).applicationId()).isEqualTo(100L);
+		assertThat(response.items().get(0).jobId()).isEqualTo(10L);
+		assertThat(response.items().get(0).openingTitle()).isEqualTo("Clinic manager opening");
+		assertThat(response.items().get(0).appliedAt()).isEqualTo(LocalDateTime.of(2026, 6, 18, 9, 0));
+		assertThat(response.items().get(0).status()).isEqualTo(ApplicationStatus.FAILED);
+	}
+
+	@Test
+	@DisplayName("return empty paged application list when user has no applications")
+	void findApplicationsEmpty() {
+		Pageable requestedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+		when(applicationRepository.findAllByUser_UserId(1L, requestedPageable))
+			.thenReturn(new SliceImpl<>(List.of(), requestedPageable, false));
+
+		ApplicationListResponse response = jobService.findApplications(1L, requestedPageable);
+
+		verify(applicationRepository).findAllByUser_UserId(1L, requestedPageable);
+		assertThat(response.items()).isEmpty();
+		assertThat(response.page()).isZero();
+		assertThat(response.size()).isEqualTo(10);
+		assertThat(response.hasNext()).isFalse();
+	}
+
+	@Test
+	@DisplayName("find selected application's attached portfolio")
+	void findApplicationPortfolio() {
+		User user = user(1L);
+		Job job = job(10L);
+		Resume portfolio = Resume.builder()
+			.resumeId(3L)
+			.user(user)
+			.name("조수재 포트폴리오.pdf")
+			.url("https://cdn.test/portfolio.pdf")
+			.build();
+		Application application = application(100L, user, job, portfolio, ApplicationStatus.FAILED,
+			LocalDateTime.of(2026, 6, 18, 9, 0));
+
+		when(applicationRepository.findByApplicationIdAndUser_UserId(100L, 1L))
+			.thenReturn(Optional.of(application));
+
+		PortfolioFileResponse response = jobService.findApplicationPortfolio(1L, 100L);
+
+		assertThat(response.name()).isEqualTo("조수재 포트폴리오.pdf");
+		assertThat(response.url()).isEqualTo("https://cdn.test/portfolio.pdf");
+	}
+
+	@Test
+	@DisplayName("return null portfolio when selected application has no attached portfolio")
+	void findApplicationPortfolioEmpty() {
+		User user = user(1L);
+		Job job = job(10L);
+		Application application = application(100L, user, job, null, ApplicationStatus.FAILED,
+			LocalDateTime.of(2026, 6, 18, 9, 0));
+
+		when(applicationRepository.findByApplicationIdAndUser_UserId(100L, 1L))
+			.thenReturn(Optional.of(application));
+
+		PortfolioFileResponse response = jobService.findApplicationPortfolio(1L, 100L);
+
+		assertThat(response).isNull();
 	}
 
 	@Test
@@ -250,7 +342,7 @@ class JobServiceTest {
 		assertThatThrownBy(() -> jobService.createApplication(1L, 404L, null))
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
-			.isEqualTo(JOB_NOT_FOUND);
+			.isEqualTo(APPLICATION_NOT_FOUND);
 	}
 
 	@Test
@@ -300,5 +392,24 @@ class JobServiceTest {
 			.build();
 		ReflectionTestUtils.setField(job, "createdAt", createdAt);
 		return job;
+	}
+
+	private Application application(
+		Long applicationId,
+		User user,
+		Job job,
+		Resume resume,
+		ApplicationStatus status,
+		LocalDateTime createdAt
+	) {
+		Application application = Application.builder()
+			.applicationId(applicationId)
+			.user(user)
+			.job(job)
+			.resume(resume)
+			.status(status)
+			.build();
+		ReflectionTestUtils.setField(application, "createdAt", createdAt);
+		return application;
 	}
 }
