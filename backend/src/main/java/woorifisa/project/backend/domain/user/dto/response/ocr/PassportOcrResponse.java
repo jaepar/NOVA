@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 // 프론트 응답용 여권 OCR DTO
-public record PassportResponse(
+public record PassportOcrResponse(
 	String type,
 	String issueCountry,
 	String num,
@@ -15,6 +15,7 @@ public record PassportResponse(
 	String sex,
 	String issueDate,
 	String expireDate,
-	String authority
+	String authority,
+	String fullNameKor
 ) {
 }
