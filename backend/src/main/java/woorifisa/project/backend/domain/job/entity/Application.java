@@ -15,7 +15,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
-import woorifisa.project.backend.domain.user.entity.Resume;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.global.entity.BaseEntity;
 
@@ -40,15 +39,7 @@ public class Application extends BaseEntity {
     @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
-    @ManyToOne
-    @JoinColumn(name = "resume_id")
-    private Resume resume;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ApplicationStatus status;
-
-    public void attachResume(Resume resume) {
-        this.resume = resume;
-    }
 }
