@@ -158,6 +158,7 @@ public class RestCoreBankingClient implements CoreBankingClient {
                             .queryParam("from", query.from())
                             .queryParam("to", query.to())
                             .queryParam("flow", query.flow())
+                            // keyword는 선택 조건이라 값이 있을 때만 CoreBanking에 전달한다.
                             .queryParamIfPresent("keyword", Optional.ofNullable(query.keyword()))
                             .queryParam("sortDirection", query.sortDirection())
                             .queryParam("page", query.page())

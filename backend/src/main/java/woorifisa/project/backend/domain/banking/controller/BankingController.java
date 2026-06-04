@@ -40,6 +40,7 @@ public class BankingController {
 
     private final BankingService bankingService;
 
+    // 홈 계좌 정보 조회
     @GetMapping("/home")
     public BaseResponse<AccountHomeResponse> findHomeAccount(
             @AuthenticationPrincipal SessionUserPrincipal principal
@@ -47,6 +48,7 @@ public class BankingController {
         return BaseResponse.ok(bankingService.findHomeAccount(principal.userId()));
     }
 
+    // 계좌 개설
     @PostMapping
     public BaseResponse<AccountCreateResponse> createAccount(
             @AuthenticationPrincipal SessionUserPrincipal principal,
@@ -55,6 +57,7 @@ public class BankingController {
         return BaseResponse.ok(bankingService.createAccount(principal.userId(), request));
     }
 
+    // 계좌 이체
     @PostMapping("/transfers")
     public BaseResponse<Void> transfer(
             @AuthenticationPrincipal SessionUserPrincipal principal,
@@ -65,6 +68,7 @@ public class BankingController {
         return BaseResponse.ok(null);
     }
 
+    // 이체 사전 조회(사용자 계좌 + 수취인)
     @PostMapping("/transfers/preview")
     public BaseResponse<TransferPreviewResponse> previewTransfer(
             @AuthenticationPrincipal SessionUserPrincipal principal,
@@ -73,6 +77,7 @@ public class BankingController {
         return BaseResponse.ok(bankingService.previewTransfer(principal.userId(), request));
     }
 
+    // 계좌 비밀번호 검증
     @PostMapping("/password/verify")
     public BaseResponse<Void> verifyAccountPassword(
             @AuthenticationPrincipal SessionUserPrincipal principal,
@@ -82,6 +87,7 @@ public class BankingController {
         return BaseResponse.ok(null);
     }
 
+    // 계좌 거래내역 조회
     @GetMapping("/{accountId}/transactions")
     public BaseResponse<BankingTransactionsResponse> findTransactions(
             @AuthenticationPrincipal SessionUserPrincipal principal,
@@ -109,6 +115,7 @@ public class BankingController {
         );
     }
 
+    // 거래내역 메모 수정
     @PatchMapping("/transactions/{transactionId}/memo")
     public BaseResponse<Void> updateTransactionMemo(
             @AuthenticationPrincipal SessionUserPrincipal principal,

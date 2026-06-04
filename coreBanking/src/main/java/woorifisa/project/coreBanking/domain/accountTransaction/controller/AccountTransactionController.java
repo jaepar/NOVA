@@ -30,6 +30,7 @@ public class AccountTransactionController {
 
     private final AccountTransactionService accountTransactionService;
 
+    // 이체·충전 요청 처리 결과 조회
     @GetMapping("/requests/{externalRequestId}")
     public BaseResponse<AccountTransactionRequestLookupResponse> findRequestResult(
             @PathVariable String externalRequestId
@@ -37,6 +38,7 @@ public class AccountTransactionController {
         return BaseResponse.ok(accountTransactionService.findRequestResult(externalRequestId));
     }
 
+    // 계좌 거래내역 조회 (기간·입출금 유형·페이지 조건)
     @GetMapping("/accounts/{accountId}")
     public BaseResponse<AccountTransactionsResponse> findTransactions(
             @PathVariable Long accountId,
@@ -51,18 +53,21 @@ public class AccountTransactionController {
         return BaseResponse.ok(accountTransactionService.findTransactions(accountId, from, to, flow, keyword, sortDirection, page, size));
     }
 
+    // 월렛 충전 계좌 차감
     @PostMapping("/wallet")
     public BaseResponse<Void> debitWalletCharge(@RequestBody DebitWalletAccountRequest request) {
         accountTransactionService.debitWalletCharge(request);
         return BaseResponse.ok(null);
     }
 
+    // 계좌 이체
     @PostMapping("/transfers")
     public BaseResponse<Void> transfer(@Valid @RequestBody TransferAccountRequest request) {
         accountTransactionService.transfer(request);
         return BaseResponse.ok(null);
     }
 
+    // 거래내역 메모 수정
     @PatchMapping("/transactions/{transactionId}/memo")
     public BaseResponse<Void> updateMemo(
             @PathVariable Long transactionId,
