@@ -1,17 +1,17 @@
-import { useNavigate } from 'react-router-dom'
-import { Camera, Lightbulb, ScanFace } from 'lucide-react'
-import { MobileLayout } from '../../components/layout/MobileLayout'
-import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { useNavigate } from "react-router-dom";
+import { Camera, Lightbulb, ScanFace } from "lucide-react";
+import { MobileLayout } from "../../components/layout/MobileLayout";
+import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 
 export function LivenessGuide() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <MobileLayout
-      title="비대면 신원확인"
+      title="비대면 실명확인"
       backPath="/certificate/step-06"
       bottomContent={
-        <Btn_1Col onClick={() => navigate('/certificate/step-08')}>
+        <Btn_1Col onClick={() => navigate("/certificate/step-08")}>
           동의하고 촬영하기
         </Btn_1Col>
       }
@@ -31,7 +31,9 @@ export function LivenessGuide() {
             <div className="h-40 w-40 rounded-full border-2 border-blue-300 flex items-center justify-center">
               <ScanFace className="h-16 w-16 text-blue-400" />
             </div>
-            <p className="text-sm text-muted-foreground">얼굴 촬영 가이드 영역</p>
+            <p className="text-sm text-muted-foreground">
+              얼굴 촬영 가이드 영역
+            </p>
           </div>
         </section>
 
@@ -40,13 +42,17 @@ export function LivenessGuide() {
             <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
               <ScanFace className="h-4 w-4" />
             </div>
-            <p className="text-sm leading-relaxed">얼굴을 안내 영역에 맞추고 정면을 바라봐 주세요.</p>
+            <p className="text-sm leading-relaxed">
+              얼굴을 안내 영역에 맞추고 정면을 바라봐 주세요.
+            </p>
           </div>
           <div className="flex items-start gap-3">
             <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
               <Lightbulb className="h-4 w-4" />
             </div>
-            <p className="text-sm leading-relaxed">너무 밝거나 어둡지 않은 곳에서 진행해 주세요.</p>
+            <p className="text-sm leading-relaxed">
+              너무 밝거나 어둡지 않은 곳에서 진행해 주세요.
+            </p>
           </div>
           <div className="flex items-start gap-3">
             <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
@@ -57,8 +63,7 @@ export function LivenessGuide() {
             </p>
           </div>
         </section>
-
       </div>
     </MobileLayout>
-  )
+  );
 }

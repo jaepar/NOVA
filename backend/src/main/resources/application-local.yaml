@@ -51,10 +51,14 @@ logging:
 app:
   core-banking:
     base-url: ${CORE_BANKING_BASE_URL:http://localhost:8001}
-#  government:
-#    base-url: ${GOVERMENT_DB_URL}
+  government:
+    base-url: ${GOVERNMENT_DB_URL:http://localhost:8002}
 #  ai:
 #    base-url: ${AI_BASE_URL}
+
+identity:
+  registration-number:
+    hmac-secret: ${REGISTRATION_NUMBER_HMAC_SECRET}
 
 cloud:
   aws:
@@ -65,6 +69,9 @@ cloud:
 
 kyc:
   verification:
+    passport-ocr:
+      url: ${CLOVA_OCR_URL}
+      secret: ${CLOVA_OCR_SECRET}
     rekognition:
       region: ap-northeast-1
       output-bucket: ${AWS_S3_BUCKET}

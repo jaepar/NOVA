@@ -1,5 +1,11 @@
 import { create } from 'zustand'
 
+function clearSessionStorage() {
+  if (typeof window === 'undefined' || typeof window.sessionStorage === 'undefined') return
+
+  window.sessionStorage.clear()
+}
+
 interface MainPageState {
   isMenuOpen: boolean
   isLoggedIn: boolean
@@ -38,7 +44,10 @@ export const useMainPageStore = create<MainPageState>((set) => ({
   setHasAccount: (hasAccount) => set({ hasAccount }),
   setHasUnreadNotifications: (hasUnreadNotifications) => set({ hasUnreadNotifications }),
   setCertificateSheetOpen: (isCertificateSheetOpen) => set({ isCertificateSheetOpen }),
-  logout: () => set({ isLoggedIn: false, isAuthChecked: true, userId: null, hasAccount: false }),
+  logout: () => {
+    clearSessionStorage()
+    set({ isLoggedIn: false, isAuthChecked: true, userId: null, hasAccount: false })
+  },
 }))
 
 interface Step1PageState {
@@ -193,18 +202,17 @@ interface Step5PassportCaptureState {
   capturedImage: string | null
   cameraError: string | null
   parsedPassportData: {
-    docType: string
-    nationalityCode: string
-    passportNumber: string
-    surname: string
-    givenNames: string
+    type: string
+    issueCountry: string
+    num: string
+    surName: string
+    givenName: string
+    nationlity: string
     birthDate: string
     sex: string
-    country: string
-    issuingCountryCode: string
     authority: string
     issueDate: string
-    expiryDate: string
+    expireDate: string
   } | null
   setMode: (mode: 'live' | 'review') => void
   setCapturedImage: (capturedImage: string | null) => void

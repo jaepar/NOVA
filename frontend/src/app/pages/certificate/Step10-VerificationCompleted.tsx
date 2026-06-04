@@ -1,19 +1,26 @@
-import { useNavigate } from 'react-router-dom'
-import { Check } from 'lucide-react'
-import { MobileLayout } from '../../components/layout/MobileLayout'
-import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { useNavigate } from "react-router-dom";
+import { Check } from "lucide-react";
+import { MobileLayout } from "../../components/layout/MobileLayout";
+import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 
-const completedItems = ['서류 제출', 'OCR 인식', 'NFC 인식', '얼굴 인식'] as const
+const completedItems = [
+  "서류 제출",
+  "OCR 인식",
+  "NFC 인식",
+  "얼굴 인식",
+] as const;
 
 export function VerificationCompleted() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <MobileLayout
       title="비대면 실명확인"
       backPath="/certificate/step-08"
       bottomContent={
-        <Btn_1Col onClick={() => navigate('/certificate/step-11')}>최종 제출하기</Btn_1Col>
+        <Btn_1Col onClick={() => navigate("/certificate/step-11")}>
+          최종 제출하기
+        </Btn_1Col>
       }
     >
       <div className="space-y-8 pb-2">
@@ -47,5 +54,5 @@ export function VerificationCompleted() {
         </section>
       </div>
     </MobileLayout>
-  )
+  );
 }
