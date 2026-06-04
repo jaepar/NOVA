@@ -14,14 +14,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class AccountTransactionRepositoryTest {
 
     @Test
-    @DisplayName("멱등 처리를 위한 외부 요청 식별자 조회 메서드를 제공한다")
+    @DisplayName("멱등 처리용 externalRequestId 조회 메서드가 존재한다")
     void externalRequestIdLookupExists() throws NoSuchMethodException {
         assertThat(AccountTransactionRepository.class.getMethod("existsByExternalRequestId", String.class))
                 .isNotNull();
     }
 
     @Test
-    @DisplayName("계좌/기간/입출금 유형/검색어 기준 거래내역 페이징 조회 메서드를 제공한다")
+    @DisplayName("거래내역 Slice 조회 메서드가 존재한다")
     void transactionHistoryLookupExists() throws NoSuchMethodException {
         assertThat(AccountTransactionRepository.class.getMethod(
                 "findTransactions",
@@ -35,7 +35,7 @@ class AccountTransactionRepositoryTest {
     }
 
     @Test
-    @DisplayName("거래내역 조회는 상한 경계를 포함하는 Between 메서드를 사용하지 않는다")
+    @DisplayName("상한 포함 Between 기반 조회 메서드는 사용하지 않는다")
     void transactionHistoryLookupDoesNotUseInclusiveUpperBound() {
         assertThatThrownBy(() -> AccountTransactionRepository.class.getMethod(
                 "findByAccount_AccountIdAndCreatedAtBetween",
