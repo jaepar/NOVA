@@ -11,11 +11,13 @@ import static woorifisa.project.coreBanking.global.response.status.BaseResponseS
 import org.springframework.dao.DataIntegrityViolationException;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.account.repository.AccountRepository;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransferAccountRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.AccountTransaction;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionFlow;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.UpdateTransactionMemoResponse;
 
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_CONFLICT;
 import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.WALLET_ACCOUNT_DEBIT_INSUFFICIENT_BALANCE;
@@ -41,6 +43,21 @@ public class AccountTransactionService {
             throw new CustomException(ACCOUNT_TRANSACTION_NOT_FOUND);
         }
         return AccountTransactionRequestLookupResponse.of(externalRequestId);
+    }
+
+    @Transactional
+    public UpdateTransactionMemoResponse updateMemo(
+            Long accountId,
+            Long transactionId,
+            UpdateTransactionMemoRequest request
+    ) {
+        // 해당 계좌에 속한 거래내역만 찾아 memo만 수정한다.
+        AccountTransaction transaction = accountTransactionRepository
+                .findByAccount_AccountIdAndAccountTransactionId(accountId, transactionId)
+                .orElseThrow(() -> new CustomException(ACCOUNT_TRANSACTION_NOT_FOUND));
+
+        transaction.updateMemo(request.normalizedMemo());
+        return UpdateTransactionMemoResponse.from(transaction);
     }
 
     @Transactional
