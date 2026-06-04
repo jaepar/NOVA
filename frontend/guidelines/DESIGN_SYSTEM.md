@@ -75,6 +75,46 @@
 - 하단 고정 액션은 `MobileLayout`의 `bottomContent`로 구성한다.
 - 하단 배경색은 `bottomBackgroundColor`로 제어하며 기본값은 `#ffffff`이다.
 
+## 6.1) 토스트 시스템 (필수)
+
+- 토스트 메시지는 디자인 시스템 컴포넌트/유틸을 사용한다.
+- 사용 컴포넌트:
+  - `NovaToast`: 전역 토스트 렌더러 (`App.tsx` 루트에 1회 마운트)
+  - `novaToast`: 페이지/도메인에서 호출하는 공통 API
+- 직접 `sonner`의 `toast`를 페이지에서 import해 호출하지 않는다.
+- 기본 규격:
+  - 위치: `top-center`
+  - 지속시간: `2500ms`
+  - 모서리 반경: `12px`
+  - 본문 크기/두께: `14px` / `500`
+- 상태 타입:
+  - 성공: `novaToast.success(message)`
+  - 오류: `novaToast.error(message)`
+  - 정보: `novaToast.info(message)`
+  - 경고: `novaToast.warning(message)`
+
+## 6.2) 인라인 배너 시스템 (필수)
+
+- 페이지 내 안내 배너는 공통 컴포넌트 `InlineBanner`를 사용한다.
+- 페이지 파일에서 배경/보더 스타일을 직접 작성해 중복 구현하지 않는다.
+- 기본 레이아웃 규격:
+  - 모서리 반경: `rounded-xl`
+  - 내부 여백: `p-3`
+  - 텍스트: `text-sm`, `text-center`
+- 상태 타입:
+  - 성공: `variant="success"`
+  - 오류: `variant="error"`
+  - 정보: `variant="info"`
+  - 경고: `variant="warning"`
+- 상태별 색상 규격:
+  - 성공: `border-emerald-400/60`, `bg-emerald-500/10`, `text-emerald-900`
+  - 오류: `border-red-400/50`, `bg-red-500/10`, `text-black`
+  - 정보: `border-blue-400/60`, `bg-blue-500/10`, `text-blue-900`
+  - 경고: `border-amber-400/60`, `bg-amber-500/15`, `text-amber-900`
+- 접근성 규격:
+  - `role="alert"`
+  - `aria-live="polite"`
+
 
 ### Main 페이지 구현 정책 참조
 

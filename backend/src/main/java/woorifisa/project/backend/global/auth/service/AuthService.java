@@ -19,6 +19,7 @@ import woorifisa.project.backend.global.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.global.auth.dto.request.SignupRequest;
 import woorifisa.project.backend.global.auth.dto.response.LoginResponse;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -81,7 +82,7 @@ public class AuthService {
                 .birth(request.birth())
                 .gender(request.gender())
                 .hasResidenceCard(false)
-                .hasCertificate(false)
+                .certificateStatus(CertificateStatus.NOT_ISSUED)
                 .hasDelete(false)
                 .issuedTime(null)
                 .build();

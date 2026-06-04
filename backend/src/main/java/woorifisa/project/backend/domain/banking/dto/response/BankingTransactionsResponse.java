@@ -1,6 +1,6 @@
 package woorifisa.project.backend.domain.banking.dto.response;
 
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingTransactionsResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
 

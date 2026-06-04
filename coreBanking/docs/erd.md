@@ -30,7 +30,7 @@ erDiagram
     VARCHAR_100 account_name
     INT balance
     VARCHAR_100 password
-    INT daily_transfer_limit
+    INT transfer_limit
     ENUM bank_code "WOORI | KOOKMIN | SHINHAN | NH | HANA | IBK | SC | CITI | DAEGU | BUSAN | KYONGNAM | GWANGJU | JEONBUK | JEJU | POST"
     TIMESTAMP created_at
     TIMESTAMP updated_at

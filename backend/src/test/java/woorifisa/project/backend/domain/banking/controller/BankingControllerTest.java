@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -12,11 +13,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
+import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
-
-import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,6 +48,82 @@ class BankingControllerTest {
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
+    @DisplayName("홈 계좌 조회 요청을 처리하고 계좌 카드 정보를 반환한다")
+    void findHomeAccountSuccess() throws Exception {
+        Long userId = 1L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.findHomeAccount(any()))
+                .thenReturn(new AccountHomeResponse(
+                        2001L,
+                        "NOVA 임시 제한 계좌",
+                        "1002867390781",
+                        "우리은행",
+                        50000,
+                        true,
+                        CertificateStatus.ISSUED
+                ));
+
+        mockMvc.perform(get("/banking/home")
+                        .with(authentication(authToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data.accountId").value(2001))
+                .andExpect(jsonPath("$.data.accountName").value("NOVA 임시 제한 계좌"))
+                .andExpect(jsonPath("$.data.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.bankName").value("우리은행"))
+                .andExpect(jsonPath("$.data.balance").value(50000))
+                .andExpect(jsonPath("$.data.hasLimit").value(true))
+                .andExpect(jsonPath("$.data.certificateStatus").value("ISSUED"));
+    }
+
+    @Test
+    @DisplayName("세션 사용자 기준으로 계좌 개설 요청을 처리한다")
+    void createAccountSuccess() throws Exception {
+        Long userId = 1L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.createAccount(any(), any()))
+                .thenReturn(AccountCreateResponse.of(2001L, "WOORI", "1002-312-345678"));
+
+        mockMvc.perform(post("/banking")
+                        .with(authentication(authToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "accountType": "DEMAND_DEPOSIT",
+                                  "accountName": "우리 SUPER주거래 통장",
+                                  "customerInfo": {
+                                    "address": "서울특별시 광진구 능동로 120",
+                                    "addressDetail": "건국대학교 기숙사 101호"
+                                  },
+                                  "job": "STUDENT",
+                                  "transactionInfo": {
+                                    "purpose": "SALARY_AND_LIVING_EXPENSES",
+                                    "source": "EARNED_AND_PENSION_INCOME"
+                                  },
+                                  "hasForeignTax": false,
+                                  "accountPassword": "1234"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data.accountId").value(2001))
+                .andExpect(jsonPath("$.data.bankCode").value("WOORI"))
+                .andExpect(jsonPath("$.data.accountNumber").value("1002-312-345678"));
+    }
+
+    @Test
     @DisplayName("세션 사용자와 멱등키 기준으로 계좌 이체 요청을 처리한다")
     void transferSuccess() throws Exception {
         Long userId = 1L;
@@ -67,6 +145,7 @@ class BankingControllerTest {
                                   "withdrawAccountId": 2001,
                                   "depositAccountId": 2002,
                                   "transferAmount": 5000,
+                                  "accountPassword": "1234",
                                   "withdrawMemo": "박재하",
                                   "depositMemo": "박재하"
                                 }
@@ -92,6 +171,8 @@ class BankingControllerTest {
                         woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse.of(
                                 "우리SUPER주거래통장",
                                 "1002867390781",
+                                50_000,
+                                300_000,
                                 "백민정"
                         )
                 );
@@ -110,19 +191,20 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.code").value("20000"))
                 .andExpect(jsonPath("$.data.myAccount.accountName").value("우리SUPER주거래통장"))
                 .andExpect(jsonPath("$.data.myAccount.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.myAccount.balance").value(50000))
+                .andExpect(jsonPath("$.data.myAccount.transferLimit").value(300000))
                 .andExpect(jsonPath("$.data.recipient.recipientName").value("백민정"));
     }
 
     @Test
-    @DisplayName("계좌 비밀번호 검증 요청을 처리한다")
-    void verifyAccountPasswordSuccess() throws Exception {
+    @DisplayName("계좌 비밀번호 검증 API는 더 이상 제공하지 않는다")
+    void verifyAccountPasswordRemoved() throws Exception {
         Long userId = 1L;
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 new SessionUserPrincipal(userId),
                 null,
                 AuthorityUtils.NO_AUTHORITIES
         );
-        doNothing().when(bankingService).verifyAccountPassword(any(), any());
 
         mockMvc.perform(post("/banking/password/verify")
                         .with(authentication(authToken))
@@ -133,12 +215,8 @@ class BankingControllerTest {
                                   "accountPassword": "1234"
                                 }
                                 """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data").doesNotExist());
+                .andExpect(status().isNotFound());
     }
-
     @Test
     @DisplayName("거래내역 조회 요청을 기본 기간/유형/페이지 크기로 처리한다")
     void findTransactionsWithDefaults() throws Exception {
@@ -191,7 +269,7 @@ class BankingControllerTest {
     }
 
     @Test
-    @DisplayName("거래내역 조회 직접 입력 기간을 서비스로 전달한다")
+    @DisplayName("거래내역 조회 직접 입력 기간과 검색/정렬 조건을 서비스로 전달한다")
     void findTransactionsWithCustomPeriod() throws Exception {
         Long userId = 1L;
         Long accountId = 2001L;

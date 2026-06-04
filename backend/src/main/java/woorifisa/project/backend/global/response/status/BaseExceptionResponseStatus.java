@@ -61,6 +61,15 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
 	LIVENESS_REFERENCE_IMAGE_NOT_FOUND("USER-012", "Liveness 결과에서 참조 이미지를 찾을 수 없습니다."),
 	PASSPORT_OCR_FAILED("USER-013", "여권 OCR 처리에 실패했습니다."),
 	PASSPORT_OCR_INVALID_ID_TYPE("USER-014", "사진이 올바르지 않습니다."),
+	IDENTITY_OCR_INVALID_DOCUMENT_TYPE("USER-015", "지원하지 않는 OCR 문서 타입입니다."),
+	ID_CARD_OCR_FAILED("USER-016", "신분증 OCR 처리에 실패했습니다."),
+	ID_CARD_OCR_INVALID_ID_TYPE("USER-017", "신분증 사진이 올바르지 않습니다."),
+	IDENTITY_NAME_MISMATCH_WITH_USER("USER-018", "신분증 이름이 사용자 정보와 일치하지 않습니다."),
+	GOVERNMENT_IDENTITY_NOT_FOUND("USER-019", "정부 DB에서 사용자 신원 정보를 찾을 수 없습니다."),
+	GOVERNMENT_IDENTITY_MISMATCH("USER-020", "정부 DB의 신원 정보와 일치하지 않습니다."),
+	GOVERNMENT_DB_COMMUNICATION_FAILED("USER-021", "정부 DB 통신에 실패했습니다."),
+	REGISTRATION_NUMBER_HMAC_SECRET_NOT_CONFIGURED("USER-022", "식별번호 HMAC 설정이 필요합니다."),
+	USER_CERTIFICATE_STATUS_TRANSITION_INVALID("USER-023", "인증서 상태 전이가 올바르지 않습니다."),
 
 	/**
 	 * admin
@@ -70,16 +79,23 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
 	INVALID_DOCUMENT_REVIEW_STATUS("ADMIN-003", "유효하지 않은 서류 심사 상태입니다."),
 	DOCUMENT_REVIEW_SOURCE_STATUS_INVALID("ADMIN-004", "심사 가능한 문서 상태가 아닙니다."),
 
-	/**
-	 * banking
+    /**
+     * banking
+     */
+    BANKING_ACCOUNT_NOT_FOUND("BANK-001", "계좌 정보를 찾을 수 없습니다."),
+    BANKING_TRANSFER_PROCESSING("BANK-002", "이미 처리 중인 이체 요청입니다."),
+    BANKING_CORE_BANKING_COMMUNICATION_FAILED("BANK-003", "코어뱅킹 통신에 실패했습니다."),
+    BANKING_TRANSFER_FAILED("BANK-004", "계좌 이체 처리에 실패했습니다."),
+    BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED("BANK-005", "이체 처리 확인 재시도 대기 중 인터럽트가 발생했습니다."),
+    BANKING_RECIPIENT_NOT_FOUND("BANK-006", "수취인 계좌 정보를 찾을 수 없습니다."),
+    BANKING_ACCOUNT_PASSWORD_NOT_MATCHED("BANK-007", "계좌 비밀번호가 일치하지 않습니다."),
+    BANKING_CERTIFICATE_REQUIRED("BANK-008", "인증서 발급 완료 상태에서만 계좌 개설이 가능합니다."),
+
+  	/**
+	 * job
 	 */
-	BANKING_ACCOUNT_NOT_FOUND("BANK-001", "계좌 정보를 찾을 수 없습니다."),
-	BANKING_TRANSFER_PROCESSING("BANK-002", "이미 처리 중인 이체 요청입니다."),
-	BANKING_CORE_BANKING_COMMUNICATION_FAILED("BANK-003", "코어뱅킹 통신에 실패했습니다."),
-	BANKING_TRANSFER_FAILED("BANK-004", "계좌 이체 처리에 실패했습니다."),
-	BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED("BANK-005", "이체 처리 확인 재시도 대기 중 인터럽트가 발생했습니다."),
-	BANKING_RECIPIENT_NOT_FOUND("BANK-006", "수취인 계좌 정보를 찾을 수 없습니다."),
-	BANKING_ACCOUNT_PASSWORD_NOT_MATCHED("BANK-007", "계좌 비밀번호가 일치하지 않습니다.");
+  	APPLICATION_NOT_FOUND("JOB-001", "지원서를 찾을 수 없습니다."),
+    APPLICATION_ALREADY_EXISTS("JOB-002", "이미 지원한 구인공고입니다.");
 
 	private final boolean success = false;
 	private final String code;

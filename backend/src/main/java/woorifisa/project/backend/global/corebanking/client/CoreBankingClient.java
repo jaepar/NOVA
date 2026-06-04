@@ -1,13 +1,15 @@
 package woorifisa.project.backend.global.corebanking.client;
 
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransactionQuery;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingTransactionsResponse;
-import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransactionQuery;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateCustomerRequest;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingTransactionsResponse;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 
 public interface CoreBankingClient {
 
@@ -19,7 +21,6 @@ public interface CoreBankingClient {
 
     void verifyAccountPassword(CoreBankingPasswordVerifyRequest request);
 
-    // Core Banking 원장 기준 계좌 거래내역을 기간/유형/페이지 조건으로 조회한다.
     CoreBankingTransactionsResponse findAccountTransactions(CoreBankingTransactionQuery query);
 
     void debitWalletAccount(CoreBankingWalletDebitRequest request);
@@ -27,4 +28,6 @@ public interface CoreBankingClient {
     boolean existsWalletDebitRequest(String externalRequestId);
 
     void createCustomer(CoreBankingCreateCustomerRequest request);
+
+    CoreBankingCreateAccountResponse createAccount(CoreBankingCreateAccountRequest request);
 }

@@ -312,9 +312,9 @@ class UserServiceTest {
 			verify(notificationService).deleteSupplementDocumentNotification(user);
 		}
 
-		@Test
-		@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
-		void userNotFound() {
+	@Test
+	@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
+	void userNotFound() {
 		Long userId = 1L;
 		MockMultipartFile residencePdf = new MockMultipartFile(
 			"residenceVerificationPdf",
@@ -335,6 +335,45 @@ class UserServiceTest {
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
 			.isEqualTo(USER_NOT_FOUND);
+	}
+
+	@Test
+	@DisplayName("보완 서류 조회 시 REJECTED/APPROVED 상태 문서만 반환하고 missing을 콤마 기준으로 파싱한다")
+	void getCorrectionDocumentsParsesMissingItems() {
+		Long userId = 1L;
+		User user = User.builder().userId(userId).build();
+		Document residenceRejected = Document.builder()
+			.user(user)
+			.documentType(DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)
+			.status(DocumentStatus.REJECTED)
+			.missing("주소 항목 누락, 직업 / 직업명")
+			.fileUrl("url1")
+			.build();
+		Document alienApproved = Document.builder()
+			.user(user)
+			.documentType(DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT)
+			.status(DocumentStatus.APPROVED)
+			.missing(null)
+			.fileUrl("url2")
+			.build();
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(
+			user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT
+		)).thenReturn(Optional.of(residenceRejected));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(
+			user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT
+		)).thenReturn(Optional.of(alienApproved));
+
+		var result = userService.getCorrectionDocuments(userId);
+
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0).documentType()).isEqualTo("RESIDENCE_VERIFICATION_DOCUMENT");
+		assertThat(result.get(0).status()).isEqualTo("REJECTED");
+		assertThat(result.get(0).missingItems()).containsExactly("주소 항목 누락", "직업 / 직업명");
+		assertThat(result.get(1).documentType()).isEqualTo("ALIEN_REGISTRATION_SUPPORTING_DOCUMENT");
+		assertThat(result.get(1).status()).isEqualTo("APPROVED");
+		assertThat(result.get(1).missingItems()).isEmpty();
 	}
 
 	@Test
