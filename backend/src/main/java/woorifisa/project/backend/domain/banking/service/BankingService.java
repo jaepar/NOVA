@@ -183,6 +183,8 @@ public class BankingService {
         return TransferPreviewResponse.of(
                 myAccount.getAccountName(),
                 myAccount.getAccountNumber(),
+                myAccount.getBalance(),
+                myAccount.getTransferLimit(),
                 recipientName
         );
     }
