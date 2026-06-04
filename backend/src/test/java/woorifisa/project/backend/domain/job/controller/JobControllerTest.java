@@ -3,6 +3,7 @@ package woorifisa.project.backend.domain.job.controller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -36,6 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import woorifisa.project.backend.domain.job.dto.response.ApplicationFormResponse;
 import woorifisa.project.backend.domain.job.dto.response.ApplicationFormPortfolioResponse;
+import woorifisa.project.backend.domain.job.dto.request.ApplicationCreateRequest;
 import woorifisa.project.backend.domain.job.dto.response.ApplicationItem;
 import woorifisa.project.backend.domain.job.dto.response.ApplicationListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningItem;
@@ -249,7 +251,7 @@ class JobControllerTest {
 	@DisplayName("authenticated user can find selected application's portfolio file")
 	void findApplicationPortfolio() throws Exception {
 		when(jobService.findApplicationPortfolio(1L, 99L))
-			.thenReturn(new PortfolioFileResponse("조수재 포트폴리오.pdf", "https://cdn.test/portfolio.pdf"));
+			.thenReturn(List.of(new PortfolioFileResponse("조수재 포트폴리오.pdf", "https://cdn.test/portfolio.pdf")));
 
 		mockMvc.perform(get("/jobs/applications/{applicationId}/portfolios", 99L)
 				.with(authentication(authToken()))
@@ -257,8 +259,9 @@ class JobControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.code").value("20000"))
-			.andExpect(jsonPath("$.data.name").value("조수재 포트폴리오.pdf"))
-			.andExpect(jsonPath("$.data.url").value("https://cdn.test/portfolio.pdf"));
+			.andExpect(jsonPath("$.data", hasSize(1)))
+			.andExpect(jsonPath("$.data[0].name").value("조수재 포트폴리오.pdf"))
+			.andExpect(jsonPath("$.data[0].url").value("https://cdn.test/portfolio.pdf"));
 
 		verify(jobService).findApplicationPortfolio(1L, 99L);
 	}
@@ -290,10 +293,19 @@ class JobControllerTest {
 	@Test
 	@DisplayName("authenticated user can submit a job application with optional files")
 	void createApplication() throws Exception {
-		MockMultipartFile file = new MockMultipartFile("files", "resume.pdf", "application/pdf", "resume".getBytes());
+		MockMultipartFile body = new MockMultipartFile(
+			"body",
+			"",
+			MediaType.APPLICATION_JSON_VALUE,
+			"{\"portfolio_urls\":[\"https://s3.test/registered/portfolio.pdf\"]}".getBytes()
+		);
+		MockMultipartFile firstFile = new MockMultipartFile("files", "resume.pdf", "application/pdf", "resume".getBytes());
+		MockMultipartFile secondFile = new MockMultipartFile("files", "portfolio.pdf", "application/pdf", "portfolio".getBytes());
 
 		mockMvc.perform(multipart("/jobs/{jobId}/applications", 10L)
-				.file(file)
+				.file(body)
+				.file(firstFile)
+				.file(secondFile)
 				.with(authentication(authToken()))
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
@@ -304,7 +316,11 @@ class JobControllerTest {
 		verify(jobService).createApplication(
 			eq(1L),
 			eq(10L),
-			any()
+			argThat((ApplicationCreateRequest request) ->
+				request.portfolioUrls().equals(List.of("https://s3.test/registered/portfolio.pdf"))),
+			argThat(files -> files.size() == 2
+				&& files.get(0).getOriginalFilename().equals("resume.pdf")
+				&& files.get(1).getOriginalFilename().equals("portfolio.pdf"))
 		);
 	}
 
