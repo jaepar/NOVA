@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
+import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
+import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -13,6 +15,7 @@ import java.net.SocketTimeoutException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -131,6 +134,36 @@ class RestCoreBankingClientTest {
 
         assertThat(client.existsWalletDebitRequest("WCR-20260514-0001")).isTrue();
 
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("CoreBanking 거래내역 메모 수정 API를 호출하고 수정된 메모를 반환한다")
+    void updateTransactionMemo() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        RestCoreBankingClient client = new RestCoreBankingClient(builder);
+
+        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
+        server.expect(requestTo("http://core-banking.test/account-transactions/accounts/2001/transactions/9001/memo"))
+                .andExpect(method(PATCH))
+                .andRespond(withSuccess("""
+                        {
+                          "success": true,
+                          "code": "20000",
+                          "message": "OK",
+                          "data": {
+                            "memo": "월세"
+                          }
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        UpdateTransactionMemoResponse response = client.updateTransactionMemo(
+                2001L,
+                9001L,
+                new UpdateTransactionMemoRequest("월세")
+        );
+        assertThat(response.memo()).isEqualTo("월세");
         server.verify();
     }
 

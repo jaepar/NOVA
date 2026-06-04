@@ -10,16 +10,23 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
+import woorifisa.project.backend.domain.banking.dto.response.UpdateTransactionMemoResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
+import woorifisa.project.backend.global.exception.CustomException;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSACTION_MEMO_TOO_LONG;
 
 @WebMvcTest(BankingController.class)
 class BankingControllerTest {
@@ -125,5 +132,66 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
                 .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("거래내역 메모 수정 요청을 처리하고 수정된 메모를 반환한다")
+    void updateTransactionMemoSuccess() throws Exception {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        Long transactionId = 9001L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.updateTransactionMemo(any(), any(), any(), any()))
+                .thenReturn(new UpdateTransactionMemoResponse("월세"));
+
+        mockMvc.perform(patch("/banking/{accountId}/transactions/{transactionId}/memo", accountId, transactionId)
+                        .with(authentication(authToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "memo": "월세"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data.memo").value("월세"));
+
+        verify(bankingService).updateTransactionMemo(any(), eq(accountId), eq(transactionId),
+                any(UpdateTransactionMemoRequest.class));
+    }
+
+    @Test
+    @DisplayName("거래내역 메모가 20자를 초과하면 400 응답을 반환한다")
+    void updateTransactionMemoTooLong() throws Exception {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        Long transactionId = 9001L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.updateTransactionMemo(any(), eq(accountId), eq(transactionId), any()))
+                .thenThrow(new CustomException(BANKING_TRANSACTION_MEMO_TOO_LONG));
+
+        mockMvc.perform(patch("/banking/{accountId}/transactions/{transactionId}/memo", accountId, transactionId)
+                        .with(authentication(authToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "memo": "123456789012345678901"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("BANK-008"))
+                .andExpect(jsonPath("$.message").value("메모는 20자 이내로 입력해야 합니다."));
     }
 }
