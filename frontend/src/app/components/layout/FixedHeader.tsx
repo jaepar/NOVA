@@ -65,7 +65,7 @@ export function FixedHeader({
         </h1>
 
         {rightContent ? (
-          <div className="w-10 flex justify-end">{rightContent}</div>
+          <div className="min-w-10 flex justify-end">{rightContent}</div>
         ) : (
           <div className="w-10" />
         )}

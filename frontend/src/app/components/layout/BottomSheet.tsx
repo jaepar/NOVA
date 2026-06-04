@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 
@@ -10,6 +10,7 @@ interface BottomSheetProps {
   bottomAction?: React.ReactNode
   height?: string
   disableScroll?: boolean
+  dimBackground?: boolean
 }
 
 export function BottomSheet({
@@ -20,6 +21,7 @@ export function BottomSheet({
   bottomAction,
   height,
   disableScroll = false,
+  dimBackground = true,
 }: BottomSheetProps) {
   const visibilityStore = useMemo(
     () =>
@@ -31,12 +33,18 @@ export function BottomSheet({
   )
   const isVisible = useStore(visibilityStore, (state) => state.isVisible)
   const setIsVisible = useStore(visibilityStore, (state) => state.setIsVisible)
+  const [isEntered, setIsEntered] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true)
+      const frame = window.requestAnimationFrame(() => {
+        setIsEntered(true)
+      })
       document.body.style.overflow = 'hidden'
+      return () => window.cancelAnimationFrame(frame)
     } else {
+      setIsEntered(false)
       const timer = setTimeout(() => {
         setIsVisible(false)
       }, 300)
@@ -56,15 +64,17 @@ export function BottomSheet({
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0'
+        className={`fixed inset-0 z-[60] transition-opacity duration-300 ${
+          dimBackground ? 'bg-black/50' : 'bg-transparent'
+        } ${
+          isEntered ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}
       />
 
       <div
         className={`fixed bottom-0 left-0 right-0 z-[70] bg-[rgb(253,253,253)] rounded-t-3xl w-full transition-transform duration-300 ease-out flex flex-col ${
-          isOpen ? 'translate-y-0' : 'translate-y-full'
+          isEntered ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{
           height: height || 'auto',
