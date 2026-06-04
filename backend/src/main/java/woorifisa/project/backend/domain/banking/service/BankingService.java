@@ -93,6 +93,7 @@ public class BankingService {
                 .accountNumber(created.accountNumber())
                 .balance(0)
                 .hasLimit(true)
+                .transferLimit(created.transferLimit())
                 .build();
         accountRefRepository.save(accountRef);
         log.info("[banking_account_create:completed] userId={}, accountId={}, maskedAccountNumber={}",
