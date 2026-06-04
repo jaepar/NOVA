@@ -9,7 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.APPLICATION_ALREADY_EXISTS;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.JOB_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.APPLICATION_NOT_FOUND;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,7 +33,7 @@ import woorifisa.project.backend.domain.job.dto.response.ApplicationFormResponse
 import woorifisa.project.backend.domain.job.dto.response.ApplicationListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
-import woorifisa.project.backend.domain.job.dto.response.PortfolioFileItem;
+import woorifisa.project.backend.domain.job.dto.response.PortfolioFileResponse;
 import woorifisa.project.backend.domain.job.entity.Application;
 import woorifisa.project.backend.domain.job.entity.Job;
 import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
@@ -152,7 +152,7 @@ class JobServiceTest {
 		assertThatThrownBy(() -> jobService.getJobOpeningDetail(999L))
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
-			.isEqualTo(JOB_NOT_FOUND);
+			.isEqualTo(APPLICATION_NOT_FOUND);
 	}
 
 	@Test
@@ -249,7 +249,7 @@ class JobServiceTest {
 		when(applicationRepository.findByApplicationIdAndUser_UserId(100L, 1L))
 			.thenReturn(Optional.of(application));
 
-		PortfolioFileItem response = jobService.findApplicationPortfolio(1L, 100L);
+		PortfolioFileResponse response = jobService.findApplicationPortfolio(1L, 100L);
 
 		assertThat(response.name()).isEqualTo("조수재 포트폴리오.pdf");
 		assertThat(response.url()).isEqualTo("https://cdn.test/portfolio.pdf");
@@ -266,7 +266,7 @@ class JobServiceTest {
 		when(applicationRepository.findByApplicationIdAndUser_UserId(100L, 1L))
 			.thenReturn(Optional.of(application));
 
-		PortfolioFileItem response = jobService.findApplicationPortfolio(1L, 100L);
+		PortfolioFileResponse response = jobService.findApplicationPortfolio(1L, 100L);
 
 		assertThat(response).isNull();
 	}
@@ -342,7 +342,7 @@ class JobServiceTest {
 		assertThatThrownBy(() -> jobService.createApplication(1L, 404L, null))
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
-			.isEqualTo(JOB_NOT_FOUND);
+			.isEqualTo(APPLICATION_NOT_FOUND);
 	}
 
 	@Test

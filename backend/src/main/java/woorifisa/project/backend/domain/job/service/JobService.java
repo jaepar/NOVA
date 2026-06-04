@@ -1,7 +1,7 @@
 package woorifisa.project.backend.domain.job.service;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.APPLICATION_ALREADY_EXISTS;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.JOB_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.APPLICATION_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
 
 import java.util.List;
@@ -19,7 +19,7 @@ import woorifisa.project.backend.domain.job.dto.response.ApplicationFormPortfoli
 import woorifisa.project.backend.domain.job.dto.response.ApplicationListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
-import woorifisa.project.backend.domain.job.dto.response.PortfolioFileItem;
+import woorifisa.project.backend.domain.job.dto.response.PortfolioFileResponse;
 import woorifisa.project.backend.domain.job.entity.Application;
 import woorifisa.project.backend.domain.job.entity.Job;
 import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
@@ -54,7 +54,7 @@ public class JobService {
 			.map(JobOpeningResponse::from)
 			.orElseThrow(() -> {
 				log.warn("Job opening detail lookup failed. reason=not_found jobId={}", jobId);
-				return new CustomException(JOB_NOT_FOUND);
+				return new CustomException(APPLICATION_NOT_FOUND);
 			});
 	}
 
@@ -88,7 +88,7 @@ public class JobService {
 		Job job = jobRepository.findById(jobId)
 			.orElseThrow(() -> {
 				log.warn("job application submit failed. reason=job_not_found userId={}, jobId={}", userId, jobId);
-				return new CustomException(JOB_NOT_FOUND);
+				return new CustomException(APPLICATION_NOT_FOUND);
 			});
 
 		// 사용자가 동일한 구인공고에 중복 지원하는 경우를 막는다.
@@ -130,17 +130,17 @@ public class JobService {
 
 	// 지원 내역 세부 조회
 	@Transactional(readOnly = true)
-	public PortfolioFileItem findApplicationPortfolio(Long userId, Long applicationId) {
+	public PortfolioFileResponse findApplicationPortfolio(Long userId, Long applicationId) {
 		log.info("[job_application_portfolios:requested] userId={}, applicationId={}", userId, applicationId);
 
 		Application application = applicationRepository.findByApplicationIdAndUser_UserId(applicationId, userId)
 			.orElseThrow(() -> {
 				log.warn("[job_application_portfolios:failed] reason=not_found userId={}, applicationId={}",
 					userId, applicationId);
-				return new CustomException(JOB_NOT_FOUND);
+				return new CustomException(APPLICATION_NOT_FOUND);
 			});
 
-		PortfolioFileItem portfolio = PortfolioFileItem.from(application.getResume());
+		PortfolioFileResponse portfolio = PortfolioFileResponse.from(application.getResume());
 
 		log.info("[job_application_portfolios:completed] userId={}, applicationId={}, hasPortfolio={}",
 			userId, applicationId, portfolio != null);

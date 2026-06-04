@@ -48,7 +48,7 @@ public class SecurityConfig {
                                 "/hospital/**",
                                 "/auth/logout",
                                 "/auth/me",
-                                "/applications/**",
+                                "/jobs/applications/**",
                                 "/jobs/*/applications",
                                 "/jobs/applications/form"
                         ).authenticated()
