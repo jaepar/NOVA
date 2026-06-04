@@ -31,3 +31,16 @@ export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
 export { walletApi } from './endpoints/wallet';
 export type { WalletNextStep, WalletStatusResponse } from './endpoints/wallet';
+export { jobApi } from './endpoints/job';
+export type {
+  ApplicationItemResponse,
+  ApplicationListResponse,
+  ApplicationPortfolioResponse,
+  ApplicationStatus,
+  ApplicationFormPortfolioResponse,
+  ApplicationFormResponse,
+  JobOpeningItemResponse,
+  JobOpeningListParams,
+  JobOpeningListResponse,
+  JobOpeningResponse,
+} from './endpoints/job';
