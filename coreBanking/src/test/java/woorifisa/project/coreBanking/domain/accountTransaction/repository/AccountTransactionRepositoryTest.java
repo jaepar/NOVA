@@ -13,4 +13,14 @@ class AccountTransactionRepositoryTest {
         assertThat(AccountTransactionRepository.class.getMethod("existsByExternalRequestId", String.class))
                 .isNotNull();
     }
+
+    @Test
+    @DisplayName("계좌 ID와 거래내역 ID로 거래내역을 조회하는 메서드를 제공한다")
+    void accountIdAndTransactionIdLookupExists() throws NoSuchMethodException {
+        assertThat(AccountTransactionRepository.class.getMethod(
+                "findByAccount_AccountIdAndAccountTransactionId",
+                Long.class,
+                Long.class
+        )).isNotNull();
+    }
 }
