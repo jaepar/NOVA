@@ -155,14 +155,14 @@ public class AccountService {
 			.accountName(request.accountName())
 			.balance(0)
 			.password(passwordEncoder.encode(request.accountPassword()))
-			.dailyTransferLimit(300_000)
+			.transferLimit(300_000)
 			.bankCode(BankCode.WOORI)
 			.build();
 		log.info(
-			"[account_create:processing] customerId={}, maskedAccountNumber={}, dailyTransferLimit={}",
+			"[account_create:processing] customerId={}, maskedAccountNumber={}, transferLimit={}",
 			customer.getCustomerId(),
 			maskAccountNumber(rawAccountNumber),
-			account.getDailyTransferLimit()
+			account.getTransferLimit()
 		);
 
 		Account result = accountRepository.save(account);
@@ -176,7 +176,8 @@ public class AccountService {
 			result.getAccountId(),
 			customer.getCustomerId(),
 			result.getAccountName(),
-			result.getAccountNumber()
+			result.getAccountNumber(),
+			result.getTransferLimit()
 		);
 	}
 

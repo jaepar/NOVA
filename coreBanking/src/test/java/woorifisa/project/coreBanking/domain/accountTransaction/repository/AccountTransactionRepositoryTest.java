@@ -13,4 +13,5 @@ class AccountTransactionRepositoryTest {
         assertThat(AccountTransactionRepository.class.getMethod("existsByExternalRequestId", String.class))
                 .isNotNull();
     }
+
 }

@@ -4,14 +4,16 @@ public record CreateAccountResponse(
 	Long accountId,
 	Long customerId,
 	String accountName,
-	String accountNumber
+	String accountNumber,
+	Integer transferLimit
 ) {
 	public static CreateAccountResponse of(
 		Long accountId,
 		Long customerId,
 		String accountName,
-		String accountNumber
+		String accountNumber,
+		Integer transferLimit
 	) {
-		return new CreateAccountResponse(accountId, customerId, accountName, accountNumber);
+		return new CreateAccountResponse(accountId, customerId, accountName, accountNumber, transferLimit);
 	}
 }

@@ -3,9 +3,11 @@ package woorifisa.project.coreBanking.domain.accountTransaction.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.response.AccountTransactionRequestLookupResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,6 +39,15 @@ public class AccountTransactionController {
     @PostMapping("/transfers")
     public BaseResponse<Void> transfer(@Valid @RequestBody TransferAccountRequest request) {
         accountTransactionService.transfer(request);
+        return BaseResponse.ok(null);
+    }
+
+    @PatchMapping("/transactions/{transactionId}/memo")
+    public BaseResponse<Void> updateMemo(
+            @PathVariable Long transactionId,
+            @Valid @RequestBody UpdateTransactionMemoRequest request
+    ) {
+        accountTransactionService.updateMemo(transactionId, request);
         return BaseResponse.ok(null);
     }
 }

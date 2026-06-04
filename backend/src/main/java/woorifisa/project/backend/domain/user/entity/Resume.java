@@ -12,7 +12,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import woorifisa.project.backend.domain.job.entity.Application;
 import woorifisa.project.backend.global.entity.BaseEntity;
 
 @Getter
@@ -31,10 +30,6 @@ public class Resume extends BaseEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "application_id", nullable = false)
-    private Application application;
 
     @Column(name = "name", length = 100, nullable = false)
     private String name;
