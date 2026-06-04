@@ -52,7 +52,8 @@ export function TransferInitialVerification() {
   const [registrationStatus, setRegistrationStatus] = useState<
     "idle" | "validating" | "verified" | "failed"
   >("idle");
-  const [lastValidatedRegistrationNumber, setLastValidatedRegistrationNumber] = useState("");
+  const [lastValidatedRegistrationNumber, setLastValidatedRegistrationNumber] =
+    useState("");
 
   const registrationNumber = useMemo(
     () => `${registrationFront}${registrationBack}`,
@@ -109,7 +110,10 @@ export function TransferInitialVerification() {
       return;
     }
 
-    if (registrationNumber === lastValidatedRegistrationNumber && isRegistrationVerified) {
+    if (
+      registrationNumber === lastValidatedRegistrationNumber &&
+      isRegistrationVerified
+    ) {
       return;
     }
 
@@ -152,7 +156,10 @@ export function TransferInitialVerification() {
       headerType="back"
       backPath="/global-transfer"
       bottomContent={
-        <Btn_1Col disabled={!canCompleteVerification} onClick={handleCompleteVerification}>
+        <Btn_1Col
+          disabled={!canCompleteVerification}
+          onClick={handleCompleteVerification}
+        >
           인증 완료
         </Btn_1Col>
       }
@@ -165,18 +172,22 @@ export function TransferInitialVerification() {
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1B6FFF] text-sm font-semibold text-white">
               1
             </div>
-            <h2 className="text-[18px] font-semibold text-[#132347]">외국인등록증 번호 입력</h2>
+            <h2 className="text-[18px] font-semibold text-[#132347]">
+              외국인등록증 번호 입력
+            </h2>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-[#132347]">외국인등록증 번호</label>
+            <label className="block text-foreground">외국인등록증 번호</label>
             <div className="flex items-center gap-3">
               <input
                 type="text"
                 inputMode="numeric"
                 placeholder="000000"
                 value={registrationFront}
-                onChange={(event) => handleRegistrationFrontChange(event.target.value)}
+                onChange={(event) =>
+                  handleRegistrationFrontChange(event.target.value)
+                }
                 disabled={isRegistrationVerified}
                 className="h-16 min-w-0 flex-1 rounded-2xl border border-border bg-background px-5 text-lg text-[#132347] placeholder:text-[#B6C0D1] focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:bg-[#F7F9FC] disabled:text-[#8A94A6]"
                 style={{ fontSize: "16px" }}
@@ -187,7 +198,9 @@ export function TransferInitialVerification() {
                 inputMode="numeric"
                 placeholder="0000000"
                 value={registrationBack}
-                onChange={(event) => handleRegistrationBackChange(event.target.value)}
+                onChange={(event) =>
+                  handleRegistrationBackChange(event.target.value)
+                }
                 disabled={isRegistrationVerified}
                 className="h-16 min-w-0 flex-1 rounded-2xl border border-border bg-background px-5 text-lg tracking-[0.25em] text-[#132347] placeholder:tracking-normal placeholder:text-[#B6C0D1] focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:bg-[#F7F9FC] disabled:text-[#8A94A6]"
                 style={{ fontSize: "16px" }}
@@ -208,7 +221,9 @@ export function TransferInitialVerification() {
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1B6FFF] text-sm font-semibold text-white">
               2
             </div>
-            <h2 className="text-[18px] font-semibold text-[#132347]">이메일 인증</h2>
+            <h2 className="text-[18px] font-semibold text-[#132347]">
+              이메일 인증
+            </h2>
           </div>
 
           <EmailVerificationFields
