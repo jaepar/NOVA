@@ -178,3 +178,51 @@ Response (200)
   }
 }
 ```
+
+## CB-005 거래 내역 조회(On-Prem)
+
+- Method: `GET`
+- Path: `/account-transactions/accounts/{accountId}`
+- Auth: `O` (`AUTHORIZED`)
+- Sort: `sortDirection` 요청값 기준, 기본 `DESC`
+- Pagination: `page`, `size` 기반 Slice 응답
+
+Query Parameters
+
+| Name | Type | Required | Default | Values | Description |
+|---|---|---|---|---|---|
+| `from` | date | Y | - | `yyyy-MM-dd` | 조회 시작일 |
+| `to` | date | Y | - | `yyyy-MM-dd` | 조회 종료일 |
+| `flow` | enum | N | `ALL` | `ALL`, `DEPOSIT`, `WITHDRAWAL` | 입출금 유형 |
+| `keyword` | string | N | - | - | `counterParty`, `memo` 검색어 |
+| `sortDirection` | enum | N | `DESC` | `ASC`, `DESC` | 거래일시 정렬 방향 |
+| `page` | integer | N | `0` | `0..` | 페이지 번호 |
+| `size` | integer | N | `20` | `1..` | 페이지 크기 |
+
+Response (200)
+
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "accountId": 2001,
+    "transactions": [
+      {
+        "transactionId": 1,
+        "transactionFlow": "WITHDRAWAL",
+        "transactionType": "ACCOUNT_TRANSFER",
+        "counterParty": "PARK JAEHA",
+        "amount": 10000,
+        "balanceAfter": 90000,
+        "memo": "생활비",
+        "transactionDateTime": "2026-06-02T10:15:30"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "hasNext": false
+  }
+}
+```

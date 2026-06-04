@@ -3,6 +3,7 @@ package woorifisa.project.coreBanking.domain.accountTransaction.controller;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -68,6 +69,8 @@ class AccountTransactionControllerTest {
                 LocalDate.of(2026, 5, 10),
                 LocalDate.of(2026, 6, 2),
                 TransactionFlowFilter.ALL,
+                "rent",
+                Sort.Direction.ASC,
                 0,
                 20
         )).thenReturn(new AccountTransactionsResponse(
@@ -91,6 +94,8 @@ class AccountTransactionControllerTest {
                         .param("from", "2026-05-10")
                         .param("to", "2026-06-02")
                         .param("flow", "ALL")
+                        .param("keyword", "rent")
+                        .param("sortDirection", "ASC")
                         .param("page", "0")
                         .param("size", "20"))
                 .andExpect(status().isOk())

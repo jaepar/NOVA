@@ -165,13 +165,15 @@ public class AccountTransactionService {
         depositAccount.credit(request.transferAmount());
     }
 
-    // 계좌의 기간·입출금 유형 조건에 맞는 거래내역을 최신순으로 페이징 조회한다.
+    // 계좌의 기간, 입출금 유형, 검색어, 정렬 조건에 맞는 거래내역을 페이징 조회한다.
     @Transactional(readOnly = true)
     public AccountTransactionsResponse findTransactions(
             Long accountId,
             LocalDate from,
             LocalDate to,
             TransactionFlowFilter flow,
+            String keyword,
+            Sort.Direction sortDirection,
             int page,
             int size
     ) {
@@ -179,27 +181,38 @@ public class AccountTransactionService {
             throw new CustomException(ACCOUNT_TRANSACTION_ACCOUNT_NOT_FOUND);
         }
 
+        // 종료일 전체를 포함하기 위해 다음날 00:00을 상한으로 만들고 Repository에서 미만(<) 조건으로 조회한다.
         LocalDateTime fromDateTime = from.atStartOfDay();
         LocalDateTime toDateTime = to.plusDays(1).atStartOfDay();
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        // ALL이면 입출금 구분 없이 전체 조회, 아니면 유형 필터를 추가한다.
-        Slice<AccountTransaction> transactions = flow == TransactionFlowFilter.ALL
-                ? accountTransactionRepository.findByAccount_AccountIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+        // 무한 스크롤 응답이므로 Page가 아닌 Slice를 조회하고, 정렬 방향만 요청값에 맞춰 적용한다.
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(normalizeSortDirection(sortDirection), "createdAt"));
+        TransactionFlow transactionFlow = flow == TransactionFlowFilter.ALL ? null : TransactionFlow.valueOf(flow.name());
+        String normalizedKeyword = normalizeKeyword(keyword);
+
+        // 입출금 유형과 검색어 조건을 함께 적용해 거래내역을 조회한다.
+        Slice<AccountTransaction> transactions = accountTransactionRepository.findTransactions(
                 accountId,
-                fromDateTime,
-                toDateTime,
-                pageRequest
-        )
-                : accountTransactionRepository.findByAccount_AccountIdAndTransactionFlowAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
-                accountId,
-                TransactionFlow.valueOf(flow.name()),
+                transactionFlow,
+                normalizedKeyword,
                 fromDateTime,
                 toDateTime,
                 pageRequest
         );
 
         return AccountTransactionsResponse.of(accountId, transactions);
+    }
+
+    private Sort.Direction normalizeSortDirection(Sort.Direction sortDirection) {
+        return sortDirection == null ? Sort.Direction.DESC : sortDirection;
+    }
+
+    // 공백 검색어는 전체 조회와 동일하게 처리한다.
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        return keyword.trim();
     }
 
     private boolean isInvalidRequest(DebitWalletAccountRequest request) {

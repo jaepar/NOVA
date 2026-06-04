@@ -16,6 +16,8 @@ import woorifisa.project.backend.domain.banking.dto.response.BankingTransactions
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 
+import org.springframework.data.domain.Sort;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -148,7 +150,7 @@ class BankingControllerTest {
                 AuthorityUtils.NO_AUTHORITIES
         );
 
-        when(bankingService.findTransactions(any(), any(), any(), any(), any(), any(), any()))
+        when(bankingService.findTransactions(any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new BankingTransactionsResponse(
                         accountId,
                         TransactionPeriod.ONE_MONTH,
@@ -185,7 +187,7 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.data.hasNext").value(false));
 
         verify(bankingService).findTransactions(any(), eq(accountId), eq(TransactionPeriod.ONE_MONTH),
-                eq(TransactionFlowFilter.ALL), isNull(), isNull(), any());
+                eq(TransactionFlowFilter.ALL), isNull(), isNull(), isNull(), eq(Sort.Direction.DESC), any());
     }
 
     @Test
@@ -199,7 +201,7 @@ class BankingControllerTest {
                 AuthorityUtils.NO_AUTHORITIES
         );
 
-        when(bankingService.findTransactions(any(), any(), any(), any(), any(), any(), any()))
+        when(bankingService.findTransactions(any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new BankingTransactionsResponse(
                         accountId,
                         TransactionPeriod.CUSTOM,
@@ -217,7 +219,9 @@ class BankingControllerTest {
                         .param("from", "2026-05-10")
                         .param("to", "2026-06-02")
                         .param("page", "1")
-                        .param("size", "20"))
+                        .param("size", "20")
+                        .param("keyword", "rent")
+                        .param("sortDirection", "ASC"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.period").value("CUSTOM"))
@@ -225,6 +229,6 @@ class BankingControllerTest {
 
         verify(bankingService).findTransactions(any(), eq(accountId), eq(TransactionPeriod.CUSTOM),
                 eq(TransactionFlowFilter.WITHDRAWAL), eq(java.time.LocalDate.of(2026, 5, 10)),
-                eq(java.time.LocalDate.of(2026, 6, 2)), any());
+                eq(java.time.LocalDate.of(2026, 6, 2)), eq("rent"), eq(Sort.Direction.ASC), any());
     }
 }

@@ -162,7 +162,7 @@ Request
 - Method: `GET`
 - Path: `/banking/{accountId}/transactions`
 - Auth: `O` (USER 세션 필수)
-- Sort: 최신순 고정
+- Sort: `sortDirection` 요청값 기준, 기본 `DESC`
 - Pagination: Spring `Pageable`, 기본 `size=20`, 응답은 무한 스크롤용 Slice 형태(`hasNext`)로 제공
 
 Query Parameters
@@ -173,6 +173,8 @@ Query Parameters
 | `flow` | enum | N | `ALL` | `ALL`, `DEPOSIT`, `WITHDRAWAL` | 입출금 유형 |
 | `from` | date | N | - | `yyyy-MM-dd` | `period=CUSTOM`일 때 시작일 |
 | `to` | date | N | - | `yyyy-MM-dd` | `period=CUSTOM`일 때 종료일 |
+| `keyword` | string | N | - | - | `counterParty`, `memo` 검색어 |
+| `sortDirection` | enum | N | `DESC` | `ASC`, `DESC` | 거래일시 정렬 방향 |
 | `page` | integer | N | `0` | `0..` | 페이지 번호 |
 | `size` | integer | N | `20` | `1..` | 페이지 크기 |
 

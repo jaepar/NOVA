@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransactionQuery;
@@ -309,6 +310,8 @@ class BankingServiceTest {
                 TransactionFlowFilter.ALL,
                 null,
                 null,
+                null,
+                Sort.Direction.DESC,
                 pageable
         );
 
@@ -319,6 +322,8 @@ class BankingServiceTest {
         assertThat(query.from()).isEqualTo(LocalDate.now().minusMonths(1));
         assertThat(query.to()).isEqualTo(LocalDate.now());
         assertThat(query.flow()).isEqualTo(TransactionFlowFilter.ALL);
+        assertThat(query.keyword()).isNull();
+        assertThat(query.sortDirection()).isEqualTo(Sort.Direction.DESC);
         assertThat(query.page()).isEqualTo(0);
         assertThat(query.size()).isEqualTo(20);
         assertThat(response.accountId()).isEqualTo(accountId);
@@ -363,6 +368,8 @@ class BankingServiceTest {
                 TransactionFlowFilter.WITHDRAWAL,
                 from,
                 to,
+                " rent ",
+                Sort.Direction.ASC,
                 PageRequest.of(1, 20)
         );
 
@@ -372,6 +379,8 @@ class BankingServiceTest {
         assertThat(query.from()).isEqualTo(from);
         assertThat(query.to()).isEqualTo(to);
         assertThat(query.flow()).isEqualTo(TransactionFlowFilter.WITHDRAWAL);
+        assertThat(query.keyword()).isEqualTo("rent");
+        assertThat(query.sortDirection()).isEqualTo(Sort.Direction.ASC);
         assertThat(query.page()).isEqualTo(1);
         assertThat(query.size()).isEqualTo(20);
         assertThat(response.period()).isEqualTo(TransactionPeriod.CUSTOM);
@@ -399,6 +408,8 @@ class BankingServiceTest {
                 TransactionFlowFilter.ALL,
                 LocalDate.of(2026, 5, 1),
                 LocalDate.of(2026, 6, 1),
+                null,
+                Sort.Direction.DESC,
                 PageRequest.of(0, 20)
         ))
                 .isInstanceOf(CustomException.class)
@@ -423,6 +434,8 @@ class BankingServiceTest {
                 TransactionFlowFilter.ALL,
                 null,
                 null,
+                null,
+                Sort.Direction.DESC,
                 PageRequest.of(0, 20)
         ))
                 .isInstanceOf(CustomException.class)

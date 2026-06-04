@@ -2,6 +2,7 @@ package woorifisa.project.backend.domain.banking.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -129,15 +130,15 @@ public class BankingService {
             TransactionFlowFilter flow,
             LocalDate customFrom,
             LocalDate customTo,
+            String keyword,
+            Sort.Direction sortDirection,
             Pageable pageable
     ) {
-        // 요청한 계좌가 본인 계좌인지 검증
+        // 요청한 계좌가 본인 계좌인지 검증한다.
         accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId)
                 .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
 
-        // period가 CUSTOM이면 customFrom/customTo를 검증해 사용하고,
-        // 고정 기간이면 오늘을 기준으로 시작일과 종료일을 계산한다.
-        // 정렬은 코어뱅킹에서 내림차순 고정이므로 별도 sort 파라미터 없이 page/size만 전달한다.
+        // Cloud는 본인 계좌 여부와 기간 조건만 검증하고, 실제 거래내역 필터링/정렬은 CoreBanking에 위임한다.
         LocalDate today = LocalDate.now();
         TransactionDateRange range = resolveDateRange(period, today, customFrom, customTo);
         CoreBankingTransactionQuery query = new CoreBankingTransactionQuery(
@@ -145,6 +146,8 @@ public class BankingService {
                 range.from(),
                 range.to(),
                 flow,
+                normalizeKeyword(keyword),
+                normalizeSortDirection(sortDirection),
                 pageable.getPageNumber(),
                 pageable.getPageSize()
         );
@@ -165,6 +168,18 @@ public class BankingService {
             throw new CustomException(BAD_REQUEST);
         }
         return new TransactionDateRange(customFrom, customTo);
+    }
+
+    private Sort.Direction normalizeSortDirection(Sort.Direction sortDirection) {
+        return sortDirection == null ? Sort.Direction.DESC : sortDirection;
+    }
+
+    // 공백 검색어는 필터링하지 않도록 null로 변환해 CoreBanking에 전달한다.
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        return keyword.trim();
     }
 
     private String formatProcessingKey(String idempotencyKey) {

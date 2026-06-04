@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.account.repository.AccountRepository;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
@@ -370,7 +371,7 @@ class AccountTransactionServiceTest {
         setCreatedAt(transaction, LocalDateTime.of(2026, 6, 2, 10, 30));
 
         when(accountRepository.existsById(accountId)).thenReturn(true);
-        when(accountTransactionRepository.findByAccount_AccountIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(any(), any(), any(), any()))
+        when(accountTransactionRepository.findTransactions(any(), any(), any(), any(), any(), any()))
                 .thenReturn(new SliceImpl<>(List.of(transaction), PageRequest.of(0, 20), false));
 
         var response = accountTransactionService.findTransactions(
@@ -378,6 +379,8 @@ class AccountTransactionServiceTest {
                 from,
                 to,
                 TransactionFlowFilter.ALL,
+                "park",
+                Sort.Direction.ASC,
                 0,
                 20
         );
@@ -388,8 +391,10 @@ class AccountTransactionServiceTest {
         assertThat(response.transactions().get(0).counterParty()).isEqualTo("PARK");
         assertThat(response.transactions().get(0).balanceAfter()).isEqualTo(25000);
         assertThat(response.transactions().get(0).transactionDateTime()).isEqualTo(LocalDateTime.of(2026, 6, 2, 10, 30));
-        verify(accountTransactionRepository).findByAccount_AccountIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+        verify(accountTransactionRepository).findTransactions(
                 eq(accountId),
+                eq(null),
+                eq("park"),
                 eq(from.atStartOfDay()),
                 eq(to.plusDays(1).atStartOfDay()),
                 any()
@@ -401,7 +406,7 @@ class AccountTransactionServiceTest {
     void findTransactionsByFlow() {
         Long accountId = 2001L;
         when(accountRepository.existsById(accountId)).thenReturn(true);
-        when(accountTransactionRepository.findByAccount_AccountIdAndTransactionFlowAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(any(), any(), any(), any(), any()))
+        when(accountTransactionRepository.findTransactions(any(), any(), any(), any(), any(), any()))
                 .thenReturn(new SliceImpl<>(List.of(), PageRequest.of(1, 20), false));
 
         accountTransactionService.findTransactions(
@@ -409,13 +414,16 @@ class AccountTransactionServiceTest {
                 LocalDate.of(2026, 5, 10),
                 LocalDate.of(2026, 6, 2),
                 TransactionFlowFilter.DEPOSIT,
+                null,
+                Sort.Direction.DESC,
                 1,
                 20
         );
 
-        verify(accountTransactionRepository).findByAccount_AccountIdAndTransactionFlowAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+        verify(accountTransactionRepository).findTransactions(
                 eq(accountId),
                 eq(TransactionFlow.DEPOSIT),
+                eq(null),
                 any(),
                 any(),
                 any()
@@ -433,13 +441,15 @@ class AccountTransactionServiceTest {
                 LocalDate.of(2026, 5, 10),
                 LocalDate.of(2026, 6, 2),
                 TransactionFlowFilter.ALL,
+                "park",
+                Sort.Direction.ASC,
                 0,
                 20
         ))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ACCOUNT_TRANSACTION_ACCOUNT_NOT_FOUND.getMessage());
 
-        verify(accountTransactionRepository, never()).findByAccount_AccountIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(any(), any(), any(), any());
+        verify(accountTransactionRepository, never()).findTransactions(any(), any(), any(), any(), any(), any());
     }
 
     private void setCreatedAt(AccountTransaction transaction, LocalDateTime createdAt) {

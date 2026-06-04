@@ -21,24 +21,13 @@ class AccountTransactionRepositoryTest {
     }
 
     @Test
-    @DisplayName("계좌/기간 기준 거래내역 페이지 조회 메서드를 제공한다")
+    @DisplayName("계좌/기간/입출금 유형/검색어 기준 거래내역 페이징 조회 메서드를 제공한다")
     void transactionHistoryLookupExists() throws NoSuchMethodException {
         assertThat(AccountTransactionRepository.class.getMethod(
-                "findByAccount_AccountIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan",
-                Long.class,
-                LocalDateTime.class,
-                LocalDateTime.class,
-                Pageable.class
-        ).getReturnType()).isEqualTo(Slice.class);
-    }
-
-    @Test
-    @DisplayName("계좌/거래흐름/기간 기준 거래내역 페이지 조회 메서드를 제공한다")
-    void transactionHistoryLookupByFlowExists() throws NoSuchMethodException {
-        assertThat(AccountTransactionRepository.class.getMethod(
-                "findByAccount_AccountIdAndTransactionFlowAndCreatedAtGreaterThanEqualAndCreatedAtLessThan",
+                "findTransactions",
                 Long.class,
                 TransactionFlow.class,
+                String.class,
                 LocalDateTime.class,
                 LocalDateTime.class,
                 Pageable.class

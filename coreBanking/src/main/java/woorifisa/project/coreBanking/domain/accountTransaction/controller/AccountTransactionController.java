@@ -2,6 +2,7 @@ package woorifisa.project.coreBanking.domain.accountTransaction.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,10 +43,12 @@ public class AccountTransactionController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(defaultValue = "ALL") TransactionFlowFilter flow,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        return BaseResponse.ok(accountTransactionService.findTransactions(accountId, from, to, flow, page, size));
+        return BaseResponse.ok(accountTransactionService.findTransactions(accountId, from, to, flow, keyword, sortDirection, page, size));
     }
 
     // 월렛 충전 계좌 차감

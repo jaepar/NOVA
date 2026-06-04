@@ -3,6 +3,7 @@ package woorifisa.project.backend.domain.banking.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -73,8 +74,10 @@ public class BankingController {
             @RequestParam(defaultValue = "ALL") TransactionFlowFilter flow,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return BaseResponse.ok(bankingService.findTransactions(principal.userId(), accountId, period, flow, from, to, pageable));
+        return BaseResponse.ok(bankingService.findTransactions(principal.userId(), accountId, period, flow, from, to, keyword, sortDirection, pageable));
     }
 }
