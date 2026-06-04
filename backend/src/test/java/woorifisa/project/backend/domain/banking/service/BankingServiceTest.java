@@ -347,7 +347,7 @@ class BankingServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(coreBankingClient.createAccount(any())).thenReturn(
-                new CoreBankingCreateAccountResponse(2001L, 1001L, "우리 SUPER주거래 통장", "1002-312-345678")
+                new CoreBankingCreateAccountResponse(2001L, 1001L, "우리 SUPER주거래 통장", "1002-312-345678", 300_000)
         );
 
         AccountCreateResponse response = bankingService.createAccount(userId, request);
@@ -355,7 +355,9 @@ class BankingServiceTest {
         assertThat(response.accountId()).isEqualTo(2001L);
         assertThat(response.bankCode()).isEqualTo("WOORI");
         assertThat(response.accountNumber()).isEqualTo("1002-312-345678");
-        verify(accountRefRepository).save(any(AccountRef.class));
+        ArgumentCaptor<AccountRef> accountRefCaptor = ArgumentCaptor.forClass(AccountRef.class);
+        verify(accountRefRepository).save(accountRefCaptor.capture());
+        assertThat(accountRefCaptor.getValue().getTransferLimit()).isEqualTo(300_000);
     }
 
     @Test

@@ -39,6 +39,7 @@ import woorifisa.project.backend.domain.job.repository.ApplicationRepository;
 import woorifisa.project.backend.domain.job.repository.JobRepository;
 import woorifisa.project.backend.domain.user.entity.Resume;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.repository.ResumeRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.domain.user.service.PortfolioFileS3Uploader;
@@ -274,7 +275,7 @@ class JobServiceTest {
 			.birth("950101")
 			.email("woojae.cho@example.com")
 			.password("password")
-			.hasCertificate(false)
+			.certificateStatus(CertificateStatus.NOT_ISSUED)
 			.hasResidenceCard(false)
 			.hasDelete(false)
 			.build();
