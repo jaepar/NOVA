@@ -461,3 +461,38 @@ export const useConsentCarouselTemplateStore = create<ConsentCarouselTemplateSta
     })),
   reset: () => set({ currentIndex: 0 }),
 }))
+
+interface AccountCreateFlowState {
+  address: string
+  addressDetail: string
+  job: string
+  isOwner: boolean
+  transactionPurpose: string
+  fundSource: string
+  hasForeignTax: boolean
+  setCustomerInfo: (address: string, addressDetail: string) => void
+  setJob: (job: string) => void
+  setTransactionInfo: (isOwner: boolean, transactionPurpose: string, fundSource: string) => void
+  setHasForeignTax: (hasForeignTax: boolean) => void
+  reset: () => void
+}
+
+const initialAccountCreateFlowState = {
+  address: '',
+  addressDetail: '',
+  job: '',
+  isOwner: false,
+  transactionPurpose: '',
+  fundSource: '',
+  hasForeignTax: false,
+}
+
+export const useAccountCreateFlowStore = create<AccountCreateFlowState>((set) => ({
+  ...initialAccountCreateFlowState,
+  setCustomerInfo: (address, addressDetail) => set({ address, addressDetail }),
+  setJob: (job) => set({ job }),
+  setTransactionInfo: (isOwner, transactionPurpose, fundSource) =>
+    set({ isOwner, transactionPurpose, fundSource }),
+  setHasForeignTax: (hasForeignTax) => set({ hasForeignTax }),
+  reset: () => set(initialAccountCreateFlowState),
+}))

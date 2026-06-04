@@ -30,6 +30,28 @@ export type AccountHomeResponse = {
   account: AccountSummary | null;
 };
 
+export type AccountCreateRequest = {
+  accountType: string;
+  accountName: string;
+  customerInfo: {
+    address: string;
+    addressDetail: string;
+  };
+  job: string;
+  transactionInfo: {
+    purpose: string;
+    source: string;
+  };
+  hasForeignTax: boolean;
+  accountPassword: string;
+};
+
+export type AccountCreateResponse = {
+  accountId: number;
+  bankCode: string;
+  accountNumber: string;
+};
+
 const DEV_ACCOUNT_HOME_MOCKS = {
   needCertificate: {
     hasAccount: false,
@@ -78,7 +100,7 @@ const DEV_ACCOUNT_HOME_MOCKS = {
 // 여기의 preset만 바꿔서 메인 화면 렌더링을 테스트하면 됩니다.
 // 예: DEV_ACCOUNT_HOME_MOCKS.certificateIssuing
 const DEV_MOCK_ACCOUNT_HOME_RESPONSE: AccountHomeResponse =
-  DEV_ACCOUNT_HOME_MOCKS.hasGeneralAccount;
+  DEV_ACCOUNT_HOME_MOCKS.readyToOpenAccount;
 
 function getDevAccountHome(): AccountHomeResponse {
   return DEV_MOCK_ACCOUNT_HOME_RESPONSE;
@@ -93,6 +115,15 @@ export const bankingApi = {
     const response = await apiClient.get<
       BankingApiResponse<AccountHomeResponse>
     >("/banking/home");
+
+    return response.data.data;
+  },
+  createAccount: async (
+    payload: AccountCreateRequest
+  ): Promise<AccountCreateResponse> => {
+    const response = await apiClient.post<
+      BankingApiResponse<AccountCreateResponse>
+    >("/banking", payload);
 
     return response.data.data;
   },

@@ -29,6 +29,8 @@ export type {
   SignupRequest,
 } from './endpoints/auth';
 export type {
+  AccountCreateRequest,
+  AccountCreateResponse,
   AccountHomeResponse,
   AccountHomeUiState,
   AccountSummary,
