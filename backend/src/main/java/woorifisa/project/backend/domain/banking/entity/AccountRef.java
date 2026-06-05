@@ -59,6 +59,9 @@ public class AccountRef extends BaseEntity {
     @Column(name = "has_limit", nullable = false)
     private Boolean hasLimit;
 
+    @Column(name = "transfer_limit", nullable = false)
+    private Integer transferLimit;
+
     public void debit(Integer amount) {
         if (balance == null || amount == null || amount <= 0 || balance < amount) {
             throw new CustomException(BANKING_TRANSFER_FAILED);

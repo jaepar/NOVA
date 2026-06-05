@@ -1,20 +1,20 @@
 # REST API (On-Prem Only)
 
-coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.  
-본 문서는 전달받은 API 명세 중 **On-Prem** 항목만 정의한다.
+coreBanking 서버는 On-Prem 계정계와 Open API(BaaS) 역할을 함께 수행한다.  
+본 문서에는 전달받은 API 명세 중 **On-Prem** 항목만 정의한다.
 
 ## Common Rules
 
-- 인증 방식은 서버 간 인증(내부망/전용 연동) 기준으로 운영한다.
+- 인증 방식은 서버 간 인증(내부망 전용 연동) 기준으로 운영한다.
 - 모든 응답은 coreBanking 공통 응답 래퍼를 사용한다.
-- 원장 변경 API는 중복 방지를 위해 요청 식별자(`externalRequestId` 등)를 사용한다.
+- 저장 변경 API는 중복 방지를 위해 요청 식별자 `externalRequestId` 를 사용한다.
 - 컨트롤러는 DTO만 입출력하고 엔티티 직접 반환을 금지한다.
 
 ## Role Rules
 
 | Role | Meaning |
 |---|---|
-| `AUTHORIZED` | 연동된 내부 서비스/권한 토큰 필요 |
+| `AUTHORIZED` | 연동 대상 서비스 권한 토큰 필요 |
 
 ## API Catalog
 
@@ -23,47 +23,38 @@ coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.
 | `CB-001` | 계좌 개설(On-Prem) | POST | `/accounts` | O | AUTHORIZED | |
 | `CB-002` | 계좌 비밀번호 검증(On-Prem) | POST | `/accounts/password/verify` | O | AUTHORIZED | account.password 일치 검증 |
 | `CB-003` | 계좌 이체(On-Prem) | POST | `/account-transactions/transfers` | O | AUTHORIZED | `externalRequestId` 기반 멱등 처리 |
-| `CB-004` | 이체 처리 결과 조회(On-Prem) | GET | `/account-transactions/requests/{externalRequestId}` | O | AUTHORIZED | 이체/월렛충전 공통 외부 요청 ID 기반 결과 조회 |
-| `CB-005` | 거래 내역 조회(On-Prem) | GET | `/core-banking/{accountId}/transactions` | O | AUTHORIZED | |
-| `CB-006` | 거래 내역 메모 수정(On-Prem) | PATCH | `/core-banking/{accountId}/transactions/{transactionId}/memo` | O | AUTHORIZED | |
+| `CB-004` | 이체 처리 결과 조회(On-Prem) | GET | `/account-transactions/requests/{externalRequestId}` | O | AUTHORIZED | 이체/월렛충전 공통 처리 요청 ID 기반 결과 조회 |
+| `CB-005` | 거래 내역 조회(On-Prem) | GET | `/account-transactions/accounts/{accountId}` | O | AUTHORIZED | |
+| `CB-006` | 거래 내역 메모 수정(On-Prem) | PATCH | `/account-transactions/transactions/{transactionId}/memo` | O | AUTHORIZED | 메모 20자 이내, 빈 값은 null 저장 |
 | `CB-007` | 홈 계좌 정보 조회(On-Prem) | GET | `/core-banking/home` | O | AUTHORIZED | |
-| `CB-008` | 해외 송금(On-Prem) | TBD | `TBD` | O | AUTHORIZED | 명세 상세 확정 후 반영 |
-| `CB-009` | 해외 송금 이상거래 탐지(On-Prem) | TBD | `TBD` | O | AUTHORIZED | FDS 연동 정책/룰셋 확정 후 반영 |
+| `CB-008` | 해외 송금 요청 생성(On-Prem) | POST | `/global-transactions` | O | AUTHORIZED | `externalRequestId` 기반 멱등 처리, FDS 비동기 심사 |
+| `CB-009` | 해외 송금 상태 조회(On-Prem) | GET | `/global-transactions/{globalTransactionId}` | O | AUTHORIZED | 단건 상태 조회 |
 | `CB-010` | 수취인 조회(On-Prem) | POST | `/accounts/recipients/lookup` | O | AUTHORIZED | 은행코드+계좌번호로 예금주명 조회 |
 | `CB-011` | 고객 생성(On-Prem) | POST | `/customers` | O | AUTHORIZED | `userId`,`name`,`email` 기반 고객 생성 |
+| `CB-012` | 고객별 해외 송금 목록 조회(On-Prem) | GET | `/global-transactions?customerId={customerId}` | O | AUTHORIZED | 서버 간 호출 전용 |
 
-## CB-001 계좌 개설(On-Prem)
+## CB-005 거래 내역 조회(On-Prem)
 
-- Method: `POST`
-- Path: `/`
-- Resource Prefix: `/accounts` (최종 엔드포인트: `POST /accounts`)
+- Method: `GET`
+- Path: `/account-transactions/accounts/{accountId}`
 - Auth: `O` (`AUTHORIZED`)
+- Sort: `sortDirection` 요청값 기준, 기본 `DESC`
+- Pagination: `page`, `size` 기반 Slice 응답
 
-Request
-```json
-{
-  "customerId": 1001,
-  "accountType": "DEMAND_DEPOSIT",
-  "accountName": "우리 SUPER주거래 통장",
-  "customerInfo": {
-    "name": "PARK JAEHA",
-    "email": "abcdef@gmail.com",
-    "address": "서울특별시 광진구 능동로 120",
-    "addressDetail": "건국대학교 기숙사 101호"
-  },
-  "job": "STUDENT",
-  "transactionInfo": {
-    "purpose": "SALARY_AND_LIVING_EXPENSES",
-    "source": "EARNED_AND_PENSION_INCOME"
-  },
-  "taxInfo": {
-    "hasForeignTax": false
-  },
-  "accountPassword": "1234"
-}
-```
+Query Parameters
+
+| Name | Type | Required | Default | Values | Description |
+|---|---|---|---|---|---|
+| `from` | date | Y | - | `yyyy-MM-dd` | 조회 시작일 |
+| `to` | date | Y | - | `yyyy-MM-dd` | 조회 종료일 |
+| `flow` | enum | N | `ALL` | `ALL`, `DEPOSIT`, `WITHDRAWAL` | 입출금 유형 |
+| `keyword` | string | N | - | - | `counterParty`, `memo` 검색어 |
+| `sortDirection` | enum | N | `DESC` | `ASC`, `DESC` | 거래일시 정렬 방향 |
+| `page` | integer | N | `0` | `0..` | 페이지 번호 |
+| `size` | integer | N | `20` | `1..` | 페이지 크기 |
 
 Response (200)
+
 ```json
 {
   "success": true,
@@ -127,8 +118,123 @@ Validation / Error Rules
 
 | API ID | Status | Reason |
 |---|---|---|
-| `CB-008` | 구현 예정 | 해외 송금 프로세스/입출력 계약 미확정 |
-| `CB-009` | 구현 예정 | 이상거래 탐지 연동(FDS) 정책 미확정 |
+| `CB-008` | 구현 예정 | 해외 송금 생성 구현 필요 |
+| `CB-009` | 구현 예정 | 해외 송금 상태 조회 구현 필요 |
+| `CB-012` | 구현 예정 | 고객별 해외 송금 목록 조회 구현 필요 |
+
+## CB-008 해외 송금 요청 생성(On-Prem)
+
+- Method: `POST`
+- Path: `/global-transactions`
+- Auth: `O` (`AUTHORIZED`)
+
+Request
+```json
+{
+  "externalRequestId": "global-remittance-20260602-0001",
+  "customerId": 1001,
+  "accountId": 2001,
+  "remitPurpose": "생활비 송금",
+  "targetCountry": "US",
+  "currency": "USD",
+  "remitAmount": "1000.00",
+  "mediaryFeePayer": "SENDER",
+  "exchangeRate": 1380.500000,
+  "krwAmount": "1380500",
+  "senderEngName": "PARK JAEHA",
+  "senderPhone": "+821012345678",
+  "senderAddressDetail": "101",
+  "senderDistrict": "Gwangjin-gu",
+  "senderCity": "Seoul",
+  "senderZipCode": "05029",
+  "senderCountry": "KR",
+  "receiverEngName": "JOHN SMITH",
+  "receiverAddressDetail": "Apt 10",
+  "receiverDistrict": "Manhattan",
+  "receiverCity": "New York",
+  "receiverZipCode": null,
+  "receiverPhone": "+12125550100",
+  "swiftCode": "BOFAUS3N",
+  "receiverAccountNum": "1234567890",
+  "routingNumber": "026009593",
+  "bankName": "Bank of America",
+  "remitReason": "LIVING_EXPENSE"
+}
+```
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "globalTransactionId": 1,
+    "status": "PENDING"
+  }
+}
+```
+
+Processing Rules
+- 동일한 `externalRequestId`가 이미 처리된 경우 새 해외송금 원장과 추가 출금을 만들지 않고 기존 처리 결과를 반환한다.
+- 요청을 수락하면 계좌 금액을 먼저 출금하고 계좌 거래내역을 기록한다.
+- 해외송금 원장은 최초 `PENDING` 상태로 저장한다.
+- CoreBanking은 `@Async` 기반 비동기 작업으로 FDS Python 서버의 `FDS-001` API를 호출한다.
+- FDS 결과가 `SUCCESS`이면 해외송금 원장 상태를 `SUCCESS`로 변경한다.
+- FDS 결과가 `FAILED`이거나 FDS 통신 재시도 횟수를 초과하면 해외송금 원장 상태를 `FAILED`로 변경하고 선출금 금액을 환급한다.
+- `FAILED` 상태에서는 `failureReason`에 실패 사유를 저장한다.
+
+Status / Failure Rules
+- `status`: `PENDING | SUCCESS | FAILED`
+- `failureReason`: `FDS_RISK_DETECTED | FDS_TIMEOUT | FDS_COMMUNICATION_FAILED | FDS_RESPONSE_INVALID | FDS_RETRY_EXHAUSTED`
+- `PENDING`, `SUCCESS` 상태에서는 `failureReason`을 `null`로 둔다.
+- `receiverDistrict`, `receiverZipCode`는 선택값이다.
+- `receiverCity`는 필수값이다.
+
+## CB-009 해외 송금 상태 조회(On-Prem)
+
+- Method: `GET`
+- Path: `/global-transactions/{globalTransactionId}`
+- Auth: `O` (`AUTHORIZED`)
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "globalTransactionId": 1,
+    "status": "FAILED",
+    "failureReason": "FDS_RISK_DETECTED"
+  }
+}
+```
+
+## CB-012 고객별 해외 송금 목록 조회(On-Prem)
+
+- Method: `GET`
+- Path: `/global-transactions?customerId={customerId}`
+- Auth: `O` (`AUTHORIZED`)
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": [
+    {
+      "globalTransactionId": 1,
+      "receiverEngName": "JOHN SMITH",
+      "remitAmount": "1000.00",
+      "currency": "USD",
+      "status": "PENDING",
+      "createdAt": "2026-06-02T10:30:00"
+    }
+  ]
+}
+```
 
 ## CB-010 수취인 조회(On-Prem)
 

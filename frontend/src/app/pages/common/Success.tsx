@@ -13,6 +13,7 @@ interface SuccessProps {
   buttonText?: string
   onButtonClick?: () => void
   redirectPath?: string
+  headerType?: 'back' | 'none'
 }
 
 export function Success({
@@ -24,6 +25,7 @@ export function Success({
   buttonText = '확인',
   onButtonClick,
   redirectPath = '/main',
+  headerType = 'back',
 }: SuccessProps) {
   const navigate = useNavigate()
 
@@ -38,6 +40,7 @@ export function Success({
   return (
     <MobileLayout
       title={headerTitle}
+      headerType={headerType}
       bottomContent={
         <Btn_1Col variant="primary" onClick={handleConfirm}>
           {buttonText}

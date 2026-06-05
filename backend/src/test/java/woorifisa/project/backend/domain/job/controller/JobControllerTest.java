@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.JOB_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.APPLICATION_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.UNAUTHORIZED_SESSION;
 
 import java.time.LocalDateTime;
@@ -36,9 +36,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import woorifisa.project.backend.domain.job.dto.response.ApplicationFormResponse;
 import woorifisa.project.backend.domain.job.dto.response.ApplicationFormPortfolioResponse;
+import woorifisa.project.backend.domain.job.dto.response.ApplicationItem;
+import woorifisa.project.backend.domain.job.dto.response.ApplicationListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningItem;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
+import woorifisa.project.backend.domain.job.dto.response.PortfolioFileResponse;
+import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
 import woorifisa.project.backend.domain.job.service.JobService;
 import woorifisa.project.backend.global.auth.security.SessionAuthenticationEntryPoint;
 import woorifisa.project.backend.global.auth.security.SessionAuthenticationFilter;
@@ -165,14 +169,14 @@ class JobControllerTest {
 	@Test
 	@DisplayName("return custom error when job opening detail does not exist")
 	void findJobOpeningNotFound() throws Exception {
-		when(jobService.getJobOpeningDetail(999L)).thenThrow(new CustomException(JOB_NOT_FOUND));
+		when(jobService.getJobOpeningDetail(999L)).thenThrow(new CustomException(APPLICATION_NOT_FOUND));
 
 		mockMvc.perform(get("/jobs/{jobId}", 999L)
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.code").value(JOB_NOT_FOUND.getCode()))
-			.andExpect(jsonPath("$.message").value(JOB_NOT_FOUND.getMessage()))
+			.andExpect(jsonPath("$.code").value(APPLICATION_NOT_FOUND.getCode()))
+			.andExpect(jsonPath("$.message").value(APPLICATION_NOT_FOUND.getMessage()))
 			.andExpect(jsonPath("$.data").doesNotExist());
 	}
 
@@ -209,9 +213,72 @@ class JobControllerTest {
 	}
 
 	@Test
+	@DisplayName("authenticated user can find paged application list")
+	void findApplications() throws Exception {
+		when(jobService.findApplications(eq(1L), any(Pageable.class)))
+			.thenReturn(new ApplicationListResponse(List.of(new ApplicationItem(
+				99L,
+				10L,
+				"Clinic manager opening",
+				LocalDateTime.of(2026, 6, 18, 9, 0),
+				ApplicationStatus.FAILED
+			)), 0, 10, true));
+
+		mockMvc.perform(get("/jobs/applications")
+				.param("page", "0")
+				.param("size", "10")
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"))
+			.andExpect(jsonPath("$.data.items", hasSize(1)))
+			.andExpect(jsonPath("$.data.items[0].application_id").value(99))
+			.andExpect(jsonPath("$.data.items[0].job_id").value(10))
+			.andExpect(jsonPath("$.data.items[0].opening_title").value("Clinic manager opening"))
+			.andExpect(jsonPath("$.data.items[0].applied_at").value("2026-06-18T09:00:00"))
+			.andExpect(jsonPath("$.data.items[0].status").value("FAILED"))
+			.andExpect(jsonPath("$.data.page").value(0))
+			.andExpect(jsonPath("$.data.size").value(10))
+			.andExpect(jsonPath("$.data.has_next").value(true));
+
+		verify(jobService).findApplications(eq(1L), any(Pageable.class));
+	}
+
+	@Test
+	@DisplayName("authenticated user can find selected application's portfolio file")
+	void findApplicationPortfolio() throws Exception {
+		when(jobService.findApplicationPortfolio(1L, 99L))
+			.thenReturn(new PortfolioFileResponse("조수재 포트폴리오.pdf", "https://cdn.test/portfolio.pdf"));
+
+		mockMvc.perform(get("/jobs/applications/{applicationId}/portfolios", 99L)
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"))
+			.andExpect(jsonPath("$.data.name").value("조수재 포트폴리오.pdf"))
+			.andExpect(jsonPath("$.data.url").value("https://cdn.test/portfolio.pdf"));
+
+		verify(jobService).findApplicationPortfolio(1L, 99L);
+	}
+
+	@Test
 	@DisplayName("unauthenticated user cannot find job application form data")
 	void getApplicationFormUnauthorized() throws Exception {
 		mockMvc.perform(get("/jobs/applications/form")
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.code").value(UNAUTHORIZED_SESSION.getCode()))
+			.andExpect(jsonPath("$.message").value(UNAUTHORIZED_SESSION.getMessage()))
+			.andExpect(jsonPath("$.data").doesNotExist());
+	}
+
+	@Test
+	@DisplayName("unauthenticated user cannot find application list")
+	void findApplicationsUnauthorized() throws Exception {
+		mockMvc.perform(get("/jobs/applications")
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isUnauthorized())
 			.andExpect(jsonPath("$.success").value(false))

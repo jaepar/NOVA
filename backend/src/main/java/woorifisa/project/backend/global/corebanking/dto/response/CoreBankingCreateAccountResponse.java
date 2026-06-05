@@ -4,6 +4,7 @@ public record CoreBankingCreateAccountResponse(
         Long accountId,
         Long customerId,
         String accountName,
-        String accountNumber
+        String accountNumber,
+        Integer transferLimit
 ) {
 }

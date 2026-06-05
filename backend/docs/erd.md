@@ -63,6 +63,7 @@ erDiagram
     VARCHAR_100 account_number
     INT balance
     BOOLEAN has_limit
+    INT transfer_limit
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
