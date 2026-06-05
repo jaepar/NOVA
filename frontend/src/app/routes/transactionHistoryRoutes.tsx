@@ -1,8 +1,8 @@
 import type { RouteObject } from "react-router-dom";
-import { TransactionHistory } from "../pages/TransactionHistory";
-import { TransactionHistoryDetail } from "../pages/TransactionHistoryDetail";
+import { TransactionHistoryPage } from "../pages/transaction-history/TransactionHistoryPage";
+import { TransactionHistoryDetailPage } from "../pages/transaction-history/TransactionHistoryDetailPage";
 
 export const transactionHistoryRoutes: RouteObject[] = [
-  { path: "/transaction-history", Component: TransactionHistory },
-  { path: "/transaction-history/:transactionId", Component: TransactionHistoryDetail },
+  { path: "/transaction-history", Component: TransactionHistoryPage },
+  { path: "/transaction-history/:transactionId", Component: TransactionHistoryDetailPage },
 ];

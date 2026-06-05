@@ -84,7 +84,7 @@ export function TransactionHistoryPage() {
 
   return (
     <>
-      <MobileLayout title="거래내역조회" headerType="back">
+      <MobileLayout title="거래내역조회" headerType="back" backPath="/main">
         <div className="-mx-5">
           <AccountSummaryCard account={accountInfo} onTransferClick={() => navigate('/transfer')} />
 
