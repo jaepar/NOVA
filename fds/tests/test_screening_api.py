@@ -28,6 +28,8 @@ def valid_payload():
         "receiverEngName": "Jane Doe",
         "receiverAddressDetail": "1 Main Street",
         "receiverDistrict": "Manhattan",
+        "receiverCity": "New York",
+        "receiverZipCode": None,
         "receiverPhone": "+12125550123",
         "swiftCode": "TESTUS33",
         "receiverAccountNum": "1234567890",

@@ -26,7 +26,9 @@ class GlobalTransactionScreeningRequest(BaseModel):
     senderCountry: str
     receiverEngName: str
     receiverAddressDetail: str
-    receiverDistrict: str
+    receiverDistrict: str | None = None
+    receiverCity: str
+    receiverZipCode: str | None = None
     receiverPhone: str
     swiftCode: str
     receiverAccountNum: str
