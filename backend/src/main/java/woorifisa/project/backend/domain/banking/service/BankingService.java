@@ -147,8 +147,10 @@ public class BankingService {
                     CoreBankingPasswordVerifyRequest.of(accountRef.getAccountId(), request.accountPassword())
             );
 
-            // 계좌 이체 실패 페이지를 확인하기 위한 테스트 코드
-//            sleepAfterPasswordVerificationIfConfigured();
+            /**
+             * 계좌 이체 실패 페이지를 확인하기 위한 테스트 코드
+             */
+            sleepAfterPasswordVerificationIfConfigured();
 
             String accountProcessingKey = formatAccountProcessingKey(accountRef.getAccountId());
             Boolean accountLockAcquired = stringRedisTemplate.opsForValue()
