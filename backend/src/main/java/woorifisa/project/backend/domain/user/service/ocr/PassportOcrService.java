@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.user.dto.response.ocr.PassportOcrRawResponse;
-import woorifisa.project.backend.domain.user.dto.response.ocr.PassportResponse;
+import woorifisa.project.backend.domain.user.dto.response.ocr.PassportOcrResponse;
 import woorifisa.project.backend.global.config.KycPassportOcrProperties;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -35,7 +35,7 @@ public class PassportOcrService {
 	 * @param file 여권 이미지 파일
 	 * @return OCR 성공 여부, 필드 목록, 원본 응답을 포함한 결과
 	 */
-	public PassportResponse recognizePassport(MultipartFile file) {
+	public PassportOcrResponse recognizePassport(MultipartFile file) {
 		validateFile(file);
 		validateConfig();
 
@@ -56,7 +56,7 @@ public class PassportOcrService {
 				throw new CustomException(PASSPORT_OCR_FAILED);
 			}
 
-			return PassportResponse.builder()
+			return PassportOcrResponse.builder()
 				.type(getData(passport, "type"))
 				.issueCountry(getData(passport, "issueCountry"))
 				.num(getData(passport, "num"))
@@ -68,6 +68,7 @@ public class PassportOcrService {
 				.issueDate(getData(passport, "issueDate"))
 				.expireDate(getData(passport, "expireDate"))
 				.authority(getData(passport, "authority"))
+				.fullNameKor(getData(passport, "fullNameKor"))
 				.build();
 		} catch (CustomException exception) {
 			throw exception;
