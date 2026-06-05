@@ -321,22 +321,6 @@
     pointer-events: none !important;
     cursor: default !important;
     background: #ffffff !important;
-  @keyframes transfer-bank-dot {
-    0%,
-    70%,
-    100% {
-      opacity: 0.45;
-      transform: scale(0.72);
-    }
-    35% {
-      opacity: 1;
-      transform: scale(1.28);
-    }
-  }
-
-  .animate-transfer-bank-dot {
-    animation: transfer-bank-dot 1.15s ease-in-out infinite;
-    transform-origin: center;
   }
 
   @keyframes transfer-bank-dot {

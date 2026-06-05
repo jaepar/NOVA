@@ -48,8 +48,6 @@ export type {
   WalletTransactionsRequest,
   WalletTransactionsResponse,
 } from './endpoints/wallet';
-export { walletApi } from './endpoints/wallet';
-export type { WalletNextStep, WalletStatusResponse } from './endpoints/wallet';
 export { transferApi } from "./endpoints/transfer";
 export type {
   SubmitRemittanceRequest,
