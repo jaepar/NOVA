@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
 import { walletApi, type WalletNextStep } from "../../../api";
 import { AppButton } from "../../components/design-system/AppButton";
@@ -10,12 +11,17 @@ import { walletPrimaryButtonClass, walletSecondaryButtonClass } from "./styles";
 const LOGO_ONLY_DURATION_MS = 1500;
 const HOME_TRANSITION_DURATION_MS = 500;
 
+function isUnauthorizedError(error: unknown) {
+  return error instanceof AxiosError && error.response?.status === 401;
+}
+
 export function WalletSplash() {
   const navigate = useNavigate();
   const [readyToStart, setReadyToStart] = useState(false);
   const [isAccountRequiredOpen, setIsAccountRequiredOpen] = useState(false);
   const [nextStep, setNextStep] = useState<WalletNextStep | null>(null);
   const [statusError, setStatusError] = useState(false);
+  const [isLoginRequired, setIsLoginRequired] = useState(false);
   const [isLeavingForHome, setIsLeavingForHome] = useState(false);
 
   useEffect(() => {
@@ -36,13 +42,15 @@ export function WalletSplash() {
         }
 
         setStatusError(false);
+        setIsLoginRequired(false);
         setNextStep(status.nextStep);
-      } catch {
+      } catch (error) {
         if (!isMounted) {
           return;
         }
 
         setStatusError(true);
+        setIsLoginRequired(isUnauthorizedError(error));
         setNextStep(null);
       }
     };
@@ -57,13 +65,16 @@ export function WalletSplash() {
 
   const retryWalletStatus = async () => {
     setStatusError(false);
+    setIsLoginRequired(false);
 
     try {
       const status = await walletApi.status();
 
+      setIsLoginRequired(false);
       setNextStep(status.nextStep);
-    } catch {
+    } catch (error) {
       setStatusError(true);
+      setIsLoginRequired(isUnauthorizedError(error));
       setNextStep(null);
     }
   };
@@ -83,6 +94,11 @@ export function WalletSplash() {
   }, [navigate, nextStep, readyToStart]);
 
   const handleStartWallet = () => {
+    if (isLoginRequired) {
+      navigate("/login");
+      return;
+    }
+
     if (statusError) {
       retryWalletStatus();
       return;
@@ -108,8 +124,13 @@ export function WalletSplash() {
     navigate("/certificate/step-01");
   };
 
+  const handleLater = () => {
+    setIsAccountRequiredOpen(false);
+    navigate("/main");
+  };
+
   return (
-    <main className="flex h-full w-full flex-col items-center justify-center bg-white px-5">
+    <main className="flex h-full w-full flex-col items-center justify-center bg-[rgba(254,254,254,1)] px-5">
       <div
         className={`flex flex-col items-center transition-all duration-700 ease-out ${
           isLeavingForHome
@@ -140,7 +161,13 @@ export function WalletSplash() {
           disabled={!statusError && !nextStep}
           className={walletPrimaryButtonClass}
         >
-          {statusError ? "다시 시도" : !nextStep ? "확인 중" : "월렛 생성하기"}
+          {isLoginRequired
+            ? "NOVA 로그인 하러가기"
+            : statusError
+              ? "다시 시도"
+              : !nextStep
+                ? "확인 중"
+                : "월렛 생성하기"}
         </AppButton>
       </div>
 
@@ -172,7 +199,7 @@ export function WalletSplash() {
             <AppButton
               type="button"
               variant="unstyled"
-              onClick={() => setIsAccountRequiredOpen(false)}
+              onClick={handleLater}
               className={walletSecondaryButtonClass}
             >
               나중에

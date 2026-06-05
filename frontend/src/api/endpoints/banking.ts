@@ -17,6 +17,7 @@ export type AccountHomeUiState =
   | "HAS_ACCOUNT";
 
 export type AccountSummary = {
+  accountId: number;
   accountName: string;
   accountNumber: string;
   bankName: string;
@@ -25,10 +26,9 @@ export type AccountSummary = {
 };
 
 export type AccountHomeResponse = {
-  hasAccount: boolean;
-  certificateStatus: CertificateStatus;
   uiState: AccountHomeUiState;
   account: AccountSummary | null;
+  hasNotification: boolean;
 };
 
 export type TransferPreviewRequest = {
@@ -108,26 +108,27 @@ const DEV_ACCOUNT_HOME_MOCKS = {
   } satisfies AccountHomeResponse,
 } as const;
 
-// 여기의 preset만 바꿔서 메인 화면 렌더링을 테스트하면 됩니다.
-// 예: DEV_ACCOUNT_HOME_MOCKS.certificateIssuing
-const DEV_MOCK_ACCOUNT_HOME_RESPONSE: AccountHomeResponse =
-  DEV_ACCOUNT_HOME_MOCKS.hasGeneralAccount;
+type AccountHomeApiResponse = Omit<AccountHomeResponse, "hasNotification"> & {
+  has_notification: boolean;
+};
 
-function getDevAccountHome(): AccountHomeResponse {
-  return DEV_MOCK_ACCOUNT_HOME_RESPONSE;
+function normalizeAccountHome(
+  response: AccountHomeApiResponse
+): AccountHomeResponse {
+  return {
+    uiState: response.uiState,
+    account: response.account,
+    hasNotification: response.has_notification,
+  };
 }
 
 export const bankingApi = {
   getHome: async (): Promise<AccountHomeResponse> => {
-    if (import.meta.env.DEV) {
-      return getDevAccountHome();
-    }
-
     const response = await apiClient.get<
-      BankingApiResponse<AccountHomeResponse>
+      BankingApiResponse<AccountHomeApiResponse>
     >("/banking/home");
 
-    return response.data.data;
+    return normalizeAccountHome(response.data.data);
   },
   previewTransfer: async (
     request: TransferPreviewRequest

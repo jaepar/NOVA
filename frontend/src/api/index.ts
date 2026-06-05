@@ -21,6 +21,7 @@ export { extractApiErrorBody } from './utils';
 
 export { authApi } from './endpoints/auth';
 export { certificateApi } from './endpoints/certificate';
+export { userApi } from './endpoints/user';
 export type {
   AuthMessageResponse,
   LoginRequest,
@@ -34,10 +35,21 @@ export type {
   AccountSummary,
   CertificateStatus,
 } from './endpoints/banking';
+export type { NotificationResponse, NotificationType } from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
-export { walletApi } from './endpoints/wallet';
-export type { WalletNextStep, WalletStatusResponse } from './endpoints/wallet';
+export { createIdempotencyKey, walletApi } from './endpoints/wallet';
+export type {
+  ChargeWalletRequest,
+  WalletCreateRequest,
+  WalletNextStep,
+  WalletStatusResponse,
+  WalletSummaryResponse,
+  WalletTransactionFlow,
+  WalletTransactionResponse,
+  WalletTransactionsRequest,
+  WalletTransactionsResponse,
+} from './endpoints/wallet';
 export { transferApi } from "./endpoints/transfer";
 export type {
   SubmitRemittanceRequest,
