@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { walletApi } from "../../../api";
 import { AppButton } from "../../components/design-system/AppButton";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { WalletAgreementItem } from "./components/WalletAgreementItem";
@@ -10,6 +11,8 @@ import { useWalletStore } from "./stores/walletStore";
 
 export function WalletTerms() {
   const navigate = useNavigate();
+  const [isCreating, setIsCreating] = useState(false);
+  const [createErrorMessage, setCreateErrorMessage] = useState<string | null>(null);
   const checkedTermIds = useWalletStore((state) => state.checkedTermIds);
   const expandedTermId = useWalletStore((state) => state.expandedTermId);
   const agreementsOpen = useWalletStore((state) => state.agreementsOpen);
@@ -34,25 +37,47 @@ export function WalletTerms() {
     toggleAllRequiredTerms(requiredTermIds);
   };
 
-  const handleAgree = () => {
-    if (!allRequiredChecked) return;
-    resetTermsFlow();
-    navigate("/wallet/home");
+  const handleAgree = async () => {
+    if (!allRequiredChecked || isCreating) return;
+
+    setIsCreating(true);
+    setCreateErrorMessage(null);
+
+    try {
+      await walletApi.create({ termsAgreed: true });
+      resetTermsFlow();
+      navigate("/wallet/home", { replace: true });
+    } catch {
+      setCreateErrorMessage("월렛 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
     <MobileLayout
       title="월렛"
       bottomContent={
-        <AppButton
-          type="button"
-          variant="unstyled"
-          disabled={!allRequiredChecked}
-          onClick={handleAgree}
-          className={walletPrimaryButtonClass}
-        >
-          동의
-        </AppButton>
+        <div className="space-y-3">
+          {createErrorMessage && (
+            <div
+              role="alert"
+              className="rounded-xl bg-[#fff2f2] px-4 py-3 text-center text-[14px] font-medium text-[#d92d20] shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+            >
+              {createErrorMessage}
+            </div>
+          )}
+
+          <AppButton
+            type="button"
+            variant="unstyled"
+            disabled={!allRequiredChecked || isCreating}
+            onClick={handleAgree}
+            className={walletPrimaryButtonClass}
+          >
+            {isCreating ? "생성 중" : "동의"}
+          </AppButton>
+        </div>
       }
     >
       <section className="pt-12 pl-3 pr-5">

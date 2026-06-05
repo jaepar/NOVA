@@ -23,7 +23,7 @@ export function TitleOnlyFixedHeader({
         style={{ height: 'var(--app-header-height)' }}
       >
         <div className="w-10" />
-        <h1 className="flex-1 text-center text-[20px]" style={{ color: textColor }}>
+        <h1 className="flex-1 text-center text-[20px] font-semibold leading-none" style={{ color: textColor }}>
           {title}
         </h1>
         <div className="w-10" />
