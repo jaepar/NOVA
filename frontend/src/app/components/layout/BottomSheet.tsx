@@ -10,7 +10,6 @@ interface BottomSheetProps {
   bottomAction?: React.ReactNode
   height?: string
   disableScroll?: boolean
-  bottomActionClassName?: string
   dimBackground?: boolean
 }
 
@@ -22,7 +21,6 @@ export function BottomSheet({
   bottomAction,
   height,
   disableScroll = false,
-  bottomActionClassName = 'bg-background/95 backdrop-blur-[20px] p-4 rounded-2xl border border-border/50',
   dimBackground = true,
 }: BottomSheetProps) {
   const visibilityStore = useMemo(
@@ -96,7 +94,7 @@ export function BottomSheet({
         {bottomAction && (
           <div className="px-5 pb-5">
             <div
-              className={bottomActionClassName}
+              className="bg-background/95 backdrop-blur-[20px] p-4 rounded-2xl border border-border/50"
               style={{
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',

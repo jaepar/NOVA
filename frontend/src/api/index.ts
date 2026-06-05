@@ -9,6 +9,7 @@
 
 export { default as apiClient } from './client'
 export * from './types'
+export { extractApiErrorBody } from './utils';
 
 /**
  * 엔드포인트별 API 함수를 작성한 후 여기에 export 추가
@@ -43,4 +44,9 @@ export type {
   SubmitRemittanceResponse,
 } from "./endpoints/transfer";
 export { bankingApi, getBankingApiError } from './endpoints/banking';
-export type { TransferPreviewRequest, TransferPreviewResponse, TransferRequest } from './endpoints/banking';
+export type {
+  BankingApiErrorBody,
+  TransferPreviewRequest,
+  TransferPreviewResponse,
+  TransferRequest,
+} from './endpoints/banking';

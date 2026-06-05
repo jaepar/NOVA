@@ -1,5 +1,5 @@
 import apiClient from "../client";
-import { AxiosError } from "axios";
+import { extractApiErrorBody } from "../utils";
 
 type BankingApiResponse<T> = {
   success: boolean;
@@ -117,45 +117,6 @@ function getDevAccountHome(): AccountHomeResponse {
   return DEV_MOCK_ACCOUNT_HOME_RESPONSE;
 }
 
-export function getBankingApiError(error: unknown): BankingApiErrorBody | null {
-  if (!(error instanceof AxiosError)) {
-    if (!error || typeof error !== "object") return null;
-
-    const errorBody = error as Partial<BankingApiErrorBody>;
-    if (
-      typeof errorBody.code !== "string" ||
-      typeof errorBody.message !== "string"
-    ) {
-      return null;
-    }
-
-    return {
-      success: false,
-      code: errorBody.code,
-      message: errorBody.message,
-      data: null,
-    };
-  }
-
-  const data = error.response?.data;
-  if (!data || typeof data !== "object") return null;
-
-  const errorBody = data as Partial<BankingApiErrorBody>;
-  if (
-    typeof errorBody.code !== "string" ||
-    typeof errorBody.message !== "string"
-  ) {
-    return null;
-  }
-
-  return {
-    success: false,
-    code: errorBody.code,
-    message: errorBody.message,
-    data: null,
-  };
-}
-
 export const bankingApi = {
   getHome: async (): Promise<AccountHomeResponse> => {
     if (import.meta.env.DEV) {
@@ -196,3 +157,7 @@ export const bankingApi = {
     }
   },
 };
+
+export function getBankingApiError(error: unknown): BankingApiErrorBody | null {
+  return extractApiErrorBody<BankingApiErrorBody>(error);
+}
