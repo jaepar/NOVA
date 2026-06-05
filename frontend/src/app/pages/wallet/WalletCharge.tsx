@@ -3,7 +3,7 @@ import { AxiosError } from "axios";
 import { Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { KeypadPressEvent } from "secure-keypad";
-import { walletApi } from "../../../api";
+import { createIdempotencyKey, walletApi } from "../../../api";
 import { AppButton } from "../../components/design-system/AppButton";
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { MobileLayout } from "../../components/layout/MobileLayout";
@@ -20,6 +20,52 @@ const accountPasswordLength = 4;
 const passwordSheetCloseDurationMs = 320;
 const chargeCompletionLoadingMs = 700;
 const chargeLimitMessage = "1회 충전 금액은 10,000,000원까지만 가능합니다.";
+
+const retryableChargeErrorCodes = [
+  "WALLET_CHARGE-004",
+  "WALLET_CHARGE-005",
+  "WALLET_CHARGE-007",
+  "WALLET_CHARGE-008",
+  "BANK-003",
+  "BANK-005",
+  "WALLET_ACCOUNT_DEBIT-004",
+  "ACCOUNT_TRANSFER-006",
+];
+
+const accountPasswordMismatchErrorCodes = [
+  "BANK-007",
+  "ACCOUNT-007",
+];
+
+const accountInsufficientBalanceErrorCodes = [
+  "WALLET_CHARGE-009",
+  "WALLET_ACCOUNT_DEBIT-003",
+  "ACCOUNT-002",
+  "ACCOUNT_TRANSFER-005",
+  "BANK-004",
+];
+
+const accountNotFoundErrorCodes = [
+  "WALLET_CHARGE-003",
+  "BANK-001",
+  "ACCOUNT-006",
+  "WALLET_ACCOUNT_DEBIT-002",
+  "ACCOUNT_TRANSFER-002",
+];
+
+const invalidChargeAmountErrorCodes = [
+  "40000",
+  "WALLET_CHARGE-001",
+  "WALLET_ACCOUNT_DEBIT-001",
+  "ACCOUNT-001",
+  "ACCOUNT-003",
+];
+
+const walletUnavailableErrorCodes = [
+  "WALLET_CHARGE-002",
+  "WALLET-010",
+  "WALLET-012",
+];
 
 function removeSecureKeypadGlobalStyles() {
   const style = document.getElementById("secure-keypad-styles");
@@ -62,14 +108,109 @@ function getApiErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "잠시 후 다시 시도해주세요.";
 }
 
+function getApiErrorCode(error: unknown) {
+  if (error instanceof AxiosError) {
+    const responseData = error.response?.data;
+
+    if (
+      responseData &&
+      typeof responseData === "object" &&
+      "code" in responseData &&
+      typeof responseData.code === "string"
+    ) {
+      return responseData.code;
+    }
+  }
+
+  return null;
+}
+
+function isUnauthorizedError(error: unknown) {
+  return error instanceof AxiosError && error.response?.status === 401;
+}
+
+function shouldKeepChargeIdempotencyKey(error: unknown) {
+  if (error instanceof AxiosError && !error.response) {
+    return true;
+  }
+
+  if (error instanceof AxiosError && (error.response?.status ?? 0) >= 500) {
+    return true;
+  }
+
+  return retryableChargeErrorCodes.includes(getApiErrorCode(error) ?? "");
+}
+
+function isAmbiguousChargeError(error: unknown) {
+  if (error instanceof AxiosError && !error.response) {
+    return true;
+  }
+
+  if (error instanceof AxiosError && (error.response?.status ?? 0) >= 500) {
+    return true;
+  }
+
+  return retryableChargeErrorCodes.includes(getApiErrorCode(error) ?? "");
+}
+
+function getChargeFailureTitle() {
+  return "충전 실패";
+}
+
+function getChargeFailureMessage(error: unknown) {
+  const code = getApiErrorCode(error);
+
+  if (isUnauthorizedError(error)) {
+    return "로그인이 필요한 서비스입니다.";
+  }
+
+  if (isAmbiguousChargeError(error)) {
+    return "요청 결과를 바로 확인하지 못했어요.\n잠시 후 월렛 홈에서 잔액과 거래내역을 확인해주세요.";
+  }
+
+  if (accountPasswordMismatchErrorCodes.includes(code ?? "")) {
+    return "계좌 비밀번호가 일치하지 않아요. 다시 확인해주세요.";
+  }
+
+  if (accountInsufficientBalanceErrorCodes.includes(code ?? "")) {
+    return "출금 계좌 잔액이 부족해요.";
+  }
+
+  if (accountNotFoundErrorCodes.includes(code ?? "")) {
+    return "출금 계좌 정보를 찾지 못했어요.\n계좌 연결 상태를 확인해주세요.";
+  }
+
+  if (invalidChargeAmountErrorCodes.includes(code ?? "")) {
+    return "충전 금액을 다시 확인해주세요.";
+  }
+
+  if (walletUnavailableErrorCodes.includes(code ?? "")) {
+    return "월렛 정보를 확인하지 못했어요.\n월렛 홈에서 다시 확인해주세요.";
+  }
+
+  switch (code) {
+    case "WALLET_CHARGE-006":
+      return "요청 정보를 확인하지 못했어요.\n화면을 새로고침한 뒤 다시 시도해주세요.";
+    default:
+      return "충전을 완료하지 못했어요.\n입력 정보를 확인한 뒤 다시 시도해주세요.";
+  }
+}
+
 export function WalletCharge() {
   const navigate = useNavigate();
   const completionTimerIdsRef = useRef<number[]>([]);
   const [isPasswordSheetOpen, setIsPasswordSheetOpen] = useState(false);
   const [isCompletionLoading, setIsCompletionLoading] = useState(false);
+  const [chargeFailureTitle, setChargeFailureTitle] = useState("충전 실패");
   const [chargeFailureMessage, setChargeFailureMessage] = useState<string | null>(null);
+  const [shouldNavigateHomeAfterChargeFailure, setShouldNavigateHomeAfterChargeFailure] =
+    useState(false);
+  const [shouldNavigateLoginAfterChargeFailure, setShouldNavigateLoginAfterChargeFailure] =
+    useState(false);
   const [chargeFailedAt, setChargeFailedAt] = useState<Date | null>(null);
+  const [linkedAccountNumber, setLinkedAccountNumber] = useState<string | null>(null);
   const amount = useWalletStore((state) => state.chargeAmount);
+  const pendingChargeKey = useWalletStore((state) => state.pendingChargeKey);
   const accountPassword = useWalletStore((state) => state.chargeAccountPassword);
   const feedback = useWalletStore((state) => state.chargeFeedback);
   const success = useWalletStore((state) => state.chargeSuccess);
@@ -80,6 +221,7 @@ export function WalletCharge() {
   const setSuccess = useWalletStore((state) => state.setChargeSuccess);
   const setIsSubmitting = useWalletStore((state) => state.setChargeSubmitting);
   const setWalletBalance = useWalletStore((state) => state.setWalletBalance);
+  const setPendingChargeKey = useWalletStore((state) => state.setPendingChargeKey);
   const clearChargeAmount = useWalletStore((state) => state.clearChargeAmount);
   const resetChargeFlow = useWalletStore((state) => state.resetChargeFlow);
 
@@ -129,6 +271,33 @@ export function WalletCharge() {
     };
   }, [resetChargeFlow]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadWalletSummary = async () => {
+      try {
+        const response = await walletApi.summary();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setWalletBalance(response.balance);
+        setLinkedAccountNumber(response.linkedAccountNumber);
+      } catch {
+        if (isMounted) {
+          setLinkedAccountNumber(null);
+        }
+      }
+    };
+
+    loadWalletSummary();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [setWalletBalance]);
+
   const wait = (durationMs: number) =>
     new Promise<void>((resolve) => {
       const timerId = window.setTimeout(resolve, durationMs);
@@ -138,6 +307,9 @@ export function WalletCharge() {
 
   const updateAmount = (nextAmount: string) => {
     setSuccess(null);
+    if (nextAmount !== amount) {
+      setPendingChargeKey(null);
+    }
     setAmount(nextAmount);
 
     if (Number(nextAmount || 0) > chargeLimitAmount) {
@@ -169,6 +341,11 @@ export function WalletCharge() {
     }
 
     updateAmount(nextAmount);
+  };
+
+  const handleClearChargeAmount = () => {
+    setPendingChargeKey(null);
+    clearChargeAmount();
   };
 
   const handleKeypadPress = (event: KeypadPressEvent) => {
@@ -218,12 +395,32 @@ export function WalletCharge() {
       throw new Error("계좌비밀번호 4자리를 입력해주세요.");
     }
 
-    await walletApi.charge({ chargeAmount: numericAmount });
+    const idempotencyKey = pendingChargeKey ?? createIdempotencyKey();
+    if (!pendingChargeKey) {
+      setPendingChargeKey(idempotencyKey);
+    }
 
     try {
-      const response = await walletApi.transactions();
+      await walletApi.charge(
+        {
+          chargeAmount: numericAmount,
+          accountPassword,
+        },
+        idempotencyKey,
+      );
+      setPendingChargeKey(null);
+    } catch (error) {
+      if (!shouldKeepChargeIdempotencyKey(error)) {
+        setPendingChargeKey(null);
+      }
+      throw error;
+    }
+
+    try {
+      const response = await walletApi.summary();
 
       setWalletBalance(response.balance);
+      setLinkedAccountNumber(response.linkedAccountNumber);
       return response.balance;
     } catch {
       return null;
@@ -259,6 +456,9 @@ export function WalletCharge() {
     setIsSubmitting(true);
     setFeedback(null);
     setChargeFailureMessage(null);
+    setChargeFailureTitle("충전 실패");
+    setShouldNavigateHomeAfterChargeFailure(false);
+    setShouldNavigateLoginAfterChargeFailure(false);
     setChargeFailedAt(null);
 
     try {
@@ -297,10 +497,11 @@ export function WalletCharge() {
         chargedAt: new Date(),
       });
     } catch (error) {
-      const message = getApiErrorMessage(error);
-
       await wait(chargeCompletionLoadingMs);
-      setChargeFailureMessage(`충전에 실패했습니다. ${message}`);
+      setChargeFailureTitle(getChargeFailureTitle());
+      setChargeFailureMessage(getChargeFailureMessage(error));
+      setShouldNavigateHomeAfterChargeFailure(isAmbiguousChargeError(error));
+      setShouldNavigateLoginAfterChargeFailure(isUnauthorizedError(error));
       setChargeFailedAt(new Date());
       setIsSubmitting(false);
     } finally {
@@ -310,7 +511,21 @@ export function WalletCharge() {
 
   const handleFailureConfirm = () => {
     setChargeFailureMessage(null);
+    setChargeFailureTitle("충전 실패");
+    setShouldNavigateHomeAfterChargeFailure(false);
+    setShouldNavigateLoginAfterChargeFailure(false);
     setChargeFailedAt(null);
+
+    if (shouldNavigateLoginAfterChargeFailure) {
+      resetChargeFlow();
+      navigate("/login");
+      return;
+    }
+
+    if (shouldNavigateHomeAfterChargeFailure) {
+      resetChargeFlow();
+      navigate("/wallet/home");
+    }
   };
 
   const handleSuccessConfirm = () => {
@@ -399,7 +614,7 @@ export function WalletCharge() {
                   type="button"
                   variant="unstyled"
                   aria-label="충전 금액 지우기"
-                  onClick={clearChargeAmount}
+                  onClick={handleClearChargeAmount}
                   disabled={numericAmount <= 0}
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#bfc1c8] text-white ${
                     numericAmount > 0 ? "" : "invisible pointer-events-none"
@@ -421,7 +636,7 @@ export function WalletCharge() {
             </div>
           </section>
 
-          <WalletAccountCard />
+          <WalletAccountCard accountNumber={linkedAccountNumber} />
         </div>
       </MobileLayout>
 
@@ -513,7 +728,7 @@ export function WalletCharge() {
                   id="wallet-charge-failure-title"
                   className="text-[18px] font-semibold leading-6 text-[#111111]"
                 >
-                  충전 실패
+                  {chargeFailureTitle}
                 </h2>
                 <p className="mt-1 text-[14px] font-medium leading-5 text-[#8c8c8c]">
                   {chargeFailedAtText}
@@ -523,7 +738,7 @@ export function WalletCharge() {
 
             <div className="my-6 h-px bg-[#eeeeee]" />
 
-            <p className="rounded-xl bg-[#fff2f2] px-4 py-3 text-[14px] font-medium leading-6 text-[#d92d20]">
+            <p className="whitespace-pre-line rounded-xl bg-[#fff2f2] px-4 py-3 text-[14px] font-medium leading-6 text-[#d92d20]">
               {chargeFailureMessage}
             </p>
 
@@ -533,7 +748,11 @@ export function WalletCharge() {
               onClick={handleFailureConfirm}
               className={`mt-6 ${walletPrimaryButtonClass}`}
             >
-              확인
+              {shouldNavigateLoginAfterChargeFailure
+                ? "NOVA 로그인 하러가기"
+                : shouldNavigateHomeAfterChargeFailure
+                  ? "잔액 확인하기"
+                  : "확인"}
             </AppButton>
           </div>
         </div>

@@ -19,6 +19,12 @@ export type WalletCreateRequest = {
 
 export type ChargeWalletRequest = {
   chargeAmount: number;
+  accountPassword: string;
+};
+
+export type WalletSummaryResponse = {
+  balance: number;
+  linkedAccountNumber: string;
 };
 
 export type WalletTransactionFlow = "DEPOSIT" | "WITHDRAWAL";
@@ -34,9 +40,17 @@ export type WalletTransactionResponse = {
 export type WalletTransactionsResponse = {
   balance: number;
   transactions: WalletTransactionResponse[];
+  page: number;
+  size: number;
+  hasNext: boolean;
 };
 
-function createIdempotencyKey() {
+export type WalletTransactionsRequest = {
+  page?: number;
+  size?: number;
+};
+
+export function createIdempotencyKey() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
@@ -55,16 +69,32 @@ export const walletApi = {
     await apiClient.post<WalletApiResponse<null>>("/wallet", request);
   },
 
-  transactions: async (): Promise<WalletTransactionsResponse> => {
-    const response = await apiClient.get<WalletApiResponse<WalletTransactionsResponse>>("/wallet/transactions");
+  transactions: async (
+    request: WalletTransactionsRequest = {},
+  ): Promise<WalletTransactionsResponse> => {
+    const response = await apiClient.get<WalletApiResponse<WalletTransactionsResponse>>(
+      "/wallet/transactions",
+      {
+        params: request,
+      },
+    );
 
     return response.data.data;
   },
 
-  charge: async (request: ChargeWalletRequest): Promise<void> => {
+  summary: async (): Promise<WalletSummaryResponse> => {
+    const response = await apiClient.get<WalletApiResponse<WalletSummaryResponse>>("/wallet/summary");
+
+    return response.data.data;
+  },
+
+  charge: async (
+    request: ChargeWalletRequest,
+    idempotencyKey: string,
+  ): Promise<void> => {
     await apiClient.post<WalletApiResponse<null>>("/wallet/charges", request, {
       headers: {
-        "Idempotency-Key": createIdempotencyKey(),
+        "Idempotency-Key": idempotencyKey,
       },
     });
   },

@@ -1,4 +1,4 @@
-import type { WalletTransaction } from '../data/walletMockData'
+import type { WalletTransaction } from "../data/walletTransactionTypes";
 
 interface WalletTransactionItemProps {
   transaction: WalletTransaction

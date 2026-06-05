@@ -1,5 +1,5 @@
 import type { WalletTransactionResponse } from "../../../../api";
-import type { WalletTransaction } from "../data/walletMockData";
+import type { WalletTransaction } from "../data/walletTransactionTypes";
 
 function formatTransactionDate(createdAt: string) {
   const date = new Date(createdAt);

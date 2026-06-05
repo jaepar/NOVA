@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AxiosError } from "axios";
 import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { walletApi } from "../../../api";
@@ -10,13 +11,17 @@ import {
   walletTransactionFilterLabels,
   type WalletTransaction,
   type WalletTransactionFilter,
-} from "./data/walletMockData";
+} from "./data/walletTransactionTypes";
 import { walletSecondaryButtonClass } from "./styles";
 import { useWalletStore } from "./stores/walletStore";
 import { toWalletTransaction } from "./utils/walletTransactionMapper";
 
 const filterOptions: WalletTransactionFilter[] = ["all", "charge", "use"];
-const TRANSACTION_PAGE_SIZE = 8;
+const TRANSACTION_PAGE_SIZE = 20;
+
+function isUnauthorizedError(error: unknown) {
+  return error instanceof AxiosError && error.response?.status === 401;
+}
 
 export function WalletHome() {
   const navigate = useNavigate();
@@ -29,26 +34,57 @@ export function WalletHome() {
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
   const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
+  const [isLoadingMoreTransactions, setIsLoadingMoreTransactions] = useState(false);
   const [transactionsErrorMessage, setTransactionsErrorMessage] = useState<string | null>(null);
+  const [isLoginRequired, setIsLoginRequired] = useState(false);
   const [isExitConfirmOpen, setIsExitConfirmOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(TRANSACTION_PAGE_SIZE);
+  const [transactionPage, setTransactionPage] = useState(0);
+  const [hasNextTransactionPage, setHasNextTransactionPage] = useState(false);
 
-  const loadWalletTransactions = async () => {
-    setIsTransactionsLoading(true);
+  const loadWalletTransactions = useCallback(async (page = 0) => {
+    const isFirstPage = page === 0;
+
+    if (isFirstPage) {
+      setIsTransactionsLoading(true);
+    } else {
+      setIsLoadingMoreTransactions(true);
+    }
     setTransactionsErrorMessage(null);
+    setIsLoginRequired(false);
 
     try {
-      const response = await walletApi.transactions();
+      const response = await walletApi.transactions({
+        page,
+        size: TRANSACTION_PAGE_SIZE,
+      });
+      const nextTransactions = response.transactions.map(toWalletTransaction);
 
       setWalletBalance(response.balance);
-      setWalletTransactions(response.transactions.map(toWalletTransaction));
-    } catch {
-      setTransactionsErrorMessage("이용 내역을 불러오지 못했습니다.");
-      setWalletTransactions([]);
+      setWalletTransactions((currentTransactions) =>
+        isFirstPage ? nextTransactions : [...currentTransactions, ...nextTransactions],
+      );
+      setTransactionPage(response.page);
+      setHasNextTransactionPage(response.hasNext);
+    } catch (error) {
+      if (isUnauthorizedError(error)) {
+        setIsLoginRequired(true);
+        setTransactionsErrorMessage("로그인이 필요한 서비스입니다.");
+      } else {
+        setTransactionsErrorMessage("이용 내역을 불러오지 못했습니다.");
+      }
+
+      if (isFirstPage) {
+        setWalletTransactions([]);
+        setHasNextTransactionPage(false);
+      }
     } finally {
-      setIsTransactionsLoading(false);
+      if (isFirstPage) {
+        setIsTransactionsLoading(false);
+      } else {
+        setIsLoadingMoreTransactions(false);
+      }
     }
-  };
+  }, [setWalletBalance]);
 
   const filteredTransactions = useMemo(() => {
     if (selectedFilter === "charge") {
@@ -62,34 +98,21 @@ export function WalletHome() {
     return walletTransactions;
   }, [selectedFilter, walletTransactions]);
 
-  const visibleTransactions = useMemo(
-    () => filteredTransactions.slice(0, visibleCount),
-    [filteredTransactions, visibleCount],
-  );
-
-  const hasMoreTransactions = visibleCount < filteredTransactions.length;
-
   useEffect(() => {
-    loadWalletTransactions();
-  }, []);
-
-  useEffect(() => {
-    setVisibleCount(TRANSACTION_PAGE_SIZE);
-  }, [selectedFilter, walletTransactions]);
+    loadWalletTransactions(0);
+  }, [loadWalletTransactions]);
 
   useEffect(() => {
     const target = loadMoreRef.current;
 
-    if (!target || !hasMoreTransactions) {
+    if (!target || !hasNextTransactionPage || isTransactionsLoading || isLoadingMoreTransactions) {
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisibleCount((count) =>
-            Math.min(count + TRANSACTION_PAGE_SIZE, filteredTransactions.length),
-          );
+          loadWalletTransactions(transactionPage + 1);
         }
       },
       { rootMargin: "120px 0px" },
@@ -98,7 +121,13 @@ export function WalletHome() {
     observer.observe(target);
 
     return () => observer.disconnect();
-  }, [filteredTransactions.length, hasMoreTransactions]);
+  }, [
+    hasNextTransactionPage,
+    isLoadingMoreTransactions,
+    isTransactionsLoading,
+    loadWalletTransactions,
+    transactionPage,
+  ]);
 
   const handleExitWallet = () => {
     setIsExitConfirmOpen(false);
@@ -180,16 +209,16 @@ export function WalletHome() {
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border bg-background">
-              {visibleTransactions.length > 0 ? (
-                visibleTransactions.map((transaction, index) => (
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.map((transaction, index) => (
                   <WalletTransactionItem
                     key={transaction.id}
                     transaction={transaction}
                     showMonth={
                       index === 0 ||
-                      visibleTransactions[index - 1].month !== transaction.month
+                      filteredTransactions[index - 1].month !== transaction.month
                     }
-                    isLast={index === visibleTransactions.length - 1 && !hasMoreTransactions}
+                    isLast={index === filteredTransactions.length - 1 && !hasNextTransactionPage}
                   />
                 ))
               ) : transactionsErrorMessage ? (
@@ -200,10 +229,17 @@ export function WalletHome() {
                   <AppButton
                     type="button"
                     variant="unstyled"
-                    onClick={loadWalletTransactions}
+                    onClick={() => {
+                      if (isLoginRequired) {
+                        navigate("/login");
+                        return;
+                      }
+
+                      loadWalletTransactions(0);
+                    }}
                     className="mt-3 text-sm font-semibold text-[#014ede]"
                   >
-                    다시 시도
+                    {isLoginRequired ? "NOVA 로그인 하러가기" : "다시 시도"}
                   </AppButton>
                 </div>
               ) : isTransactionsLoading ? (
@@ -217,12 +253,16 @@ export function WalletHome() {
               )}
             </div>
 
-            {visibleTransactions.length > 0 && (
+            {(filteredTransactions.length > 0 || hasNextTransactionPage) && (
               <div
                 ref={loadMoreRef}
                 className="flex h-12 items-center justify-center text-sm text-muted-foreground"
               >
-                {hasMoreTransactions ? "불러오는 중" : "마지막 내역입니다"}
+                {hasNextTransactionPage
+                  ? isLoadingMoreTransactions
+                    ? "불러오는 중"
+                    : "다음 내역 불러오기"
+                  : "마지막 내역입니다"}
               </div>
             )}
           </section>
