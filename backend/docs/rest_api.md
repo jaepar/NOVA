@@ -165,6 +165,56 @@ Response (200)
 }
 ```
 
+## BANK-006 홈 계좌 상태 조회(Cloud)
+
+- Method: `GET`
+- Path: `/banking/home`
+- Auth: `O` (USER session required)
+- Purpose: Return the user's certificate/account state for the NOVA home account panel.
+
+State mapping
+
+| Scenario | Backend decision source | `uiState` | `account` |
+| --- | --- | --- | --- |
+| Certificate not issued | `certificateStatus=NOT_ISSUED`, no account | `NEED_CERTIFICATE` | `null` |
+| Certificate issuing | `certificateStatus=PENDING`, no account | `CERTIFICATE_ISSUING` | `null` |
+| Certificate issued, no account | `certificateStatus=ISSUED`, no account | `READY_TO_OPEN_ACCOUNT` | `null` |
+| Certificate issued, limited account | account exists | `HAS_ACCOUNT` | Account summary with `hasLimit=true` |
+| Certificate issued, general account | account exists | `HAS_ACCOUNT` | Account summary with `hasLimit=false` |
+
+Response (200, account exists)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "Request succeeded.",
+  "data": {
+    "uiState": "HAS_ACCOUNT",
+    "account": {
+      "accountId": 2001,
+      "accountName": "NOVA demand account",
+      "accountNumber": "1002-312-345678",
+      "bankName": "Woori Bank",
+      "balance": 150000,
+      "hasLimit": true
+    }
+  }
+}
+```
+
+Response (200, no account)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "Request succeeded.",
+  "data": {
+    "uiState": "READY_TO_OPEN_ACCOUNT",
+    "account": null
+  }
+}
+```
+
 Error Response (인증서 미발급)
 ```json
 {
