@@ -10,4 +10,6 @@ public enum TransactionType {
     AUTO_DEBIT,             // 자동이체 출금
     WALLET_CHARGE,          // 월렛 충전
     FEE                     // 수수료
+    GLOBAL_REMITTANCE,      // 해외송금
+    GLOBAL_REMITTANCE_REFUND, // 해외송금 환급
 }
