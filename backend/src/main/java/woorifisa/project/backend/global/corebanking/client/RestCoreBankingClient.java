@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import woorifisa.project.backend.global.corebanking.dto.request.*;
+import woorifisa.project.backend.global.corebanking.dto.response.*;
 import org.springframework.web.client.RestClientResponseException;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
@@ -18,7 +20,6 @@ import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTrans
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingBaseErrorResponse;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingBaseResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRequestLookupResponse;
@@ -32,6 +33,8 @@ import java.util.Optional;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
+
+import java.util.List;
 
 @Component
 @Slf4j
@@ -287,6 +290,52 @@ public class RestCoreBankingClient implements CoreBankingClient {
             }
             log.error("[core_banking_customer:create_failed] reason=rest_client_response_exception userId={}, message={}",
                     request.userId(), exception.getMessage(), exception);
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+        }
+    }
+
+    @Override
+    public CoreBankingCreateGlobalTransactionResponse createGlobalTransaction(CoreBankingCreateGlobalTransactionRequest request) {
+        try {
+            BaseResponse<CoreBankingCreateGlobalTransactionResponse> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .post()
+                    .uri("/global-transactions")
+                    .body(request)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+            if (!response.getSuccess()) {
+                throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
+            }
+            return response.getData();
+        } catch (RestClientException exception) {
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+        }
+    }
+
+    @Override
+    public List<CoreBankingGlobalTransactionListItemResponse> findGlobalTransactionsByCustomerId(Long customerId) {
+        try {
+            BaseResponse<List<CoreBankingGlobalTransactionListItemResponse>> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .get()
+                    .uri("/global-transactions?customerId={customerId}", customerId)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null || !response.getSuccess() || response.getData() == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+            return response.getData();
+        } catch (RestClientException exception) {
             throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
         }
     }

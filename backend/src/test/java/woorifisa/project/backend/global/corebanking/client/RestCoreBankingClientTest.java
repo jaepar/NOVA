@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
+import woorifisa.project.backend.global.corebanking.dto.request.*;
+import woorifisa.project.backend.global.corebanking.dto.response.*;
 import org.springframework.web.client.ResourceAccessException;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
@@ -12,6 +14,7 @@ import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalle
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.net.SocketTimeoutException;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -28,6 +31,102 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class RestCoreBankingClientTest {
 
     private static final String CORE_BANKING_BASE_URL = "http://core-banking.test";
+
+    @Test
+    @DisplayName("CoreBanking 해외송금 생성 API를 호출한다")
+    void createGlobalTransaction() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        RestCoreBankingClient client = new RestCoreBankingClient(builder);
+        CoreBankingCreateGlobalTransactionRequest request = new CoreBankingCreateGlobalTransactionRequest(
+                "global-remittance-1",
+                1001L,
+                2001L,
+                "생활비 송금",
+                "US",
+                "USD",
+                "1000.00",
+                "SENDER",
+                "1380.500000",
+                "1380500",
+                "PARK JAEHA",
+                "+821012345678",
+                "101",
+                "Gwangjin-gu",
+                "Seoul",
+                "05029",
+                "KR",
+                "JOHN SMITH",
+                "Apt 10",
+                "Manhattan",
+                "New York",
+                null,
+                "+12125550100",
+                "BOFAUS3N",
+                "1234567890",
+                "026009593",
+                "Bank of America",
+                "LIVING_EXPENSE"
+        );
+
+        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
+        server.expect(requestTo("http://core-banking.test/global-transactions"))
+                .andExpect(method(POST))
+                .andRespond(withSuccess("""
+                        {
+                          "success": true,
+                          "code": "20000",
+                          "message": "OK",
+                          "data": {
+                            "globalTransactionId": 1,
+                            "status": "PENDING"
+                          }
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        CoreBankingCreateGlobalTransactionResponse response = client.createGlobalTransaction(request);
+
+        assertThat(response.globalTransactionId()).isEqualTo(1L);
+        assertThat(response.status()).isEqualTo("PENDING");
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("CoreBanking 고객별 해외송금 목록 조회 API를 호출한다")
+    void findGlobalTransactionsByCustomerId() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        RestCoreBankingClient client = new RestCoreBankingClient(builder);
+
+        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
+        server.expect(requestTo("http://core-banking.test/global-transactions?customerId=1001"))
+                .andExpect(method(GET))
+                .andRespond(withSuccess("""
+                        {
+                          "success": true,
+                          "code": "20000",
+                          "message": "OK",
+                          "data": [
+                            {
+                              "globalTransactionId": 1,
+                              "receiverEngName": "JOHN SMITH",
+                              "remitAmount": "1000.00",
+                              "currency": "USD",
+                              "status": "PENDING",
+                              "createdAt": "2026-06-02T10:30:00"
+                            }
+                          ]
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        List<CoreBankingGlobalTransactionListItemResponse> response =
+                client.findGlobalTransactionsByCustomerId(1001L);
+
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).globalTransactionId()).isEqualTo(1L);
+        assertThat(response.get(0).receiverEngName()).isEqualTo("JOHN SMITH");
+        server.verify();
+    }
 
     @Test
     @DisplayName("CoreBanking 월렛 계좌 차감 API를 호출한다")

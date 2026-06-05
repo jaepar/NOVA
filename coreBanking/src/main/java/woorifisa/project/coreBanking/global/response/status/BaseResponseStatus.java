@@ -46,6 +46,16 @@ public enum BaseResponseStatus implements ResponseStatus {
 	ACCOUNT_TRANSFER_CONFLICT("ACCOUNT_TRANSFER-006", "계좌 이체 요청 처리 중 충돌이 발생했습니다."),
 
 	/**
+	 * globalTransaction
+	 */
+	GLOBAL_TRANSACTION_FDS_COMMUNICATION_FAILED("GLOBAL_TRANSACTION-001", "FDS 서버 통신에 실패했습니다."),
+	GLOBAL_TRANSACTION_FDS_RESPONSE_INVALID("GLOBAL_TRANSACTION-002", "FDS 서버 응답이 올바르지 않습니다."),
+	GLOBAL_TRANSACTION_CUSTOMER_NOT_FOUND("GLOBAL_TRANSACTION-003", "해외송금 고객 정보를 찾을 수 없습니다."),
+	GLOBAL_TRANSACTION_ACCOUNT_NOT_FOUND("GLOBAL_TRANSACTION-004", "해외송금 출금 계좌를 찾을 수 없습니다."),
+	GLOBAL_TRANSACTION_INVALID_AMOUNT("GLOBAL_TRANSACTION-005", "해외송금 원화 금액이 올바르지 않습니다."),
+	GLOBAL_TRANSACTION_NOT_FOUND("GLOBAL_TRANSACTION-006", "해외송금 거래를 찾을 수 없습니다."),
+
+	/**
 	 * wallet
 	 */
 	WALLET_ACCOUNT_DEBIT_INVALID_REQUEST("WALLET_ACCOUNT_DEBIT-001", "계좌 차감 요청이 올바르지 않습니다."),

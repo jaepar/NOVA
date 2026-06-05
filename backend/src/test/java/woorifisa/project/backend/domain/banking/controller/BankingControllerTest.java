@@ -306,4 +306,95 @@ class BankingControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("BANK-009"));
     }
+
+    @Test
+    @DisplayName("세션 사용자와 멱등키 기준으로 해외송금 생성 요청을 처리한다")
+    void createGlobalTransactionSuccess() throws Exception {
+        Long userId = 1L;
+        String idempotencyKey = "global-remittance-1";
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.createGlobalTransaction(any(), any(), any()))
+                .thenReturn(new woorifisa.project.backend.domain.banking.dto.response.CreateGlobalTransactionResponse(
+                        1L,
+                        "PENDING"
+                ));
+
+        mockMvc.perform(post("/banking/global-transactions")
+                        .with(authentication(authToken))
+                        .header("Idempotency-Key", idempotencyKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "accountId": 2001,
+                                  "remitPurpose": "생활비 송금",
+                                  "targetCountry": "US",
+                                  "currency": "USD",
+                                  "remitAmount": "1000.00",
+                                  "mediaryFeePayer": "SENDER",
+                                  "exchangeRate": "1380.500000",
+                                  "krwAmount": "1380500",
+                                  "senderEngName": "PARK JAEHA",
+                                  "senderPhone": "+821012345678",
+                                  "senderAddressDetail": "101",
+                                  "senderDistrict": "Gwangjin-gu",
+                                  "senderCity": "Seoul",
+                                  "senderZipCode": "05029",
+                                  "senderCountry": "KR",
+                                  "receiverEngName": "JOHN SMITH",
+                                  "receiverAddressDetail": "Apt 10",
+                                  "receiverDistrict": "Manhattan",
+                                  "receiverCity": "New York",
+                                  "receiverPhone": "+12125550100",
+                                  "swiftCode": "BOFAUS3N",
+                                  "receiverAccountNum": "1234567890",
+                                  "routingNumber": "026009593",
+                                  "bankName": "Bank of America",
+                                  "remitReason": "LIVING_EXPENSE"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data.globalTransactionId").value(1))
+                .andExpect(jsonPath("$.data.status").value("PENDING"));
+
+        verify(bankingService).createGlobalTransaction(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("세션 사용자 기준 해외송금 목록 조회 요청을 처리한다")
+    void findGlobalTransactionsSuccess() throws Exception {
+        Long userId = 1L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.findGlobalTransactions(any()))
+                .thenReturn(java.util.List.of(
+                        new woorifisa.project.backend.domain.banking.dto.response.GlobalTransactionListItemResponse(
+                                1L,
+                                "JOHN SMITH",
+                                "1000.00",
+                                "USD",
+                                "PENDING",
+                                "2026-06-02T10:30:00"
+                        )
+                ));
+
+        mockMvc.perform(get("/banking/global-transactions")
+                        .with(authentication(authToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data[0].globalTransactionId").value(1))
+                .andExpect(jsonPath("$.data[0].receiverEngName").value("JOHN SMITH"))
+                .andExpect(jsonPath("$.data[0].status").value("PENDING"));
+    }
 }

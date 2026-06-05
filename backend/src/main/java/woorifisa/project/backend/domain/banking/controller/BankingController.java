@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
+import java.util.List;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -17,15 +19,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
+
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
+import woorifisa.project.backend.domain.banking.dto.request.CreateGlobalTransactionRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
+import woorifisa.project.backend.domain.banking.dto.response.CreateGlobalTransactionResponse;
+import woorifisa.project.backend.domain.banking.dto.response.GlobalTransactionListItemResponse;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
@@ -124,5 +130,25 @@ public class BankingController {
     ) {
         bankingService.updateTransactionMemo(transactionId, request);
         return BaseResponse.ok(null);
+    }
+
+    // 해외 송금
+    @PostMapping("/global-transactions")
+    public BaseResponse<CreateGlobalTransactionResponse> createGlobalTransaction(
+            @AuthenticationPrincipal SessionUserPrincipal principal,
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @Valid @RequestBody CreateGlobalTransactionRequest request
+    ) {
+        return BaseResponse.ok(
+                bankingService.createGlobalTransaction(principal.userId(), idempotencyKey, request)
+        );
+    }
+
+    // 해외 송금 내역 조회
+    @GetMapping("/global-transactions")
+    public BaseResponse<List<GlobalTransactionListItemResponse>> findGlobalTransactions(
+            @AuthenticationPrincipal SessionUserPrincipal principal
+    ) {
+        return BaseResponse.ok(bankingService.findGlobalTransactions(principal.userId()));
     }
 }
