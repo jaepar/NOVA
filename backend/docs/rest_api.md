@@ -53,20 +53,20 @@
 | `AUTH-004`     | 이메일 인증번호 발송 | POST | `/auth/email-verifications` | X | PUBLIC | |
 | `AUTH-005`     | 이메일 인증번호 확인 | POST | `/auth/email-verifications/confirm` | X | PUBLIC | |
 | `AUTH-006`     | 세션 확인 | GET | `/auth/me` | X | PUBLIC | `JSESSIONID` 기준 로그인 세션 확인 |
-| `USER-001`     | 회원 정보 조회 | GET | `/users` | O | USER | |
-| `USER-002`     | 회원 정보 수정 | PATCH | `/users` | O | USER | |
-| `USER-003`     | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |
-| `USER-004`     | 서류 제출 | POST   | `/users/documents` | O | USER | 최초 업로드는 2개 필수, 재업로드는 반려(REJECTED) 문서만 허용(2개 반려 시 2개 모두 필수) |
-| `USER-005`     | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
-| `USER-006`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
-| `USER-007`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
-| `USER-008`     | 보완 서류 목록 조회 | GET | `/users/documents/corrections` | O | USER | `missing` 필드를 `,` 기준으로 파싱해 리스트 반환 |
-| `USER-009`     | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED` |
-| `USER-010`     | Liveness 얼굴 인증       | POST   | `/users/verifications/liveness`                          | O    | USER   |                               |
-| `USER-011`     | Liveness 결과 조회       | GET    | `/users/verifications/liveness/{sessionId}`              | O    | USER   |                               |
-| `USER-012`     | Liveness 동일인 비교      | POST   | `/users/verifications/liveness/{sessionId}/face-match`   | O    | USER   |                               |
-| `USER-013`     | Liveness 최종 확정       | POST   | `/users/verifications/liveness/{sessionId}/finalize`     | O    | USER   |                               |
-| `USER-014`     | 신분증/여권 OCR 분기 인증 | POST   | `/users/verifications/identity`                          | O    | USER   | `ocrDocumentType=PASSPORT|ID_CARD` |
+| `USER-007`     | 회원 정보 조회 | GET | `/users` | O | USER | |
+| `USER-008`     | 회원 정보 수정 | PATCH | `/users` | O | USER | |
+| `USER-009`     | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |
+| `USER-010`     | 서류 제출 | POST   | `/users/documents` | O | USER | 최초 업로드는 2개 필수, 재업로드는 반려(REJECTED) 문서만 허용(2개 반려 시 2개 모두 필수) |
+| `USER-011`     | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
+| `USER-012`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
+| `USER-013`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
+| `USER-014`     | 보완 서류 목록 조회 | GET | `/users/documents/corrections` | O | USER | `missing` 필드를 `,` 기준으로 파싱해 리스트 반환 |
+| `USER-015`     | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED` |
+| `USER-016`     | Liveness 얼굴 인증       | POST   | `/users/verifications/liveness`                          | O    | USER   |                               |
+| `USER-017`     | Liveness 결과 조회       | GET    | `/users/verifications/liveness/{sessionId}`              | O    | USER   |                               |
+| `USER-018`     | Liveness 동일인 비교      | POST   | `/users/verifications/liveness/{sessionId}/face-match`   | O    | USER   |                               |
+| `USER-019`     | Liveness 최종 확정       | POST   | `/users/verifications/liveness/{sessionId}/finalize`     | O    | USER   |                               |
+| `USER-020`      | 신분증/여권 OCR 분기 인증 | POST   | `/users/verifications/identity`                          | O    | USER   | `ocrDocumentType=PASSPORT|ID_CARD` |
 | `WALLET-001`   | 월렛 계좌내역 조회           | GET    | `/wallet/transactions`                                   | O    | USER   |                               |
 | `WALLET-002`   | 월렛 충전                | POST   | `/wallet/charges`                                        | O    | USER   |                               |
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST   | `/wallet/charges/debit`                                  | O    | USER   |                               |
@@ -165,6 +165,45 @@ Response (200)
 }
 ```
 
+## BANK-007 해외 송금 요청 생성(Cloud)
+
+- Method: `POST`
+- Path: `/banking/global-transactions`
+- Auth: `O` (USER 세션 필수)
+
+Request
+```json
+{
+  "accountId": 2001,
+  "remitPurpose": "생활비 송금",
+  "targetCountry": "US",
+  "currency": "USD",
+  "remitAmount": "1000.00",
+  "mediaryFeePayer": "SENDER",
+  "exchangeRate": 1380.500000,
+  "krwAmount": "1380500",
+  "senderEngName": "PARK JAEHA",
+  "senderPhone": "+821012345678",
+  "senderAddressDetail": "101",
+  "senderDistrict": "Gwangjin-gu",
+  "senderCity": "Seoul",
+  "senderZipCode": "05029",
+  "senderCountry": "KR",
+  "receiverEngName": "JOHN SMITH",
+  "receiverAddressDetail": "Apt 10",
+  "receiverDistrict": "Manhattan",
+  "receiverCity": "New York",
+  "receiverZipCode": null,
+  "receiverPhone": "+12125550100",
+  "swiftCode": "BOFAUS3N",
+  "receiverAccountNum": "1234567890",
+  "routingNumber": "026009593",
+  "bankName": "Bank of America",
+  "remitReason": "LIVING_EXPENSE"
+}
+```
+
+Response (200)
 ## BANK-006 홈 계좌 상태 조회(Cloud)
 
 - Method: `GET`
@@ -218,20 +257,109 @@ Response (200, no account)
 Error Response (인증서 미발급)
 ```json
 {
-  "success": false,
-  "code": "BANK-008",
-  "message": "인증서 발급 완료 상태에서만 계좌 개설이 가능합니다.",
-  "data": null
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "globalTransactionId": 1,
+    "status": "PENDING"
+  }
 }
 ```
 
-Error Response (coreBanking 비즈니스 실패 예시)
+Processing Rules
+- 현재 세션 사용자 기준으로 본인 계좌만 해외송금 요청에 사용할 수 있다.
+- 백엔드는 프론트 요청 필드와 `account_ref` 등 백엔드 보유 정보를 조합해 CoreBanking `CB-008` API에 전달한다.
+- 중복 요청 방지를 위해 백엔드는 CoreBanking에 전달할 `externalRequestId`를 생성하거나 클라이언트 멱등 키를 검증된 요청 식별자로 변환한다.
+- 해외송금 원장 저장, 계좌 선출금, FDS 비동기 심사, 실패 시 환급은 CoreBanking에서 처리한다.
+- `receiverDistrict`, `receiverZipCode`는 선택값이다.
+- `receiverCity`는 필수값이다.
+
+## BANK-009 해외 송금 목록 조회(Cloud)
+
+- Method: `GET`
+- Path: `/banking/global-transactions`
+- Auth: `O` (USER 세션 필수)
+
+Response (200)
 ```json
 {
-  "success": false,
-  "code": "ACCOUNT-014",
-  "message": "동일한 상품이 존재합니다.",
-  "data": null
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": [
+    {
+      "globalTransactionId": 1,
+      "receiverEngName": "JOHN SMITH",
+      "remitAmount": "1000.00",
+      "currency": "USD",
+      "status": "PENDING",
+      "createdAt": "2026-06-02T10:30:00"
+    }
+  ]
+}
+```
+
+Notes
+- 프론트는 `customerId`를 직접 전달하지 않는다.
+- 백엔드는 현재 세션 사용자와 연결된 CoreBanking 고객 식별자를 기준으로 `CB-012`를 호출한다.
+
+## BANK-002 계좌 비밀번호 검증(Cloud)
+
+## BANK-004 거래 내역 조회(Cloud)
+
+- Method: `GET`
+- Path: `/banking/{accountId}/transactions`
+- Auth: `O` (USER 세션 필수)
+- Sort: `sortDirection` 요청값 기준, 기본 `DESC`
+- Pagination: Spring `Pageable`, 기본 `size=20`, 응답은 무한 스크롤용 Slice 형태(`hasNext`)로 제공
+
+Query Parameters
+
+| Name | Type | Required | Default | Values | Description |
+|---|---|---|---|---|---|
+| `period` | enum | N | `ONE_MONTH` | `ONE_WEEK`, `ONE_MONTH`, `CUSTOM` | 조회 기간 |
+| `flow` | enum | N | `ALL` | `ALL`, `DEPOSIT`, `WITHDRAWAL` | 입출금 유형 |
+| `from` | date | N | - | `yyyy-MM-dd` | `period=CUSTOM`일 때 시작일 |
+| `to` | date | N | - | `yyyy-MM-dd` | `period=CUSTOM`일 때 종료일 |
+| `keyword` | string | N | - | - | `counterParty`, `memo` 검색어 |
+| `sortDirection` | enum | N | `DESC` | `ASC`, `DESC` | 거래일시 정렬 방향 |
+| `page` | integer | N | `0` | `0..` | 페이지 번호 |
+| `size` | integer | N | `20` | `1..` | 페이지 크기 |
+
+Validation
+
+- `period`가 `CUSTOM`이면 `from`, `to`가 모두 필요하다.
+- `period`가 `CUSTOM`이 아니면 `from`, `to`를 함께 전달할 수 없다.
+- `from`은 `to`보다 늦을 수 없다.
+
+Response (200)
+
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "accountId": 2001,
+    "period": "ONE_MONTH",
+    "flow": "ALL",
+    "transactions": [
+      {
+        "transactionId": 1,
+        "transactionFlow": "WITHDRAWAL",
+        "transactionType": "ACCOUNT_TRANSFER",
+        "counterParty": "PARK JAEHA",
+        "amount": 10000,
+        "balanceAfter": 90000,
+        "memo": "생활비",
+        "transactionDateTime": "2026-06-02T10:15:30"
+      }
+    ],
+    "page": 0,
+    "size": 20,
+    "hasNext": false
+  }
 }
 ```
 

@@ -1,15 +1,10 @@
 package woorifisa.project.backend.domain.user.service.ocr;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSPORT_OCR_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSPORT_OCR_FILE_REQUIRED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSPORT_OCR_INVALID_ID_TYPE;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSPORT_OCR_NOT_CONFIGURED;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.http.HttpMethod.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +13,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
-import woorifisa.project.backend.domain.user.dto.response.ocr.PassportResponse;
+import woorifisa.project.backend.domain.user.dto.response.ocr.PassportOcrResponse;
 import woorifisa.project.backend.global.config.KycPassportOcrProperties;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -61,7 +56,7 @@ class PassportOcrServiceTest {
 				}
 				""", MediaType.APPLICATION_JSON));
 
-		PassportResponse response = service.recognizePassport(file);
+		PassportOcrResponse response = service.recognizePassport(file);
 
 		assertThat(response.num()).isEqualTo("M12345678");
 		assertThat(response.surName()).isEqualTo("KIM");

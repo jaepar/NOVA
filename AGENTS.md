@@ -12,8 +12,9 @@ flowchart TD
     Root --> BE["backend<br/>Spring Boot API"]
     Root --> GW["gateway<br/>On-Prem Gateway API"]
     Root --> AI["ai-server<br/>FastAPI"]
+    Root --> CB["On-Premise-Server<br/>Core Banking Server<br/>Goverment DB"]
+    Root --> FDS["fds-server<br/>Python FDS Server<br/>(folder: fds)"]
     Root --> CB["coreBanking<br/>On-Prem Core Banking Server"]
-    Root --> OP["On-Premise Infrastructure<br/>FDS Server<br/>Government DB"]
 ```
 
 Sub-project relations:
@@ -143,8 +144,9 @@ flowchart TD
 - 백엔드 도메인/엔티티/트랜잭션 수정: `backend` 규칙 파일 우선 적용.
 - UI/UX/상태관리 수정: `frontend` 규칙 파일 우선 적용.
 - 병원 예약 챗봇/에이전트 로직(FastAPI) 수정: `ai-server` 규칙 파일 우선 적용.
+- 코어뱅킹 인터페이스/터널링/프로토콜 수정: `core-banking-gateway` 규칙 파일 우선 적용.
 - 온프레미스 gateway API/Nginx 라우팅/Government DB 조회 수정: `gateway` 규칙 파일 우선 적용.
-- 코어뱅킹 도메인/계정계 원장/프로토콜 수정: `coreBanking` 규칙 파일 우선 적용.
+- 해외송금 이상거래 탐지(FDS Python 서버) 수정: `fds` 규칙 파일 우선 적용.
 
 ## Maintenance Policy
 

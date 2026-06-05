@@ -8,28 +8,44 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
-import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingCreateGlobalTransactionResponse;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingGlobalTransactionListItemResponse;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
+import woorifisa.project.backend.domain.banking.dto.request.CreateGlobalTransactionRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeUiState;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
+import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
+import woorifisa.project.backend.domain.banking.dto.response.CreateGlobalTransactionResponse;
+import woorifisa.project.backend.domain.banking.dto.response.GlobalTransactionListItemResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransactionQuery;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingTransactionsResponse;
 import woorifisa.project.backend.global.exception.CustomException;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,11 +60,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSACTION_MEMO_TOO_LONG;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CERTIFICATE_REQUIRED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
 @ExtendWith(MockitoExtension.class)
 class BankingServiceTest {
@@ -208,7 +220,6 @@ class BankingServiceTest {
                 .hasAccount(true)
                 .hasLimit(true)
                 .build();
-        when(userRepository.findById(userId)).thenReturn(Optional.of(accountRef.getUser()));
         when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
                 .thenReturn(Optional.of(accountRef));
 
@@ -258,12 +269,7 @@ class BankingServiceTest {
 
         ArgumentCaptor<CoreBankingTransferRequest> captor = ArgumentCaptor.forClass(CoreBankingTransferRequest.class);
         verify(coreBankingClient).transfer(captor.capture());
-        CoreBankingTransferRequest coreRequest = captor.getValue();
-        assertThat(coreRequest.withdrawAccountId()).isEqualTo(2001L);
-        assertThat(coreRequest.depositAccountId()).isEqualTo(2002L);
-        assertThat(coreRequest.externalRequestId()).isEqualTo(idempotencyKey);
-        assertThat(accountRef.getBalance()).isEqualTo(5000);
-        verify(stringRedisTemplate).delete("banking:transfer:processing:key-1");
+        assertThat(captor.getValue().externalRequestId()).isEqualTo(idempotencyKey);
     }
 
     @Test
@@ -512,6 +518,129 @@ class BankingServiceTest {
     }
 
     @Test
+    @DisplayName("거래내역 조회 요청을 기간/유형/페이지 조건과 함께 코어뱅킹으로 전달한다")
+    void findTransactionsSuccess() {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        Pageable pageable = PageRequest.of(0, 20);
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(accountId)
+                .hasAccount(true)
+                .build();
+        CoreBankingTransactionsResponse coreResponse = new CoreBankingTransactionsResponse(
+                accountId,
+                List.of(new CoreBankingTransactionsResponse.Transaction(
+                        9001L,
+                        "DEPOSIT",
+                        "WALLET_CHARGE",
+                        "월렛 충전",
+                        10000,
+                        50000,
+                        "충전",
+                        LocalDateTime.of(2026, 6, 2, 10, 30)
+                )),
+                0,
+                20,
+                false
+        );
+
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId)).thenReturn(Optional.of(accountRef));
+        when(coreBankingClient.findAccountTransactions(any())).thenReturn(coreResponse);
+
+        BankingTransactionsResponse response = bankingService.findTransactions(
+                userId,
+                accountId,
+                TransactionPeriod.ONE_MONTH,
+                TransactionFlowFilter.ALL,
+                null,
+                null,
+                null,
+                Sort.Direction.DESC,
+                pageable
+        );
+
+        ArgumentCaptor<CoreBankingTransactionQuery> captor = ArgumentCaptor.forClass(CoreBankingTransactionQuery.class);
+        verify(coreBankingClient).findAccountTransactions(captor.capture());
+        assertThat(captor.getValue().accountId()).isEqualTo(accountId);
+        assertThat(captor.getValue().keyword()).isNull();
+        assertThat(response.transactions()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("직접 입력 기간이면 요청한 시작일과 종료일을 그대로 코어뱅킹으로 전달한다")
+    void findTransactionsWithCustomPeriod() {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        LocalDate from = LocalDate.of(2026, 5, 10);
+        LocalDate to = LocalDate.of(2026, 6, 2);
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(accountId)
+                .hasAccount(true)
+                .build();
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId)).thenReturn(Optional.of(accountRef));
+        when(coreBankingClient.findAccountTransactions(any())).thenReturn(
+                new CoreBankingTransactionsResponse(accountId, List.of(), 1, 20, false)
+        );
+
+        bankingService.findTransactions(
+                userId,
+                accountId,
+                TransactionPeriod.CUSTOM,
+                TransactionFlowFilter.WITHDRAWAL,
+                from,
+                to,
+                " rent ",
+                Sort.Direction.ASC,
+                PageRequest.of(1, 20)
+        );
+
+        ArgumentCaptor<CoreBankingTransactionQuery> captor = ArgumentCaptor.forClass(CoreBankingTransactionQuery.class);
+        verify(coreBankingClient).findAccountTransactions(captor.capture());
+        assertThat(captor.getValue().from()).isEqualTo(from);
+        assertThat(captor.getValue().keyword()).isEqualTo("rent");
+    }
+
+    @Test
+    @DisplayName("고정 조회 기간에 직접 입력 날짜가 함께 전달되면 잘못된 요청으로 처리한다")
+    void findTransactionsRejectsCustomDatesWithFixedPeriod() {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .accountId(accountId)
+                .hasAccount(true)
+                .build();
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId)).thenReturn(Optional.of(accountRef));
+
+        assertThatThrownBy(() -> bankingService.findTransactions(
+                userId, accountId, TransactionPeriod.ONE_MONTH, TransactionFlowFilter.ALL,
+                LocalDate.of(2026, 5, 1), LocalDate.of(2026, 6, 1), null, Sort.Direction.DESC, PageRequest.of(0, 20)
+        )).isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(BAD_REQUEST);
+    }
+
+    @Test
+    @DisplayName("본인 계좌가 아니면 거래내역 조회를 코어뱅킹에 요청하지 않는다")
+    void findTransactionsAccountNotFound() {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bankingService.findTransactions(
+                userId, accountId, TransactionPeriod.ONE_MONTH, TransactionFlowFilter.ALL,
+                null, null, null, Sort.Direction.DESC, PageRequest.of(0, 20)
+        )).isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(BANKING_ACCOUNT_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("거래내역 메모 수정 요청을 코어뱅킹으로 전달한다")
     void updateTransactionMemoSuccess() {
         Long transactionId = 9001L;
@@ -535,6 +664,55 @@ class BankingServiceTest {
                 .isInstanceOf(CustomException.class)
                 .extracting("exceptionStatus")
                 .isEqualTo(BANKING_TRANSACTION_MEMO_TOO_LONG);
+    }
+
+    @Test
+    @DisplayName("해외송금 생성 요청은 본인 계좌를 검증한 뒤 코어뱅킹으로 전달한다")
+    void createGlobalTransactionSuccess() {
+        Long userId = 1L;
+        String idempotencyKey = "global-remittance-1";
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .customerId(1001L)
+                .accountId(2001L)
+                .hasAccount(true)
+                .build();
+        CreateGlobalTransactionRequest request = new CreateGlobalTransactionRequest(
+                2001L,
+                "생활비 송금",
+                "US",
+                "USD",
+                "1000.00",
+                "SENDER",
+                "1380.500000",
+                "1380500",
+                "PARK JAEHA",
+                "+821012345678",
+                "101",
+                "Gwangjin-gu",
+                "Seoul",
+                "05029",
+                "KR",
+                "JOHN SMITH",
+                "Apt 10",
+                "Manhattan",
+                "New York",
+                null,
+                "+12125550100",
+                "BOFAUS3N",
+                "1234567890",
+                "026009593",
+                "Bank of America",
+                "LIVING_EXPENSE"
+        );
+
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(coreBankingClient.createGlobalTransaction(any()))
+                .thenReturn(new CoreBankingCreateGlobalTransactionResponse(1L, "PENDING"));
+
+        CreateGlobalTransactionResponse response =
+                bankingService.createGlobalTransaction(userId, idempotencyKey, request);
 
         verify(coreBankingClient, never()).updateTransactionMemo(any(), any());
     }

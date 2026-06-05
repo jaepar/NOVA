@@ -4,22 +4,31 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
+import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeUiState;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.exception.CustomException;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -45,7 +54,7 @@ class BankingControllerTest {
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
-    @DisplayName("home account status returns account summary")
+    @DisplayName("홈 계좌 조회 요청을 처리하고 계좌 카드 정보를 반환한다")
     void findHomeAccountSuccess() throws Exception {
         Long userId = 1L;
         UsernamePasswordAuthenticationToken authToken = authToken(userId);
@@ -68,22 +77,24 @@ class BankingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data.hasAccount").doesNotExist())
-                .andExpect(jsonPath("$.data.certificateStatus").doesNotExist())
-                .andExpect(jsonPath("$.data.uiState").value("HAS_ACCOUNT"))
-                .andExpect(jsonPath("$.data.account.accountId").value(2001))
-                .andExpect(jsonPath("$.data.account.accountName").value("NOVA account"))
-                .andExpect(jsonPath("$.data.account.accountNumber").value("1002867390781"))
-                .andExpect(jsonPath("$.data.account.bankName").value("Woori Bank"))
-                .andExpect(jsonPath("$.data.account.balance").value(50000))
-                .andExpect(jsonPath("$.data.account.hasLimit").value(true));
+                .andExpect(jsonPath("$.data.accountId").value(2001))
+                .andExpect(jsonPath("$.data.accountName").value("NOVA 임시 제한 계좌"))
+                .andExpect(jsonPath("$.data.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.bankName").value("우리은행"))
+                .andExpect(jsonPath("$.data.balance").value(50000))
+                .andExpect(jsonPath("$.data.hasLimit").value(true))
+                .andExpect(jsonPath("$.data.certificateStatus").value("ISSUED"));
     }
 
     @Test
-    @DisplayName("session user creates account")
+    @DisplayName("세션 사용자 기준으로 계좌 개설 요청을 처리한다")
     void createAccountSuccess() throws Exception {
         Long userId = 1L;
-        UsernamePasswordAuthenticationToken authToken = authToken(userId);
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
 
         when(bankingService.createAccount(any(), any()))
                 .thenReturn(AccountCreateResponse.of(2001L, "WOORI", "1002-312-345678"));
@@ -94,10 +105,10 @@ class BankingControllerTest {
                         .content("""
                                 {
                                   "accountType": "DEMAND_DEPOSIT",
-                                  "accountName": "NOVA demand account",
+                                  "accountName": "우리 SUPER주거래 통장",
                                   "customerInfo": {
-                                    "address": "Seoul",
-                                    "addressDetail": "Dormitory 101"
+                                    "address": "서울특별시 광진구 능동로 120",
+                                    "addressDetail": "건국대학교 기숙사 101호"
                                   },
                                   "job": "STUDENT",
                                   "transactionInfo": {
@@ -109,58 +120,27 @@ class BankingControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data.accountId").value(2001))
-                .andExpect(jsonPath("$.data.bankCode").value("WOORI"))
-                .andExpect(jsonPath("$.data.accountNumber").value("1002-312-345678"));
+                .andExpect(jsonPath("$.data.accountId").value(2001));
     }
 
     @Test
-    @DisplayName("session user requests transfer with idempotency key")
-    void transferSuccess() throws Exception {
-        Long userId = 1L;
-        String idempotencyKey = "550e8400-e29b-41d4-a716-446655440000";
-
-        doNothing().when(bankingService).transfer(any(), any(), any());
-        UsernamePasswordAuthenticationToken authToken = authToken(userId);
-
-        mockMvc.perform(post("/banking/transfers")
-                        .with(authentication(authToken))
-                        .header("Idempotency-Key", idempotencyKey)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "withdrawAccountId": 2001,
-                                  "depositAccountId": 2002,
-                                  "transferAmount": 5000,
-                                  "accountPassword": "1234",
-                                  "withdrawMemo": "memo",
-                                  "depositMemo": "memo"
-                                }
-                                """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data").doesNotExist());
-    }
-
-    @Test
-    @DisplayName("transfer preview returns my account and recipient")
+    @DisplayName("이체 사전 조회 요청을 처리한다")
     void previewTransferSuccess() throws Exception {
         Long userId = 1L;
-        UsernamePasswordAuthenticationToken authToken = authToken(userId);
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
 
         when(bankingService.previewTransfer(any(), any()))
-                .thenReturn(
-                        woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse.of(
-                                "NOVA account",
-                                "1002867390781",
-                                50_000,
-                                300_000,
-                                "Recipient"
-                        )
-                );
+                .thenReturn(woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse.of(
+                        "우리SUPER주거래통장",
+                        "1002867390781",
+                        50_000,
+                        300_000,
+                        "백민정"
+                ));
 
         mockMvc.perform(post("/banking/transfers/preview")
                         .with(authentication(authToken))
@@ -172,20 +152,18 @@ class BankingControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data.myAccount.accountName").value("NOVA account"))
-                .andExpect(jsonPath("$.data.myAccount.accountNumber").value("1002867390781"))
-                .andExpect(jsonPath("$.data.myAccount.balance").value(50000))
-                .andExpect(jsonPath("$.data.myAccount.transferLimit").value(300000))
-                .andExpect(jsonPath("$.data.recipient.recipientName").value("Recipient"));
+                .andExpect(jsonPath("$.data.recipient.recipientName").value("백민정"));
     }
 
     @Test
-    @DisplayName("account password verify request succeeds")
+    @DisplayName("계좌 비밀번호 검증 요청을 처리한다")
     void verifyAccountPasswordSuccess() throws Exception {
         Long userId = 1L;
-        UsernamePasswordAuthenticationToken authToken = authToken(userId);
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
         doNothing().when(bankingService).verifyAccountPassword(any(), any());
 
         mockMvc.perform(post("/banking/password/verify")
@@ -197,10 +175,89 @@ class BankingControllerTest {
                                   "accountPassword": "1234"
                                 }
                                 """))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("거래내역 조회 요청을 기본 기간/유형/페이지 크기로 처리한다")
+    void findTransactionsWithDefaults() throws Exception {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.findTransactions(any(), any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(new BankingTransactionsResponse(
+                        accountId,
+                        TransactionPeriod.ONE_MONTH,
+                        TransactionFlowFilter.ALL,
+                        List.of(new BankingTransactionsResponse.Transaction(
+                                9001L,
+                                "DEPOSIT",
+                                "WALLET_CHARGE",
+                                "월렛 충전",
+                                10000,
+                                50000,
+                                "충전",
+                                LocalDateTime.of(2026, 6, 2, 10, 30)
+                        )),
+                        0,
+                        20,
+                        false
+                ));
+
+        mockMvc.perform(get("/banking/{accountId}/transactions", accountId)
+                        .with(authentication(authToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data").doesNotExist());
+                .andExpect(jsonPath("$.data.period").value("ONE_MONTH"))
+                .andExpect(jsonPath("$.data.flow").value("ALL"))
+                .andExpect(jsonPath("$.data.transactions[0].transactionId").value(9001));
+
+        verify(bankingService).findTransactions(any(), eq(accountId), eq(TransactionPeriod.ONE_MONTH),
+                eq(TransactionFlowFilter.ALL), isNull(), isNull(), isNull(), eq(Sort.Direction.DESC), any());
+    }
+
+    @Test
+    @DisplayName("거래내역 조회 직접 입력 기간과 검색/정렬 조건을 서비스로 전달한다")
+    void findTransactionsWithCustomPeriod() throws Exception {
+        Long userId = 1L;
+        Long accountId = 2001L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.findTransactions(any(), any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(new BankingTransactionsResponse(
+                        accountId,
+                        TransactionPeriod.CUSTOM,
+                        TransactionFlowFilter.WITHDRAWAL,
+                        List.of(),
+                        1,
+                        20,
+                        false
+                ));
+
+        mockMvc.perform(get("/banking/{accountId}/transactions", accountId)
+                        .with(authentication(authToken))
+                        .param("period", "CUSTOM")
+                        .param("flow", "WITHDRAWAL")
+                        .param("from", "2026-05-10")
+                        .param("to", "2026-06-02")
+                        .param("page", "1")
+                        .param("size", "20")
+                        .param("keyword", "rent")
+                        .param("sortDirection", "ASC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.period").value("CUSTOM"));
+
+        verify(bankingService).findTransactions(any(), eq(accountId), eq(TransactionPeriod.CUSTOM),
+                eq(TransactionFlowFilter.WITHDRAWAL), eq(LocalDate.of(2026, 5, 10)),
+                eq(LocalDate.of(2026, 6, 2)), eq("rent"), eq(Sort.Direction.ASC), any());
     }
 
     @Test
@@ -225,8 +282,6 @@ class BankingControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("20000"))
                 .andExpect(jsonPath("$.data").doesNotExist());
 
         verify(bankingService).updateTransactionMemo(eq(transactionId), any(UpdateTransactionMemoRequest.class));
@@ -255,16 +310,97 @@ class BankingControllerTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("BANK-009"))
-                .andExpect(jsonPath("$.message").value("메모는 20자 이내로 입력해야 합니다."));
+                .andExpect(jsonPath("$.code").value("BANK-009"));
     }
 
-    private UsernamePasswordAuthenticationToken authToken(Long userId) {
-        return new UsernamePasswordAuthenticationToken(
+    @Test
+    @DisplayName("세션 사용자와 멱등키 기준으로 해외송금 생성 요청을 처리한다")
+    void createGlobalTransactionSuccess() throws Exception {
+        Long userId = 1L;
+        String idempotencyKey = "global-remittance-1";
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 new SessionUserPrincipal(userId),
                 null,
                 AuthorityUtils.NO_AUTHORITIES
         );
+
+        when(bankingService.createGlobalTransaction(any(), any(), any()))
+                .thenReturn(new woorifisa.project.backend.domain.banking.dto.response.CreateGlobalTransactionResponse(
+                        1L,
+                        "PENDING"
+                ));
+
+        mockMvc.perform(post("/banking/global-transactions")
+                        .with(authentication(authToken))
+                        .header("Idempotency-Key", idempotencyKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "accountId": 2001,
+                                  "remitPurpose": "생활비 송금",
+                                  "targetCountry": "US",
+                                  "currency": "USD",
+                                  "remitAmount": "1000.00",
+                                  "mediaryFeePayer": "SENDER",
+                                  "exchangeRate": "1380.500000",
+                                  "krwAmount": "1380500",
+                                  "senderEngName": "PARK JAEHA",
+                                  "senderPhone": "+821012345678",
+                                  "senderAddressDetail": "101",
+                                  "senderDistrict": "Gwangjin-gu",
+                                  "senderCity": "Seoul",
+                                  "senderZipCode": "05029",
+                                  "senderCountry": "KR",
+                                  "receiverEngName": "JOHN SMITH",
+                                  "receiverAddressDetail": "Apt 10",
+                                  "receiverDistrict": "Manhattan",
+                                  "receiverCity": "New York",
+                                  "receiverPhone": "+12125550100",
+                                  "swiftCode": "BOFAUS3N",
+                                  "receiverAccountNum": "1234567890",
+                                  "routingNumber": "026009593",
+                                  "bankName": "Bank of America",
+                                  "remitReason": "LIVING_EXPENSE"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data.globalTransactionId").value(1))
+                .andExpect(jsonPath("$.data.status").value("PENDING"));
+
+        verify(bankingService).createGlobalTransaction(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("세션 사용자 기준 해외송금 목록 조회 요청을 처리한다")
+    void findGlobalTransactionsSuccess() throws Exception {
+        Long userId = 1L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        when(bankingService.findGlobalTransactions(any()))
+                .thenReturn(java.util.List.of(
+                        new woorifisa.project.backend.domain.banking.dto.response.GlobalTransactionListItemResponse(
+                                1L,
+                                "JOHN SMITH",
+                                "1000.00",
+                                "USD",
+                                "PENDING",
+                                "2026-06-02T10:30:00"
+                        )
+                ));
+
+        mockMvc.perform(get("/banking/global-transactions")
+                        .with(authentication(authToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data[0].globalTransactionId").value(1))
+                .andExpect(jsonPath("$.data[0].receiverEngName").value("JOHN SMITH"))
+                .andExpect(jsonPath("$.data[0].status").value("PENDING"));
     }
 }

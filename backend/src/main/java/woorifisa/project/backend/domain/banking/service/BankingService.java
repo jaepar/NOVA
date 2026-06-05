@@ -2,21 +2,32 @@ package woorifisa.project.backend.domain.banking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import java.time.Duration;
+import java.util.List;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+
+import woorifisa.project.backend.global.corebanking.dto.request.*;
+import woorifisa.project.backend.global.corebanking.dto.response.*;
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionDateRange;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
+import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
+import woorifisa.project.backend.domain.banking.dto.request.CreateGlobalTransactionRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
+import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
+import woorifisa.project.backend.domain.banking.dto.response.CreateGlobalTransactionResponse;
+import woorifisa.project.backend.domain.banking.dto.response.GlobalTransactionListItemResponse;
 import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
@@ -24,23 +35,29 @@ import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransactionQuery;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingTransactionsResponse;
 import woorifisa.project.backend.global.exception.CustomException;
 
-import java.time.Duration;
+import java.time.LocalDate;
 
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BAD_REQUEST;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CERTIFICATE_REQUIRED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CERTIFICATE_REQUIRED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class BankingService {
+
     // 동일 멱등키 이체 요청의 완료 결과를 재사용하기 위한 캐시 키
     private static final String TRANSFER_RESULT_KEY = "banking:transfer:result:%s";
     // 동일 멱등키 이체 요청의 중복 진행을 막는 처리중 락 키 (같은 멱등키 재요청/중복 처리 차단)
@@ -105,11 +122,7 @@ public class BankingService {
         log.info("[banking_account_create:completed] userId={}, accountId={}, maskedAccountNumber={}",
                 userId, created.accountId(), maskAccountNumber(created.accountNumber()));
 
-        return AccountCreateResponse.of(
-                created.accountId(),
-                "WOORI",
-                created.accountNumber()
-        );
+        return AccountCreateResponse.of(created.accountId(), "WOORI", created.accountNumber());
     }
 
     private String maskAccountNumber(String accountNumber) {
@@ -204,9 +217,134 @@ public class BankingService {
         );
     }
 
+    public BankingTransactionsResponse findTransactions(
+            Long userId,
+            Long accountId,
+            TransactionPeriod period,
+            TransactionFlowFilter flow,
+            LocalDate customFrom,
+            LocalDate customTo,
+            String keyword,
+            Sort.Direction sortDirection,
+            Pageable pageable
+    ) {
+        // 요청한 계좌가 본인 계좌인지 검증한다.
+        accountRefRepository.findByUser_UserIdAndAccountId(userId, accountId)
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
+        // Cloud는 본인 계좌 여부와 기간 조건만 검증하고, 실제 거래내역 필터링/정렬은 CoreBanking에 위임한다.
+        LocalDate today = LocalDate.now();
+        TransactionDateRange range = resolveDateRange(period, today, customFrom, customTo);
+        CoreBankingTransactionQuery query = new CoreBankingTransactionQuery(
+                accountId,
+                range.from(),
+                range.to(),
+                flow,
+                normalizeKeyword(keyword),
+                normalizeSortDirection(sortDirection),
+                pageable.getPageNumber(),
+                pageable.getPageSize()
+        );
+        CoreBankingTransactionsResponse response = coreBankingClient.findAccountTransactions(query);
+        return BankingTransactionsResponse.of(period, flow, response);
+    }
+
     @Transactional(readOnly = true)
     public void updateTransactionMemo(Long transactionId, UpdateTransactionMemoRequest request) {
         coreBankingClient.updateTransactionMemo(transactionId, request.normalized());
+    }
+
+    // 고정 기간에서는 customFrom/customTo가 포함되면 잘못된 요청으로 처리한다.
+    // CUSTOM 기간은 시작일과 종료일이 모두 있어야 하며, 시작일이 종료일보다 늦을 수 없다.
+    private TransactionDateRange resolveDateRange(TransactionPeriod period, LocalDate today, LocalDate customFrom, LocalDate customTo) {
+        if (period != TransactionPeriod.CUSTOM) {
+            if (customFrom != null || customTo != null) {
+                throw new CustomException(BAD_REQUEST);
+            }
+            return new TransactionDateRange(period.from(today), today);
+        }
+        if (customFrom == null || customTo == null || customFrom.isAfter(customTo)) {
+            throw new CustomException(BAD_REQUEST);
+        }
+        return new TransactionDateRange(customFrom, customTo);
+    }
+
+    private Sort.Direction normalizeSortDirection(Sort.Direction sortDirection) {
+        return sortDirection == null ? Sort.Direction.DESC : sortDirection;
+    }
+
+    // 공백 검색어는 필터링하지 않도록 null로 변환해 CoreBanking에 전달한다.
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        return keyword.trim();
+    }
+
+    // 해외 송금 요청
+    public CreateGlobalTransactionResponse createGlobalTransaction(
+            Long userId,
+            String idempotencyKey,
+            CreateGlobalTransactionRequest request
+    ) {
+        log.info("Backend global transaction create requested userId={} idempotencyKey={} accountId={} targetCountry={} currency={} krwAmount={}",
+                userId, idempotencyKey, request.accountId(), request.targetCountry(), request.currency(), request.krwAmount());
+        AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountId(userId, request.accountId())
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
+        CoreBankingCreateGlobalTransactionResponse response = coreBankingClient.createGlobalTransaction(
+                new CoreBankingCreateGlobalTransactionRequest(
+                        idempotencyKey,
+                        accountRef.getCustomerId(),
+                        accountRef.getAccountId(),
+                        request.remitPurpose(),
+                        request.targetCountry(),
+                        request.currency(),
+                        request.remitAmount(),
+                        request.mediaryFeePayer(),
+                        request.exchangeRate(),
+                        request.krwAmount(),
+                        request.senderEngName(),
+                        request.senderPhone(),
+                        request.senderAddressDetail(),
+                        request.senderDistrict(),
+                        request.senderCity(),
+                        request.senderZipCode(),
+                        request.senderCountry(),
+                        request.receiverEngName(),
+                        request.receiverAddressDetail(),
+                        request.receiverDistrict(),
+                        request.receiverCity(),
+                        request.receiverZipCode(),
+                        request.receiverPhone(),
+                        request.swiftCode(),
+                        request.receiverAccountNum(),
+                        request.routingNumber(),
+                        request.bankName(),
+                        request.remitReason()
+                )
+        );
+        log.info("Backend global transaction create completed userId={} idempotencyKey={} globalTransactionId={} status={}",
+                userId, idempotencyKey, response.globalTransactionId(), response.status());
+
+        return new CreateGlobalTransactionResponse(
+                response.globalTransactionId(),
+                response.status()
+        );
+    }
+
+    // 해외 송금 거래 처리 상황
+    public List<GlobalTransactionListItemResponse> findGlobalTransactions(Long userId) {
+        log.info("Backend global transaction list requested userId={}", userId);
+        AccountRef accountRef = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId)
+                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+
+        List<GlobalTransactionListItemResponse> responses = coreBankingClient.findGlobalTransactionsByCustomerId(accountRef.getCustomerId()).stream()
+                .map(GlobalTransactionListItemResponse::from)
+                .toList();
+        log.info("Backend global transaction list completed userId={} customerId={} count={}",
+                userId, accountRef.getCustomerId(), responses.size());
+        return responses;
     }
 
     // ProcessingKey 생성 메서드
