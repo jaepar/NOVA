@@ -33,6 +33,7 @@ export function Main() {
   const logout = useMainPageStore((state) => state.logout);
   const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(null);
   const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
+  const [isNotificationOpen, setNotificationOpen] = useState(false);
 
   const services: ServiceItem[] = [
     { icon: <MessageSquare className="w-8 h-8" />, label: "병원예약" },
@@ -121,8 +122,14 @@ export function Main() {
         headerRightContent={
           <MainHeaderActions
             hasUnreadNotifications={hasUnreadNotifications}
-            onNotificationsClick={() => navigate("/notifications")}
-            onMenuClick={() => setMenuOpen(true)}
+            isLoggedIn={isLoggedIn}
+            isNotificationOpen={isNotificationOpen}
+            onNotificationsClick={() => setNotificationOpen((open) => !open)}
+            onNotificationsClose={() => setNotificationOpen(false)}
+            onMenuClick={() => {
+              setNotificationOpen(false);
+              setMenuOpen(true);
+            }}
           />
         }
       >
