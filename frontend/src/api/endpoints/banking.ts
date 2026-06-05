@@ -26,122 +26,109 @@ export type AccountSummary = {
 };
 
 export type AccountHomeResponse = {
-  uiState: AccountHomeUiState;
-  account: AccountSummary | null;
-  hasNotification: boolean;
+    uiState: AccountHomeUiState;
+    account: AccountSummary | null;
+    hasNotification: boolean;
 };
 
+export type AccountCreateRequest = {
+    accountType: string;
+    accountName: string;
+    customerInfo: {
+        address: string;
+        addressDetail: string;
+    };
+    job: string;
+    transactionInfo: {
+        purpose: string;
+        source: string;
+    };
+    hasForeignTax: boolean;
+    accountPassword: string;
+};
+
+export type AccountCreateResponse = {
+    accountId: number;
+    bankCode: string;
+    accountNumber: string;
+};
+
+
 export type TransferPreviewRequest = {
-  recipientBankCode: string;
-  recipientAccountNumber: string;
+    recipientBankCode: string;
+    recipientAccountNumber: string;
 };
 
 export type TransferRequest = {
-  withdrawAccountId: string;
-  depositAccountId: string;
-  transferAmount: number;
-  accountPassword: string;
+    withdrawAccountId: string;
+    depositAccountId: string;
+    transferAmount: number;
+    accountPassword: string;
 };
 
 export type TransferPreviewResponse = {
-  myAccount: {
-    accountName: string;
-    accountNumber: string;
-    balance: number;
-    transferLimit: number;
-    userName: string;
-  };
-  recipient: {
-    recipientName: string;
-  };
+    myAccount: {
+        accountName: string;
+        accountNumber: string;
+        balance: number;
+        transferLimit: number;
+        userName: string;
+    };
+    recipient: {
+        recipientName: string;
+    };
 };
 
 export type BankingApiErrorBody = {
-  success: false;
-  code: string;
-  message: string;
-  data: null;
+    success: false;
+    code: string;
+    message: string;
+    data: null;
 };
-
-const DEV_ACCOUNT_HOME_MOCKS = {
-  needCertificate: {
-    hasAccount: false,
-    certificateStatus: "NOT_ISSUED",
-    uiState: "NEED_CERTIFICATE",
-    account: null,
-  } satisfies AccountHomeResponse,
-  certificateIssuing: {
-    hasAccount: false,
-    certificateStatus: "PENDING",
-    uiState: "CERTIFICATE_ISSUING",
-    account: null,
-  } satisfies AccountHomeResponse,
-  readyToOpenAccount: {
-    hasAccount: false,
-    certificateStatus: "ISSUED",
-    uiState: "READY_TO_OPEN_ACCOUNT",
-    account: null,
-  } satisfies AccountHomeResponse,
-  hasLimitedAccount: {
-    hasAccount: true,
-    certificateStatus: "ISSUED",
-    uiState: "HAS_ACCOUNT",
-    account: {
-      accountName: "NOVA 입출금통장",
-      accountNumber: "1080-312-345678",
-      bankName: "우리은행",
-      balance: 150000,
-      hasLimit: true,
-    },
-  } satisfies AccountHomeResponse,
-  hasGeneralAccount: {
-    hasAccount: true,
-    certificateStatus: "ISSUED",
-    uiState: "HAS_ACCOUNT",
-    account: {
-      accountName: "NOVA 생활통장",
-      accountNumber: "1080-999-123456",
-      bankName: "우리은행",
-      balance: 2840000,
-      hasLimit: false,
-    },
-  } satisfies AccountHomeResponse,
-} as const;
 
 type AccountHomeApiResponse = Omit<AccountHomeResponse, "hasNotification"> & {
   has_notification: boolean;
 };
 
 function normalizeAccountHome(
-  response: AccountHomeApiResponse
+    response: AccountHomeApiResponse
 ): AccountHomeResponse {
-  return {
-    uiState: response.uiState,
-    account: response.account,
-    hasNotification: response.has_notification,
-  };
+    return {
+        uiState: response.uiState,
+        account: response.account,
+        hasNotification: response.has_notification,
+    };
 }
 
 export const bankingApi = {
-  getHome: async (): Promise<AccountHomeResponse> => {
-    const response = await apiClient.get<
-      BankingApiResponse<AccountHomeApiResponse>
-    >("/banking/home");
+    getHome: async (): Promise<AccountHomeResponse> => {
+        const response = await apiClient.get<
+            BankingApiResponse<AccountHomeApiResponse>
+        >("/banking/home");
 
-    return normalizeAccountHome(response.data.data);
-  },
-  previewTransfer: async (
-    request: TransferPreviewRequest
-  ): Promise<TransferPreviewResponse> => {
-    const response = await apiClient.post<
-      BankingApiResponse<TransferPreviewResponse>
-    >(
-      "/banking/transfers/preview",
-      request
-    );
+        return normalizeAccountHome(response.data.data);
+    },
+    createAccount: async (
+        payload: AccountCreateRequest
+    ): Promise<AccountCreateResponse> => {
+        const response = await apiClient.post<
+            BankingApiResponse<AccountCreateResponse>
+        >("/banking", payload);
 
-    return response.data.data;
-  },
+        return response.data.data;
+    },
+    previewTransfer: async (
+        request: TransferPreviewRequest
+    ): Promise<TransferPreviewResponse> => {
+        const response = await apiClient.post<
+            BankingApiResponse<TransferPreviewResponse>
+        >(
+            "/banking/transfers/preview",
+            request
+        );
+
+        return response.data.data;
+    },
   transfer: async (request: TransferRequest, idempotencyKey: string): Promise<void> => {
     const response = await apiClient.post<BankingApiResponse<null>>(
       "/banking/transfers",

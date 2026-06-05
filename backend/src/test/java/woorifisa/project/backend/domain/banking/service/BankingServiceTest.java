@@ -1,5 +1,9 @@
 package woorifisa.project.backend.domain.banking.service;
 
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
+
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +26,6 @@ import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeUiState;
-import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.response.CreateGlobalTransactionResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
@@ -40,11 +43,11 @@ import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCrea
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingTransactionsResponse;
 import woorifisa.project.backend.global.exception.CustomException;
+import woorifisa.project.backend.global.response.BaseResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -58,7 +61,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
 @ExtendWith(MockitoExtension.class)
 class BankingServiceTest {
@@ -491,11 +493,9 @@ class BankingServiceTest {
                 new CoreBankingCreateAccountResponse(2001L, 1001L, "우리 SUPER주거래 통장", "1002-312-345678", 300_000)
         );
 
-        AccountCreateResponse response = bankingService.createAccount(userId, request);
-
-        assertThat(response.accountId()).isEqualTo(2001L);
-        assertThat(response.bankCode()).isEqualTo("WOORI");
-        assertThat(response.accountNumber()).isEqualTo("1002-312-345678");
+        BaseResponse<Void> response = bankingService.createAccount(userId, request);
+		assertThat(response).isNotNull();
+		assertThat(response.getSuccess()).isTrue();
         ArgumentCaptor<AccountRef> accountRefCaptor = ArgumentCaptor.forClass(AccountRef.class);
         verify(accountRefRepository).save(accountRefCaptor.capture());
         assertThat(accountRefCaptor.getValue().getTransferLimit()).isEqualTo(300_000);

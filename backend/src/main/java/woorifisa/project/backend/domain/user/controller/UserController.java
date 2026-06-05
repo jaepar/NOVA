@@ -86,6 +86,15 @@ public class UserController {
 		return BaseResponse.ok(identityVerificationService.verifyIdentity(principal.userId(), file, ocrDocumentType));
 	}
 
+	// 인증서 발급 요청
+	@PostMapping("/verifications")
+	public BaseResponse<Void> requestCertificateIssuance(
+		@AuthenticationPrincipal SessionUserPrincipal principal
+	) {
+		userService.requestCertificateIssuance(principal.userId());
+		return BaseResponse.ok(null);
+	}
+
 	// Liveness 세션 생성
 	@PostMapping("/verifications/liveness")
 	public BaseResponse<LivenessSessionResponse> createLivenessSession(

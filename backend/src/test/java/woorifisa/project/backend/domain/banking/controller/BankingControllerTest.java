@@ -13,14 +13,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
+
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeUiState;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.exception.CustomException;
+import woorifisa.project.backend.global.response.BaseResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -103,7 +104,7 @@ class BankingControllerTest {
         );
 
         when(bankingService.createAccount(any(), any()))
-                .thenReturn(AccountCreateResponse.of(2001L, "WOORI", "1002-312-345678"));
+                .thenReturn(BaseResponse.ok(null));
 
         mockMvc.perform(post("/banking")
                         .with(authentication(authToken))

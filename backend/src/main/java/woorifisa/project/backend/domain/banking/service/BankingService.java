@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import woorifisa.project.backend.global.corebanking.dto.request.*;
 import woorifisa.project.backend.global.corebanking.dto.response.*;
+
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionDateRange;
@@ -24,12 +25,11 @@ import woorifisa.project.backend.domain.banking.dto.request.CreateGlobalTransact
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
+import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.response.CreateGlobalTransactionResponse;
 import woorifisa.project.backend.domain.banking.dto.response.GlobalTransactionListItemResponse;
-import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
@@ -41,6 +41,9 @@ import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreat
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransactionQuery;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingTransactionsResponse;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.time.LocalDate;
@@ -54,12 +57,12 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
+import woorifisa.project.backend.global.response.BaseResponse;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class BankingService {
-
     // 동일 멱등키 이체 요청의 완료 결과를 재사용하기 위한 캐시 키
     private static final String TRANSFER_RESULT_KEY = "banking:transfer:result:%s";
     // 동일 멱등키 이체 요청의 중복 진행을 막는 처리중 락 키 (같은 멱등키 재요청/중복 처리 차단)
@@ -94,7 +97,7 @@ public class BankingService {
     }
 
     @Transactional
-    public AccountCreateResponse createAccount(Long userId, AccountCreateRequest request) {
+    public BaseResponse<Void> createAccount(Long userId, AccountCreateRequest request) {
         log.info("[banking_account_create:requested] userId={}, accountType={}, accountName={}, hasForeignTax={}",
                 userId, request.accountType(), request.accountName(), request.hasForeignTax());
         User user = userRepository.findById(userId)
@@ -129,7 +132,7 @@ public class BankingService {
         log.info("[banking_account_create:completed] userId={}, accountId={}, maskedAccountNumber={}",
                 userId, created.accountId(), maskAccountNumber(created.accountNumber()));
 
-        return AccountCreateResponse.of(created.accountId(), "WOORI", created.accountNumber());
+        return BaseResponse.ok(null);
     }
 
     private String maskAccountNumber(String accountNumber) {

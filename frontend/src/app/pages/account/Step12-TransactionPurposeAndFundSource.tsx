@@ -4,6 +4,7 @@ import { Check, ChevronDown } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
+import { useAccountCreateFlowStore } from "../../stores/pageStores";
 
 const transactionPurposeOptions = [
   "저축 및 투자",
@@ -21,14 +22,15 @@ const fundSourceOptions = [
 
 export function Step12TransactionPurposeAndFundSource() {
   const navigate = useNavigate();
-  const [isOwner, setIsOwner] = useState<"yes" | "no">("no");
-  const [purpose, setPurpose] = useState("");
-  const [fundSource, setFundSource] = useState("");
+  const isOwner = useAccountCreateFlowStore((state) => state.isOwner);
+  const purpose = useAccountCreateFlowStore((state) => state.transactionPurpose);
+  const fundSource = useAccountCreateFlowStore((state) => state.fundSource);
+  const setTransactionInfo = useAccountCreateFlowStore((state) => state.setTransactionInfo);
   const [isPurposeOpen, setIsPurposeOpen] = useState(false);
   const [isFundSourceOpen, setIsFundSourceOpen] = useState(false);
 
   const canSubmit = useMemo(
-    () => isOwner === "yes" && Boolean(purpose) && Boolean(fundSource),
+    () => isOwner && Boolean(purpose) && Boolean(fundSource),
     [isOwner, purpose, fundSource]
   );
 
@@ -60,9 +62,9 @@ export function Step12TransactionPurposeAndFundSource() {
             <AppButton
               type="button"
               variant="unstyled"
-              onClick={() => setIsOwner("yes")}
+              onClick={() => setTransactionInfo(true, purpose, fundSource)}
               className={`rounded-xl border py-3 transition-colors ${
-                isOwner === "yes"
+                isOwner
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-foreground"
               }`}
@@ -72,9 +74,9 @@ export function Step12TransactionPurposeAndFundSource() {
             <AppButton
               type="button"
               variant="unstyled"
-              onClick={() => setIsOwner("no")}
+              onClick={() => setTransactionInfo(false, purpose, fundSource)}
               className={`rounded-xl border py-3 transition-colors ${
-                isOwner === "no"
+                !isOwner
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-foreground"
               }`}
@@ -107,7 +109,7 @@ export function Step12TransactionPurposeAndFundSource() {
                     key={option}
                     variant="unstyled"
                     onClick={() => {
-                      setPurpose(option);
+                      setTransactionInfo(isOwner, option, fundSource);
                       setIsPurposeOpen(false);
                     }}
                     className={`w-full px-4 py-4 flex items-center justify-between text-left border-b border-border last:border-b-0 ${
@@ -144,7 +146,7 @@ export function Step12TransactionPurposeAndFundSource() {
                     key={option}
                     variant="unstyled"
                     onClick={() => {
-                      setFundSource(option);
+                      setTransactionInfo(isOwner, purpose, option);
                       setIsFundSourceOpen(false);
                     }}
                     className={`w-full px-4 py-4 flex items-center justify-between text-left border-b border-border last:border-b-0 ${

@@ -13,7 +13,7 @@ import { LivenessConsentTermDetail } from "../pages/certificate/Step08-TermDetai
 import { LivenessConsentAllTermsAgreements } from "../pages/certificate/Step08-AllTermsAgreements";
 import { LivenessCameraCapture } from "../pages/certificate/Step09-LivenessCameraCapture";
 import { VerificationCompleted } from "../pages/certificate/Step10-VerificationCompleted";
-import { Success } from "../pages/common/Success";
+import { CertificateRequestCompleted } from "../pages/certificate/Step11-CertificateRequestCompleted";
 
 export const certificateRoutes: RouteObject[] = [
   { path: "/certificate/step-01", Component: CertificateIssuanceConsentAgreement },
@@ -30,17 +30,6 @@ export const certificateRoutes: RouteObject[] = [
   { path: "/certificate/step-08/categories/:categoryId/consent", Component: LivenessConsentAllTermsAgreements },
   { path: "/certificate/step-09", Component: LivenessCameraCapture },
   { path: "/certificate/step-10", Component: VerificationCompleted },
-  {
-    path: "/certificate/step-11",
-    element: (
-      <Success
-        headerTitle="비대면 실명확인"
-        task="인증서 발급 요청이 완료 되었어요"
-        description={"인증서 발급까지 평균 3시간~5시간이 필요합니다.\n발급이 완료되면 알림으로 안내드릴게요."}
-        buttonText="확인"
-        redirectPath="/main"
-      />
-    ),
-  },
+  { path: "/certificate/step-11", Component: CertificateRequestCompleted },
 ];
 
