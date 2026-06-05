@@ -30,7 +30,7 @@ erDiagram
     VARCHAR_100 account_name
     INT balance
     VARCHAR_100 password
-    INT daily_transfer_limit
+    INT transfer_limit
     ENUM bank_code "WOORI | KOOKMIN | SHINHAN | NH | HANA | IBK | SC | CITI | DAEGU | BUSAN | KYONGNAM | GWANGJU | JEONBUK | JEJU | POST"
     TIMESTAMP created_at
     TIMESTAMP updated_at
@@ -43,6 +43,7 @@ erDiagram
     ENUM transaction_type "SMART_WITHDRAWAL | CASH_IC | CHECK_CARD | ACCOUNT_TRANSFER | ATM_WITHDRAWAL | ATM_DEPOSIT | AUTO_DEBIT | WALLET_CHARGE | FEE"
     VARCHAR_100 counter_party
     INT amount
+    INT balance_after
     VARCHAR_100 memo
     VARCHAR_100 external_request_id
     TIMESTAMP created_at

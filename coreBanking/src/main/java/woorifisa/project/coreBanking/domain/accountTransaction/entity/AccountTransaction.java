@@ -59,9 +59,16 @@ public class AccountTransaction extends BaseEntity {
     @Column(name = "amount", nullable = false)
     private Integer amount;
 
+    @Column(name = "balance_after", nullable = false)
+    private Integer balanceAfter;
+
     @Column(name = "memo", length = 100)
     private String memo;
 
     @Column(name = "external_request_id", length = 100)
     private String externalRequestId;
+
+    public void updateMemo(String memo) {
+        this.memo = memo;
+    }
 }

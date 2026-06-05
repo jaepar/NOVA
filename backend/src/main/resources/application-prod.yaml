@@ -58,6 +58,10 @@ app:
   ai:
     base-url: ${AI_BASE_URL}
 
+identity:
+  registration-number:
+    hmac-secret: ${REGISTRATION_NUMBER_HMAC_SECRET}
+
 cloud:
   aws:
     s3:

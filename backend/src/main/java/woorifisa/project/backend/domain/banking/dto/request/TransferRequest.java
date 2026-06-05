@@ -13,6 +13,8 @@ public record TransferRequest(
         @Positive
         Integer transferAmount,
         @NotBlank
+        String accountPassword,
+        @NotBlank
         String withdrawMemo,            // 내 통장 표기
         @NotBlank
         String depositMemo              // 받는 분 통장 표기

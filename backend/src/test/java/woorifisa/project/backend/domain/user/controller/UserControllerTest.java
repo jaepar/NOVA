@@ -6,6 +6,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.Instant;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,18 +21,18 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
+import woorifisa.project.backend.domain.user.dto.request.OcrDocumentType;
+import woorifisa.project.backend.domain.user.dto.response.IdentityVerificationResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
-import woorifisa.project.backend.domain.user.dto.response.PassportResponse;
-import woorifisa.project.backend.domain.user.service.PassportOcrService;
+import woorifisa.project.backend.domain.user.dto.response.ocr.IdCardOcrResponse;
+import woorifisa.project.backend.domain.user.dto.response.ocr.PassportOcrResponse;
+import woorifisa.project.backend.domain.user.service.IdentityVerificationService;
+import woorifisa.project.backend.domain.user.service.NotificationService;
 import woorifisa.project.backend.domain.user.service.UserService;
+import woorifisa.project.backend.domain.user.service.ocr.PassportOcrService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
-
-import java.time.Instant;
-
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @WebMvcTest(UserController.class)
 class UserControllerTest {
@@ -43,6 +45,12 @@ class UserControllerTest {
 
 	@MockitoBean
 	private PassportOcrService passportOcrService;
+
+	@MockitoBean
+	private NotificationService notificationService;
+
+	@MockitoBean
+	private IdentityVerificationService identityVerificationService;
 
 	@MockitoBean
 	private JpaMetamodelMappingContext jpaMetamodelMappingContext;
@@ -89,7 +97,7 @@ class UserControllerTest {
 			"passport".getBytes()
 		);
 
-		PassportResponse payload = PassportResponse.builder()
+		PassportOcrResponse payload = PassportOcrResponse.builder()
 			.type("P")
 			.issueCountry("KOR")
 			.num("M12345678")
@@ -138,6 +146,40 @@ class UserControllerTest {
 
 			verify(userService).createLivenessSession(1L);
 		}
+
+	@Test
+	@DisplayName("신분증/여권 OCR 분기 API는 성공 응답을 반환한다")
+	void verifyIdentityReturnsSuccess() throws Exception {
+		MockMultipartFile idImage = new MockMultipartFile(
+			"file",
+			"idcard.jpg",
+			MediaType.IMAGE_JPEG_VALUE,
+			"idcard".getBytes()
+		);
+
+		IdentityVerificationResponse payload = IdentityVerificationResponse.builder()
+			.ocrDocumentType(OcrDocumentType.ID_CARD)
+			.result(new IdCardOcrResponse("홍길동", "900101-1234567", "2020.01.01"))
+			.nameMatchWithUser(true)
+			.identityMatchWithGovDb(true)
+			.verificationStatus("VERIFIED")
+			.failureReasonCode(null)
+			.build();
+
+		when(identityVerificationService.verifyIdentity(any(), any(), eq(OcrDocumentType.ID_CARD))).thenReturn(payload);
+
+		mockMvc.perform(multipart("/users/verifications/identity")
+				.file(idImage)
+				.param("ocrDocumentType", "ID_CARD")
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"))
+			.andExpect(jsonPath("$.data.verificationStatus").value("VERIFIED"));
+
+		verify(identityVerificationService).verifyIdentity(any(), any(), eq(OcrDocumentType.ID_CARD));
+	}
 
 	@Test
 	@DisplayName("Liveness 결과 조회 API는 성공 응답을 반환한다")

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletNextStep;
 import woorifisa.project.backend.domain.wallet.dto.request.ChargeWalletRequest;
+import woorifisa.project.backend.domain.wallet.dto.response.WalletSummaryResponse;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletStatusResponse;
 import woorifisa.project.backend.domain.wallet.dto.request.WalletCreateRequest;
 import woorifisa.project.backend.domain.wallet.dto.response.WalletTransactionsResponse;
@@ -49,7 +50,7 @@ class WalletControllerTest {
         WalletService walletService = mock(WalletService.class);
         WalletController walletController = new WalletController(walletService);
         SessionUserPrincipal principal = new SessionUserPrincipal(1L);
-        ChargeWalletRequest request = new ChargeWalletRequest(10000);
+        ChargeWalletRequest request = new ChargeWalletRequest(10000, "1234");
 
         BaseResponse<Void> response = walletController.chargeWallet(principal, "idempotency-key", request);
 
@@ -57,6 +58,24 @@ class WalletControllerTest {
         assertThat(response.getSuccess()).isTrue();
         assertThat(response.getCode()).isEqualTo("20000");
         assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
+    }
+
+    @Test
+    @DisplayName("세션 사용자 기준 월렛 요약 정보를 조회한다")
+    void summary() {
+        WalletService walletService = mock(WalletService.class);
+        WalletController walletController = new WalletController(walletService);
+        SessionUserPrincipal principal = new SessionUserPrincipal(1L);
+        WalletSummaryResponse serviceResponse = new WalletSummaryResponse(30000, "1002867390781");
+        when(walletService.findSummary(1L)).thenReturn(serviceResponse);
+
+        BaseResponse<WalletSummaryResponse> response = walletController.findSummary(principal);
+
+        verify(walletService).findSummary(1L);
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo(SUCCESS.getMessage());
+        assertThat(response.getData()).isEqualTo(serviceResponse);
     }
 
     @Test

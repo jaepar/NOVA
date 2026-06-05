@@ -10,9 +10,11 @@ flowchart TD
     Root["NOVA"]
     Root --> FE["frontend<br/>Web/Mobile UI"]
     Root --> BE["backend<br/>Spring Boot API"]
+    Root --> GW["gateway<br/>On-Prem Gateway API"]
     Root --> AI["ai-server<br/>FastAPI"]
     Root --> CB["On-Premise-Server<br/>Core Banking Server<br/>Goverment DB"]
     Root --> FDS["fds-server<br/>Python FDS Server<br/>(folder: fds)"]
+    Root --> CB["coreBanking<br/>On-Prem Core Banking Server"]
 ```
 
 Sub-project relations:
@@ -21,14 +23,14 @@ Sub-project relations:
 flowchart LR
     FE["Frontend (Vercel)"] -->|"HTTPS REST"| BE["Backend API"]
     BE -->|"HTTP API"| AI["AI Server (FastAPI)"]
-    BE -->|"Private routing via Transit Gateway"| CBG["On-Prem Core Banking Gateway"]
-    CBG -->|"Internal protocol"| CBS["On-Prem Core Banking Server"]
+    BE -->|"Private routing via Transit Gateway"| CBG["On-Prem Gateway"]
+    CBG -->|"HTTP API"| CBS["On-Prem Core Banking Server"]
     CBS --> CBD[("On-Prem Core Banking DB")]
 
     BE --> RDS[("Amazon RDS MySQL")]
     BE --> Redis[("ElastiCache Redis (Primary/Replica)")]
     BE --> S3[("Amazon S3")]
-    CBG --> Gov[("Government DB (On-Prem)")]
+    CBG -->|"JDBC"| Gov[("Government DB (On-Prem)")]
     CBS --> FDS["FDS Server (On-Prem)"]
 ```
 
@@ -67,7 +69,7 @@ flowchart TD
     AIAZ1 --> TGW
     AIAZ2 --> TGW
 
-    TGW --> OnPremGW["On-Prem Core Banking Gateway"]
+    TGW --> OnPremGW["On-Prem Gateway"]
     OnPremGW --> OnPremCBS["On-Prem Core Banking Server"]
     OnPremCBS --> OnPremDB[("On-Prem Core Banking DB")]
     OnPremGW --> GovDB[("Government DB (On-Prem)")]
@@ -117,12 +119,16 @@ flowchart TD
 - 비밀정보(API 키, 인증서, 터널링 자격증명, DB 계정)는 코드/로그에 남기지 않는다.
 - 액세스/보안 관련 키 값은 노출되지 않도록 저장소에 평문으로 커밋되지 않도록 하며, 환경변로 처리한다.
 - `government-db`는 별도 Spring Boot 애플리케이션 모듈이 아닌 온프레미스 인프라 데이터 소스로 취급하며, `backend` 서버가 AWS Transit Gateway를 통해 온프레미스 gateway를 경유해 접근하도록 한다.
+- `gateway`는 온프레미스 내부 API 애플리케이션으로 취급한다. Nginx가 앞단 reverse proxy 역할을 하더라도 DB 조회/응답 생성/검증 로직은 `gateway` Spring Boot 서버에서 수행한다.
+- 주민등록번호/외국인등록번호 원문은 `backend -> gateway` HTTP 요청/응답과 Government DB 저장값에 포함하지 않는다. 양쪽 서버가 공유하는 `REGISTRATION_NUMBER_HMAC_SECRET`으로 정규화된 번호의 HMAC-SHA256 해시만 조회 키로 사용한다.
 
 ### Do
 - 계약 우선: FE-BE, BE-AI(FastAPI), BE-CoreBanking 간 API 스펙을 먼저 고정하고 구현한다.
 - 계좌이체 UX에 필요한 이체 사전 조회(내 계좌 + 수취인 조회)는 `backend -> coreBanking` 서버 간 API 계약으로 처리한다.
 - 계좌이체 전 계좌 비밀번호 검증은 `backend -> coreBanking` 서버 간 API 계약으로 처리한다.
 - Core Banking REST 연동은 `backend/global/corebanking/client`의 단일 인터페이스/구현을 공통 사용하고, 도메인 서비스는 해당 글로벌 클라이언트만 의존한다.
+- Government DB 조회는 `backend -> gateway -> government-db` 계약으로 처리하고, `backend`는 Government DB JDBC URL 또는 계정 정보를 직접 보유하지 않는다.
+- Government DB 신원 조회 시 `backend`는 OCR 식별번호를 숫자만 남기도록 정규화한 뒤 HMAC-SHA256 해시를 생성해 `gateway`에 전달한다.
 - 장애 격리: Core Banking 연동 실패 시 재시도 정책과 보상 흐름을 명시한다.
 - 감사 추적: 인증/이체/계좌개설 단계는 모두 추적 가능한 이벤트 로그를 남기고, 로그는 롤링 파일 형식으로 생성/보관한다.
 - 다국어 UX를 고려해 메시지 키 기반 응답을 우선한다.
@@ -139,6 +145,7 @@ flowchart TD
 - UI/UX/상태관리 수정: `frontend` 규칙 파일 우선 적용.
 - 병원 예약 챗봇/에이전트 로직(FastAPI) 수정: `ai-server` 규칙 파일 우선 적용.
 - 코어뱅킹 인터페이스/터널링/프로토콜 수정: `core-banking-gateway` 규칙 파일 우선 적용.
+- 온프레미스 gateway API/Nginx 라우팅/Government DB 조회 수정: `gateway` 규칙 파일 우선 적용.
 - 해외송금 이상거래 탐지(FDS Python 서버) 수정: `fds` 규칙 파일 우선 적용.
 
 ## Maintenance Policy

@@ -1,26 +1,6 @@
 package woorifisa.project.backend.global.auth.service;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import woorifisa.project.backend.global.auth.dto.request.LoginRequest;
-import woorifisa.project.backend.global.auth.dto.request.SignupRequest;
-import woorifisa.project.backend.global.auth.dto.response.LoginResponse;
-import woorifisa.project.backend.domain.user.entity.User;
-import woorifisa.project.backend.domain.user.repository.UserRepository;
-import woorifisa.project.backend.global.exception.CustomException;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -30,18 +10,29 @@ import java.time.Duration;
 import java.util.HexFormat;
 import java.util.regex.Pattern;
 
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DUPLICATE_EMAIL;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DELETED_USER;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_CODE_EXPIRED_OR_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_CODE_NOT_MATCHED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_RESEND_TOO_EARLY;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.EMAIL_VERIFICATION_SEND_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_EMAIL_FORMAT;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.INVALID_PASSWORD_FORMAT;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_CONFIRM_NOT_MATCHED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.PASSWORD_NOT_MATCHED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.UNAUTHORIZED_SESSION;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.mail.MailException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
+import woorifisa.project.backend.domain.user.repository.UserRepository;
+import woorifisa.project.backend.global.auth.dto.request.LoginRequest;
+import woorifisa.project.backend.global.auth.dto.request.SignupRequest;
+import woorifisa.project.backend.global.auth.dto.response.LoginResponse;
+import woorifisa.project.backend.global.exception.CustomException;
 
 @Slf4j
 @Service
@@ -81,7 +72,7 @@ public class AuthService {
                 .birth(request.birth())
                 .gender(request.gender())
                 .hasResidenceCard(false)
-                .hasCertificate(false)
+                .certificateStatus(CertificateStatus.NOT_ISSUED)
                 .hasDelete(false)
                 .issuedTime(null)
                 .build();

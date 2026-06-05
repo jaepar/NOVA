@@ -31,4 +31,16 @@ class AccountTransactionTest {
                 .map(UniqueConstraint::name))
                 .contains("uk_account_transaction_external_request_id_flow");
     }
+
+    @Test
+    @DisplayName("거래내역 메모만 수정할 수 있다")
+    void updateMemo() {
+        AccountTransaction transaction = AccountTransaction.builder()
+                .memo("기존")
+                .build();
+
+        transaction.updateMemo("월세");
+
+        assertThat(transaction.getMemo()).isEqualTo("월세");
+    }
 }

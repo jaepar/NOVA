@@ -20,15 +20,30 @@ import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBan
 import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.response.CoreBankingBaseResponse;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.response.CoreBankingWalletDebitLookupResponse;
+import org.springframework.web.client.RestClientResponseException;
+import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateCustomerRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransactionQuery;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingBaseErrorResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingBaseResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRequestLookupResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingTransactionsResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingWalletDebitLookupResponse;
 import woorifisa.project.backend.global.exception.CustomException;
 import woorifisa.project.backend.global.response.BaseResponse;
 import woorifisa.project.backend.global.response.status.ResponseStatus;
 
+import java.util.Optional;
+
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_RECIPIENT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INSUFFICIENT_BALANCE;
 
 import java.util.List;
 
@@ -57,8 +72,12 @@ public class RestCoreBankingClient implements CoreBankingClient {
             if (response == null) {
                 throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
             }
-            if (!response.getSuccess()) {
-                throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
+        } catch (RestClientResponseException exception) {
+            CoreBankingBaseErrorResponse<Void> errorResponse = exception.getResponseBodyAs(new ParameterizedTypeReference<>() {
+            });
+
+            if (errorResponse != null && errorResponse.code() != null) {
+                throw new CustomException(toResponseStatus(errorResponse.code(), errorResponse.message()));
             }
         } catch (RestClientException exception) {
             throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
@@ -102,14 +121,14 @@ public class RestCoreBankingClient implements CoreBankingClient {
             if (response == null) {
                 throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
             }
-            if (!response.getSuccess()) {
-                throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
-            }
-            if (response.getData() == null || response.getData().recipientName() == null || response.getData().recipientName().isBlank()) {
-                throw new CustomException(BANKING_RECIPIENT_NOT_FOUND);
-            }
             return response.getData();
-        } catch (RestClientException exception) {
+        } catch (RestClientResponseException exception) {
+            CoreBankingBaseErrorResponse<Void> errorResponse = exception.getResponseBodyAs(new ParameterizedTypeReference<>() {
+            });
+
+            if (errorResponse != null && errorResponse.code() != null) {
+                throw new CustomException(toResponseStatus(errorResponse.code(), errorResponse.message()));
+            }
             throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
         }
     }
@@ -130,9 +149,75 @@ public class RestCoreBankingClient implements CoreBankingClient {
             if (response == null) {
                 throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
             }
+        } catch (RestClientResponseException exception) {
+            CoreBankingBaseErrorResponse<Void> errorResponse = exception.getResponseBodyAs(new ParameterizedTypeReference<>() {
+            });
+
+            if (errorResponse != null && errorResponse.code() != null) {
+                throw new CustomException(toResponseStatus(errorResponse.code(), errorResponse.message()));
+            }
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+        }
+    }
+
+    @Override
+    public CoreBankingTransactionsResponse findAccountTransactions(CoreBankingTransactionQuery query) {
+        try {
+            BaseResponse<CoreBankingTransactionsResponse> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/account-transactions/accounts/{accountId}")
+                            .queryParam("from", query.from())
+                            .queryParam("to", query.to())
+                            .queryParam("flow", query.flow())
+                            // keyword는 선택 조건이라 값이 있을 때만 CoreBanking에 전달한다.
+                            .queryParamIfPresent("keyword", Optional.ofNullable(query.keyword()))
+                            .queryParam("sortDirection", query.sortDirection())
+                            .queryParam("page", query.page())
+                            .queryParam("size", query.size())
+                            .build(query.accountId()))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null || response.getData() == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
             if (!response.getSuccess()) {
                 throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
             }
+            return response.getData();
+        } catch (RestClientException exception) {
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+        }
+    }
+
+    @Override
+    public void updateTransactionMemo(Long transactionId, UpdateTransactionMemoRequest request) {
+        try {
+            BaseResponse<Void> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .patch()
+                    .uri("/account-transactions/transactions/{transactionId}/memo", transactionId)
+                    .body(request)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null) {
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+        } catch (RestClientResponseException exception) {
+            CoreBankingBaseErrorResponse<Void> errorResponse = exception.getResponseBodyAs(new ParameterizedTypeReference<>() {
+            });
+
+            if (errorResponse != null && errorResponse.code() != null) {
+                throw new CustomException(toResponseStatus(errorResponse.code(), errorResponse.message()));
+            }
+            throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
         } catch (RestClientException exception) {
             throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
         }
@@ -141,7 +226,7 @@ public class RestCoreBankingClient implements CoreBankingClient {
     @Override
     public void debitWalletAccount(CoreBankingWalletDebitRequest request) {
         try {
-            CoreBankingBaseResponse<Void> response = restClientBuilder
+            BaseResponse<Void> response = restClientBuilder
                     .baseUrl(coreBankingBaseUrl)
                     .build()
                     .post()
@@ -156,12 +241,13 @@ public class RestCoreBankingClient implements CoreBankingClient {
             if (response == null) {
                 throw new CustomException(WALLET_DEBIT_COMMUNICATION_FAILED);
             }
-            if (!response.success()) {
-                throw new CustomException(isInsufficientBalance(response.code())
-                        ? WALLET_INSUFFICIENT_BALANCE
-                        : WALLET_DEBIT_FAILED);
+        } catch (RestClientResponseException exception) {
+            CoreBankingBaseErrorResponse<Void> errorResponse = exception.getResponseBodyAs(new ParameterizedTypeReference<>() {
+            });
+
+            if (errorResponse != null && errorResponse.code() != null) {
+                throw new CustomException(toResponseStatus(errorResponse.code(), errorResponse.message()));
             }
-        } catch (RestClientException exception) {
             throw new CustomException(WALLET_DEBIT_COMMUNICATION_FAILED);
         }
     }
@@ -169,7 +255,7 @@ public class RestCoreBankingClient implements CoreBankingClient {
     @Override
     public boolean existsWalletDebitRequest(String externalRequestId) {
         try {
-            CoreBankingBaseResponse<CoreBankingWalletDebitLookupResponse> response = restClientBuilder
+            BaseResponse<CoreBankingWalletDebitLookupResponse> response = restClientBuilder
                     .baseUrl(coreBankingBaseUrl)
                     .build()
                     .get()
@@ -179,9 +265,9 @@ public class RestCoreBankingClient implements CoreBankingClient {
                     });
 
             return response != null
-                    && response.success()
-                    && response.data() != null
-                    && externalRequestId.equals(response.data().externalRequestId());
+                    && response.getSuccess()
+                    && response.getData() != null
+                    && externalRequestId.equals(response.getData().externalRequestId());
         } catch (RestClientException exception) {
             return false;
         }
@@ -206,14 +292,14 @@ public class RestCoreBankingClient implements CoreBankingClient {
                 log.error("[core_banking_customer:create_failed] reason=null_response userId={}", request.userId());
                 throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
             }
-            if (!response.getSuccess()) {
-                log.error("[core_banking_customer:create_failed] reason=unsuccessful_response userId={}, code={}, message={}",
-                        request.userId(), response.getCode(), response.getMessage());
-                throw new CustomException(toResponseStatus(response.getCode(), response.getMessage()));
+        } catch (RestClientResponseException exception) {
+            CoreBankingBaseErrorResponse<Void> errorResponse = exception.getResponseBodyAs(new ParameterizedTypeReference<>() {
+            });
+
+            if (errorResponse != null && errorResponse.code() != null) {
+                throw new CustomException(toResponseStatus(errorResponse.code(), errorResponse.message()));
             }
-            log.info("[core_banking_customer:create_completed] userId={}", request.userId());
-        } catch (RestClientException exception) {
-            log.error("[core_banking_customer:create_failed] reason=rest_client_exception userId={}, message={}",
+            log.error("[core_banking_customer:create_failed] reason=rest_client_response_exception userId={}, message={}",
                     request.userId(), exception.getMessage(), exception);
             throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
         }
@@ -265,8 +351,36 @@ public class RestCoreBankingClient implements CoreBankingClient {
         }
     }
 
-    private boolean isInsufficientBalance(String code) {
-        return "WALLET_ACCOUNT_DEBIT-003".equals(code);
+    @Override
+    public CoreBankingCreateAccountResponse createAccount(CoreBankingCreateAccountRequest request) {
+        try {
+            log.info("[core_banking_account:create_requested] accountType={}, accountName={}, job={}, hasForeignTax={}",
+                    request.accountType(), request.accountName(), request.job(), request.hasForeignTax());
+            BaseResponse<CoreBankingCreateAccountResponse> response = restClientBuilder
+                    .baseUrl(coreBankingBaseUrl)
+                    .build()
+                    .post()
+                    .uri("/accounts/")
+                    .body(request)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+
+            if (response == null) {
+                log.error("[core_banking_account:create_failed] reason=null_response");
+                throw new CustomException(BANKING_CORE_BANKING_COMMUNICATION_FAILED);
+            }
+            log.info("[core_banking_account:create_completed] accountId={}", response.getData().accountId());
+            return response.getData();
+        } catch (RestClientResponseException exception) {
+            CoreBankingBaseErrorResponse<Void> errorResponse = exception.getResponseBodyAs(new ParameterizedTypeReference<>() {
+            });
+
+            if (errorResponse != null && errorResponse.code() != null) {
+                throw new CustomException(toResponseStatus(errorResponse.code(), errorResponse.message()));
+            }
+            throw new CustomException(WALLET_DEBIT_COMMUNICATION_FAILED);
+        }
     }
 
     private ResponseStatus toResponseStatus(String code, String message) {

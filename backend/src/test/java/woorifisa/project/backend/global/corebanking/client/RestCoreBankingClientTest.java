@@ -9,6 +9,10 @@ import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBank
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingCreateGlobalTransactionResponse;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingGlobalTransactionListItemResponse;
 import woorifisa.project.backend.domain.wallet.dto.corebanking.request.CoreBankingWalletDebitRequest;
+import org.springframework.web.client.ResourceAccessException;
+import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.net.SocketTimeoutException;
@@ -17,15 +21,18 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
 
 class RestCoreBankingClientTest {
+
+    private static final String CORE_BANKING_BASE_URL = "http://core-banking.test";
 
     @Test
     @DisplayName("CoreBanking 해외송금 생성 API를 호출한다")
@@ -136,8 +143,8 @@ class RestCoreBankingClientTest {
                 10000
         );
 
-        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
-        server.expect(requestTo("http://core-banking.test/account-transactions/wallet"))
+        setField(client, "coreBankingBaseUrl", CORE_BANKING_BASE_URL);
+        server.expect(requestTo(CORE_BANKING_BASE_URL + "/account-transactions/wallet"))
                 .andExpect(method(POST))
                 .andRespond(withSuccess("""
                         {
@@ -165,26 +172,29 @@ class RestCoreBankingClientTest {
                 10000
         );
 
-        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
-        server.expect(requestTo("http://core-banking.test/account-transactions/wallet"))
+        setField(client, "coreBankingBaseUrl", CORE_BANKING_BASE_URL);
+        server.expect(requestTo(CORE_BANKING_BASE_URL + "/account-transactions/wallet"))
                 .andExpect(method(POST))
-                .andRespond(withSuccess("""
+                .andRespond(withServerError()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("""
                         {
                           "success": false,
                           "code": "40000",
-                          "message": "FAIL"
+                          "message": "FAIL",
+                          "data": null
                         }
-                        """, MediaType.APPLICATION_JSON));
+                        """));
 
         assertThatThrownBy(() -> client.debitWalletAccount(request))
                 .isInstanceOfSatisfying(CustomException.class,
-                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_DEBIT_FAILED));
+                        exception -> assertThat(exception.getExceptionStatus().getCode()).isEqualTo("40000"));
 
         server.verify();
     }
 
     @Test
-    @DisplayName("차감 호출 timeout은 통신 예외로 변환한다")
+    @DisplayName("CoreBanking 차감 호출 timeout은 ResourceAccessException으로 전파한다")
     void timeout() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
@@ -196,14 +206,13 @@ class RestCoreBankingClientTest {
                 10000
         );
 
-        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
-        server.expect(requestTo("http://core-banking.test/account-transactions/wallet"))
+        setField(client, "coreBankingBaseUrl", CORE_BANKING_BASE_URL);
+        server.expect(requestTo(CORE_BANKING_BASE_URL + "/account-transactions/wallet"))
                 .andExpect(method(POST))
                 .andRespond(withException(new SocketTimeoutException("timeout")));
 
         assertThatThrownBy(() -> client.debitWalletAccount(request))
-                .isInstanceOfSatisfying(CustomException.class,
-                        exception -> assertThat(exception.getExceptionStatus()).isEqualTo(WALLET_DEBIT_COMMUNICATION_FAILED));
+                .isInstanceOf(ResourceAccessException.class);
 
         server.verify();
     }
@@ -215,8 +224,8 @@ class RestCoreBankingClientTest {
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         RestCoreBankingClient client = new RestCoreBankingClient(builder);
 
-        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
-        server.expect(requestTo("http://core-banking.test/account-transactions/requests/WCR-20260514-0001"))
+        setField(client, "coreBankingBaseUrl", CORE_BANKING_BASE_URL);
+        server.expect(requestTo(CORE_BANKING_BASE_URL + "/account-transactions/requests/WCR-20260514-0001"))
                 .andExpect(method(GET))
                 .andRespond(withSuccess("""
                         {
@@ -230,6 +239,65 @@ class RestCoreBankingClientTest {
                         """, MediaType.APPLICATION_JSON));
 
         assertThat(client.existsWalletDebitRequest("WCR-20260514-0001")).isTrue();
+
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("CoreBanking 거래내역 메모 수정 API를 호출한다")
+    void updateTransactionMemo() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        RestCoreBankingClient client = new RestCoreBankingClient(builder);
+
+        setField(client, "coreBankingBaseUrl", "http://core-banking.test");
+        server.expect(requestTo("http://core-banking.test/account-transactions/transactions/9001/memo"))
+                .andExpect(method(PATCH))
+                .andRespond(withSuccess("""
+                        {
+                          "success": true,
+                          "code": "20000",
+                          "message": "OK",
+                          "data": null
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        client.updateTransactionMemo(
+                9001L,
+                new UpdateTransactionMemoRequest("월세")
+        );
+
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("CoreBanking 계좌 비밀번호 검증 실패 응답이면 비밀번호 불일치 예외로 변환한다")
+    void accountPasswordNotMatched() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        RestCoreBankingClient client = new RestCoreBankingClient(builder);
+        CoreBankingPasswordVerifyRequest request = new CoreBankingPasswordVerifyRequest(2001L, "0000");
+
+        setField(client, "coreBankingBaseUrl", CORE_BANKING_BASE_URL);
+        server.expect(requestTo(CORE_BANKING_BASE_URL + "/accounts/password/verify"))
+                .andExpect(method(POST))
+                .andRespond(withBadRequest()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("""
+                                {
+                                  "success": false,
+                                  "code": "ACCOUNT-007",
+                                  "message": "account password mismatch",
+                                  "data": null
+                                }
+                                """));
+
+        assertThatThrownBy(() -> client.verifyAccountPassword(request))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> {
+                            assertThat(exception.getExceptionStatus().getCode()).isEqualTo("ACCOUNT-007");
+                            assertThat(exception.getExceptionStatus().getMessage()).isEqualTo("account password mismatch");
+                        });
 
         server.verify();
     }

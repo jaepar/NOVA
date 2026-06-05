@@ -1,20 +1,20 @@
 # REST API (On-Prem Only)
 
-coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.  
-본 문서는 전달받은 API 명세 중 **On-Prem** 항목만 정의한다.
+coreBanking 서버는 On-Prem 계정계와 Open API(BaaS) 역할을 함께 수행한다.  
+본 문서에는 전달받은 API 명세 중 **On-Prem** 항목만 정의한다.
 
 ## Common Rules
 
-- 인증 방식은 서버 간 인증(내부망/전용 연동) 기준으로 운영한다.
+- 인증 방식은 서버 간 인증(내부망 전용 연동) 기준으로 운영한다.
 - 모든 응답은 coreBanking 공통 응답 래퍼를 사용한다.
-- 원장 변경 API는 중복 방지를 위해 요청 식별자(`externalRequestId` 등)를 사용한다.
+- 저장 변경 API는 중복 방지를 위해 요청 식별자 `externalRequestId` 를 사용한다.
 - 컨트롤러는 DTO만 입출력하고 엔티티 직접 반환을 금지한다.
 
 ## Role Rules
 
 | Role | Meaning |
 |---|---|
-| `AUTHORIZED` | 연동된 내부 서비스/권한 토큰 필요 |
+| `AUTHORIZED` | 연동 대상 서비스 권한 토큰 필요 |
 
 ## API Catalog
 
@@ -23,9 +23,9 @@ coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.
 | `CB-001` | 계좌 개설(On-Prem) | POST | `/accounts` | O | AUTHORIZED | |
 | `CB-002` | 계좌 비밀번호 검증(On-Prem) | POST | `/accounts/password/verify` | O | AUTHORIZED | account.password 일치 검증 |
 | `CB-003` | 계좌 이체(On-Prem) | POST | `/account-transactions/transfers` | O | AUTHORIZED | `externalRequestId` 기반 멱등 처리 |
-| `CB-004` | 이체 처리 결과 조회(On-Prem) | GET | `/account-transactions/requests/{externalRequestId}` | O | AUTHORIZED | 이체/월렛충전 공통 외부 요청 ID 기반 결과 조회 |
-| `CB-005` | 거래 내역 조회(On-Prem) | GET | `/core-banking/{accountId}/transactions` | O | AUTHORIZED | |
-| `CB-006` | 거래 내역 메모 수정(On-Prem) | PATCH | `/core-banking/{accountId}/transactions/{transactionId}/memo` | O | AUTHORIZED | |
+| `CB-004` | 이체 처리 결과 조회(On-Prem) | GET | `/account-transactions/requests/{externalRequestId}` | O | AUTHORIZED | 이체/월렛충전 공통 처리 요청 ID 기반 결과 조회 |
+| `CB-005` | 거래 내역 조회(On-Prem) | GET | `/account-transactions/accounts/{accountId}` | O | AUTHORIZED | |
+| `CB-006` | 거래 내역 메모 수정(On-Prem) | PATCH | `/account-transactions/transactions/{transactionId}/memo` | O | AUTHORIZED | 메모 20자 이내, 빈 값은 null 저장 |
 | `CB-007` | 홈 계좌 정보 조회(On-Prem) | GET | `/core-banking/home` | O | AUTHORIZED | |
 | `CB-008` | 해외 송금 요청 생성(On-Prem) | POST | `/global-transactions` | O | AUTHORIZED | `externalRequestId` 기반 멱등 처리, FDS 비동기 심사 |
 | `CB-009` | 해외 송금 상태 조회(On-Prem) | GET | `/global-transactions/{globalTransactionId}` | O | AUTHORIZED | 단건 상태 조회 |
@@ -33,38 +33,28 @@ coreBanking 서버는 On-Prem 계정계 Open API(BaaS) 역할을 수행한다.
 | `CB-011` | 고객 생성(On-Prem) | POST | `/customers` | O | AUTHORIZED | `userId`,`name`,`email` 기반 고객 생성 |
 | `CB-012` | 고객별 해외 송금 목록 조회(On-Prem) | GET | `/global-transactions?customerId={customerId}` | O | AUTHORIZED | 서버 간 호출 전용 |
 
-## CB-001 계좌 개설(On-Prem)
+## CB-005 거래 내역 조회(On-Prem)
 
-- Method: `POST`
-- Path: `/`
-- Resource Prefix: `/accounts` (최종 엔드포인트: `POST /accounts`)
+- Method: `GET`
+- Path: `/account-transactions/accounts/{accountId}`
 - Auth: `O` (`AUTHORIZED`)
+- Sort: `sortDirection` 요청값 기준, 기본 `DESC`
+- Pagination: `page`, `size` 기반 Slice 응답
 
-Request
-```json
-{
-  "customerId": 1001,
-  "accountType": "DEMAND_DEPOSIT",
-  "accountName": "우리 SUPER주거래 통장",
-  "customerInfo": {
-    "name": "PARK JAEHA",
-    "email": "abcdef@gmail.com",
-    "address": "서울특별시 광진구 능동로 120",
-    "addressDetail": "건국대학교 기숙사 101호"
-  },
-  "job": "STUDENT",
-  "transactionInfo": {
-    "purpose": "SALARY_AND_LIVING_EXPENSES",
-    "source": "EARNED_AND_PENSION_INCOME"
-  },
-  "taxInfo": {
-    "hasForeignTax": false
-  },
-  "accountPassword": "1234"
-}
-```
+Query Parameters
+
+| Name | Type | Required | Default | Values | Description |
+|---|---|---|---|---|---|
+| `from` | date | Y | - | `yyyy-MM-dd` | 조회 시작일 |
+| `to` | date | Y | - | `yyyy-MM-dd` | 조회 종료일 |
+| `flow` | enum | N | `ALL` | `ALL`, `DEPOSIT`, `WITHDRAWAL` | 입출금 유형 |
+| `keyword` | string | N | - | - | `counterParty`, `memo` 검색어 |
+| `sortDirection` | enum | N | `DESC` | `ASC`, `DESC` | 거래일시 정렬 방향 |
+| `page` | integer | N | `0` | `0..` | 페이지 번호 |
+| `size` | integer | N | `20` | `1..` | 페이지 크기 |
 
 Response (200)
+
 ```json
 {
   "success": true,
