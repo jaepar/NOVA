@@ -20,6 +20,7 @@ import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewReque
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeUiState;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
@@ -43,11 +44,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_ACCOUNT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CORE_BANKING_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSACTION_MEMO_TOO_LONG;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_CERTIFICATE_REQUIRED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
 
 @ExtendWith(MockitoExtension.class)
 class BankingServiceTest {
@@ -77,6 +78,120 @@ class BankingServiceTest {
     }
 
     @Test
+    @DisplayName("홈 상태 조회 시 인증서 미발급 사용자는 인증서 발급 필요 상태를 반환한다")
+    void findHomeAccountWhenCertificateNotIssued() {
+        Long userId = 1L;
+        User user = User.builder()
+                .userId(userId)
+                .certificateStatus(CertificateStatus.NOT_ISSUED)
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+                .thenReturn(Optional.empty());
+
+        AccountHomeResponse response = bankingService.findHomeAccount(userId);
+
+        assertThat(response.uiState()).isEqualTo(AccountHomeUiState.NEED_CERTIFICATE);
+        assertThat(response.account()).isNull();
+    }
+
+    @Test
+    @DisplayName("홈 상태 조회 시 인증서 발급 중 사용자는 발급 중 상태를 반환한다")
+    void findHomeAccountWhenCertificatePending() {
+        Long userId = 1L;
+        User user = User.builder()
+                .userId(userId)
+                .certificateStatus(CertificateStatus.PENDING)
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+                .thenReturn(Optional.empty());
+
+        AccountHomeResponse response = bankingService.findHomeAccount(userId);
+
+        assertThat(response.uiState()).isEqualTo(AccountHomeUiState.CERTIFICATE_ISSUING);
+        assertThat(response.account()).isNull();
+    }
+
+    @Test
+    @DisplayName("홈 상태 조회 시 인증서 발급 완료 후 계좌가 없으면 계좌 개설 가능 상태를 반환한다")
+    void findHomeAccountWhenCertificateIssuedWithoutAccount() {
+        Long userId = 1L;
+        User user = User.builder()
+                .userId(userId)
+                .certificateStatus(CertificateStatus.ISSUED)
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+                .thenReturn(Optional.empty());
+
+        AccountHomeResponse response = bankingService.findHomeAccount(userId);
+
+        assertThat(response.uiState()).isEqualTo(AccountHomeUiState.READY_TO_OPEN_ACCOUNT);
+        assertThat(response.account()).isNull();
+    }
+
+    @Test
+    @DisplayName("홈 상태 조회 시 한도 제한 계좌가 있으면 계좌 요약과 한도 제한 여부를 반환한다")
+    void findHomeAccountWithLimitedAccountState() {
+        Long userId = 1L;
+        User user = User.builder()
+                .userId(userId)
+                .certificateStatus(CertificateStatus.ISSUED)
+                .build();
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(user)
+                .accountId(2001L)
+                .accountName("NOVA limited account")
+                .accountNumber("1002867390781")
+                .balance(50000)
+                .hasAccount(true)
+                .hasLimit(true)
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+                .thenReturn(Optional.of(accountRef));
+
+        AccountHomeResponse response = bankingService.findHomeAccount(userId);
+
+        assertThat(response.uiState()).isEqualTo(AccountHomeUiState.HAS_ACCOUNT);
+        assertThat(response.account().accountName()).isEqualTo("NOVA limited account");
+        assertThat(response.account().accountNumber()).isEqualTo("1002867390781");
+        assertThat(response.account().bankName()).isEqualTo(AccountRef.BANK_NAME);
+        assertThat(response.account().balance()).isEqualTo(50000);
+        assertThat(response.account().hasLimit()).isTrue();
+    }
+
+    @Test
+    @DisplayName("홈 상태 조회 시 한도 제한 없는 계좌가 있으면 한도 제한 여부를 false로 반환한다")
+    void findHomeAccountWithGeneralAccountState() {
+        Long userId = 1L;
+        User user = User.builder()
+                .userId(userId)
+                .certificateStatus(CertificateStatus.ISSUED)
+                .build();
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(user)
+                .accountId(2001L)
+                .accountName("NOVA living account")
+                .accountNumber("1002867390781")
+                .balance(50000)
+                .hasAccount(true)
+                .hasLimit(false)
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+                .thenReturn(Optional.of(accountRef));
+
+        AccountHomeResponse response = bankingService.findHomeAccount(userId);
+
+        assertThat(response.uiState()).isEqualTo(AccountHomeUiState.HAS_ACCOUNT);
+        assertThat(response.account().hasLimit()).isFalse();
+    }
+
+    @Test
     @DisplayName("홈 계좌 조회 시 본인 계좌 카드 정보를 반환한다")
     void findHomeAccountSuccess() {
         Long userId = 1L;
@@ -93,31 +208,30 @@ class BankingServiceTest {
                 .hasAccount(true)
                 .hasLimit(true)
                 .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(accountRef.getUser()));
         when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
                 .thenReturn(Optional.of(accountRef));
 
         AccountHomeResponse response = bankingService.findHomeAccount(userId);
 
-        assertThat(response.accountId()).isEqualTo(2001L);
-        assertThat(response.accountName()).isEqualTo("NOVA 임시 제한 계좌");
-        assertThat(response.accountNumber()).isEqualTo("1002867390781");
-        assertThat(response.bankName()).isEqualTo("우리은행");
-        assertThat(response.balance()).isEqualTo(50000);
-        assertThat(response.hasLimit()).isTrue();
-        assertThat(response.certificateStatus()).isEqualTo(CertificateStatus.ISSUED);
+        assertThat(response.account().accountId()).isEqualTo(2001L);
+        assertThat(response.account().accountName()).isEqualTo("NOVA 임시 제한 계좌");
+        assertThat(response.account().accountNumber()).isEqualTo("1002867390781");
+        assertThat(response.account().bankName()).isEqualTo("우리은행");
+        assertThat(response.account().balance()).isEqualTo(50000);
+        assertThat(response.account().hasLimit()).isTrue();
     }
 
     @Test
     @DisplayName("홈 계좌 조회 시 계좌가 없으면 예외를 반환한다")
     void findHomeAccountNotFound() {
         Long userId = 1L;
-        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
-                .thenReturn(Optional.empty());
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> bankingService.findHomeAccount(userId))
                 .isInstanceOf(CustomException.class)
                 .extracting("exceptionStatus")
-                .isEqualTo(BANKING_ACCOUNT_NOT_FOUND);
+                .isEqualTo(USER_NOT_FOUND);
     }
 
     @Test

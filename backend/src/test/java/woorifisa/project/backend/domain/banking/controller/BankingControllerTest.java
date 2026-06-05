@@ -13,8 +13,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeUiState;
 import woorifisa.project.backend.domain.banking.service.BankingService;
-import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -45,24 +45,22 @@ class BankingControllerTest {
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
-    @DisplayName("홈 계좌 조회 요청을 처리하고 계좌 카드 정보를 반환한다")
+    @DisplayName("home account status returns account summary")
     void findHomeAccountSuccess() throws Exception {
         Long userId = 1L;
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                new SessionUserPrincipal(userId),
-                null,
-                AuthorityUtils.NO_AUTHORITIES
-        );
+        UsernamePasswordAuthenticationToken authToken = authToken(userId);
 
         when(bankingService.findHomeAccount(any()))
                 .thenReturn(new AccountHomeResponse(
-                        2001L,
-                        "NOVA 임시 제한 계좌",
-                        "1002867390781",
-                        "우리은행",
-                        50000,
-                        true,
-                        CertificateStatus.ISSUED
+                        AccountHomeUiState.HAS_ACCOUNT,
+                        new AccountHomeResponse.AccountSummary(
+                                2001L,
+                                "NOVA account",
+                                "1002867390781",
+                                "Woori Bank",
+                                50000,
+                                true
+                        )
                 ));
 
         mockMvc.perform(get("/banking/home")
@@ -70,24 +68,22 @@ class BankingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data.accountId").value(2001))
-                .andExpect(jsonPath("$.data.accountName").value("NOVA 임시 제한 계좌"))
-                .andExpect(jsonPath("$.data.accountNumber").value("1002867390781"))
-                .andExpect(jsonPath("$.data.bankName").value("우리은행"))
-                .andExpect(jsonPath("$.data.balance").value(50000))
-                .andExpect(jsonPath("$.data.hasLimit").value(true))
-                .andExpect(jsonPath("$.data.certificateStatus").value("ISSUED"));
+                .andExpect(jsonPath("$.data.hasAccount").doesNotExist())
+                .andExpect(jsonPath("$.data.certificateStatus").doesNotExist())
+                .andExpect(jsonPath("$.data.uiState").value("HAS_ACCOUNT"))
+                .andExpect(jsonPath("$.data.account.accountId").value(2001))
+                .andExpect(jsonPath("$.data.account.accountName").value("NOVA account"))
+                .andExpect(jsonPath("$.data.account.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.account.bankName").value("Woori Bank"))
+                .andExpect(jsonPath("$.data.account.balance").value(50000))
+                .andExpect(jsonPath("$.data.account.hasLimit").value(true));
     }
 
     @Test
-    @DisplayName("세션 사용자 기준으로 계좌 개설 요청을 처리한다")
+    @DisplayName("session user creates account")
     void createAccountSuccess() throws Exception {
         Long userId = 1L;
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                new SessionUserPrincipal(userId),
-                null,
-                AuthorityUtils.NO_AUTHORITIES
-        );
+        UsernamePasswordAuthenticationToken authToken = authToken(userId);
 
         when(bankingService.createAccount(any(), any()))
                 .thenReturn(AccountCreateResponse.of(2001L, "WOORI", "1002-312-345678"));
@@ -98,10 +94,10 @@ class BankingControllerTest {
                         .content("""
                                 {
                                   "accountType": "DEMAND_DEPOSIT",
-                                  "accountName": "우리 SUPER주거래 통장",
+                                  "accountName": "NOVA demand account",
                                   "customerInfo": {
-                                    "address": "서울특별시 광진구 능동로 120",
-                                    "addressDetail": "건국대학교 기숙사 101호"
+                                    "address": "Seoul",
+                                    "addressDetail": "Dormitory 101"
                                   },
                                   "job": "STUDENT",
                                   "transactionInfo": {
@@ -121,17 +117,13 @@ class BankingControllerTest {
     }
 
     @Test
-    @DisplayName("세션 사용자와 멱등키 기준으로 계좌 이체 요청을 처리한다")
+    @DisplayName("session user requests transfer with idempotency key")
     void transferSuccess() throws Exception {
         Long userId = 1L;
         String idempotencyKey = "550e8400-e29b-41d4-a716-446655440000";
 
         doNothing().when(bankingService).transfer(any(), any(), any());
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                new SessionUserPrincipal(userId),
-                null,
-                AuthorityUtils.NO_AUTHORITIES
-        );
+        UsernamePasswordAuthenticationToken authToken = authToken(userId);
 
         mockMvc.perform(post("/banking/transfers")
                         .with(authentication(authToken))
@@ -143,8 +135,8 @@ class BankingControllerTest {
                                   "depositAccountId": 2002,
                                   "transferAmount": 5000,
                                   "accountPassword": "1234",
-                                  "withdrawMemo": "박재하",
-                                  "depositMemo": "박재하"
+                                  "withdrawMemo": "memo",
+                                  "depositMemo": "memo"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -154,23 +146,19 @@ class BankingControllerTest {
     }
 
     @Test
-    @DisplayName("이체 사전 조회 요청을 처리하고 내 계좌/수취인 정보를 반환한다")
+    @DisplayName("transfer preview returns my account and recipient")
     void previewTransferSuccess() throws Exception {
         Long userId = 1L;
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                new SessionUserPrincipal(userId),
-                null,
-                AuthorityUtils.NO_AUTHORITIES
-        );
+        UsernamePasswordAuthenticationToken authToken = authToken(userId);
 
         when(bankingService.previewTransfer(any(), any()))
                 .thenReturn(
                         woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse.of(
-                                "우리SUPER주거래통장",
+                                "NOVA account",
                                 "1002867390781",
                                 50_000,
                                 300_000,
-                                "백민정"
+                                "Recipient"
                         )
                 );
 
@@ -186,22 +174,18 @@ class BankingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data.myAccount.accountName").value("우리SUPER주거래통장"))
+                .andExpect(jsonPath("$.data.myAccount.accountName").value("NOVA account"))
                 .andExpect(jsonPath("$.data.myAccount.accountNumber").value("1002867390781"))
                 .andExpect(jsonPath("$.data.myAccount.balance").value(50000))
                 .andExpect(jsonPath("$.data.myAccount.transferLimit").value(300000))
-                .andExpect(jsonPath("$.data.recipient.recipientName").value("백민정"));
+                .andExpect(jsonPath("$.data.recipient.recipientName").value("Recipient"));
     }
 
     @Test
-    @DisplayName("계좌 비밀번호 검증 요청을 처리한다")
+    @DisplayName("account password verify request succeeds")
     void verifyAccountPasswordSuccess() throws Exception {
         Long userId = 1L;
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                new SessionUserPrincipal(userId),
-                null,
-                AuthorityUtils.NO_AUTHORITIES
-        );
+        UsernamePasswordAuthenticationToken authToken = authToken(userId);
         doNothing().when(bankingService).verifyAccountPassword(any(), any());
 
         mockMvc.perform(post("/banking/password/verify")
@@ -274,5 +258,13 @@ class BankingControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("BANK-009"))
                 .andExpect(jsonPath("$.message").value("메모는 20자 이내로 입력해야 합니다."));
+    }
+
+    private UsernamePasswordAuthenticationToken authToken(Long userId) {
+        return new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
     }
 }
