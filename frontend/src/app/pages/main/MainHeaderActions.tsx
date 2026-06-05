@@ -2,11 +2,15 @@
 import { Bell, Menu } from 'lucide-react'
 import { AppButton } from '../../components/design-system/AppButton'
 import { MainNotificationPopover } from './MainNotificationPopover'
+import type { NotificationResponse } from '../../../api'
 
 interface MainHeaderActionsProps {
   hasUnreadNotifications: boolean
   isLoggedIn: boolean
   isNotificationOpen: boolean
+  notifications: NotificationResponse[]
+  isNotificationsLoading: boolean
+  notificationsError: boolean
   onNotificationsClick: () => void
   onNotificationsClose: () => void
   onMenuClick: () => void
@@ -16,6 +20,9 @@ export function MainHeaderActions({
   hasUnreadNotifications,
   isLoggedIn,
   isNotificationOpen,
+  notifications,
+  isNotificationsLoading,
+  notificationsError,
   onNotificationsClick,
   onNotificationsClose,
   onMenuClick,
@@ -68,7 +75,12 @@ export function MainHeaderActions({
         <Menu className="w-6 h-6" />
       </AppButton>
       {isNotificationOpen && (
-        <MainNotificationPopover isLoggedIn={isLoggedIn} />
+        <MainNotificationPopover
+          isLoggedIn={isLoggedIn}
+          notifications={notifications}
+          isLoading={isNotificationsLoading}
+          hasError={notificationsError}
+        />
       )}
     </div>
   )
