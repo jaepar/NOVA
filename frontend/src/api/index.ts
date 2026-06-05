@@ -20,7 +20,7 @@ export { extractApiErrorBody } from './utils';
  */
 
 export { authApi } from './endpoints/auth';
-export { certificateApi } from './endpoints/certificate';
+export { certificateApi, getCertificateApiError } from './endpoints/certificate';
 export { userApi } from './endpoints/user';
 export type {
   AuthMessageResponse,
@@ -40,6 +40,7 @@ export type {
 export type { NotificationResponse, NotificationType } from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
+export type { CertificateRequestErrorBody } from './endpoints/certificate';
 export { createIdempotencyKey, walletApi } from './endpoints/wallet';
 export type {
   ChargeWalletRequest,
