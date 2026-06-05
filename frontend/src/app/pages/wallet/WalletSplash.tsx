@@ -130,7 +130,7 @@ export function WalletSplash() {
   };
 
   return (
-    <main className="flex h-full w-full flex-col items-center justify-center bg-white px-5">
+    <main className="flex h-full w-full flex-col items-center justify-center bg-[rgba(254,254,254,1)] px-5">
       <div
         className={`flex flex-col items-center transition-all duration-700 ease-out ${
           isLeavingForHome
