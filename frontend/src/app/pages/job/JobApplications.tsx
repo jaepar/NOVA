@@ -311,7 +311,18 @@ export function JobApplications() {
         backPath="/jobs"
         bottomContent={
           requiresLogin ? (
-            <Btn_1Col onClick={() => navigate('/login/form')}>로그인하기</Btn_1Col>
+            <Btn_1Col
+              onClick={() =>
+                navigate('/login/form', {
+                  state: {
+                    backPath: '/jobs/applications',
+                    redirectTo: '/jobs/applications',
+                  },
+                })
+              }
+            >
+              로그인하기
+            </Btn_1Col>
           ) : undefined
         }
       >

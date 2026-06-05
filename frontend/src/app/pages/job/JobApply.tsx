@@ -274,7 +274,18 @@ export function JobApply() {
         backPath={job ? `/jobs/${job.job_id}` : '/jobs'}
         bottomContent={
           !isLoading && requiresLogin ? (
-            <Btn_1Col onClick={() => navigate('/login/form')}>로그인하기</Btn_1Col>
+            <Btn_1Col
+              onClick={() =>
+                navigate('/login/form', {
+                  state: {
+                    backPath: `/jobs/${numericJobId}/apply`,
+                    redirectTo: `/jobs/${numericJobId}/apply`,
+                  },
+                })
+              }
+            >
+              로그인하기
+            </Btn_1Col>
           ) : !isLoading && !errorMessage ? (
             <Btn_1Col disabled={!canSubmit} onClick={handleSubmit}>
               {isSubmitting ? '제출 중' : '제출하기'}
