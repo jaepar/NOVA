@@ -21,6 +21,7 @@ export * from './types'
 export { authApi } from './endpoints/auth';
 export { bankingApi } from './endpoints/banking';
 export { certificateApi } from './endpoints/certificate';
+export { userApi } from './endpoints/user';
 export type {
   AuthMessageResponse,
   LoginRequest,
@@ -34,6 +35,7 @@ export type {
   AccountSummary,
   CertificateStatus,
 } from './endpoints/banking';
+export type { NotificationResponse, NotificationType } from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
 export { walletApi } from './endpoints/wallet';
