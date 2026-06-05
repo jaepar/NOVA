@@ -60,10 +60,13 @@ public class BankingService {
 
     @Transactional(readOnly = true)
     public AccountHomeResponse findHomeAccount(Long userId) {
-        AccountRef accountRef = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId)
-                .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
+        // 홈 화면은 계좌가 없어도 정상 상태를 보여줘야 하므로 사용자 상태를 먼저 확정한다.
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+        // accountRef는 HAS_ACCOUNT 여부만 판단한다. 계좌가 없으면 DTO에서 certificateStatus 기반 uiState를 만든다.
+        var accountRef = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId);
 
-        return AccountHomeResponse.from(accountRef);
+        return AccountHomeResponse.of(user, accountRef);
     }
 
     @Transactional
