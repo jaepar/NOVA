@@ -14,10 +14,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingCreateGlobalTransactionResponse;
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingGlobalTransactionListItemResponse;
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
 import woorifisa.project.backend.domain.banking.dto.request.CreateGlobalTransactionRequest;
@@ -35,11 +31,16 @@ import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
+import woorifisa.project.backend.domain.user.repository.NotificationRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransactionQuery;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateGlobalTransactionResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingGlobalTransactionListItemResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingTransactionsResponse;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -72,6 +73,8 @@ class BankingServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
+    private NotificationRepository notificationRepository;
+    @Mock
     private ValueOperations<String, String> valueOperations;
     @Mock
     private CoreBankingClient coreBankingClient;
@@ -83,6 +86,7 @@ class BankingServiceTest {
         bankingService = new BankingService(
                 accountRefRepository,
                 userRepository,
+                notificationRepository,
                 stringRedisTemplate,
                 coreBankingClient
         );
@@ -100,11 +104,13 @@ class BankingServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
                 .thenReturn(Optional.empty());
+        when(notificationRepository.existsByUser_UserId(userId)).thenReturn(false);
 
         AccountHomeResponse response = bankingService.findHomeAccount(userId);
 
         assertThat(response.uiState()).isEqualTo(AccountHomeUiState.NEED_CERTIFICATE);
         assertThat(response.account()).isNull();
+        assertThat(response.hasNotification()).isFalse();
     }
 
     @Test
@@ -164,10 +170,12 @@ class BankingServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
                 .thenReturn(Optional.of(accountRef));
+        when(notificationRepository.existsByUser_UserId(userId)).thenReturn(true);
 
         AccountHomeResponse response = bankingService.findHomeAccount(userId);
 
         assertThat(response.uiState()).isEqualTo(AccountHomeUiState.HAS_ACCOUNT);
+        assertThat(response.hasNotification()).isTrue();
         assertThat(response.account().accountName()).isEqualTo("NOVA limited account");
         assertThat(response.account().accountNumber()).isEqualTo("1002867390781");
         assertThat(response.account().bankName()).isEqualTo(AccountRef.BANK_NAME);
@@ -207,12 +215,13 @@ class BankingServiceTest {
     @DisplayName("홈 계좌 조회 시 본인 계좌 카드 정보를 반환한다")
     void findHomeAccountSuccess() {
         Long userId = 1L;
+        User user = User.builder()
+                .userId(userId)
+                .certificateStatus(CertificateStatus.ISSUED)
+                .build();
         AccountRef accountRef = AccountRef.builder()
                 .accountRefId(1L)
-                .user(User.builder()
-                        .userId(userId)
-                        .certificateStatus(CertificateStatus.ISSUED)
-                        .build())
+                .user(user)
                 .accountId(2001L)
                 .accountName("NOVA 임시 제한 계좌")
                 .accountNumber("1002867390781")
@@ -220,8 +229,10 @@ class BankingServiceTest {
                 .hasAccount(true)
                 .hasLimit(true)
                 .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
                 .thenReturn(Optional.of(accountRef));
+        when(notificationRepository.existsByUser_UserId(userId)).thenReturn(false);
 
         AccountHomeResponse response = bankingService.findHomeAccount(userId);
 

@@ -1,5 +1,6 @@
 package woorifisa.project.backend.domain.banking.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.user.entity.User;
@@ -7,21 +8,25 @@ import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 
 public record AccountHomeResponse(
         AccountHomeUiState uiState,
-        AccountSummary account
+        AccountSummary account,
+        @JsonProperty("has_notification")
+        Boolean hasNotification
 ) {
-    public static AccountHomeResponse of(User user, Optional<AccountRef> accountRef) {
+    public static AccountHomeResponse of(User user, Optional<AccountRef> accountRef, boolean hasNotification) {
         CertificateStatus certificateStatus = user.getCertificateStatus();
 
         // 계좌가 있으면 홈 계좌 패널은 실제 계좌 요약을 표시한다.
         return accountRef
                 .map(account -> new AccountHomeResponse(
                         AccountHomeUiState.HAS_ACCOUNT,
-                        AccountSummary.from(account)
+                        AccountSummary.from(account),
+                        hasNotification
                 ))
                 // 계좌가 없을 때만 인증서 상태를 다음 행동을 안내하는 uiState로 변환한다.
                 .orElseGet(() -> new AccountHomeResponse(
                         resolveUiState(certificateStatus),
-                        null
+                        null,
+                        hasNotification
                 ));
     }
 

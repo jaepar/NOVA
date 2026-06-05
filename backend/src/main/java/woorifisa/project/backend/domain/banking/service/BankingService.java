@@ -33,6 +33,7 @@ import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
+import woorifisa.project.backend.domain.user.repository.NotificationRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
@@ -72,6 +73,7 @@ public class BankingService {
 
     private final AccountRefRepository accountRefRepository;
     private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final CoreBankingClient coreBankingClient;
 
@@ -82,8 +84,9 @@ public class BankingService {
                 .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
         // accountRef는 HAS_ACCOUNT 여부만 판단한다. 계좌가 없으면 DTO에서 certificateStatus 기반 uiState를 만든다.
         var accountRef = accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId);
+        boolean hasNotification = notificationRepository.existsByUser_UserId(userId);
 
-        return AccountHomeResponse.of(user, accountRef);
+        return AccountHomeResponse.of(user, accountRef, hasNotification);
     }
 
     @Transactional

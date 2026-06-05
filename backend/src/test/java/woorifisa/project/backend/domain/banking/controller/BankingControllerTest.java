@@ -57,7 +57,11 @@ class BankingControllerTest {
     @DisplayName("홈 계좌 조회 요청을 처리하고 계좌 카드 정보를 반환한다")
     void findHomeAccountSuccess() throws Exception {
         Long userId = 1L;
-        UsernamePasswordAuthenticationToken authToken = authToken(userId);
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
 
         when(bankingService.findHomeAccount(any()))
                 .thenReturn(new AccountHomeResponse(
@@ -69,7 +73,8 @@ class BankingControllerTest {
                                 "Woori Bank",
                                 50000,
                                 true
-                        )
+                        ),
+                        true
                 ));
 
         mockMvc.perform(get("/banking/home")
@@ -77,13 +82,14 @@ class BankingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("20000"))
-                .andExpect(jsonPath("$.data.accountId").value(2001))
-                .andExpect(jsonPath("$.data.accountName").value("NOVA 임시 제한 계좌"))
-                .andExpect(jsonPath("$.data.accountNumber").value("1002867390781"))
-                .andExpect(jsonPath("$.data.bankName").value("우리은행"))
-                .andExpect(jsonPath("$.data.balance").value(50000))
-                .andExpect(jsonPath("$.data.hasLimit").value(true))
-                .andExpect(jsonPath("$.data.certificateStatus").value("ISSUED"));
+                .andExpect(jsonPath("$.data.uiState").value("HAS_ACCOUNT"))
+                .andExpect(jsonPath("$.data.account.accountId").value(2001))
+                .andExpect(jsonPath("$.data.account.accountName").value("NOVA account"))
+                .andExpect(jsonPath("$.data.account.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.account.bankName").value("Woori Bank"))
+                .andExpect(jsonPath("$.data.account.balance").value(50000))
+                .andExpect(jsonPath("$.data.account.hasLimit").value(true))
+                .andExpect(jsonPath("$.data.has_notification").value(true));
     }
 
     @Test

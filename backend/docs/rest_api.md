@@ -236,7 +236,8 @@ Response (200, account exists)
       "bankName": "Woori Bank",
       "balance": 150000,
       "hasLimit": true
-    }
+    },
+    "has_notification": true
   }
 }
 ```
@@ -249,7 +250,8 @@ Response (200, no account)
   "message": "Request succeeded.",
   "data": {
     "uiState": "READY_TO_OPEN_ACCOUNT",
-    "account": null
+    "account": null,
+    "has_notification": false
   }
 }
 ```
