@@ -136,6 +136,7 @@ export function Main() {
               onSignupClick={() => navigate("/signup")}
               onOpenCertificateSheet={() => setCertificateSheetOpen(true)}
               onOpenAccount={handleOpenAccount}
+              onAccountPanelClick={() => navigate("/transaction-history")}
             />
           </section>
 
