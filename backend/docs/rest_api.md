@@ -91,8 +91,9 @@
 | `BANK-004`     | 거래 내역 조회(Cloud)      | GET    | `/banking/{accountId}/transactions`                      | O    | USER   |                               |
 | `BANK-005`     | 거래 내역 메모 수정(Cloud)   | PATCH  | `/banking/{accountId}/transactions/{transactionId}/memo` | O    | USER   |                               |
 | `BANK-006`     | 홈 계좌 정보 조회(Cloud)    | GET    | `/banking/home`                                          | O    | USER   |                               |
-| `BANK-007`     | 해외 송금(Cloud)         | TBD    | `TBD`                                                    | O    | USER   | 프로세스 정의 중 (추후 작성)             |
+| `BANK-007`     | 해외 송금 요청 생성(Cloud) | POST | `/banking/global-transactions` | O | USER | CoreBanking에 해외송금 생성 요청 전달 |
 | `BANK-008`     | 이체 사전 조회(Cloud) | POST | `/banking/transfers/preview` | O | USER | 내 계좌(account_ref) + 수취인(coreBanking) 통합 조회 |
+| `BANK-009`     | 해외 송금 목록 조회(Cloud) | GET | `/banking/global-transactions` | O | USER | 현재 세션 사용자 본인 목록만 조회 |
 
 ## Naming and Contract Notes
 
@@ -142,6 +143,94 @@ Response (200)
   }
 }
 ```
+
+## BANK-007 해외 송금 요청 생성(Cloud)
+
+- Method: `POST`
+- Path: `/banking/global-transactions`
+- Auth: `O` (USER 세션 필수)
+
+Request
+```json
+{
+  "accountId": 2001,
+  "remitPurpose": "생활비 송금",
+  "targetCountry": "US",
+  "currency": "USD",
+  "remitAmount": "1000.00",
+  "mediaryFeePayer": "SENDER",
+  "exchangeRate": 1380.500000,
+  "krwAmount": "1380500",
+  "senderEngName": "PARK JAEHA",
+  "senderPhone": "+821012345678",
+  "senderAddressDetail": "101",
+  "senderDistrict": "Gwangjin-gu",
+  "senderCity": "Seoul",
+  "senderZipCode": "05029",
+  "senderCountry": "KR",
+  "receiverEngName": "JOHN SMITH",
+  "receiverAddressDetail": "Apt 10",
+  "receiverDistrict": "Manhattan",
+  "receiverCity": "New York",
+  "receiverZipCode": null,
+  "receiverPhone": "+12125550100",
+  "swiftCode": "BOFAUS3N",
+  "receiverAccountNum": "1234567890",
+  "routingNumber": "026009593",
+  "bankName": "Bank of America",
+  "remitReason": "LIVING_EXPENSE"
+}
+```
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "globalTransactionId": 1,
+    "status": "PENDING"
+  }
+}
+```
+
+Processing Rules
+- 현재 세션 사용자 기준으로 본인 계좌만 해외송금 요청에 사용할 수 있다.
+- 백엔드는 프론트 요청 필드와 `account_ref` 등 백엔드 보유 정보를 조합해 CoreBanking `CB-008` API에 전달한다.
+- 중복 요청 방지를 위해 백엔드는 CoreBanking에 전달할 `externalRequestId`를 생성하거나 클라이언트 멱등 키를 검증된 요청 식별자로 변환한다.
+- 해외송금 원장 저장, 계좌 선출금, FDS 비동기 심사, 실패 시 환급은 CoreBanking에서 처리한다.
+- `receiverDistrict`, `receiverZipCode`는 선택값이다.
+- `receiverCity`는 필수값이다.
+
+## BANK-009 해외 송금 목록 조회(Cloud)
+
+- Method: `GET`
+- Path: `/banking/global-transactions`
+- Auth: `O` (USER 세션 필수)
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "요청에 성공했습니다.",
+  "data": [
+    {
+      "globalTransactionId": 1,
+      "receiverEngName": "JOHN SMITH",
+      "remitAmount": "1000.00",
+      "currency": "USD",
+      "status": "PENDING",
+      "createdAt": "2026-06-02T10:30:00"
+    }
+  ]
+}
+```
+
+Notes
+- 프론트는 `customerId`를 직접 전달하지 않는다.
+- 백엔드는 현재 세션 사용자와 연결된 CoreBanking 고객 식별자를 기준으로 `CB-012`를 호출한다.
 
 ## BANK-002 계좌 비밀번호 검증(Cloud)
 

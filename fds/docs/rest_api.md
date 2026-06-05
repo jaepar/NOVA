@@ -45,6 +45,8 @@ Request
   "receiverEngName": "JOHN SMITH",
   "receiverAddressDetail": "Apt 10",
   "receiverDistrict": "Manhattan",
+  "receiverCity": "New York",
+  "receiverZipCode": null,
   "receiverPhone": "+12125550100",
   "swiftCode": "BOFAUS3N",
   "receiverAccountNum": "1234567890",
@@ -70,6 +72,8 @@ Response Rules
 - `SUCCESS`일 때 `failureReason`은 `null`로 반환한다.
 - `FAILED`일 때 `failureReason`은 `FDS_RISK_DETECTED`를 반환한다.
 - `anomalyScore`와 `threshold`는 모델 판정 근거 확인용이며, CoreBanking 상태 변경 기준은 `status`와 `failureReason`이다.
+- `receiverDistrict`, `receiverZipCode`는 선택값이다.
+- `receiverCity`는 필수값이다.
 
 Model Rules
 - 초기 버전은 `global_transaction` 전체 필드를 입력으로 받는다.

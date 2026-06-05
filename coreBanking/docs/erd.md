@@ -70,13 +70,16 @@ erDiagram
     VARCHAR receiver_eng_name
     VARCHAR receiver_address_detail
     VARCHAR receiver_district
+    VARCHAR receiver_city
+    VARCHAR receiver_zip_code
     VARCHAR receiver_phone
     VARCHAR swift_code
     VARCHAR receiver_account_num
     VARCHAR routing_number
     VARCHAR bank_name
     ENUM remit_reason "LIVING_EXPENSE | TUITION | MEDICAL_EXPENSE | BUSINESS_PAYMENT | GIFT | SAVINGS | OTHER"
-    ENUM status "REQUESTED | REVIEWING | APPROVED | REJECTED | COMPLETED | FAILED"
+    ENUM status "PENDING | SUCCESS | FAILED"
+    VARCHAR failure_reason "nullable, FDS 실패 사유"
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
@@ -90,6 +93,8 @@ erDiagram
 ## Notes
 
 - `global_transaction`은 해외송금 트랜잭션 전용 원장성 보조 테이블이며 이상 거래 탐지를 위한 데이터를 FDS Server에 보내기위한 데이터를 저장하고 있다.
+- `global_transaction.status`는 `PENDING | SUCCESS | FAILED`만 사용한다.
+- `global_transaction.failure_reason`은 `FAILED` 상태일 때 FDS 위험 판정 또는 통신 장애 사유를 저장한다.
 - 원장 최종 상태는 계좌 원장(`account`, `account_transaction`)과 정합성을 맞춰 확정한다.
 - `account.account_number`는 숫자 13자리 raw 문자열로 저장한다.
 - 계좌번호 저장 포맷은 `S(1) + YYY(3) + C(1) + NNNNNNNN(8)`이며 `S=1`, `YYY=080`를 고정한다.
