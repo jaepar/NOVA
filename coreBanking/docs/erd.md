@@ -43,6 +43,7 @@ erDiagram
     ENUM transaction_type "SMART_WITHDRAWAL | CASH_IC | CHECK_CARD | ACCOUNT_TRANSFER | ATM_WITHDRAWAL | ATM_DEPOSIT | AUTO_DEBIT | WALLET_CHARGE | FEE"
     VARCHAR_100 counter_party
     INT amount
+    INT balance_after
     VARCHAR_100 memo
     VARCHAR_100 external_request_id
     TIMESTAMP created_at
