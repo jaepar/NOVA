@@ -19,7 +19,6 @@ export * from './types'
  */
 
 export { authApi } from './endpoints/auth';
-export { bankingApi } from './endpoints/banking';
 export { certificateApi } from './endpoints/certificate';
 export type {
   AuthMessageResponse,
@@ -43,3 +42,5 @@ export type {
   SubmitRemittanceRequest,
   SubmitRemittanceResponse,
 } from "./endpoints/transfer";
+export { bankingApi, getBankingApiError } from './endpoints/banking';
+export type { TransferPreviewRequest, TransferPreviewResponse, TransferRequest } from './endpoints/banking';
