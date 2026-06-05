@@ -12,11 +12,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateGlobalTransactionRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingRecipientLookupRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingCreateGlobalTransactionResponse;
+import woorifisa.project.backend.global.corebanking.dto.request.*;
+import woorifisa.project.backend.global.corebanking.dto.response.*;
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionDateRange;

@@ -1,19 +1,8 @@
 package woorifisa.project.backend.global.corebanking.client;
 
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateAccountRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateCustomerRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransactionQuery;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
-import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingWalletDebitRequest;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingRecipientLookupResponse;
-import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingTransactionsResponse;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateGlobalTransactionRequest;
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingCreateGlobalTransactionResponse;
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingGlobalTransactionListItemResponse;
+import woorifisa.project.backend.global.corebanking.dto.request.*;
+import woorifisa.project.backend.global.corebanking.dto.response.*;
 
 import java.util.List;
 

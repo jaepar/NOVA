@@ -1,6 +1,6 @@
 package woorifisa.project.backend.domain.banking.dto.response;
 
-import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingGlobalTransactionListItemResponse;
+import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingGlobalTransactionListItemResponse;
 
 public record GlobalTransactionListItemResponse(
         Long globalTransactionId,
