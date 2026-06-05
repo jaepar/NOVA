@@ -24,6 +24,7 @@
 
 - 엔드포인트 함수마다 요청/응답 DTO 타입을 명시한다.
 - envelope 구조에서는 `response.data.data`를 일관되게 반환한다.
+- Axios 에러 파싱은 엔드포인트 파일마다 중복 구현하지 않고 `src/api/utils.ts` 공용 유틸로 처리한다.
 - 신규 엔드포인트는 `src/api/index.ts`에 export를 추가한다.
 - UI 상태 변경/라우팅 로직을 API 모듈에 넣지 않는다.
 

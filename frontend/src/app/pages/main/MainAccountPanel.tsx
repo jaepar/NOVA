@@ -1,6 +1,8 @@
+import type { KeyboardEvent, MouseEvent } from "react";
 import { MoreVertical } from "lucide-react";
 import { AppButton } from "../../components/design-system/AppButton";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { novaToast } from "../../components/design-system/toast";
 import type { AccountHomeResponse } from "../../../api";
 
 interface MainAccountPanelProps {
@@ -11,6 +13,7 @@ interface MainAccountPanelProps {
   onSignupClick: () => void;
   onOpenCertificateSheet: () => void;
   onOpenAccount: () => void;
+  onAccountPanelClick: () => void;
 }
 
 export function MainAccountPanel({
@@ -21,6 +24,7 @@ export function MainAccountPanel({
   onSignupClick,
   onOpenCertificateSheet,
   onOpenAccount,
+  onAccountPanelClick,
 }: MainAccountPanelProps) {
   if (isLoggedIn && isLoading) {
     return (
@@ -105,8 +109,32 @@ export function MainAccountPanel({
     return null;
   }
 
+  const handleCopyAccountNumber = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    try {
+      await navigator.clipboard.writeText(account.accountNumber);
+      novaToast.success("계좌번호가 복사되었습니다.");
+    } catch {
+      novaToast.error("계좌번호 복사에 실패했습니다.");
+    }
+  };
+
+  const handlePanelKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onAccountPanelClick();
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white min-h-[180px] flex flex-col justify-between">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onAccountPanelClick}
+      onKeyDown={handlePanelKeyDown}
+      className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white min-h-[180px] flex flex-col justify-between cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -119,13 +147,18 @@ export function MainAccountPanel({
                 {account.hasLimit ? "한도제한" : "일반"}
               </span>
             </div>
-            <p className="text-xs text-white/80 mt-0.5">
+            <AppButton
+              variant="unstyled"
+              onClick={handleCopyAccountNumber}
+              className="mt-0.5 text-xs text-white/80 hover:text-white"
+            >
               {account.bankName} {account.accountNumber}
-            </p>
+            </AppButton>
           </div>
         </div>
         <AppButton
           variant="unstyled"
+          onClick={(event) => event.stopPropagation()}
           className="p-1 hover:bg-white/10 rounded-lg transition-colors"
         >
           <MoreVertical className="w-5 h-5" />

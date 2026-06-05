@@ -52,6 +52,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CHARGE_IN_PROGRESS;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_IDEMPOTENCY_KEY_REQUIRED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INSUFFICIENT_BALANCE;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_TERMS_REQUIRED;
 
@@ -321,6 +322,52 @@ class WalletServiceTest {
 
         verify(stringRedisTemplate).delete("wallet:charge:processing:idempotency-key");
         verify(walletTransactionRepository, never()).save(any(WalletTransaction.class));
+    }
+
+    @Test
+    @DisplayName("account_ref balance shortage returns wallet insufficient balance")
+    void accountRefInsufficientBalance() {
+        ChargeWalletRequest request = new ChargeWalletRequest(10000, "1234");
+        AccountRef accountRef = AccountRef.builder()
+                .customerId(1001L)
+                .accountId(2001L)
+                .balance(5000)
+                .hasAccount(true)
+                .build();
+        Wallet wallet = Wallet.builder()
+                .walletId(10L)
+                .balance(30000)
+                .userAccount(accountRef)
+                .build();
+
+        when(walletRepository.findByUser_UserId(1L)).thenReturn(Optional.of(wallet));
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("wallet:charge:result:idempotency-key")).thenReturn(null);
+        when(valueOperations.setIfAbsent(
+                eq("wallet:charge:processing:idempotency-key"),
+                eq("1"),
+                any(Duration.class)
+        )).thenReturn(true);
+        when(valueOperations.setIfAbsent(
+                eq("account:debit:processing:2001"),
+                eq("1"),
+                any(Duration.class)
+        )).thenReturn(true);
+
+        assertThatThrownBy(() -> walletService.chargeWallet(1L, "idempotency-key", request))
+                .isInstanceOfSatisfying(CustomException.class,
+                        exception -> assertThat(exception.getExceptionStatus())
+                                .isEqualTo(WALLET_INSUFFICIENT_BALANCE));
+
+        verify(coreBankingClient).debitWalletAccount(any());
+        verify(walletTransactionRepository, never()).save(any(WalletTransaction.class));
+        verify(valueOperations, never()).set(
+                eq("wallet:charge:result:idempotency-key"),
+                eq("DONE"),
+                any(Duration.class)
+        );
+        verify(stringRedisTemplate).delete("account:debit:processing:2001");
+        verify(stringRedisTemplate).delete("wallet:charge:processing:idempotency-key");
     }
 
     @Test

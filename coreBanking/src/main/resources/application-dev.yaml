@@ -28,6 +28,6 @@ logging:
     root: info
     org.hibernate.SQL: debug
 
-#app:
-#  fds:
-#    base-url: ${FDS_BASE_URL}
+app:
+  fds:
+    base-url: ${FDS_BASE_URL:http://localhost:8003}

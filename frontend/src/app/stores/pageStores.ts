@@ -30,7 +30,7 @@ export const useMainPageStore = create<MainPageState>((set) => ({
   isAuthChecked: false,
   userId: null,
   hasAccount: false,
-  hasUnreadNotifications: true,
+  hasUnreadNotifications: false,
   isCertificateSheetOpen: false,
   setMenuOpen: (open) => set({ isMenuOpen: open }),
   setLoggedIn: (loggedIn) =>
@@ -46,7 +46,13 @@ export const useMainPageStore = create<MainPageState>((set) => ({
   setCertificateSheetOpen: (isCertificateSheetOpen) => set({ isCertificateSheetOpen }),
   logout: () => {
     clearSessionStorage()
-    set({ isLoggedIn: false, isAuthChecked: true, userId: null, hasAccount: false })
+    set({
+      isLoggedIn: false,
+      isAuthChecked: true,
+      userId: null,
+      hasAccount: false,
+      hasUnreadNotifications: false,
+    })
   },
 }))
 

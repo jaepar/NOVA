@@ -32,6 +32,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_ALREADY_EXISTS;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CREATE_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_IDEMPOTENCY_KEY_REQUIRED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INSUFFICIENT_BALANCE;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_CHARGE_IN_PROGRESS;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_COMMUNICATION_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_DEBIT_LOOKUP_RETRY_INTERRUPTED;
@@ -238,10 +239,15 @@ public class WalletService {
     }
 
     private void completeWalletCharge(Wallet wallet, Integer chargeAmount) {
+        AccountRef accountRef = wallet.getUserAccount();
+        if (accountRef.getBalance() == null || accountRef.getBalance() < chargeAmount) {
+            throw new CustomException(WALLET_INSUFFICIENT_BALANCE);
+        }
+
         // 월렛 잔액 증가
         wallet.charge(chargeAmount);
         // 월렛 사용자의 accountRef 잔액 차감
-        wallet.getUserAccount().debit(chargeAmount);
+        accountRef.debit(chargeAmount);
         // 월렛 거래 내역 저장
         walletTransactionRepository.save(WalletTransaction.builder()
                 .wallet(wallet)
