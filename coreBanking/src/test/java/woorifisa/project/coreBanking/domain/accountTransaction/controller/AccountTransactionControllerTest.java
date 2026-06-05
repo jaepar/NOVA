@@ -148,18 +148,22 @@ class AccountTransactionControllerTest {
                         .content("""
                                 {
                                   "externalRequestId": "REQ-20260526-0001",
-                                  "withdrawAccountId": 2001,
-                                  "depositAccountId": 2002,
-                                  "transferAmount": 5000,
-                                  "withdrawMemo": "박재하",
-                                  "depositMemo": "박재하"
+                                  "withdrawAccountId": "1122261925001",
+                                  "depositAccountId": "1122261925002",
+                                  "transferAmount": 5000
                                 }
                                 """))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.message").value("요청에 성공했습니다."))
+                .andExpect(jsonPath("$.data").doesNotExist());
 
         ArgumentCaptor<TransferAccountRequest> requestCaptor = forClass(TransferAccountRequest.class);
         verify(accountTransactionService).transfer(requestCaptor.capture());
-        assertThat(requestCaptor.getValue().externalRequestId()).isEqualTo("REQ-20260526-0001");
+        TransferAccountRequest request = requestCaptor.getValue();
+        assertThat(request.externalRequestId()).isEqualTo("REQ-20260526-0001");
+        assertThat(request.withdrawAccountId()).isEqualTo("1122261925001");
     }
 
     @Test
@@ -174,14 +178,15 @@ class AccountTransactionControllerTest {
                         .content("""
                                 {
                                   "externalRequestId": "REQ-20260526-0001",
-                                  "withdrawAccountId": 2001,
-                                  "depositAccountId": 2002,
-                                  "transferAmount": 5000,
-                                  "withdrawMemo": "박재하",
-                                  "depositMemo": "박재하"
+                                  "withdrawAccountId": "1122261925001",
+                                  "depositAccountId": "1122261925002",
+                                  "transferAmount": 5000
                                 }
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("ACCOUNT_TRANSFER-001"))
+                .andExpect(jsonPath("$.message").value("계좌 이체 요청이 올바르지 않습니다."));
     }
 
     @Test
@@ -203,4 +208,5 @@ class AccountTransactionControllerTest {
         verify(accountTransactionService).updateMemo(eq(transactionId), requestCaptor.capture());
         assertThat(requestCaptor.getValue().memo()).isEqualTo("월세");
     }
+
 }

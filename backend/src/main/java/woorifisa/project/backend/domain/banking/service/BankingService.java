@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import java.time.Duration;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +77,9 @@ public class BankingService {
     private final NotificationRepository notificationRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final CoreBankingClient coreBankingClient;
+
+    @Value("${banking.transfer.password-verified-sleep-ms:0}")
+    private long passwordVerifiedSleepMillis;
 
     @Transactional(readOnly = true)
     public AccountHomeResponse findHomeAccount(Long userId) {
@@ -156,11 +160,16 @@ public class BankingService {
 
         try {
             // 같은 계좌의 동일 이체를 막기 위한 락을 거는 로직
-            AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountId(userId, request.withdrawAccountId())
+            AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountNumber(userId, request.withdrawAccountId())
                     .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
             coreBankingClient.verifyAccountPassword(
                     CoreBankingPasswordVerifyRequest.of(accountRef.getAccountId(), request.accountPassword())
             );
+
+            /**
+             * 계좌 이체 실패 페이지를 확인하기 위한 테스트 코드
+             */
+            sleepAfterPasswordVerificationIfConfigured();
 
             String accountProcessingKey = formatAccountProcessingKey(accountRef.getAccountId());
             Boolean accountLockAcquired = stringRedisTemplate.opsForValue()
@@ -173,7 +182,7 @@ public class BankingService {
                 // 이체 처리는 계좌에 대한 락을 얻은 뒤 처리
                 CoreBankingTransferRequest coreBankingTransferRequest = CoreBankingTransferRequest.of(
                         createExternalRequestId(idempotencyKey),
-                        accountRef.getAccountId(),
+                        accountRef.getAccountNumber(),
                         request
                 );
 
@@ -207,6 +216,7 @@ public class BankingService {
                 myAccount.getAccountNumber(),
                 myAccount.getBalance(),
                 myAccount.getTransferLimit(),
+                myAccount.getUser().getName(),
                 recipientName
         );
     }
@@ -424,5 +434,20 @@ public class BankingService {
             Thread.currentThread().interrupt();
             throw new CustomException(BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED);
         }
+    }
+
+    private void sleepAfterPasswordVerificationIfConfigured() {
+        if (passwordVerifiedSleepMillis <= 0) {
+            return;
+        }
+
+        log.info("[banking_transfer:password_verified_sleep_started] sleepMillis={}", passwordVerifiedSleepMillis);
+        try {
+            Thread.sleep(passwordVerifiedSleepMillis);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new CustomException(BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED);
+        }
+        log.info("[banking_transfer:password_verified_sleep_finished]");
     }
 }
