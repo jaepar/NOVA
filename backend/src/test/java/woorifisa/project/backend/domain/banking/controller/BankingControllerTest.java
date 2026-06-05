@@ -17,8 +17,8 @@ import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMem
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeUiState;
 import woorifisa.project.backend.domain.banking.service.BankingService;
-import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.exception.CustomException;
 
@@ -65,19 +65,31 @@ class BankingControllerTest {
 
         when(bankingService.findHomeAccount(any()))
                 .thenReturn(new AccountHomeResponse(
-                        2001L,
-                        "NOVA 임시 제한 계좌",
-                        "1002867390781",
-                        "우리은행",
-                        50000,
-                        true,
-                        CertificateStatus.ISSUED
+                        AccountHomeUiState.HAS_ACCOUNT,
+                        new AccountHomeResponse.AccountSummary(
+                                2001L,
+                                "NOVA account",
+                                "1002867390781",
+                                "Woori Bank",
+                                50000,
+                                true
+                        ),
+                        true
                 ));
 
-        mockMvc.perform(get("/banking/home").with(authentication(authToken)))
+        mockMvc.perform(get("/banking/home")
+                        .with(authentication(authToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.accountId").value(2001));
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data.uiState").value("HAS_ACCOUNT"))
+                .andExpect(jsonPath("$.data.account.accountId").value(2001))
+                .andExpect(jsonPath("$.data.account.accountName").value("NOVA account"))
+                .andExpect(jsonPath("$.data.account.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.account.bankName").value("Woori Bank"))
+                .andExpect(jsonPath("$.data.account.balance").value(50000))
+                .andExpect(jsonPath("$.data.account.hasLimit").value(true))
+                .andExpect(jsonPath("$.data.has_notification").value(true));
     }
 
     @Test

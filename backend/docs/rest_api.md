@@ -93,9 +93,8 @@
 | `BANK-004`     | 거래 내역 조회(Cloud)      | GET    | `/banking/{accountId}/transactions`                      | O    | USER   |                               |
 | `BANK-005`     | 거래 내역 메모 수정(Cloud)   | PATCH  | `/banking/transactions/{transactionId}/memo`             | O    | USER   | 응답 data는 null                  |
 | `BANK-006`     | 홈 계좌 정보 조회(Cloud)    | GET    | `/banking/home`                                          | O    | USER   |                               |
-| `BANK-007`     | 해외 송금 요청 생성(Cloud) | POST | `/banking/global-transactions` | O | USER | CoreBanking에 해외송금 생성 요청 전달 |
+| `BANK-007`     | 해외 송금(Cloud)         | TBD    | `TBD`                                                    | O    | USER   | 프로세스 정의 중 (추후 작성)             |
 | `BANK-008`     | 이체 사전 조회(Cloud) | POST | `/banking/transfers/preview` | O | USER | 내 계좌(account_ref) + 수취인(coreBanking) 통합 조회 |
-| `BANK-009`     | 해외 송금 목록 조회(Cloud) | GET | `/banking/global-transactions` | O | USER | 현재 세션 사용자 본인 목록만 조회 |
 
 ## Naming and Contract Notes
 
@@ -205,6 +204,59 @@ Request
 ```
 
 Response (200)
+## BANK-006 홈 계좌 상태 조회(Cloud)
+
+- Method: `GET`
+- Path: `/banking/home`
+- Auth: `O` (USER session required)
+- Purpose: Return the user's certificate/account state for the NOVA home account panel.
+
+State mapping
+
+| Scenario | Backend decision source | `uiState` | `account` |
+| --- | --- | --- | --- |
+| Certificate not issued | `certificateStatus=NOT_ISSUED`, no account | `NEED_CERTIFICATE` | `null` |
+| Certificate issuing | `certificateStatus=PENDING`, no account | `CERTIFICATE_ISSUING` | `null` |
+| Certificate issued, no account | `certificateStatus=ISSUED`, no account | `READY_TO_OPEN_ACCOUNT` | `null` |
+| Certificate issued, limited account | account exists | `HAS_ACCOUNT` | Account summary with `hasLimit=true` |
+| Certificate issued, general account | account exists | `HAS_ACCOUNT` | Account summary with `hasLimit=false` |
+
+Response (200, account exists)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "Request succeeded.",
+  "data": {
+    "uiState": "HAS_ACCOUNT",
+    "account": {
+      "accountId": 2001,
+      "accountName": "NOVA demand account",
+      "accountNumber": "1002-312-345678",
+      "bankName": "Woori Bank",
+      "balance": 150000,
+      "hasLimit": true
+    },
+    "has_notification": true
+  }
+}
+```
+
+Response (200, no account)
+```json
+{
+  "success": true,
+  "code": 20000,
+  "message": "Request succeeded.",
+  "data": {
+    "uiState": "READY_TO_OPEN_ACCOUNT",
+    "account": null,
+    "has_notification": false
+  }
+}
+```
+
+Error Response (인증서 미발급)
 ```json
 {
   "success": true,
@@ -341,6 +393,39 @@ Response (200)
     "issueDate": "2020.01.01",
     "expireDate": "2030.01.01",
     "authority": "MOFA"
+  }
+}
+```
+
+## USER-015 신분증/여권 OCR 분기 인증
+
+- Method: `POST`
+- Path: `/users/verifications/identity`
+- Auth: `O` (USER 세션 필수)
+- Content-Type: `multipart/form-data`
+
+Request
+- `file`: OCR 대상 이미지 파일 1개
+- `ocrDocumentType`: `PASSPORT` | `ID_CARD`
+
+Response (ID_CARD 성공 예시)
+```json
+{
+  "success": true,
+  "code": "20000",
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "ocrDocumentType": "ID_CARD",
+    "passport": null,
+    "idCard": {
+      "name": "홍길동",
+      "residentRegistrationNumber": "900101-1234567",
+      "issueDate": "2020.01.01"
+    },
+    "nameMatchWithUser": true,
+    "identityMatchWithGovDb": true,
+    "verificationStatus": "VERIFIED",
+    "failureReasonCode": null
   }
 }
 ```
