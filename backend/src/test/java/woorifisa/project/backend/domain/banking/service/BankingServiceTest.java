@@ -10,10 +10,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingTransferRequest;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingCreateGlobalTransactionResponse;
+import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingGlobalTransactionListItemResponse;
 import woorifisa.project.backend.domain.banking.dto.corebanking.response.CoreBankingRecipientLookupResponse;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
+import woorifisa.project.backend.domain.banking.dto.request.CreateGlobalTransactionRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
+import woorifisa.project.backend.domain.banking.dto.response.CreateGlobalTransactionResponse;
+import woorifisa.project.backend.domain.banking.dto.response.GlobalTransactionListItemResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
@@ -21,6 +26,7 @@ import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.util.Optional;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -255,5 +261,97 @@ class BankingServiceTest {
         bankingService.verifyAccountPassword(userId, new AccountPasswordVerifyRequest(2001L, "1234"));
 
         verify(coreBankingClient).verifyAccountPassword(any());
+    }
+
+    @Test
+    @DisplayName("해외송금 생성 요청은 본인 계좌를 검증한 뒤 코어뱅킹으로 전달한다")
+    void createGlobalTransactionSuccess() {
+        Long userId = 1L;
+        String idempotencyKey = "global-remittance-1";
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .customerId(1001L)
+                .accountId(2001L)
+                .hasAccount(true)
+                .build();
+        CreateGlobalTransactionRequest request = new CreateGlobalTransactionRequest(
+                2001L,
+                "생활비 송금",
+                "US",
+                "USD",
+                "1000.00",
+                "SENDER",
+                "1380.500000",
+                "1380500",
+                "PARK JAEHA",
+                "+821012345678",
+                "101",
+                "Gwangjin-gu",
+                "Seoul",
+                "05029",
+                "KR",
+                "JOHN SMITH",
+                "Apt 10",
+                "Manhattan",
+                "New York",
+                null,
+                "+12125550100",
+                "BOFAUS3N",
+                "1234567890",
+                "026009593",
+                "Bank of America",
+                "LIVING_EXPENSE"
+        );
+
+        when(accountRefRepository.findByUser_UserIdAndAccountId(userId, 2001L)).thenReturn(Optional.of(accountRef));
+        when(coreBankingClient.createGlobalTransaction(any()))
+                .thenReturn(new CoreBankingCreateGlobalTransactionResponse(1L, "PENDING"));
+
+        CreateGlobalTransactionResponse response =
+                bankingService.createGlobalTransaction(userId, idempotencyKey, request);
+
+        ArgumentCaptor<woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateGlobalTransactionRequest> captor =
+                ArgumentCaptor.forClass(woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateGlobalTransactionRequest.class);
+        verify(coreBankingClient).createGlobalTransaction(captor.capture());
+        assertThat(captor.getValue().externalRequestId()).isEqualTo(idempotencyKey);
+        assertThat(captor.getValue().customerId()).isEqualTo(1001L);
+        assertThat(captor.getValue().accountId()).isEqualTo(2001L);
+        assertThat(response.globalTransactionId()).isEqualTo(1L);
+        assertThat(response.status()).isEqualTo("PENDING");
+    }
+
+    @Test
+    @DisplayName("해외송금 목록 조회는 사용자의 대표 계좌 customerId 기준으로 코어뱅킹에 요청한다")
+    void findGlobalTransactionsSuccess() {
+        Long userId = 1L;
+        AccountRef accountRef = AccountRef.builder()
+                .accountRefId(1L)
+                .user(User.builder().userId(userId).build())
+                .customerId(1001L)
+                .accountId(2001L)
+                .hasAccount(true)
+                .build();
+
+        when(accountRefRepository.findFirstByUser_UserIdAndHasAccountTrueOrderByAccountRefIdAsc(userId))
+                .thenReturn(Optional.of(accountRef));
+        when(coreBankingClient.findGlobalTransactionsByCustomerId(1001L))
+                .thenReturn(List.of(
+                        new CoreBankingGlobalTransactionListItemResponse(
+                                1L,
+                                "JOHN SMITH",
+                                "1000.00",
+                                "USD",
+                                "PENDING",
+                                "2026-06-02T10:30:00"
+                        )
+                ));
+
+        List<GlobalTransactionListItemResponse> response = bankingService.findGlobalTransactions(userId);
+
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).globalTransactionId()).isEqualTo(1L);
+        assertThat(response.get(0).receiverEngName()).isEqualTo("JOHN SMITH");
+        assertThat(response.get(0).currency()).isEqualTo("USD");
     }
 }
