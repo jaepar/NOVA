@@ -7,8 +7,6 @@ type BankingApiResponse<T> = {
   data: T;
 };
 
-export type CertificateStatus = "NOT_ISSUED" | "PENDING" | "ISSUED";
-
 export type AccountHomeUiState =
   | "NEED_CERTIFICATE"
   | "CERTIFICATE_ISSUING"
@@ -16,6 +14,7 @@ export type AccountHomeUiState =
   | "HAS_ACCOUNT";
 
 export type AccountSummary = {
+  accountId: number;
   accountName: string;
   accountNumber: string;
   bankName: string;
@@ -24,59 +23,53 @@ export type AccountSummary = {
 };
 
 export type AccountHomeResponse = {
-  hasAccount: boolean;
-  certificateStatus: CertificateStatus;
   uiState: AccountHomeUiState;
   account: AccountSummary | null;
+  has_notification: boolean;
 };
 
 const DEV_ACCOUNT_HOME_MOCKS = {
   needCertificate: {
-    hasAccount: false,
-    certificateStatus: "NOT_ISSUED",
     uiState: "NEED_CERTIFICATE",
     account: null,
+    has_notification: false,
   } satisfies AccountHomeResponse,
   certificateIssuing: {
-    hasAccount: false,
-    certificateStatus: "PENDING",
     uiState: "CERTIFICATE_ISSUING",
     account: null,
+    has_notification: true,
   } satisfies AccountHomeResponse,
   readyToOpenAccount: {
-    hasAccount: false,
-    certificateStatus: "ISSUED",
     uiState: "READY_TO_OPEN_ACCOUNT",
     account: null,
+    has_notification: false,
   } satisfies AccountHomeResponse,
   hasLimitedAccount: {
-    hasAccount: true,
-    certificateStatus: "ISSUED",
     uiState: "HAS_ACCOUNT",
     account: {
-      accountName: "NOVA 입출금통장",
+      accountId: 1,
+      accountName: "NOVA Account",
       accountNumber: "1080-312-345678",
-      bankName: "우리은행",
+      bankName: "Woori Bank",
       balance: 150000,
       hasLimit: true,
     },
+    has_notification: true,
   } satisfies AccountHomeResponse,
   hasGeneralAccount: {
-    hasAccount: true,
-    certificateStatus: "ISSUED",
     uiState: "HAS_ACCOUNT",
     account: {
-      accountName: "NOVA 생활통장",
+      accountId: 2,
+      accountName: "NOVA Living Account",
       accountNumber: "1080-999-123456",
-      bankName: "우리은행",
+      bankName: "Woori Bank",
       balance: 2840000,
       hasLimit: false,
     },
+    has_notification: false,
   } satisfies AccountHomeResponse,
 } as const;
 
-// 여기의 preset만 바꿔서 메인 화면 렌더링을 테스트하면 됩니다.
-// 예: DEV_ACCOUNT_HOME_MOCKS.certificateIssuing
 const DEV_MOCK_ACCOUNT_HOME_RESPONSE: AccountHomeResponse =
   DEV_ACCOUNT_HOME_MOCKS.hasGeneralAccount;
 
@@ -86,7 +79,7 @@ function getDevAccountHome(): AccountHomeResponse {
 
 export const bankingApi = {
   getHome: async (): Promise<AccountHomeResponse> => {
-    if (import.meta.env.DEV) {
+    if (import.meta.env.VITE_USE_BANKING_HOME_MOCK === "true") {
       return getDevAccountHome();
     }
 

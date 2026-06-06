@@ -30,6 +30,9 @@ export function Main() {
   const setCertificateSheetOpen = useMainPageStore(
     (state) => state.setCertificateSheetOpen
   );
+  const setHasUnreadNotifications = useMainPageStore(
+    (state) => state.setHasUnreadNotifications
+  );
   const logout = useMainPageStore((state) => state.logout);
   const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(null);
   const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
@@ -60,6 +63,7 @@ export function Main() {
       if (!isLoggedIn) {
         if (isMounted) {
           setAccountHome(null);
+          setHasUnreadNotifications(false);
           setAccountHomeLoading(false);
         }
         return;
@@ -74,10 +78,12 @@ export function Main() {
 
         if (isMounted) {
           setAccountHome(nextAccountHome);
+          setHasUnreadNotifications(nextAccountHome.has_notification);
         }
       } catch {
         if (isMounted) {
           setAccountHome(null);
+          setHasUnreadNotifications(false);
         }
       } finally {
         if (isMounted) {
@@ -91,7 +97,7 @@ export function Main() {
     return () => {
       isMounted = false;
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, setHasUnreadNotifications]);
 
   const handleIssueCertificate = () => {
     setCertificateSheetOpen(false);
@@ -107,6 +113,7 @@ export function Main() {
       await authApi.logout();
       logout();
       setAccountHome(null);
+      setHasUnreadNotifications(false);
     } catch (error) {
       console.error("Logout failed", error);
     }

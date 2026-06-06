@@ -32,7 +32,6 @@ export type {
   AccountHomeResponse,
   AccountHomeUiState,
   AccountSummary,
-  CertificateStatus,
 } from './endpoints/banking';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
