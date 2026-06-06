@@ -1,4 +1,5 @@
 import apiClient from "../client";
+import { extractApiErrorBody } from "../utils";
 
 type BankingApiResponse<T> = {
     success: boolean;
@@ -83,7 +84,7 @@ export type BankingApiErrorBody = {
 };
 
 type AccountHomeApiResponse = Omit<AccountHomeResponse, "hasNotification"> & {
-    has_notification: boolean;
+  has_notification: boolean;
 };
 
 function normalizeAccountHome(
@@ -118,22 +119,30 @@ export const bankingApi = {
     ): Promise<TransferPreviewResponse> => {
         const response = await apiClient.post<
             BankingApiResponse<TransferPreviewResponse>
-        >("/banking/transfers/preview", request);
+        >(
+            "/banking/transfers/preview",
+            request
+        );
 
         return response.data.data;
     },
-    transfer: async (
-        request: TransferRequest,
-        idempotencyKey: string
-    ): Promise<void> => {
-        await apiClient.post<BankingApiResponse<null>>(
-            "/banking/transfers",
-            request,
-            {
-                headers: {
-                    "Idempotency-Key": idempotencyKey,
-                },
-            }
-        );
-    },
+  transfer: async (request: TransferRequest, idempotencyKey: string): Promise<void> => {
+    const response = await apiClient.post<BankingApiResponse<null>>(
+      "/banking/transfers",
+      request,
+      {
+        headers: {
+          "Idempotency-Key": idempotencyKey,
+        },
+      }
+    );
+
+    if (!response.data.success) {
+      throw response.data;
+    }
+  },
 };
+
+export function getBankingApiError(error: unknown): BankingApiErrorBody | null {
+  return extractApiErrorBody<BankingApiErrorBody>(error);
+}

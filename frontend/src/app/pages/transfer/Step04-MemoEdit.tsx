@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AppButton } from '../../components/design-system'
+import { AppButton, Btn_1Col } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import {
   BANK_OPTIONS,
@@ -17,12 +17,16 @@ export function TransferMemoEdit({ type }: { type: MemoType }) {
   const navigate = useNavigate()
   const accountNumber = useTransferStore((state) => state.accountNumber)
   const selectedBank = useTransferStore((state) => state.selectedBank)
+  const preview = useTransferStore((state) => state.preview)
   const recipientMemoName = useTransferStore((state) => state.recipientMemoName)
   const senderMemoName = useTransferStore((state) => state.senderMemoName)
   const setRecipientMemoName = useTransferStore((state) => state.setRecipientMemoName)
   const setSenderMemoName = useTransferStore((state) => state.setSenderMemoName)
   const recipientBank = selectedBank ?? BANK_OPTIONS.find((bank) => bank.id === 'nonghyup') ?? BANK_OPTIONS[0]
   const recipientAccount = accountNumber || '1122261925003'
+  const recipientName = preview?.recipient.recipientName ?? RECIPIENT_NAME
+  const sourceAccountName = preview?.myAccount.accountName ?? '우리SUPER주거래통장'
+  const sourceAccountNumber = preview?.myAccount.accountNumber ?? SOURCE_ACCOUNT
   const isRecipientMemo = type === 'recipient'
   const [memoDraft, setMemoDraft] = useState(isRecipientMemo ? recipientMemoName : senderMemoName)
 
@@ -49,27 +53,24 @@ export function TransferMemoEdit({ type }: { type: MemoType }) {
       headerType="back"
       onBack={() => navigate('/transfer/amount-confirm')}
       bottomContent={
-        <AppButton
-          type="button"
-          variant="unstyled"
+        <Btn_1Col
           disabled={!memoDraft.trim()}
           onClick={handleComplete}
-          className="h-[54px] w-full rounded-lg bg-[#006BFF] text-[17px] font-semibold text-white transition-colors disabled:bg-[#BFDAFA]"
         >
           완료
-        </AppButton>
+        </Btn_1Col>
       }
     >
       <section className="pt-5 text-[#202633]">
         <div>
           <div className="flex items-center gap-2 text-[16px] font-bold">
             <BankMark bank={isRecipientMemo ? recipientBank : SOURCE_BANK} size="md" />
-            <span>{isRecipientMemo ? `${RECIPIENT_NAME} 님 계좌로` : '우리은행 계좌에서'}</span>
+            <span>{isRecipientMemo ? `${recipientName} 님 계좌로` : '우리은행 계좌에서'}</span>
           </div>
           <p className="mt-2 text-[13px] font-semibold text-[#8A9099]">
             {isRecipientMemo
               ? `${recipientBank.name.replace('은행', '')} ${recipientAccount}`
-              : `우리SUPER주거래통장 ${SOURCE_ACCOUNT}`}
+              : `${sourceAccountName} ${sourceAccountNumber}`}
           </p>
         </div>
 

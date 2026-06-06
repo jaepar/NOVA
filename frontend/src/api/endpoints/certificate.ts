@@ -1,4 +1,5 @@
 import apiClient from '../client'
+import { extractApiErrorBody } from '../utils'
 
 type ApiEnvelope<T> = {
   success: boolean
@@ -47,7 +48,15 @@ export type PassportResponse = {
   authority?: string
 }
 
+export type CertificateRequestErrorBody = {
+  code: string
+  message: string
+}
+
 export const certificateApi = {
+  requestIssuance: async (): Promise<void> => {
+    await apiClient.post<ApiEnvelope<null>>('/users/verifications')
+  },
   createLivenessSession: async (): Promise<LivenessSessionResponse> => {
     const response = await apiClient.post<ApiEnvelope<LivenessSessionResponse>>(
       '/users/verifications/liveness'
@@ -80,4 +89,8 @@ export const certificateApi = {
     )
     return response.data.data
   },
+}
+
+export function getCertificateApiError(error: unknown): CertificateRequestErrorBody | null {
+  return extractApiErrorBody<CertificateRequestErrorBody>(error)
 }

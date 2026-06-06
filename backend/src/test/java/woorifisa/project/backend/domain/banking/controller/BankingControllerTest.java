@@ -13,14 +13,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
+
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeUiState;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.exception.CustomException;
+import woorifisa.project.backend.global.response.BaseResponse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -103,7 +104,7 @@ class BankingControllerTest {
         );
 
         when(bankingService.createAccount(any(), any()))
-                .thenReturn(AccountCreateResponse.of(2001L, "WOORI", "1002-312-345678"));
+                .thenReturn(BaseResponse.ok(null));
 
         mockMvc.perform(post("/banking")
                         .with(authentication(authToken))
@@ -126,8 +127,43 @@ class BankingControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.accountId").value(2001));
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"))
+			.andExpect(jsonPath("$.data.accountId").value(2001))
+			.andExpect(jsonPath("$.data.bankCode").value("WOORI"))
+			.andExpect(jsonPath("$.data.accountNumber").value("1002-312-345678"));
     }
+
+	@Test
+	@DisplayName("세션 사용자와 멱등키 기준으로 계좌 이체 요청을 처리한다")
+	void transferSuccess() throws Exception {
+		Long userId = 1L;
+		String idempotencyKey = "550e8400-e29b-41d4-a716-446655440000";
+
+		doNothing().when(bankingService).transfer(any(), any(), any());
+		UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+			new SessionUserPrincipal(userId),
+			null,
+			AuthorityUtils.NO_AUTHORITIES
+		);
+
+		mockMvc.perform(post("/banking/transfers")
+				.with(authentication(authToken))
+				.header("Idempotency-Key", idempotencyKey)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+                                {
+                                  "withdrawAccountId": "1122261925001",
+                                  "depositAccountId": "1122261925002",
+                                  "transferAmount": 5000,
+                                  "accountPassword": "1234"
+                                }
+                                """))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"))
+			.andExpect(jsonPath("$.data").doesNotExist());
+	}
 
     @Test
     @DisplayName("이체 사전 조회 요청을 처리한다")
@@ -140,13 +176,16 @@ class BankingControllerTest {
         );
 
         when(bankingService.previewTransfer(any(), any()))
-                .thenReturn(woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse.of(
-                        "우리SUPER주거래통장",
-                        "1002867390781",
-                        50_000,
-                        300_000,
-                        "백민정"
-                ));
+                .thenReturn(
+                        woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse.of(
+                                "우리SUPER주거래통장",
+                                "1002867390781",
+                                50_000,
+                                300_000,
+                                "홍길동",
+                                "백민정"
+                        )
+                );
 
         mockMvc.perform(post("/banking/transfers/preview")
                         .with(authentication(authToken))
@@ -158,6 +197,13 @@ class BankingControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data.myAccount.accountName").value("우리SUPER주거래통장"))
+                .andExpect(jsonPath("$.data.myAccount.accountNumber").value("1002867390781"))
+                .andExpect(jsonPath("$.data.myAccount.balance").value(50000))
+                .andExpect(jsonPath("$.data.myAccount.transferLimit").value(300000))
+                .andExpect(jsonPath("$.data.myAccount.userName").value("홍길동"))
                 .andExpect(jsonPath("$.data.recipient.recipientName").value("백민정"));
     }
 

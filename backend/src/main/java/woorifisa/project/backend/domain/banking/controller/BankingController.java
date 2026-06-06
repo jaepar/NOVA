@@ -18,8 +18,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
 
+
+import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionFlowFilter;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionPeriod;
@@ -27,7 +28,6 @@ import woorifisa.project.backend.domain.banking.dto.request.CreateGlobalTransact
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.response.CreateGlobalTransactionResponse;
@@ -56,11 +56,12 @@ public class BankingController {
 
     // 계좌 개설
     @PostMapping
-    public BaseResponse<AccountCreateResponse> createAccount(
+    public BaseResponse<Void> createAccount(
             @AuthenticationPrincipal SessionUserPrincipal principal,
             @Valid @RequestBody AccountCreateRequest request
     ) {
-        return BaseResponse.ok(bankingService.createAccount(principal.userId(), request));
+        bankingService.createAccount(principal.userId(), request);
+        return BaseResponse.ok(null);
     }
 
     // 계좌 이체

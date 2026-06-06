@@ -45,7 +45,6 @@ export function FilterBottomSheet({
       title={title}
       height={height}
       bottomAction={<Btn_1Col onClick={onApply}>{applyButtonText}</Btn_1Col>}
-      bottomActionClassName="px-0"
     >
       <div className="space-y-6 pb-4">
         {sections.map((section, index) => (
