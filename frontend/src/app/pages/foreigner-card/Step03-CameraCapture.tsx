@@ -7,12 +7,6 @@ import { InlineBanner } from '../../components/design-system/InlineBanner'
 import { CameraCapturePage } from '../../components/camera/CameraCapturePage'
 import { useForeignerCardRegistrationStore } from '../../stores/pageStores'
 
-const tempOcrValues = {
-  name: 'HONG SPECIMEN',
-  registrationNumber: '123456-1234567',
-  issueDate: '2018. 04. 01.',
-}
-
 function isIdCardOcrResult(result: unknown): result is IdCardOcrResult {
   if (!result || typeof result !== 'object') {
     return false
@@ -111,7 +105,7 @@ export function ForeignerCardCameraCapture() {
         registrationNumber: result?.residentRegistrationNumber ?? '',
         issueDate: result?.issueDate ?? '',
       })
-      setVerificationResult(verification.verificationStatus, verification.failureReasonCode)
+      setVerificationResult(null, null)
       stopCamera()
       navigate('/foreigner-card/step-04')
     } catch (error) {
@@ -146,14 +140,6 @@ export function ForeignerCardCameraCapture() {
     await processImageForOcr(imageFile, imageDataUrl)
   }
 
-  const handleOpenReviewWithTempData = () => {
-    setCapturedImage(null)
-    setOcrValues(tempOcrValues)
-    setVerificationResult('VERIFIED', null)
-    stopCamera()
-    navigate('/foreigner-card/step-04')
-  }
-
   return (
     <CameraCapturePage
       title="외국인등록증"
@@ -165,14 +151,7 @@ export function ForeignerCardCameraCapture() {
             <p>빛 반사가 없도록 주의해 주세요.</p>
           </div>
           <Btn_1Col onClick={handleCapture} disabled={isOcrProcessing}>
-            촬영하기
-          </Btn_1Col>
-          <Btn_1Col
-            onClick={handleOpenReviewWithTempData}
-            variant="outline"
-            disabled={isOcrProcessing}
-          >
-            더미 파싱 결과 보기 (임시)
+            {isOcrProcessing ? '분석 중...' : '촬영하기'}
           </Btn_1Col>
         </div>
       }

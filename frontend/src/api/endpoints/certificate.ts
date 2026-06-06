@@ -56,11 +56,23 @@ export type IdCardOcrResult = {
 
 export type IdentityVerificationResponse = {
   ocrDocumentType: 'PASSPORT' | 'ID_CARD'
-  result: IdCardOcrResult | PassportResponse | null
-  nameMatchWithUser: boolean
+  nameMatchWithUser: boolean | null
   identityMatchWithGovDb: boolean
   verificationStatus: 'OCR_EXTRACTED' | 'VERIFIED' | 'FAILED' | string
   failureReasonCode: string | null
+}
+
+export type IdentityOcrResponse = {
+  ocrDocumentType: 'PASSPORT' | 'ID_CARD'
+  result: IdCardOcrResult | PassportResponse | null
+  nameMatchWithUser: boolean | null
+}
+
+export type IdentityVerificationConfirmRequest = {
+  ocrDocumentType: 'ID_CARD'
+  name: string
+  residentRegistrationNumber: string
+  issueDate: string
 }
 
 export type CertificateRequestErrorBody = {
@@ -104,13 +116,22 @@ export const certificateApi = {
     )
     return response.data.data
   },
-  recognizeIdCard: async (imageFile: File): Promise<IdentityVerificationResponse> => {
+  recognizeIdCard: async (imageFile: File): Promise<IdentityOcrResponse> => {
     const formData = new FormData()
     formData.append('file', imageFile)
 
-    const response = await apiClient.post<ApiEnvelope<IdentityVerificationResponse>>(
+    const response = await apiClient.post<ApiEnvelope<IdentityOcrResponse>>(
       '/users/verifications/identity?ocrDocumentType=ID_CARD',
       formData
+    )
+    return response.data.data
+  },
+  confirmIdentity: async (
+    payload: IdentityVerificationConfirmRequest
+  ): Promise<IdentityVerificationResponse> => {
+    const response = await apiClient.post<ApiEnvelope<IdentityVerificationResponse>>(
+      '/users/verifications/identity/confirm',
+      payload
     )
     return response.data.data
   },

@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { certificateApi, getCertificateApiError } from '../../../api'
 import { Btn_2Col } from '../../components/design-system/Btn_2Col'
 import { InlineBanner } from '../../components/design-system/InlineBanner'
 import { MobileLayout } from '../../components/layout/MobileLayout'
@@ -15,13 +17,35 @@ const failureMessages: Record<string, string> = {
   GOVERNMENT_IDENTITY_MISMATCH: '정부 DB의 신원 정보와 일치하지 않습니다.',
 }
 
+function getConfirmApiErrorMessage(error: unknown) {
+  const apiError = getCertificateApiError(error)
+
+  switch (apiError?.code) {
+    case 'USER-018':
+      return '등록증 이름이 가입자 정보와 일치하지 않습니다.'
+    case 'USER-020':
+      return '정부 DB의 신원 정보와 일치하지 않습니다. 입력 정보를 다시 확인해 주세요.'
+    case 'USER-021':
+      return '정부 DB 통신에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+    case 'USER-022':
+      return '외국인등록증 인증 요청 형식이 올바르지 않습니다.'
+    default:
+      return apiError?.message || '외국인등록증 인증 중 오류가 발생했습니다. 다시 시도해 주세요.'
+  }
+}
+
 export function ForeignerCardOcrReview() {
   const navigate = useNavigate()
   const ocrValues = useForeignerCardRegistrationStore((state) => state.ocrValues)
   const verificationStatus = useForeignerCardRegistrationStore((state) => state.verificationStatus)
   const failureReasonCode = useForeignerCardRegistrationStore((state) => state.failureReasonCode)
   const setOcrValue = useForeignerCardRegistrationStore((state) => state.setOcrValue)
+  const setVerificationResult = useForeignerCardRegistrationStore(
+    (state) => state.setVerificationResult,
+  )
   const reset = useForeignerCardRegistrationStore((state) => state.reset)
+  const [isConfirming, setIsConfirming] = useState(false)
+  const [confirmError, setConfirmError] = useState<string | null>(null)
 
   const failureMessage = failureReasonCode
     ? failureMessages[failureReasonCode] ?? '인증 결과를 확인해 주세요.'
@@ -32,6 +56,54 @@ export function ForeignerCardOcrReview() {
     navigate('/foreigner-card/step-03')
   }
 
+  const handleConfirm = async () => {
+    if (isConfirming) {
+      return
+    }
+
+    const name = ocrValues.name.trim()
+    const residentRegistrationNumber = ocrValues.registrationNumber.trim()
+    const issueDate = ocrValues.issueDate.trim()
+
+    if (!name || !residentRegistrationNumber || !issueDate) {
+      setConfirmError('성명, 주민등록번호, 발급일을 모두 입력해 주세요.')
+      return
+    }
+
+    setConfirmError(null)
+    setIsConfirming(true)
+
+    try {
+      const response = await certificateApi.confirmIdentity({
+        ocrDocumentType: 'ID_CARD',
+        name,
+        residentRegistrationNumber,
+        issueDate,
+      })
+
+      setVerificationResult(response.verificationStatus, response.failureReasonCode)
+
+      if (
+        response.verificationStatus === 'VERIFIED' &&
+        response.nameMatchWithUser &&
+        response.identityMatchWithGovDb
+      ) {
+        navigate('/foreigner-card/step-05')
+        return
+      }
+
+      setConfirmError(
+        response.failureReasonCode
+          ? failureMessages[response.failureReasonCode] ?? '인증 결과를 확인해 주세요.'
+          : '입력한 외국인등록증 정보를 다시 확인해 주세요.',
+      )
+    } catch (error) {
+      setConfirmError(getConfirmApiErrorMessage(error))
+    } finally {
+      setIsConfirming(false)
+    }
+  }
+
   return (
     <MobileLayout
       title="외국인등록증"
@@ -39,11 +111,11 @@ export function ForeignerCardOcrReview() {
       bottomContent={
         <Btn_2Col
           leftLabel="재촬영"
-          rightLabel="다음"
+          rightLabel={isConfirming ? '확인 중...' : '다음'}
           leftVariant="outline"
           rightVariant="primary"
           onLeftClick={handleRetake}
-          onRightClick={() => navigate('/foreigner-card/step-05')}
+          onRightClick={handleConfirm}
         />
       }
     >
@@ -60,6 +132,7 @@ export function ForeignerCardOcrReview() {
         {verificationStatus === 'FAILED' && failureMessage && (
           <InlineBanner message={failureMessage} variant="error" />
         )}
+        {confirmError && <InlineBanner message={confirmError} variant="error" />}
 
         <section className="overflow-hidden rounded-2xl border border-border bg-background">
           {reviewRows.map((row) => (
@@ -86,6 +159,11 @@ export function ForeignerCardOcrReview() {
             </div>
           ))}
         </section>
+        {isConfirming && (
+          <div className="rounded-xl border border-border bg-secondary p-3 text-center text-sm text-muted-foreground">
+            외국인등록증 정보를 확인하고 있습니다. 잠시만 기다려 주세요.
+          </div>
+        )}
       </div>
     </MobileLayout>
   )

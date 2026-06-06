@@ -43,6 +43,8 @@ export type { PassportResponse } from './endpoints/certificate';
 export type { CertificateRequestErrorBody } from './endpoints/certificate';
 export type {
   IdCardOcrResult,
+  IdentityOcrResponse,
+  IdentityVerificationConfirmRequest,
   IdentityVerificationResponse,
 } from './endpoints/certificate';
 export { createIdempotencyKey, walletApi } from './endpoints/wallet';
