@@ -96,6 +96,7 @@ public class GlobalTransactionService {
             Account account
     ) {
         int krwAmount = parseKrwAmount(request.krwAmount());
+        int balanceAfter = account.getBalance() - krwAmount;
         log.info("Global transaction debit started externalRequestId={} accountId={} krwAmount={}",
                 request.externalRequestId(), account.getAccountId(), krwAmount);
 
@@ -106,6 +107,7 @@ public class GlobalTransactionService {
                 .transactionType(TransactionType.GLOBAL_REMITTANCE)
                 .counterParty(GLOBAL_REMITTANCE_COUNTERPARTY)
                 .amount(krwAmount)
+                .balanceAfter(balanceAfter)
                 .externalRequestId(request.externalRequestId())
                 .build());
 

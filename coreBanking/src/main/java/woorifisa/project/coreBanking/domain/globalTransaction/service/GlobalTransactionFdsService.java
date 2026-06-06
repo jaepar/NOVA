@@ -25,7 +25,7 @@ import static woorifisa.project.coreBanking.global.response.status.BaseResponseS
 @RequiredArgsConstructor
 public class GlobalTransactionFdsService {
 
-    private static final String REFUND_COUNTERPARTY = "해외송금 FDS 환급";
+    private static final String REFUND_COUNTERPARTY = "해외송금 실패 환급";
 
     private final FdsClient fdsClient;
     private final GlobalTransactionRepository globalTransactionRepository;
@@ -66,12 +66,14 @@ public class GlobalTransactionFdsService {
 
         int refundAmount = Integer.parseInt(globalTransaction.getKrwAmount());
         globalTransaction.getAccount().credit(refundAmount);
+        int balanceAfter = globalTransaction.getAccount().getBalance();
         accountTransactionRepository.save(AccountTransaction.builder()
                 .account(globalTransaction.getAccount())
                 .transactionFlow(TransactionFlow.DEPOSIT)
                 .transactionType(TransactionType.GLOBAL_REMITTANCE_REFUND)
                 .counterParty(REFUND_COUNTERPARTY)
                 .amount(refundAmount)
+                .balanceAfter(balanceAfter)
                 .externalRequestId(globalTransaction.getExternalRequestId() + ":refund")
                 .build());
         log.info("Global transaction refund completed globalTransactionId={} accountId={} refundAmount={} failureReason={}",

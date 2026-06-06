@@ -96,6 +96,7 @@ class GlobalTransactionFdsServiceTest {
         assertThat(captor.getValue().getTransactionFlow()).isEqualTo(TransactionFlow.DEPOSIT);
         assertThat(captor.getValue().getTransactionType()).isEqualTo(TransactionType.GLOBAL_REMITTANCE_REFUND);
         assertThat(captor.getValue().getAmount()).isEqualTo(1_380_500);
+        assertThat(captor.getValue().getBalanceAfter()).isEqualTo(2_000_000);
         assertThat(captor.getValue().getExternalRequestId()).isEqualTo("global-remittance-1:refund");
     }
 
