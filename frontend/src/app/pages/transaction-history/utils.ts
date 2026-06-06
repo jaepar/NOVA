@@ -19,18 +19,6 @@ export function getMonthLabel(date: string) {
   return `${year}년 ${Number(month)}월`
 }
 
-export function parseTransactionDate(date: string): Date {
-  const [year, month, day] = date.split('.').map(Number)
-  return new Date(year, month - 1, day)
-}
-
-export function parseTransactionDateTime(dateTime: string): Date {
-  const [datePart, timePart] = dateTime.split(' ')
-  const [year, month, day] = datePart.split('.').map(Number)
-  const [hours, minutes, seconds] = timePart.split(':').map(Number)
-  return new Date(year, month - 1, day, hours, minutes, seconds)
-}
-
 export function groupTransactionsByMonth(transactions: AccountTransaction[]) {
   const map = new Map<string, AccountTransaction[]>()
   for (const transaction of transactions) {
@@ -66,14 +54,12 @@ export function toAccountTransaction(transaction: BankingTransaction): AccountTr
   return {
     id: String(transaction.transactionId),
     transactionId: transaction.transactionId,
-    flow: transaction.transactionFlow,
     title: transaction.counterParty,
     counterParty: transaction.counterParty,
     type: formatTransactionType(transaction.transactionType),
     amount,
     date: dateTime.slice(0, 10),
     dateTime,
-    withdrawalAccount: '',
     balanceAfter: transaction.balanceAfter,
     memo: transaction.memo ?? '',
   }

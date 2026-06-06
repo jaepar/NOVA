@@ -10,9 +10,26 @@ import { AccountSummaryCard } from './components/AccountSummaryCard'
 import { TransactionMonthSection } from './components/TransactionMonthSection'
 import { TransactionHistoryFilterSheet } from './components/TransactionHistoryFilterSheet'
 
+interface TransactionFilterDraft {
+  selectedPeriod: string
+  selectedType: string
+  selectedSort: string
+  searchKeyword: string
+  customDateFrom: string
+  customDateTo: string
+}
+
 export function TransactionHistoryPage() {
   const navigate = useNavigate()
   const [isFilterOpen, setFilterOpen] = useState(false)
+  const [filterDraft, setFilterDraft] = useState<TransactionFilterDraft>({
+    selectedPeriod: '1개월',
+    selectedType: '전체',
+    selectedSort: '최신순',
+    searchKeyword: '',
+    customDateFrom: '',
+    customDateTo: '',
+  })
 
   const selectedPeriod = useTransactionHistoryStore((state) => state.selectedPeriod)
   const selectedType = useTransactionHistoryStore((state) => state.selectedType)
@@ -42,8 +59,19 @@ export function TransactionHistoryPage() {
   }, [fetchInitialData])
 
   const groupedTransactions = groupTransactionsByMonth(transactions)
-  const showEmptyState = !isLoading && groupedTransactions.length === 0
+  const showEmptyState = !isLoading && !errorMessage && groupedTransactions.length === 0
   const showLastTransactionNotice = !isLoading && transactions.length > 0 && !hasNext
+  const openFilterSheet = () => {
+    setFilterDraft({
+      selectedPeriod,
+      selectedType,
+      selectedSort,
+      searchKeyword,
+      customDateFrom,
+      customDateTo,
+    })
+    setFilterOpen(true)
+  }
 
   return (
     <>
@@ -59,7 +87,7 @@ export function TransactionHistoryPage() {
             <div className="flex items-center justify-between gap-4">
               <AppButton
                 variant="unstyled"
-                onClick={() => setFilterOpen(true)}
+                onClick={openFilterSheet}
                 className="inline-flex h-7 shrink-0 items-center gap-1 px-0 text-[13px] font-semibold leading-none text-foreground"
                 aria-label="필터 열기"
               >
@@ -127,23 +155,41 @@ export function TransactionHistoryPage() {
 
       <TransactionHistoryFilterSheet
         isOpen={isFilterOpen}
-        selectedPeriod={selectedPeriod}
-        selectedType={selectedType}
-        selectedSort={selectedSort}
-        searchKeyword={searchKeyword}
-        customDateFrom={customDateFrom}
-        customDateTo={customDateTo}
+        selectedPeriod={filterDraft.selectedPeriod}
+        selectedType={filterDraft.selectedType}
+        selectedSort={filterDraft.selectedSort}
+        searchKeyword={filterDraft.searchKeyword}
+        customDateFrom={filterDraft.customDateFrom}
+        customDateTo={filterDraft.customDateTo}
         onClose={() => setFilterOpen(false)}
         onApply={() => {
+          setSelectedPeriod(filterDraft.selectedPeriod)
+          setSelectedType(filterDraft.selectedType)
+          setSelectedSort(filterDraft.selectedSort)
+          setSearchKeyword(filterDraft.searchKeyword)
+          setCustomDateFrom(filterDraft.customDateFrom)
+          setCustomDateTo(filterDraft.customDateTo)
           setFilterOpen(false)
           void fetchTransactions(0)
         }}
-        onSelectPeriod={setSelectedPeriod}
-        onSelectType={setSelectedType}
-        onSelectSort={setSelectedSort}
-        onSearchKeywordChange={setSearchKeyword}
-        onCustomDateFromChange={setCustomDateFrom}
-        onCustomDateToChange={setCustomDateTo}
+        onSelectPeriod={(selectedPeriod) =>
+          setFilterDraft((draft) => ({ ...draft, selectedPeriod }))
+        }
+        onSelectType={(selectedType) =>
+          setFilterDraft((draft) => ({ ...draft, selectedType }))
+        }
+        onSelectSort={(selectedSort) =>
+          setFilterDraft((draft) => ({ ...draft, selectedSort }))
+        }
+        onSearchKeywordChange={(searchKeyword) =>
+          setFilterDraft((draft) => ({ ...draft, searchKeyword }))
+        }
+        onCustomDateFromChange={(customDateFrom) =>
+          setFilterDraft((draft) => ({ ...draft, customDateFrom }))
+        }
+        onCustomDateToChange={(customDateTo) =>
+          setFilterDraft((draft) => ({ ...draft, customDateTo }))
+        }
       />
     </>
   )

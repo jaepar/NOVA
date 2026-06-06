@@ -20,6 +20,7 @@ interface TransactionHistoryStore {
   customDateTo: string
   account: AccountInfo | null
   transactions: AccountTransaction[]
+  detailTransaction: AccountTransaction | null
   page: number
   hasNext: boolean
   isLoading: boolean
@@ -34,6 +35,7 @@ interface TransactionHistoryStore {
   setCustomDateTo: (value: string) => void
   fetchInitialData: () => Promise<void>
   fetchTransactions: (nextPage?: number) => Promise<void>
+  fetchTransactionForDetail: (transactionId: string | undefined) => Promise<void>
   updateTransactionMemo: (transactionId: number, memo: string) => Promise<void>
   findTransaction: (transactionId: string | undefined) => AccountTransaction | undefined
 }
@@ -48,6 +50,7 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
   customDateTo: '',
   account: null,
   transactions: [],
+  detailTransaction: null,
   page: 0,
   hasNext: false,
   isLoading: false,
@@ -83,6 +86,10 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
     }
   },
   fetchTransactions: async (nextPage = 0) => {
+    if (nextPage > 0 && get().isLoading) {
+      return
+    }
+
     const state = get()
     const account = state.account
     if (!account) {
@@ -118,13 +125,89 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
       )
 
       const transactions = response.transactions.map(toAccountTransaction)
-      set({
-        transactions:
-          nextPage === 0 ? transactions : [...get().transactions, ...transactions],
-        page: response.page,
-        hasNext: response.hasNext,
-        isLoading: false,
+      set((current) => {
+        const existingIds = new Set(current.transactions.map((transaction) => transaction.id))
+        const nextTransactions =
+          nextPage === 0
+            ? transactions
+            : [
+                ...current.transactions,
+                ...transactions.filter((transaction) => !existingIds.has(transaction.id)),
+              ]
+
+        return {
+          transactions: nextTransactions,
+          detailTransaction: nextPage === 0 ? null : current.detailTransaction,
+          page: response.page,
+          hasNext: response.hasNext,
+          isLoading: false,
+        }
       })
+    } catch {
+      set({ errorMessage: '거래내역을 불러오지 못했습니다.', isLoading: false })
+    }
+  },
+  fetchTransactionForDetail: async (transactionId) => {
+    if (!transactionId || get().findTransaction(transactionId)) {
+      return
+    }
+
+    set({ isLoading: true, errorMessage: null, detailTransaction: null })
+    try {
+      let account = get().account
+      if (!account) {
+        const home = await bankingApi.getHome()
+        if (!home.account) {
+          set({ isLoading: false })
+          return
+        }
+        account = toAccountInfo(home.account)
+        set({ account })
+      }
+
+      const state = get()
+      const useCurrentDateRange = isValidTransactionDateRange(
+        state.selectedPeriod,
+        state.customDateFrom,
+        state.customDateTo
+      )
+      const selectedPeriod = useCurrentDateRange ? state.selectedPeriod : '1개월'
+      const customDateFrom = useCurrentDateRange ? state.customDateFrom : ''
+      const customDateTo = useCurrentDateRange ? state.customDateTo : ''
+      let nextPage = 0
+      let hasNextPage = true
+
+      while (hasNextPage) {
+        const response = await bankingApi.getTransactions(
+          account.accountId,
+          createTransactionQuery({
+            selectedPeriod,
+            selectedType: '전체',
+            selectedSort: state.selectedSort,
+            searchKeyword: '',
+            customDateFrom,
+            customDateTo,
+            page: nextPage,
+            size: DEFAULT_PAGE_SIZE,
+          })
+        )
+        const matchedTransaction = response.transactions.find(
+          (transaction) => String(transaction.transactionId) === transactionId
+        )
+
+        if (matchedTransaction) {
+          set({
+            detailTransaction: toAccountTransaction(matchedTransaction),
+            isLoading: false,
+          })
+          return
+        }
+
+        hasNextPage = response.hasNext
+        nextPage += 1
+      }
+
+      set({ isLoading: false })
     } catch {
       set({ errorMessage: '거래내역을 불러오지 못했습니다.', isLoading: false })
     }
@@ -137,6 +220,10 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
         memo: normalizedMemo || null,
       })
       set((state) => ({
+        detailTransaction:
+          state.detailTransaction?.transactionId === transactionId
+            ? { ...state.detailTransaction, memo: normalizedMemo }
+            : state.detailTransaction,
         transactions: state.transactions.map((transaction) =>
           transaction.transactionId === transactionId
             ? { ...transaction, memo: normalizedMemo }
@@ -151,6 +238,10 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
   },
   findTransaction: (transactionId) => {
     if (!transactionId) return undefined
-    return get().transactions.find((transaction) => transaction.id === transactionId)
+    const state = get()
+    return (
+      state.transactions.find((transaction) => transaction.id === transactionId) ??
+      (state.detailTransaction?.id === transactionId ? state.detailTransaction : undefined)
+    )
   },
 }))

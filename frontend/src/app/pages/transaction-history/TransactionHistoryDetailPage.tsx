@@ -26,18 +26,21 @@ export function TransactionHistoryDetailPage() {
   const { transactionId } = useParams()
   const account = useTransactionHistoryStore((state) => state.account)
   const errorMessage = useTransactionHistoryStore((state) => state.errorMessage)
+  const isLoading = useTransactionHistoryStore((state) => state.isLoading)
   const isUpdatingMemo = useTransactionHistoryStore((state) => state.isUpdatingMemo)
   const findTransaction = useTransactionHistoryStore((state) => state.findTransaction)
-  const fetchInitialData = useTransactionHistoryStore((state) => state.fetchInitialData)
+  const fetchTransactionForDetail = useTransactionHistoryStore(
+    (state) => state.fetchTransactionForDetail
+  )
   const updateTransactionMemo = useTransactionHistoryStore((state) => state.updateTransactionMemo)
   const [isMemoSheetOpen, setMemoSheetOpen] = useState(false)
   const transaction = findTransaction(transactionId)
 
   useEffect(() => {
     if (!transaction) {
-      void fetchInitialData()
+      void fetchTransactionForDetail(transactionId)
     }
-  }, [fetchInitialData, transaction])
+  }, [fetchTransactionForDetail, transaction, transactionId])
 
   if (!transaction) {
     return (
@@ -48,7 +51,7 @@ export function TransactionHistoryDetailPage() {
         bottomContent={<Btn_1Col onClick={() => navigate('/transaction-history')}>확인</Btn_1Col>}
       >
         <div className="flex h-full items-center justify-center text-[15px] font-medium text-muted-foreground">
-          거래내역을 찾을 수 없습니다.
+          {isLoading ? '거래내역을 불러오는 중입니다.' : '거래내역을 찾을 수 없습니다.'}
         </div>
       </MobileLayout>
     )
