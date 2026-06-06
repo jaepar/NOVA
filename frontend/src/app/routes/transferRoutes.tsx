@@ -5,6 +5,7 @@ import { TransferAmountConfirm } from '../pages/transfer/Step03-AmountConfirm'
 import { TransferMemoEdit } from '../pages/transfer/Step04-MemoEdit'
 import { TransferReview } from '../pages/transfer/Step05-Review'
 import { TransferComplete } from '../pages/transfer/Step06-Complete'
+import { TransferFailed } from '../pages/transfer/Step07-Failed'
 
 export const transferRoutes: RouteObject[] = [
   { path: '/transfer', Component: TransferAccountSelect },
@@ -20,4 +21,5 @@ export const transferRoutes: RouteObject[] = [
   },
   { path: '/transfer/review', Component: TransferReview },
   { path: '/transfer/complete', Component: TransferComplete },
+  { path: '/transfer/failed', Component: TransferFailed },
 ]

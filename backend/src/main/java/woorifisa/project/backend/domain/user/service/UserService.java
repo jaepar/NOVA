@@ -52,6 +52,14 @@ public class UserService {
 	private final NotificationService notificationService;
 
 	@Transactional
+	public void requestCertificateIssuance(Long userId) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+
+		user.startCertificateIssuance();
+	}
+
+	@Transactional
 	public void uploadDocuments(
 		Long userId,
 		MultipartFile residenceVerificationPdf,

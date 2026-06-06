@@ -1,16 +1,20 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
-import { useSignupPageStore } from "../../stores/pageStores";
+import {
+  useAccountCreateFlowStore,
+  useSignupPageStore,
+} from "../../stores/pageStores";
 
 export function Step10CustomerInfoRegistration() {
   const navigate = useNavigate();
   const name = useSignupPageStore((state) => state.name);
   const email = useSignupPageStore((state) => state.email);
-  const [address, setAddress] = useState("");
-  const [addressDetail, setAddressDetail] = useState("");
+  const address = useAccountCreateFlowStore((state) => state.address);
+  const addressDetail = useAccountCreateFlowStore((state) => state.addressDetail);
+  const setCustomerInfo = useAccountCreateFlowStore((state) => state.setCustomerInfo);
 
   const canSubmit = useMemo(
     () => address.trim().length > 0 && addressDetail.trim().length > 0,
@@ -65,7 +69,9 @@ export function Step10CustomerInfoRegistration() {
                 type="text"
                 placeholder="주소를 검색해 주세요"
                 value={address}
-                onChange={(event) => setAddress(event.target.value)}
+                onChange={(event) =>
+                  setCustomerInfo(event.target.value, addressDetail)
+                }
                 className="w-full pl-4 pr-12 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 style={{ fontSize: "16px" }}
               />
@@ -81,7 +87,9 @@ export function Step10CustomerInfoRegistration() {
               type="text"
               placeholder="상세주소를 입력해 주세요"
               value={addressDetail}
-              onChange={(event) => setAddressDetail(event.target.value)}
+              onChange={(event) =>
+                setCustomerInfo(address, event.target.value)
+              }
               className="w-full px-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               style={{ fontSize: "16px" }}
             />

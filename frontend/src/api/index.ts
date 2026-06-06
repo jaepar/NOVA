@@ -9,6 +9,7 @@
 
 export { default as apiClient } from './client'
 export * from './types'
+export { extractApiErrorBody } from './utils';
 
 /**
  * 엔드포인트별 API 함수를 작성한 후 여기에 export 추가
@@ -19,8 +20,8 @@ export * from './types'
  */
 
 export { authApi } from './endpoints/auth';
-export { bankingApi } from './endpoints/banking';
-export { certificateApi } from './endpoints/certificate';
+export { certificateApi, getCertificateApiError } from './endpoints/certificate';
+export { userApi } from './endpoints/user';
 export type {
   AuthMessageResponse,
   LoginRequest,
@@ -29,6 +30,8 @@ export type {
   SignupRequest,
 } from './endpoints/auth';
 export type {
+  AccountCreateRequest,
+  AccountCreateResponse,
   AccountHomeResponse,
   AccountHomeUiState,
   AccountSummary,
@@ -42,12 +45,31 @@ export type {
   TransactionType,
   UpdateTransactionMemoRequest,
 } from './endpoints/banking';
+export type { NotificationResponse, NotificationType } from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
-export { walletApi } from './endpoints/wallet';
-export type { WalletNextStep, WalletStatusResponse } from './endpoints/wallet';
+export type { CertificateRequestErrorBody } from './endpoints/certificate';
+export { createIdempotencyKey, walletApi } from './endpoints/wallet';
+export type {
+  ChargeWalletRequest,
+  WalletCreateRequest,
+  WalletNextStep,
+  WalletStatusResponse,
+  WalletSummaryResponse,
+  WalletTransactionFlow,
+  WalletTransactionResponse,
+  WalletTransactionsRequest,
+  WalletTransactionsResponse,
+} from './endpoints/wallet';
 export { transferApi } from "./endpoints/transfer";
 export type {
   SubmitRemittanceRequest,
   SubmitRemittanceResponse,
 } from "./endpoints/transfer";
+export { bankingApi, getBankingApiError } from './endpoints/banking';
+export type {
+  BankingApiErrorBody,
+  TransferPreviewRequest,
+  TransferPreviewResponse,
+  TransferRequest,
+} from './endpoints/banking';

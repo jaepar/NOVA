@@ -42,7 +42,7 @@ export function CloseFixedHeader({
       >
         <div className="w-10" />
 
-        <h1 className="flex-1 text-center text-[20px]" style={{ color: textColor }}>
+        <h1 className="flex-1 text-center text-[20px] font-semibold leading-none" style={{ color: textColor }}>
           {title}
         </h1>
 

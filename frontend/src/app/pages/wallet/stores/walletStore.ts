@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { WalletTransactionFilter } from "../data/walletMockData";
+import type { WalletTransactionFilter } from "../data/walletTransactionTypes";
 
 type ChargeFeedback = {
   type: "error";
@@ -8,28 +8,33 @@ type ChargeFeedback = {
 
 type ChargeSuccess = {
   amount: number;
+  balanceAfterCharge: number | null;
   chargedAt: Date;
 };
 
 interface WalletState {
   selectedFilter: WalletTransactionFilter;
   filterOpen: boolean;
+  walletBalance: number | null;
+  pendingChargeKey: string | null;
   chargeAmount: string;
+  chargeAccountPassword: string;
   chargeFeedback: ChargeFeedback | null;
   chargeSuccess: ChargeSuccess | null;
   isChargeSubmitting: boolean;
-  amountInputWidth: number;
   qrSeed: number;
   checkedTermIds: string[];
   expandedTermId: string | null;
   agreementsOpen: boolean;
   setSelectedFilter: (selectedFilter: WalletTransactionFilter) => void;
   setFilterOpen: (filterOpen: boolean | ((current: boolean) => boolean)) => void;
+  setWalletBalance: (walletBalance: number) => void;
+  setPendingChargeKey: (pendingChargeKey: string | null) => void;
   setChargeAmount: (chargeAmount: string) => void;
+  setChargeAccountPassword: (chargeAccountPassword: string) => void;
   setChargeFeedback: (chargeFeedback: ChargeFeedback | null) => void;
   setChargeSuccess: (chargeSuccess: ChargeSuccess | null) => void;
   setChargeSubmitting: (isChargeSubmitting: boolean) => void;
-  setAmountInputWidth: (amountInputWidth: number) => void;
   clearChargeAmount: () => void;
   resetChargeFlow: () => void;
   refreshQrSeed: () => void;
@@ -44,11 +49,13 @@ interface WalletState {
 export const useWalletStore = create<WalletState>((set) => ({
   selectedFilter: "all",
   filterOpen: false,
+  walletBalance: null,
+  pendingChargeKey: null,
   chargeAmount: "",
+  chargeAccountPassword: "",
   chargeFeedback: null,
   chargeSuccess: null,
   isChargeSubmitting: false,
-  amountInputWidth: 0,
   qrSeed: 1,
   checkedTermIds: [],
   expandedTermId: null,
@@ -59,19 +66,21 @@ export const useWalletStore = create<WalletState>((set) => ({
       filterOpen:
         typeof filterOpen === "function" ? filterOpen(state.filterOpen) : filterOpen,
     })),
+  setWalletBalance: (walletBalance) => set({ walletBalance }),
+  setPendingChargeKey: (pendingChargeKey) => set({ pendingChargeKey }),
   setChargeAmount: (chargeAmount) => set({ chargeAmount }),
+  setChargeAccountPassword: (chargeAccountPassword) => set({ chargeAccountPassword }),
   setChargeFeedback: (chargeFeedback) => set({ chargeFeedback }),
   setChargeSuccess: (chargeSuccess) => set({ chargeSuccess }),
   setChargeSubmitting: (isChargeSubmitting) => set({ isChargeSubmitting }),
-  setAmountInputWidth: (amountInputWidth) => set({ amountInputWidth }),
   clearChargeAmount: () => set({ chargeAmount: "", chargeSuccess: null }),
   resetChargeFlow: () =>
     set({
       chargeAmount: "",
+      chargeAccountPassword: "",
       chargeFeedback: null,
       chargeSuccess: null,
       isChargeSubmitting: false,
-      amountInputWidth: 0,
     }),
   refreshQrSeed: () => set((state) => ({ qrSeed: state.qrSeed + 1 })),
   resetQrSeed: () => set({ qrSeed: 1 }),

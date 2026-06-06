@@ -26,7 +26,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 @Table(name = "account_ref")
 public class AccountRef extends BaseEntity {
 
-    public static final String BANK_NAME = "우리은행";
+    public static final String BANK_NAME = "우리";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

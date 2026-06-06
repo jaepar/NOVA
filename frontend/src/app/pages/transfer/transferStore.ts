@@ -1,14 +1,16 @@
 import { create } from 'zustand'
-import { type BankOption, RECIPIENT_NAME } from './types'
+import { type BankOption, type TransferPreview, RECIPIENT_NAME } from './types'
 
 interface TransferState {
   accountNumber: string
   selectedBank: BankOption | null
+  preview: TransferPreview | null
   amount: string
   recipientMemoName: string
   senderMemoName: string
   setAccountNumber: (accountNumber: string) => void
   setSelectedBank: (bank: BankOption | null) => void
+  setPreview: (preview: TransferPreview | null) => void
   setAmount: (amount: string) => void
   appendAmount: (value: string) => void
   backspaceAmount: () => void
@@ -20,6 +22,7 @@ interface TransferState {
 const initialState = {
   accountNumber: '',
   selectedBank: null,
+  preview: null,
   amount: '',
   recipientMemoName: RECIPIENT_NAME,
   senderMemoName: RECIPIENT_NAME,
@@ -27,8 +30,14 @@ const initialState = {
 
 export const useTransferStore = create<TransferState>((set) => ({
   ...initialState,
-  setAccountNumber: (accountNumber) => set({ accountNumber }),
-  setSelectedBank: (selectedBank) => set({ selectedBank }),
+  setAccountNumber: (accountNumber) => set({ accountNumber, preview: null, amount: '' }),
+  setSelectedBank: (selectedBank) => set({ selectedBank, preview: null, amount: '' }),
+  setPreview: (preview) =>
+    set((state) => ({
+      preview,
+      recipientMemoName: preview?.myAccount.userName ?? state.recipientMemoName,
+      senderMemoName: preview?.recipient.recipientName ?? state.senderMemoName,
+    })),
   setAmount: (amount) => set({ amount }),
   appendAmount: (value) =>
     set((state) => {
