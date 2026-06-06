@@ -78,7 +78,7 @@ export function Main() {
 
         if (isMounted) {
           setAccountHome(nextAccountHome);
-          setHasUnreadNotifications(nextAccountHome.has_notification);
+          setHasUnreadNotifications(nextAccountHome.hasNotification);
         }
       } catch {
         if (isMounted) {
