@@ -143,9 +143,11 @@ export function MainAccountPanel({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-medium">{account.accountName}</span>
-              <span className="rounded-full bg-white/20 px-2 py-1 text-[10px] font-medium">
-                {account.hasLimit ? "한도제한" : "일반"}
-              </span>
+              {account.hasLimit && (
+                <span className="rounded-full bg-white/20 px-2 py-1 text-[10px] font-medium">
+                  한도제한
+                </span>
+              )}
             </div>
             <AppButton
               variant="unstyled"
