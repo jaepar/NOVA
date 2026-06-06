@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { isAxiosError } from "axios";
 import { Btn_2Col } from "../../components/design-system/Btn_2Col";
 import { CenteredTaskContent } from "../../components/design-system/CenteredTaskContent";
 import { MobileLayout } from "../../components/layout/MobileLayout";
-import { transferApi, type SubmitRemittanceRequest } from "../../../api";
+import {
+  getTransferApiError,
+  transferApi,
+  type SubmitGlobalTransferRequest,
+} from "../../../api";
 import {
   useTransferBasicInfoPageStore,
   useTransferRecipientInfoPageStore,
@@ -13,20 +16,19 @@ import {
 } from "../../stores/pageStores";
 
 type TransferSubmitFailedLocationState = {
-  payload?: SubmitRemittanceRequest;
+  payload?: SubmitGlobalTransferRequest;
+  idempotencyKey?: string;
   message?: string;
 };
 
 function getTransferSubmitErrorMessage(error: unknown) {
-  if (isAxiosError<{ message?: string }>(error)) {
-    return (
-      error.response?.data?.message ??
-      error.message ??
-      "잠시 후 다시 시도해 주세요."
-    );
+  const apiError = getTransferApiError(error);
+
+  if (apiError?.message) {
+    return apiError.message;
   }
 
-  if (error instanceof Error) {
+  if (error instanceof Error && error.message) {
     return error.message;
   }
 
@@ -59,7 +61,7 @@ export function Step06TransferSubmitFailed() {
   };
 
   const handleRetry = async () => {
-    if (!state.payload) {
+    if (!state.payload || !state.idempotencyKey) {
       navigate("/global-transfer/send/step-05");
       return;
     }
@@ -71,7 +73,7 @@ export function Step06TransferSubmitFailed() {
     setIsRetrying(true);
 
     try {
-      await transferApi.submitRemittance(state.payload);
+      await transferApi.submitGlobalTransfer(state.payload, state.idempotencyKey);
       navigate("/global-transfer/send/step-06", { replace: true });
     } catch (error) {
       setErrorMessage(getTransferSubmitErrorMessage(error));

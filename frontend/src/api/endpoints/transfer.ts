@@ -1,4 +1,5 @@
 import apiClient from "../client";
+import { extractApiErrorBody } from "../utils";
 
 type TransferApiResponse<T> = {
   success: boolean;
@@ -7,49 +8,66 @@ type TransferApiResponse<T> = {
   data: T;
 };
 
-export type SubmitRemittanceRequest = {
-  customer_id: number | null;
-  account_id: number | null;
-  remit_purpose: string;
-  target_country: string;
+export type SubmitGlobalTransferRequest = {
+  accountId: number;
+  remitPurpose: string;
+  targetCountry: string;
   currency: string;
-  remit_amount: string;
-  mediary_fee_payer: "SENDER" | "RECEIVER";
-  exchange_rate: string;
-  krw_amount: string;
-  sender_eng_name: string;
-  sender_phone: string;
-  sender_address: string;
-  sender_district: string;
-  sender_city: string;
-  sender_zip_code: string;
-  sender_country: string;
-  receiver_eng_name: string;
-  receiver_address: string;
-  receiver_district: string;
-  receiver_phone: string;
-  swift_code: string;
-  receiver_account_num: string;
-  routing_number: string;
-  bank_name: string;
-  remit_reason: string;
+  remitAmount: string;
+  mediaryFeePayer: "SENDER" | "RECEIVER";
+  exchangeRate: string;
+  krwAmount: string;
+  senderEngName: string;
+  senderPhone: string;
+  senderAddressDetail: string;
+  senderDistrict: string;
+  senderCity: string;
+  senderZipCode: string;
+  senderCountry: string;
+  receiverEngName: string;
+  receiverAddressDetail: string;
+  receiverDistrict?: string;
+  receiverCity: string;
+  receiverZipCode?: string;
+  receiverPhone: string;
+  swiftCode: string;
+  receiverAccountNum: string;
+  routingNumber: string;
+  bankName: string;
+  remitReason: string;
 };
 
-export type SubmitRemittanceResponse = {
-  remitId?: number;
-  status?: string;
+export type SubmitGlobalTransferResponse = {
+  globalTransactionId: number;
+  status: string;
 };
 
-const SUBMIT_REMITTANCE_ENDPOINT = "/global-transfer/remittance";
+export type TransferApiErrorBody = {
+  success: false;
+  code: string;
+  message: string;
+  data: null;
+};
+
+const SUBMIT_GLOBAL_TRANSFER_ENDPOINT = "/banking/global-transactions";
 
 export const transferApi = {
-  submitRemittance: async (
-    payload: SubmitRemittanceRequest
-  ): Promise<SubmitRemittanceResponse> => {
+  submitGlobalTransfer: async (
+    payload: SubmitGlobalTransferRequest,
+    idempotencyKey: string
+  ): Promise<SubmitGlobalTransferResponse> => {
     const response = await apiClient.post<
-      TransferApiResponse<SubmitRemittanceResponse>
-    >(SUBMIT_REMITTANCE_ENDPOINT, payload);
+      TransferApiResponse<SubmitGlobalTransferResponse>
+    >(SUBMIT_GLOBAL_TRANSFER_ENDPOINT, payload, {
+      headers: {
+        "Idempotency-Key": idempotencyKey,
+      },
+    });
 
     return response.data.data;
   },
 };
+
+export function getTransferApiError(error: unknown): TransferApiErrorBody | null {
+  return extractApiErrorBody<TransferApiErrorBody>(error);
+}

@@ -53,10 +53,11 @@ export type {
   WalletTransactionsRequest,
   WalletTransactionsResponse,
 } from './endpoints/wallet';
-export { transferApi } from "./endpoints/transfer";
+export { getTransferApiError, transferApi } from "./endpoints/transfer";
 export type {
-  SubmitRemittanceRequest,
-  SubmitRemittanceResponse,
+  SubmitGlobalTransferRequest,
+  SubmitGlobalTransferResponse,
+  TransferApiErrorBody,
 } from "./endpoints/transfer";
 export { bankingApi, getBankingApiError } from './endpoints/banking';
 export type {
