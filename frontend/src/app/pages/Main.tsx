@@ -97,7 +97,7 @@ export function Main() {
     return () => {
       isMounted = false;
     };
-  }, [isLoggedIn, setHasUnreadNotifications]);
+  }, [isLoggedIn]);
 
   const handleIssueCertificate = () => {
     setCertificateSheetOpen(false);
@@ -113,7 +113,6 @@ export function Main() {
       await authApi.logout();
       logout();
       setAccountHome(null);
-      setHasUnreadNotifications(false);
     } catch (error) {
       console.error("Logout failed", error);
     }
