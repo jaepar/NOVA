@@ -6,8 +6,9 @@ import { CommonInputGroup } from '../../../components/design-system/CommonInputG
 interface TransactionMemoSheetProps {
   isOpen: boolean
   initialMemo: string
+  isSaving?: boolean
   onClose: () => void
-  onSave: (memo: string) => void
+  onSave: (memo: string) => Promise<void> | void
 }
 
 const memoMaxLength = 20
@@ -15,6 +16,7 @@ const memoMaxLength = 20
 export function TransactionMemoSheet({
   isOpen,
   initialMemo,
+  isSaving = false,
   onClose,
   onSave,
 }: TransactionMemoSheetProps) {
@@ -32,7 +34,16 @@ export function TransactionMemoSheet({
       onClose={onClose}
       title="메모"
       height="280px"
-      bottomAction={<Btn_1Col onClick={() => onSave(memo)}>저장</Btn_1Col>}
+      bottomAction={
+        <Btn_1Col
+          onClick={() => {
+            void Promise.resolve(onSave(memo)).catch(() => undefined)
+          }}
+          disabled={isSaving}
+        >
+          {isSaving ? '저장 중' : '저장'}
+        </Btn_1Col>
+      }
       bottomActionClassName="px-0"
     >
       <CommonInputGroup

@@ -1,4 +1,5 @@
 export interface AccountInfo {
+  accountId: number
   isLimited: boolean
   name: string
   number: string
@@ -8,6 +9,8 @@ export interface AccountInfo {
 
 export interface AccountTransaction {
   id: string
+  transactionId: number
+  flow: 'DEPOSIT' | 'WITHDRAWAL'
   title: string
   counterParty: string
   type: string

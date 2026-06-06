@@ -32,7 +32,15 @@ export type {
   AccountHomeResponse,
   AccountHomeUiState,
   AccountSummary,
+  BankingTransaction,
+  BankingTransactionsResponse,
   CertificateStatus,
+  GetTransactionsParams,
+  TransactionFlowFilter,
+  TransactionPeriod,
+  TransactionSortDirection,
+  TransactionType,
+  UpdateTransactionMemoRequest,
 } from './endpoints/banking';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';

@@ -16,6 +16,7 @@ export type AccountHomeUiState =
   | "HAS_ACCOUNT";
 
 export type AccountSummary = {
+  accountId: number;
   accountName: string;
   accountNumber: string;
   bankName: string;
@@ -24,76 +25,90 @@ export type AccountSummary = {
 };
 
 export type AccountHomeResponse = {
-  hasAccount: boolean;
-  certificateStatus: CertificateStatus;
   uiState: AccountHomeUiState;
   account: AccountSummary | null;
+  has_notification?: boolean;
 };
 
-const DEV_ACCOUNT_HOME_MOCKS = {
-  needCertificate: {
-    hasAccount: false,
-    certificateStatus: "NOT_ISSUED",
-    uiState: "NEED_CERTIFICATE",
-    account: null,
-  } satisfies AccountHomeResponse,
-  certificateIssuing: {
-    hasAccount: false,
-    certificateStatus: "PENDING",
-    uiState: "CERTIFICATE_ISSUING",
-    account: null,
-  } satisfies AccountHomeResponse,
-  readyToOpenAccount: {
-    hasAccount: false,
-    certificateStatus: "ISSUED",
-    uiState: "READY_TO_OPEN_ACCOUNT",
-    account: null,
-  } satisfies AccountHomeResponse,
-  hasLimitedAccount: {
-    hasAccount: true,
-    certificateStatus: "ISSUED",
-    uiState: "HAS_ACCOUNT",
-    account: {
-      accountName: "NOVA 입출금통장",
-      accountNumber: "1080-312-345678",
-      bankName: "우리은행",
-      balance: 150000,
-      hasLimit: true,
-    },
-  } satisfies AccountHomeResponse,
-  hasGeneralAccount: {
-    hasAccount: true,
-    certificateStatus: "ISSUED",
-    uiState: "HAS_ACCOUNT",
-    account: {
-      accountName: "NOVA 생활통장",
-      accountNumber: "1080-999-123456",
-      bankName: "우리은행",
-      balance: 2840000,
-      hasLimit: false,
-    },
-  } satisfies AccountHomeResponse,
-} as const;
+export type TransactionPeriod = "ONE_WEEK" | "ONE_MONTH" | "CUSTOM";
+export type TransactionFlowFilter = "ALL" | "DEPOSIT" | "WITHDRAWAL";
+export type TransactionSortDirection = "ASC" | "DESC";
+export type TransactionType =
+  | "SMART_WITHDRAWAL"
+  | "CASH_IC"
+  | "CHECK_CARD"
+  | "ACCOUNT_TRANSFER"
+  | "ATM_WITHDRAWAL"
+  | "ATM_DEPOSIT"
+  | "AUTO_DEBIT"
+  | "WALLET_CHARGE"
+  | "FEE"
+  | "GLOBAL_REMITTANCE"
+  | "GLOBAL_REMITTANCE_REFUND";
 
-// 여기의 preset만 바꿔서 메인 화면 렌더링을 테스트하면 됩니다.
-// 예: DEV_ACCOUNT_HOME_MOCKS.certificateIssuing
-const DEV_MOCK_ACCOUNT_HOME_RESPONSE: AccountHomeResponse =
-  DEV_ACCOUNT_HOME_MOCKS.hasGeneralAccount;
+export type GetTransactionsParams = {
+  period?: TransactionPeriod;
+  flow?: TransactionFlowFilter;
+  from?: string;
+  to?: string;
+  keyword?: string;
+  sortDirection?: TransactionSortDirection;
+  page?: number;
+  size?: number;
+};
 
-function getDevAccountHome(): AccountHomeResponse {
-  return DEV_MOCK_ACCOUNT_HOME_RESPONSE;
-}
+export type BankingTransaction = {
+  transactionId: number;
+  transactionFlow: TransactionFlowFilter;
+  transactionType: TransactionType;
+  counterParty: string;
+  amount: number;
+  balanceAfter: number;
+  memo: string | null;
+  transactionDateTime: string;
+};
+
+export type BankingTransactionsResponse = {
+  accountId: number;
+  period: TransactionPeriod;
+  flow: TransactionFlowFilter;
+  transactions: BankingTransaction[];
+  page: number;
+  size: number;
+  hasNext: boolean;
+};
+
+export type UpdateTransactionMemoRequest = {
+  memo: string | null;
+};
 
 export const bankingApi = {
   getHome: async (): Promise<AccountHomeResponse> => {
-    if (import.meta.env.DEV) {
-      return getDevAccountHome();
-    }
-
     const response = await apiClient.get<
       BankingApiResponse<AccountHomeResponse>
     >("/banking/home");
 
     return response.data.data;
+  },
+  getTransactions: async (
+    accountId: number,
+    params: GetTransactionsParams = {}
+  ): Promise<BankingTransactionsResponse> => {
+    const response = await apiClient.get<
+      BankingApiResponse<BankingTransactionsResponse>
+    >(`/banking/${accountId}/transactions`, {
+      params,
+    });
+
+    return response.data.data;
+  },
+  updateTransactionMemo: async (
+    transactionId: number,
+    request: UpdateTransactionMemoRequest
+  ): Promise<void> => {
+    await apiClient.patch<BankingApiResponse<null>>(
+      `/banking/transactions/${transactionId}/memo`,
+      request
+    );
   },
 };

@@ -1,6 +1,7 @@
 import type { AccountInfo, AccountTransaction } from './types'
 
 export const accountInfo: AccountInfo = {
+  accountId: 2001,
   isLimited: true,
   name: '우리 SUPER주거래 통장',
   number: '우리 1002-867-380781',
@@ -11,6 +12,8 @@ export const accountInfo: AccountInfo = {
 export const accountTransactionHistory: AccountTransaction[] = [
   {
     id: 'tx-20260513-001',
+    transactionId: 1,
+    flow: 'WITHDRAWAL',
     title: '이마트24광진고지원',
     counterParty: '이마트24광진고지원',
     type: '체크카드',
@@ -23,6 +26,8 @@ export const accountTransactionHistory: AccountTransaction[] = [
   },
   {
     id: 'tx-20260430-001',
+    transactionId: 2,
+    flow: 'DEPOSIT',
     title: '급여 입금',
     counterParty: 'NOVA HR',
     type: '입금',
@@ -35,6 +40,8 @@ export const accountTransactionHistory: AccountTransaction[] = [
   },
   {
     id: 'tx-20260430-002',
+    transactionId: 3,
+    flow: 'WITHDRAWAL',
     title: 'ATM 출금',
     counterParty: '우리은행 ATM',
     type: '출금',
@@ -47,6 +54,8 @@ export const accountTransactionHistory: AccountTransaction[] = [
   },
   {
     id: 'tx-20260429-001',
+    transactionId: 4,
+    flow: 'WITHDRAWAL',
     title: '김철수님께 송금',
     counterParty: '김철수',
     type: '송금',
@@ -59,6 +68,8 @@ export const accountTransactionHistory: AccountTransaction[] = [
   },
   {
     id: 'tx-20260429-002',
+    transactionId: 5,
+    flow: 'WITHDRAWAL',
     title: 'USD 환전',
     counterParty: '우리은행 FX',
     type: '환전',

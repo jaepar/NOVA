@@ -1,12 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { SlidersHorizontal } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Switch } from '../../components/ui/switch'
-import { accountInfo, accountTransactionHistory } from './data'
 import { useTransactionHistoryStore } from './store'
-import { groupTransactionsByMonth, parseTransactionDate, parseTransactionDateTime } from './utils'
+import { groupTransactionsByMonth } from './utils'
 import { AccountSummaryCard } from './components/AccountSummaryCard'
 import { TransactionMonthSection } from './components/TransactionMonthSection'
 import { TransactionHistoryFilterSheet } from './components/TransactionHistoryFilterSheet'
@@ -22,7 +21,12 @@ export function TransactionHistoryPage() {
   const showBalance = useTransactionHistoryStore((state) => state.showBalance)
   const customDateFrom = useTransactionHistoryStore((state) => state.customDateFrom)
   const customDateTo = useTransactionHistoryStore((state) => state.customDateTo)
-  const memoByTransactionId = useTransactionHistoryStore((state) => state.memoByTransactionId)
+  const account = useTransactionHistoryStore((state) => state.account)
+  const transactions = useTransactionHistoryStore((state) => state.transactions)
+  const page = useTransactionHistoryStore((state) => state.page)
+  const hasNext = useTransactionHistoryStore((state) => state.hasNext)
+  const isLoading = useTransactionHistoryStore((state) => state.isLoading)
+  const errorMessage = useTransactionHistoryStore((state) => state.errorMessage)
   const setSelectedPeriod = useTransactionHistoryStore((state) => state.setSelectedPeriod)
   const setSelectedType = useTransactionHistoryStore((state) => state.setSelectedType)
   const setSelectedSort = useTransactionHistoryStore((state) => state.setSelectedSort)
@@ -30,63 +34,24 @@ export function TransactionHistoryPage() {
   const setShowBalance = useTransactionHistoryStore((state) => state.setShowBalance)
   const setCustomDateFrom = useTransactionHistoryStore((state) => state.setCustomDateFrom)
   const setCustomDateTo = useTransactionHistoryStore((state) => state.setCustomDateTo)
+  const fetchInitialData = useTransactionHistoryStore((state) => state.fetchInitialData)
+  const fetchTransactions = useTransactionHistoryStore((state) => state.fetchTransactions)
 
-  const transactions = accountTransactionHistory.map((transaction) => ({
-    ...transaction,
-    memo: memoByTransactionId[transaction.id] ?? transaction.memo,
-  }))
+  useEffect(() => {
+    void fetchInitialData()
+  }, [fetchInitialData])
 
-  const normalizedKeyword = searchKeyword.trim().toLowerCase()
-
-  const visibleTransactions = transactions.filter((transaction) => {
-    const txDate = parseTransactionDate(transaction.date)
-
-    if (selectedPeriod === '1주일') {
-      const from = new Date()
-      from.setDate(from.getDate() - 7)
-      from.setHours(0, 0, 0, 0)
-      if (txDate < from) return false
-    } else if (selectedPeriod === '1개월') {
-      const from = new Date()
-      from.setMonth(from.getMonth() - 1)
-      from.setHours(0, 0, 0, 0)
-      if (txDate < from) return false
-    } else if (selectedPeriod === '직접입력') {
-      if (customDateFrom) {
-        const from = new Date(customDateFrom)
-        if (txDate < from) return false
-      }
-      if (customDateTo) {
-        const to = new Date(customDateTo)
-        to.setHours(23, 59, 59, 999)
-        if (txDate > to) return false
-      }
-    }
-
-    if (selectedType !== '전체') {
-      if (selectedType === '입금' && transaction.amount <= 0) return false
-      if (selectedType === '출금' && transaction.amount > 0) return false
-    }
-
-    if (!normalizedKeyword) return true
-    return [transaction.title, transaction.counterParty, transaction.memo]
-      .join(' ')
-      .toLowerCase()
-      .includes(normalizedKeyword)
-  })
-
-  const sortedTransactions = [...visibleTransactions].sort((a, b) => {
-    const aTime = parseTransactionDateTime(a.dateTime).getTime()
-    const bTime = parseTransactionDateTime(b.dateTime).getTime()
-    return selectedSort === '과거순' ? aTime - bTime : bTime - aTime
-  })
-  const groupedTransactions = groupTransactionsByMonth(sortedTransactions)
+  const groupedTransactions = groupTransactionsByMonth(transactions)
+  const showEmptyState = !isLoading && groupedTransactions.length === 0
+  const showLastTransactionNotice = !isLoading && transactions.length > 0 && !hasNext
 
   return (
     <>
       <MobileLayout title="거래내역조회" headerType="back" backPath="/main">
         <div className="-mx-5">
-          <AccountSummaryCard account={accountInfo} onTransferClick={() => navigate('/transfer')} />
+          {account && (
+            <AccountSummaryCard account={account} onTransferClick={() => navigate('/transfer')} />
+          )}
 
           <div className="h-2 bg-secondary" />
 
@@ -111,6 +76,18 @@ export function TransactionHistoryPage() {
             </div>
 
             <div className="mt-5 space-y-6">
+              {errorMessage && (
+                <div className="rounded-lg bg-destructive/10 px-4 py-3 text-[13px] font-semibold text-destructive">
+                  {errorMessage}
+                </div>
+              )}
+
+              {isLoading && groupedTransactions.length === 0 && (
+                <div className="py-12 text-center text-[14px] font-medium text-muted-foreground">
+                  거래내역을 불러오는 중입니다.
+                </div>
+              )}
+
               {groupedTransactions.map((group) => (
                 <TransactionMonthSection
                   key={group.month}
@@ -121,9 +98,26 @@ export function TransactionHistoryPage() {
                 />
               ))}
 
-              {groupedTransactions.length === 0 && (
+              {showEmptyState && (
                 <div className="py-12 text-center text-[14px] font-medium text-muted-foreground">
-                  검색 결과가 없습니다.
+                  거래내역이 없습니다.
+                </div>
+              )}
+
+              {hasNext && (
+                <AppButton
+                  variant="secondary"
+                  onClick={() => void fetchTransactions(page + 1)}
+                  disabled={isLoading}
+                  className="h-11 w-full rounded-lg text-[14px] font-semibold"
+                >
+                  {isLoading ? '불러오는 중' : '더보기'}
+                </AppButton>
+              )}
+
+              {showLastTransactionNotice && (
+                <div className="py-4 text-center text-[13px] font-semibold text-muted-foreground">
+                  마지막 거래내역입니다.
                 </div>
               )}
             </div>
@@ -140,7 +134,10 @@ export function TransactionHistoryPage() {
         customDateFrom={customDateFrom}
         customDateTo={customDateTo}
         onClose={() => setFilterOpen(false)}
-        onApply={() => setFilterOpen(false)}
+        onApply={() => {
+          setFilterOpen(false)
+          void fetchTransactions(0)
+        }}
         onSelectPeriod={setSelectedPeriod}
         onSelectType={setSelectedType}
         onSelectSort={setSelectedSort}
