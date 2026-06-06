@@ -49,7 +49,7 @@ export function Main() {
 
   const services: ServiceItem[] = [
     { icon: <MessageSquare className="w-8 h-8" />, label: "병원예약" },
-    { icon: <CreditCard className="w-8 h-8" />, label: "외국인등록증" },
+    { icon: <CreditCard className="w-8 h-8" />, label: "외국인등록증", path: "/foreigner-card/step-01" },
     { icon: <Wallet className="w-8 h-8" />, label: "월렛", path: "/wallet" },
   ];
 

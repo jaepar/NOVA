@@ -41,6 +41,10 @@ export type { NotificationResponse, NotificationType } from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
 export type { CertificateRequestErrorBody } from './endpoints/certificate';
+export type {
+  IdCardOcrResult,
+  IdentityVerificationResponse,
+} from './endpoints/certificate';
 export { createIdempotencyKey, walletApi } from './endpoints/wallet';
 export type {
   ChargeWalletRequest,

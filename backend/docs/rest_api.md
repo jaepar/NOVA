@@ -66,7 +66,8 @@
 | `USER-017`     | Liveness 결과 조회       | GET    | `/users/verifications/liveness/{sessionId}`              | O    | USER   |                               |
 | `USER-018`     | Liveness 동일인 비교      | POST   | `/users/verifications/liveness/{sessionId}/face-match`   | O    | USER   |                               |
 | `USER-019`     | Liveness 최종 확정       | POST   | `/users/verifications/liveness/{sessionId}/finalize`     | O    | USER   |                               |
-| `USER-020`      | 신분증/여권 OCR 분기 인증 | POST   | `/users/verifications/identity`                          | O    | USER   | `ocrDocumentType=PASSPORT|ID_CARD` |
+| `USER-020`      | 신분증/여권 OCR 추출 | POST   | `/users/verifications/identity`                          | O    | USER   | `ocrDocumentType=PASSPORT|ID_CARD` |
+| `USER-021`      | 외국인등록증 OCR 확정 검증 | POST   | `/users/verifications/identity/confirm`                  | O    | USER   | 사용자가 확인/수정한 ID_CARD OCR 값으로 Government DB 검증 |
 | `WALLET-001`   | 월렛 계좌내역 조회           | GET    | `/wallet/transactions`                                   | O    | USER   |                               |
 | `WALLET-002`   | 월렛 충전                | POST   | `/wallet/charges`                                        | O    | USER   |                               |
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST   | `/wallet/charges/debit`                                  | O    | USER   |                               |
@@ -398,7 +399,7 @@ Response (200)
 }
 ```
 
-## USER-015 신분증/여권 OCR 분기 인증
+## USER-020 신분증/여권 OCR 추출
 
 - Method: `POST`
 - Path: `/users/verifications/identity`
@@ -417,16 +418,12 @@ Response (ID_CARD 성공 예시)
   "message": "요청에 성공했습니다.",
   "data": {
     "ocrDocumentType": "ID_CARD",
-    "passport": null,
-    "idCard": {
+    "result": {
       "name": "홍길동",
       "residentRegistrationNumber": "900101-1234567",
       "issueDate": "2020.01.01"
     },
-    "nameMatchWithUser": true,
-    "identityMatchWithGovDb": true,
-    "verificationStatus": "VERIFIED",
-    "failureReasonCode": null
+    "nameMatchWithUser": null
   }
 }
 ```
@@ -437,6 +434,44 @@ Error Response
   "success": false,
   "code": "USER-009",
   "message": "여권 OCR을 위한 이미지 파일이 필요합니다."
+}
+```
+
+## USER-021 외국인등록증 OCR 확정 검증
+
+- Method: `POST`
+- Path: `/users/verifications/identity/confirm`
+- Auth: `O` (USER 세션 필수)
+- Content-Type: `application/json`
+
+Request
+```json
+{
+  "ocrDocumentType": "ID_CARD",
+  "name": "홍길동",
+  "residentRegistrationNumber": "900101-1234567",
+  "issueDate": "2020.01.01"
+}
+```
+
+처리 규칙:
+- `residentRegistrationNumber`는 backend 내부에서 숫자만 남기도록 정규화한 뒤 HMAC-SHA256 해시로 변환해 Government DB 조회 키로 사용한다.
+- `backend -> gateway` 요청에는 원문 식별번호를 포함하지 않는다.
+- 사용자 이름 및 Government DB 이름/발급일/active 여부가 일치하면 외국인등록증 등록을 완료한다.
+
+Response (검증 성공 예시)
+```json
+{
+  "success": true,
+  "code": "20000",
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "ocrDocumentType": "ID_CARD",
+    "nameMatchWithUser": true,
+    "identityMatchWithGovDb": true,
+    "verificationStatus": "VERIFIED",
+    "failureReasonCode": null
+  }
 }
 ```
 

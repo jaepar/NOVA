@@ -48,6 +48,21 @@ export type PassportResponse = {
   authority?: string
 }
 
+export type IdCardOcrResult = {
+  name?: string
+  residentRegistrationNumber?: string
+  issueDate?: string
+}
+
+export type IdentityVerificationResponse = {
+  ocrDocumentType: 'PASSPORT' | 'ID_CARD'
+  result: IdCardOcrResult | PassportResponse | null
+  nameMatchWithUser: boolean
+  identityMatchWithGovDb: boolean
+  verificationStatus: 'OCR_EXTRACTED' | 'VERIFIED' | 'FAILED' | string
+  failureReasonCode: string | null
+}
+
 export type CertificateRequestErrorBody = {
   code: string
   message: string
@@ -85,6 +100,16 @@ export const certificateApi = {
 
     const response = await apiClient.post<ApiEnvelope<PassportResponse>>(
       '/users/verifications/passports',
+      formData
+    )
+    return response.data.data
+  },
+  recognizeIdCard: async (imageFile: File): Promise<IdentityVerificationResponse> => {
+    const formData = new FormData()
+    formData.append('file', imageFile)
+
+    const response = await apiClient.post<ApiEnvelope<IdentityVerificationResponse>>(
+      '/users/verifications/identity?ocrDocumentType=ID_CARD',
       formData
     )
     return response.data.data
