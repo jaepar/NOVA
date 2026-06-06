@@ -120,7 +120,7 @@ public class AccountTransactionService {
         }
 
         // 출금 계좌를 찾는 로직 -> 해당 계좌에 Lock을 걸음
-        Account withdrawAccount = accountRepository.findByAccountId(request.withdrawAccountId())
+        Account withdrawAccount = accountRepository.findByAccountNumber(request.withdrawAccountId())
                 .orElseThrow(() -> new CustomException(ACCOUNT_TRANSFER_WITHDRAW_ACCOUNT_NOT_FOUND));
 
         // 출금 계좌 락 대기 중 다른 요청이 동일 externalRequestId를 먼저 처리했을 수 있어, 락 획득 직후 멱등성 재확인
@@ -129,7 +129,7 @@ public class AccountTransactionService {
         }
 
         // 입금 계좌 db 조회
-        Account depositAccount = accountRepository.findById(request.depositAccountId())
+        Account depositAccount = accountRepository.findByAccountNumber(request.depositAccountId())
                 .orElseThrow(() -> new CustomException(ACCOUNT_TRANSFER_DEPOSIT_ACCOUNT_NOT_FOUND));
 
         // 이체 금액이 출금 계좌 잔액보다 큰 경우
@@ -140,29 +140,25 @@ public class AccountTransactionService {
         int depositBalanceAfter = depositAccount.getBalance() + request.transferAmount();
 
         try {
-            // 출금 계좌의 거래 내역 저장
-            accountTransactionRepository.save(AccountTransaction.builder()
-                    .account(withdrawAccount)
-                    .transactionFlow(TransactionFlow.WITHDRAWAL)
-                    .transactionType(TransactionType.ACCOUNT_TRANSFER)
-                    .counterParty(depositAccount.getCustomer().getName())
-                    .amount(request.transferAmount())
-                    .balanceAfter(withdrawBalanceAfter)
-                    .memo(request.withdrawMemo())
-                    .externalRequestId(request.externalRequestId())
-                    .build());
+			// 출금 계좌의 거래 내역 저장
+			accountTransactionRepository.save(AccountTransaction.builder()
+				.account(withdrawAccount)
+				.transactionFlow(TransactionFlow.WITHDRAWAL)
+				.transactionType(TransactionType.ACCOUNT_TRANSFER)
+				.counterParty(depositAccount.getCustomer().getName())
+				.amount(request.transferAmount())
+				.externalRequestId(request.externalRequestId())
+				.build());
 
-            // 입금 계좌의 거래 내역 저장
-            accountTransactionRepository.save(AccountTransaction.builder()
-                    .account(depositAccount)
-                    .transactionFlow(TransactionFlow.DEPOSIT)
-                    .transactionType(TransactionType.ACCOUNT_TRANSFER)
-                    .counterParty(withdrawAccount.getCustomer().getName())
-                    .amount(request.transferAmount())
-                    .balanceAfter(depositBalanceAfter)
-                    .memo(request.depositMemo())
-                    .externalRequestId(request.externalRequestId())
-                    .build());
+			// 입금 계좌의 거래 내역 저장
+			accountTransactionRepository.save(AccountTransaction.builder()
+				.account(depositAccount)
+				.transactionFlow(TransactionFlow.DEPOSIT)
+				.transactionType(TransactionType.ACCOUNT_TRANSFER)
+				.counterParty(withdrawAccount.getCustomer().getName())
+				.amount(request.transferAmount())
+				.externalRequestId(request.externalRequestId())
+				.build());
         } catch (DataIntegrityViolationException exception) {
             // 동시 요청으로 다른 트랜잭션이 먼저 같은 externalRequestId를 저장한 경우 발생하는 예외 처리
             if (accountTransactionRepository.existsByExternalRequestId(request.externalRequestId())) {

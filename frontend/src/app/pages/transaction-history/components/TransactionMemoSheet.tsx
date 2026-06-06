@@ -33,7 +33,6 @@ export function TransactionMemoSheet({
       title="메모"
       height="280px"
       bottomAction={<Btn_1Col onClick={() => onSave(memo)}>저장</Btn_1Col>}
-      bottomActionClassName="px-0"
     >
       <CommonInputGroup
         placeholder="메모 입력 (최대 20자)"

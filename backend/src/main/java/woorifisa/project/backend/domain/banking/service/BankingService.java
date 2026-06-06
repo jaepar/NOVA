@@ -8,12 +8,14 @@ import org.springframework.data.domain.Sort;
 import java.time.Duration;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import woorifisa.project.backend.global.corebanking.dto.request.*;
 import woorifisa.project.backend.global.corebanking.dto.response.*;
+
 import woorifisa.project.backend.domain.banking.dto.request.AccountCreateRequest;
 import woorifisa.project.backend.domain.banking.dto.request.AccountPasswordVerifyRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransactionDateRange;
@@ -23,12 +25,11 @@ import woorifisa.project.backend.domain.banking.dto.request.CreateGlobalTransact
 import woorifisa.project.backend.domain.banking.dto.request.TransferPreviewRequest;
 import woorifisa.project.backend.domain.banking.dto.request.TransferRequest;
 import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
-import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
 import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
+import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.dto.response.BankingTransactionsResponse;
 import woorifisa.project.backend.domain.banking.dto.response.CreateGlobalTransactionResponse;
 import woorifisa.project.backend.domain.banking.dto.response.GlobalTransactionListItemResponse;
-import woorifisa.project.backend.domain.banking.dto.response.TransferPreviewResponse;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.banking.repository.AccountRefRepository;
 import woorifisa.project.backend.domain.user.entity.User;
@@ -40,6 +41,9 @@ import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreat
 import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransactionQuery;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingCreateAccountResponse;
 import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingTransactionsResponse;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingPasswordVerifyRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingRecipientLookupRequest;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingTransferRequest;
 import woorifisa.project.backend.global.exception.CustomException;
 
 import java.time.LocalDate;
@@ -53,12 +57,12 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_FAILED;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSFER_PROCESSING;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
+import woorifisa.project.backend.global.response.BaseResponse;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class BankingService {
-
     // 동일 멱등키 이체 요청의 완료 결과를 재사용하기 위한 캐시 키
     private static final String TRANSFER_RESULT_KEY = "banking:transfer:result:%s";
     // 동일 멱등키 이체 요청의 중복 진행을 막는 처리중 락 키 (같은 멱등키 재요청/중복 처리 차단)
@@ -77,6 +81,9 @@ public class BankingService {
     private final StringRedisTemplate stringRedisTemplate;
     private final CoreBankingClient coreBankingClient;
 
+    @Value("${banking.transfer.password-verified-sleep-ms:0}")
+    private long passwordVerifiedSleepMillis;
+
     @Transactional(readOnly = true)
     public AccountHomeResponse findHomeAccount(Long userId) {
         // 홈 화면은 계좌가 없어도 정상 상태를 보여줘야 하므로 사용자 상태를 먼저 확정한다.
@@ -90,7 +97,7 @@ public class BankingService {
     }
 
     @Transactional
-    public AccountCreateResponse createAccount(Long userId, AccountCreateRequest request) {
+    public BaseResponse<Void> createAccount(Long userId, AccountCreateRequest request) {
         log.info("[banking_account_create:requested] userId={}, accountType={}, accountName={}, hasForeignTax={}",
                 userId, request.accountType(), request.accountName(), request.hasForeignTax());
         User user = userRepository.findById(userId)
@@ -125,7 +132,7 @@ public class BankingService {
         log.info("[banking_account_create:completed] userId={}, accountId={}, maskedAccountNumber={}",
                 userId, created.accountId(), maskAccountNumber(created.accountNumber()));
 
-        return AccountCreateResponse.of(created.accountId(), "WOORI", created.accountNumber());
+        return BaseResponse.ok(null);
     }
 
     private String maskAccountNumber(String accountNumber) {
@@ -156,11 +163,16 @@ public class BankingService {
 
         try {
             // 같은 계좌의 동일 이체를 막기 위한 락을 거는 로직
-            AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountId(userId, request.withdrawAccountId())
+            AccountRef accountRef = accountRefRepository.findByUser_UserIdAndAccountNumber(userId, request.withdrawAccountId())
                     .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
             coreBankingClient.verifyAccountPassword(
                     CoreBankingPasswordVerifyRequest.of(accountRef.getAccountId(), request.accountPassword())
             );
+
+            /**
+             * 계좌 이체 실패 페이지를 확인하기 위한 테스트 코드
+             */
+            sleepAfterPasswordVerificationIfConfigured();
 
             String accountProcessingKey = formatAccountProcessingKey(accountRef.getAccountId());
             Boolean accountLockAcquired = stringRedisTemplate.opsForValue()
@@ -173,7 +185,7 @@ public class BankingService {
                 // 이체 처리는 계좌에 대한 락을 얻은 뒤 처리
                 CoreBankingTransferRequest coreBankingTransferRequest = CoreBankingTransferRequest.of(
                         createExternalRequestId(idempotencyKey),
-                        accountRef.getAccountId(),
+                        accountRef.getAccountNumber(),
                         request
                 );
 
@@ -207,6 +219,7 @@ public class BankingService {
                 myAccount.getAccountNumber(),
                 myAccount.getBalance(),
                 myAccount.getTransferLimit(),
+                myAccount.getUser().getName(),
                 recipientName
         );
     }
@@ -424,5 +437,20 @@ public class BankingService {
             Thread.currentThread().interrupt();
             throw new CustomException(BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED);
         }
+    }
+
+    private void sleepAfterPasswordVerificationIfConfigured() {
+        if (passwordVerifiedSleepMillis <= 0) {
+            return;
+        }
+
+        log.info("[banking_transfer:password_verified_sleep_started] sleepMillis={}", passwordVerifiedSleepMillis);
+        try {
+            Thread.sleep(passwordVerifiedSleepMillis);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new CustomException(BANKING_REQUEST_LOOKUP_RETRY_INTERRUPTED);
+        }
+        log.info("[banking_transfer:password_verified_sleep_finished]");
     }
 }

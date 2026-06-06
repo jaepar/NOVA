@@ -127,6 +127,21 @@ class UserControllerTest {
 
 
 	@Test
+	@DisplayName("인증서 발급 요청 API는 성공 응답을 반환한다")
+	void requestCertificateIssuanceReturnsSuccess() throws Exception {
+		doNothing().when(userService).requestCertificateIssuance(1L);
+
+		mockMvc.perform(post("/users/verifications")
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"));
+
+		verify(userService).requestCertificateIssuance(1L);
+	}
+
+	@Test
 	@DisplayName("Liveness 세션 생성 API는 성공 응답을 반환한다")
 	void createLivenessSessionReturnsSuccess() throws Exception {
 			LivenessSessionResponse payload = new LivenessSessionResponse(

@@ -34,6 +34,7 @@ import woorifisa.project.backend.domain.user.dto.response.LivenessSessionRespons
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
 import woorifisa.project.backend.domain.user.entity.Document;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
@@ -82,6 +83,35 @@ class UserServiceTest {
 			rekognitionClient,
 			properties
 		);
+	}
+
+	@Test
+	@DisplayName("인증서 발급 요청 시 사용자 상태를 PENDING으로 변경한다")
+	void requestCertificateIssuanceChangesStatusToPending() {
+		Long userId = 1L;
+		User user = User.builder()
+			.userId(userId)
+			.certificateStatus(CertificateStatus.NOT_ISSUED)
+			.build();
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+		userService.requestCertificateIssuance(userId);
+
+		assertThat(user.getCertificateStatus()).isEqualTo(CertificateStatus.PENDING);
+	}
+
+	@Test
+	@DisplayName("인증서 발급 요청 시 사용자가 없으면 예외가 발생한다")
+	void requestCertificateIssuanceThrowsWhenUserNotFound() {
+		Long userId = 1L;
+
+		when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> userService.requestCertificateIssuance(userId))
+			.isInstanceOf(CustomException.class)
+			.extracting("exceptionStatus")
+			.isEqualTo(USER_NOT_FOUND);
 	}
 
 	@Test
