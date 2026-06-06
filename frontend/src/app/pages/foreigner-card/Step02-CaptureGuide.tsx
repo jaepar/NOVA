@@ -23,7 +23,7 @@ export function ForeignerCardCaptureGuide() {
 
   return (
     <MobileLayout
-      title="외국인등록증"
+      title="외국인등록증 등록"
       backPath="/foreigner-card/step-01"
       bottomContent={
         <Btn_1Col onClick={() => navigate('/foreigner-card/step-03')}>촬영하기</Btn_1Col>

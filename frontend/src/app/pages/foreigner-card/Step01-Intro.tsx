@@ -26,7 +26,7 @@ export function ForeignerCardIntro() {
 
   return (
     <MobileLayout
-      title="외국인등록증"
+      title="외국인등록증 등록"
       backPath="/main"
       bottomContent={<Btn_1Col onClick={handleStart}>등록하기</Btn_1Col>}
     >

@@ -13,7 +13,7 @@ export function ForeignerCardCompleted() {
 
   return (
     <Success
-      headerTitle="외국인등록증"
+      headerTitle="외국인등록증 등록"
       task="외국인등록증 등록을 완료했어요"
       buttonText="확인"
       onButtonClick={handleConfirm}

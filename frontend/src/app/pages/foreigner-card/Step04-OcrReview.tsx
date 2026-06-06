@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { certificateApi, getCertificateApiError } from '../../../api'
 import { Btn_2Col } from '../../components/design-system/Btn_2Col'
@@ -14,7 +14,7 @@ const reviewRows = [
 
 const failureMessages: Record<string, string> = {
   IDENTITY_NAME_MISMATCH_WITH_USER: '등록증 이름이 가입자 정보와 일치하지 않습니다.',
-  GOVERNMENT_IDENTITY_MISMATCH: '정부 DB의 신원 정보와 일치하지 않습니다.',
+  GOVERNMENT_IDENTITY_MISMATCH: '신원 정보가 정확하지 않습니다.',
 }
 
 function getConfirmApiErrorMessage(error: unknown) {
@@ -24,9 +24,9 @@ function getConfirmApiErrorMessage(error: unknown) {
     case 'USER-018':
       return '등록증 이름이 가입자 정보와 일치하지 않습니다.'
     case 'USER-020':
-      return '정부 DB의 신원 정보와 일치하지 않습니다. 입력 정보를 다시 확인해 주세요.'
+      return '신원 정보가 정확하지 않습니다. 입력 정보를 다시 확인해 주세요.'
     case 'USER-021':
-      return '정부 DB 통신에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+      return '신원 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.'
     case 'USER-022':
       return '외국인등록증 인증 요청 형식이 올바르지 않습니다.'
     default:
@@ -37,8 +37,6 @@ function getConfirmApiErrorMessage(error: unknown) {
 export function ForeignerCardOcrReview() {
   const navigate = useNavigate()
   const ocrValues = useForeignerCardRegistrationStore((state) => state.ocrValues)
-  const verificationStatus = useForeignerCardRegistrationStore((state) => state.verificationStatus)
-  const failureReasonCode = useForeignerCardRegistrationStore((state) => state.failureReasonCode)
   const setOcrValue = useForeignerCardRegistrationStore((state) => state.setOcrValue)
   const setVerificationResult = useForeignerCardRegistrationStore(
     (state) => state.setVerificationResult,
@@ -46,10 +44,30 @@ export function ForeignerCardOcrReview() {
   const reset = useForeignerCardRegistrationStore((state) => state.reset)
   const [isConfirming, setIsConfirming] = useState(false)
   const [confirmError, setConfirmError] = useState<string | null>(null)
+  const [isConfirmErrorVisible, setIsConfirmErrorVisible] = useState(false)
 
-  const failureMessage = failureReasonCode
-    ? failureMessages[failureReasonCode] ?? '인증 결과를 확인해 주세요.'
-    : ''
+  useEffect(() => {
+    if (!confirmError) {
+      setIsConfirmErrorVisible(false)
+      return
+    }
+
+    const enterTimerId = window.setTimeout(() => {
+      setIsConfirmErrorVisible(true)
+    }, 20)
+    const exitTimerId = window.setTimeout(() => {
+      setIsConfirmErrorVisible(false)
+    }, 2700)
+    const clearTimerId = window.setTimeout(() => {
+      setConfirmError(null)
+    }, 3000)
+
+    return () => {
+      window.clearTimeout(enterTimerId)
+      window.clearTimeout(exitTimerId)
+      window.clearTimeout(clearTimerId)
+    }
+  }, [confirmError])
 
   const handleRetake = () => {
     reset()
@@ -106,7 +124,7 @@ export function ForeignerCardOcrReview() {
 
   return (
     <MobileLayout
-      title="외국인등록증"
+      title="외국인등록증 등록"
       backPath="/foreigner-card/step-03"
       bottomContent={
         <Btn_2Col
@@ -128,11 +146,6 @@ export function ForeignerCardOcrReview() {
             외국인 등록증에서 인식한 정보입니다.
           </p>
         </section>
-
-        {verificationStatus === 'FAILED' && failureMessage && (
-          <InlineBanner message={failureMessage} variant="error" />
-        )}
-        {confirmError && <InlineBanner message={confirmError} variant="error" />}
 
         <section className="overflow-hidden rounded-2xl border border-border bg-background">
           {reviewRows.map((row) => (
@@ -159,6 +172,15 @@ export function ForeignerCardOcrReview() {
             </div>
           ))}
         </section>
+        {confirmError && (
+          <div
+            className={`transform-gpu transition-all duration-300 ease-out ${
+              isConfirmErrorVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            }`}
+          >
+            <InlineBanner message={confirmError} variant="error" />
+          </div>
+        )}
         {isConfirming && (
           <div className="rounded-xl border border-border bg-secondary p-3 text-center text-sm text-muted-foreground">
             외국인등록증 정보를 확인하고 있습니다. 잠시만 기다려 주세요.

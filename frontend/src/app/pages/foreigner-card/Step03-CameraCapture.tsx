@@ -4,7 +4,7 @@ import { ShieldCheck } from 'lucide-react'
 import { certificateApi, getCertificateApiError, type IdCardOcrResult } from '../../../api'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { InlineBanner } from '../../components/design-system/InlineBanner'
-import { CameraCapturePage } from '../../components/camera/CameraCapturePage'
+import { MobileLayout } from '../../components/layout/MobileLayout'
 import { useForeignerCardRegistrationStore } from '../../stores/pageStores'
 
 function isIdCardOcrResult(result: unknown): result is IdCardOcrResult {
@@ -29,9 +29,9 @@ function getOcrErrorMessage(error: unknown) {
     case 'USER-018':
       return '등록증 이름이 사용자 정보와 일치하지 않습니다.'
     case 'USER-020':
-      return '정부 DB의 신원 정보와 일치하지 않습니다. 정보를 확인해 주세요.'
+      return '신원 정보가 정확하지 않습니다. 정보를 확인해 주세요.'
     case 'USER-021':
-      return '정부 DB 통신에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+      return '신원 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.'
     default:
       return apiError?.message || 'OCR 처리 중 오류가 발생했습니다. 다시 촬영해 주세요.'
   }
@@ -51,6 +51,8 @@ export function ForeignerCardCameraCapture() {
   )
   const [isOcrProcessing, setIsOcrProcessing] = useState(false)
   const [ocrError, setOcrError] = useState<string | null>(null)
+  const [isCaptureErrorVisible, setIsCaptureErrorVisible] = useState(false)
+  const captureErrorMessage = ocrError || cameraError
 
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop())
@@ -90,6 +92,30 @@ export function ForeignerCardCameraCapture() {
       stopCamera()
     }
   }, [setCameraError])
+
+  useEffect(() => {
+    if (!captureErrorMessage) {
+      setIsCaptureErrorVisible(false)
+      return
+    }
+
+    const enterTimerId = window.setTimeout(() => {
+      setIsCaptureErrorVisible(true)
+    }, 20)
+    const exitTimerId = window.setTimeout(() => {
+      setIsCaptureErrorVisible(false)
+    }, 2700)
+    const clearTimerId = window.setTimeout(() => {
+      setOcrError(null)
+      setCameraError(null)
+    }, 3000)
+
+    return () => {
+      window.clearTimeout(enterTimerId)
+      window.clearTimeout(exitTimerId)
+      window.clearTimeout(clearTimerId)
+    }
+  }, [captureErrorMessage, setCameraError])
 
   const processImageForOcr = async (imageFile: File, imageDataUrl: string) => {
     setOcrError(null)
@@ -141,12 +167,15 @@ export function ForeignerCardCameraCapture() {
   }
 
   return (
-    <CameraCapturePage
-      title="외국인등록증"
-      onClose={() => navigate('/foreigner-card/step-02')}
+    <MobileLayout
+      title="외국인등록증 등록"
+      backPath="/foreigner-card/step-02"
+      headerBackgroundColor="#ffffff"
+      headerTextColor="#000000"
+      bottomBackgroundColor="#ffffff"
       bottomContent={
         <div className="space-y-4">
-          <div className="flex items-center justify-center gap-2 text-xs text-white">
+          <div className="flex items-center justify-center gap-2 text-xs text-black">
             <ShieldCheck className="h-4 w-4" />
             <p>빛 반사가 없도록 주의해 주세요.</p>
           </div>
@@ -156,31 +185,40 @@ export function ForeignerCardCameraCapture() {
         </div>
       }
     >
-      <section className="space-y-5 pt-8 text-center">
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-white">외국인 등록증 촬영</h2>
-          <p className="text-sm leading-relaxed text-white/70">
-            영역 안에 <span className="text-primary">외국인 등록증</span>이 꽉 차도록 배치 후
-            <br />
-            하단의 버튼을 누르면 촬영됩니다
-          </p>
-        </div>
+      <div className="min-h-full -mx-5 -mb-32 bg-white px-5 pb-32 text-black">
+        <section className="space-y-5 pt-8 text-center">
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-foreground">외국인 등록증 촬영</h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              영역 안에 <span className="text-primary">외국인 등록증</span>이 꽉 차도록 배치 후
+              <br />
+              하단의 버튼을 누르면 촬영됩니다
+            </p>
+          </div>
 
-        <div className="relative h-[32vh] overflow-hidden rounded-xl border border-dashed border-white/60 bg-white/10">
-          <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
-          <div className="pointer-events-none absolute inset-4 rounded-lg border border-dashed border-white/60" />
-        </div>
-      </section>
+          <div className="relative h-[32vh] overflow-hidden rounded-xl border-2 border-dashed border-border bg-secondary">
+            <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
+            <div className="pointer-events-none absolute inset-4 rounded-lg border border-dashed border-border" />
+          </div>
+        </section>
 
-      <canvas ref={canvasRef} className="hidden" />
+        <canvas ref={canvasRef} className="hidden" />
 
-      {cameraError && <InlineBanner message={cameraError} variant="error" className="mt-4" />}
-      {ocrError && <InlineBanner message={ocrError} variant="error" className="mt-4" />}
-      {isOcrProcessing && (
-        <div className="mt-4 rounded-xl border border-white/20 bg-white/10 p-3 text-center text-sm text-white">
-          OCR 분석 중입니다. 잠시만 기다려 주세요.
-        </div>
-      )}
-    </CameraCapturePage>
+        {captureErrorMessage && (
+          <div
+            className={`mt-4 transform-gpu transition-all duration-300 ease-out ${
+              isCaptureErrorVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            }`}
+          >
+            <InlineBanner message={captureErrorMessage} variant="error" />
+          </div>
+        )}
+        {isOcrProcessing && (
+          <div className="mt-4 rounded-xl border border-border bg-secondary p-3 text-center text-sm text-black">
+            OCR 분석 중입니다. 잠시만 기다려 주세요.
+          </div>
+        )}
+      </div>
+    </MobileLayout>
   )
 }
