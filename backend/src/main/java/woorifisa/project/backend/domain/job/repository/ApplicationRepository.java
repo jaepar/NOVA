@@ -18,7 +18,5 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 	@EntityGraph(attributePaths = "job")
 	Slice<Application> findAllByUser_UserId(Long userId, Pageable pageable);
 
-	// 포트폴리오 조회 시 resume 정보를 사용하므로 추가 쿼리를 줄이기 위해 함께 조회
-	@EntityGraph(attributePaths = "resume")
 	Optional<Application> findByApplicationIdAndUser_UserId(Long applicationId, Long userId);
 }

@@ -70,6 +70,19 @@ export type {
   WalletTransactionsRequest,
   WalletTransactionsResponse,
 } from './endpoints/wallet';
+export { jobApi } from './endpoints/job';
+export type {
+  ApplicationItemResponse,
+  ApplicationListResponse,
+  ApplicationPortfolioResponse,
+  ApplicationStatus,
+  ApplicationFormPortfolioResponse,
+  ApplicationFormResponse,
+  JobOpeningItemResponse,
+  JobOpeningListParams,
+  JobOpeningListResponse,
+  JobOpeningResponse,
+} from './endpoints/job';
 export { transferApi } from "./endpoints/transfer";
 export type {
   SubmitRemittanceRequest,

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { Eye, EyeOff } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
@@ -20,8 +20,14 @@ function getLoginErrorMessage(error: unknown) {
   return NETWORK_ERROR_MESSAGE
 }
 
+type LoginLocationState = {
+  backPath?: string
+  redirectTo?: string
+}
+
 export function LoginForm() {
   const navigate = useNavigate()
+  const location = useLocation()
   const setAuthenticated = useMainPageStore((state) => state.setAuthenticated)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -30,6 +36,9 @@ export function LoginForm() {
   const [errorMessage, setErrorMessage] = useState('')
   const canSubmit = email.trim().length > 0 && password.trim().length > 0 && !isSubmitting
   const PasswordIcon = isPasswordVisible ? EyeOff : Eye
+  const locationState = location.state as LoginLocationState | null
+  const backPath = locationState?.backPath ?? '/login'
+  const redirectTo = locationState?.redirectTo ?? '/main'
 
   const handleSubmit = async () => {
     if (!canSubmit) {
@@ -42,7 +51,8 @@ export function LoginForm() {
     try {
       const loginResult = await authApi.login({ email: email.trim(), password })
       setAuthenticated(loginResult.userId)
-      navigate('/main')
+      setHasAccount(false)
+      navigate(redirectTo)
     } catch (error) {
       setErrorMessage(getLoginErrorMessage(error))
     } finally {
@@ -54,7 +64,7 @@ export function LoginForm() {
     <MobileLayout
       title="로그인"
       headerType="back"
-      backPath="/login"
+      backPath={backPath}
       bottomContent={
         <Btn_1Col onClick={handleSubmit} disabled={!canSubmit}>
           {isSubmitting ? '처리 중' : '로그인'}

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,6 +27,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -34,9 +37,12 @@ import woorifisa.project.backend.domain.job.dto.response.ApplicationListResponse
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningListResponse;
 import woorifisa.project.backend.domain.job.dto.response.JobOpeningResponse;
 import woorifisa.project.backend.domain.job.dto.response.PortfolioFileResponse;
+import woorifisa.project.backend.domain.job.dto.request.ApplicationCreateRequest;
 import woorifisa.project.backend.domain.job.entity.Application;
+import woorifisa.project.backend.domain.job.entity.ApplicationResume;
 import woorifisa.project.backend.domain.job.entity.Job;
 import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
+import woorifisa.project.backend.domain.job.repository.ApplicationResumeRepository;
 import woorifisa.project.backend.domain.job.repository.ApplicationRepository;
 import woorifisa.project.backend.domain.job.repository.JobRepository;
 import woorifisa.project.backend.domain.user.entity.Resume;
@@ -57,6 +63,9 @@ class JobServiceTest {
 	private ApplicationRepository applicationRepository;
 
 	@Mock
+	private ApplicationResumeRepository applicationResumeRepository;
+
+	@Mock
 	private UserRepository userRepository;
 
 	@Mock
@@ -64,6 +73,9 @@ class JobServiceTest {
 
 	@Mock
 	private PortfolioFileS3Uploader portfolioFileS3Uploader;
+
+	@Mock
+	private JdbcTemplate jdbcTemplate;
 
 	@InjectMocks
 	private JobService jobService;
@@ -194,9 +206,9 @@ class JobServiceTest {
 			.name("portfolio.pdf")
 			.url("https://cdn.test/portfolio.pdf")
 			.build();
-		Application firstApplication = application(100L, user, firstJob, portfolio, ApplicationStatus.FAILED,
+		Application firstApplication = application(100L, user, firstJob, ApplicationStatus.FAILED,
 			LocalDateTime.of(2026, 6, 18, 9, 0));
-		Application secondApplication = application(200L, user, secondJob, null, ApplicationStatus.PASSED,
+		Application secondApplication = application(200L, user, secondJob, ApplicationStatus.PASSED,
 			LocalDateTime.of(2026, 6, 12, 9, 0));
 
 		when(applicationRepository.findAllByUser_UserId(1L, requestedPageable))
@@ -243,16 +255,59 @@ class JobServiceTest {
 			.name("조수재 포트폴리오.pdf")
 			.url("https://cdn.test/portfolio.pdf")
 			.build();
-		Application application = application(100L, user, job, portfolio, ApplicationStatus.FAILED,
+		Application application = application(100L, user, job, ApplicationStatus.FAILED,
 			LocalDateTime.of(2026, 6, 18, 9, 0));
+		ApplicationResume applicationResume = ApplicationResume.builder()
+			.application(application)
+			.resume(portfolio)
+			.build();
 
 		when(applicationRepository.findByApplicationIdAndUser_UserId(100L, 1L))
 			.thenReturn(Optional.of(application));
+		when(applicationResumeRepository.findAllPortfolios(100L, 1L))
+			.thenReturn(List.of(applicationResume));
+		when(jdbcTemplate.queryForObject(any(String.class), eq(Boolean.class)))
+			.thenReturn(false);
 
-		PortfolioFileResponse response = jobService.findApplicationPortfolio(1L, 100L);
+		List<PortfolioFileResponse> response = jobService.findApplicationPortfolio(1L, 100L);
 
-		assertThat(response.name()).isEqualTo("조수재 포트폴리오.pdf");
-		assertThat(response.url()).isEqualTo("https://cdn.test/portfolio.pdf");
+		assertThat(response).hasSize(1);
+		assertThat(response.get(0).name()).isEqualTo("조수재 포트폴리오.pdf");
+		assertThat(response.get(0).url()).isEqualTo("https://cdn.test/portfolio.pdf");
+	}
+
+	@Test
+	@DisplayName("merge join table portfolios with legacy resume_id portfolio")
+	void findApplicationPortfolioWithLegacyPortfolio() {
+		User user = user(1L);
+		Job job = job(10L);
+		Resume joinedPortfolio = Resume.builder()
+			.resumeId(3L)
+			.user(user)
+			.name("joined.png")
+			.url("https://cdn.test/joined.png")
+			.build();
+		Application application = application(100L, user, job, ApplicationStatus.FAILED,
+			LocalDateTime.of(2026, 6, 18, 9, 0));
+		ApplicationResume applicationResume = ApplicationResume.builder()
+			.application(application)
+			.resume(joinedPortfolio)
+			.build();
+
+		when(applicationRepository.findByApplicationIdAndUser_UserId(100L, 1L))
+			.thenReturn(Optional.of(application));
+		when(applicationResumeRepository.findAllPortfolios(100L, 1L))
+			.thenReturn(List.of(applicationResume));
+		when(jdbcTemplate.queryForObject(any(String.class), eq(Boolean.class)))
+			.thenReturn(true);
+		when(jdbcTemplate.query(any(String.class), any(RowMapper.class), eq(100L), eq(1L)))
+			.thenReturn(List.of(new PortfolioFileResponse("legacy.pdf", "https://cdn.test/legacy.pdf")));
+
+		List<PortfolioFileResponse> response = jobService.findApplicationPortfolio(1L, 100L);
+
+		assertThat(response)
+			.extracting(PortfolioFileResponse::url)
+			.containsExactly("https://cdn.test/joined.png", "https://cdn.test/legacy.pdf");
 	}
 
 	@Test
@@ -260,15 +315,42 @@ class JobServiceTest {
 	void findApplicationPortfolioEmpty() {
 		User user = user(1L);
 		Job job = job(10L);
-		Application application = application(100L, user, job, null, ApplicationStatus.FAILED,
+		Application application = application(100L, user, job, ApplicationStatus.FAILED,
 			LocalDateTime.of(2026, 6, 18, 9, 0));
 
 		when(applicationRepository.findByApplicationIdAndUser_UserId(100L, 1L))
 			.thenReturn(Optional.of(application));
 
-		PortfolioFileResponse response = jobService.findApplicationPortfolio(1L, 100L);
+		when(applicationResumeRepository.findAllPortfolios(100L, 1L))
+			.thenReturn(List.of());
 
-		assertThat(response).isNull();
+		List<PortfolioFileResponse> response = jobService.findApplicationPortfolio(1L, 100L);
+
+		assertThat(response).isEmpty();
+	}
+
+	@Test
+	@DisplayName("find legacy application's resume_id portfolio when join table is empty")
+	void findLegacyApplicationPortfolio() {
+		User user = user(1L);
+		Job job = job(10L);
+		Application application = application(100L, user, job, ApplicationStatus.FAILED,
+			LocalDateTime.of(2026, 6, 18, 9, 0));
+
+		when(applicationRepository.findByApplicationIdAndUser_UserId(100L, 1L))
+			.thenReturn(Optional.of(application));
+		when(applicationResumeRepository.findAllPortfolios(100L, 1L))
+			.thenReturn(List.of());
+		when(jdbcTemplate.queryForObject(any(String.class), eq(Boolean.class)))
+			.thenReturn(true);
+		when(jdbcTemplate.query(any(String.class), any(RowMapper.class), eq(100L), eq(1L)))
+			.thenReturn(List.of(new PortfolioFileResponse("legacy.pdf", "https://cdn.test/legacy.pdf")));
+
+		List<PortfolioFileResponse> response = jobService.findApplicationPortfolio(1L, 100L);
+
+		assertThat(response).hasSize(1);
+		assertThat(response.get(0).name()).isEqualTo("legacy.pdf");
+		assertThat(response.get(0).url()).isEqualTo("https://cdn.test/legacy.pdf");
 	}
 
 	@Test
@@ -282,7 +364,7 @@ class JobServiceTest {
 		when(applicationRepository.existsByUserAndJob(user, job)).thenReturn(false);
 		when(applicationRepository.save(any(Application.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		jobService.createApplication(1L, 10L, null);
+		jobService.createApplication(1L, 10L, new ApplicationCreateRequest(List.of()), null);
 
 		ArgumentCaptor<Application> applicationCaptor = ArgumentCaptor.forClass(Application.class);
 		verify(applicationRepository).save(applicationCaptor.capture());
@@ -292,11 +374,12 @@ class JobServiceTest {
 		assertThat(saved.getStatus()).isEqualTo(ApplicationStatus.UNREAD);
 		verify(portfolioFileS3Uploader, never()).upload(any(), any(), anyInt(), any());
 		verify(resumeRepository, never()).save(any());
+		verify(applicationResumeRepository, never()).save(any());
 	}
 
 	@Test
-	@DisplayName("uploaded file is saved to S3 and linked to application as resume")
-	void createApplicationWithFiles() {
+	@DisplayName("selected S3 URLs and all uploaded files are linked to application through join table")
+	void createApplicationWithSelectedUrlsAndFiles() {
 		User user = user(1L);
 		Job job = job(10L);
 		Application persisted = Application.builder()
@@ -305,32 +388,49 @@ class JobServiceTest {
 			.job(job)
 			.status(ApplicationStatus.UNREAD)
 			.build();
-		MockMultipartFile file = new MockMultipartFile("files", "resume.pdf", "application/pdf", "resume".getBytes());
+		MockMultipartFile firstFile = new MockMultipartFile("files", "resume.pdf", "application/pdf", "resume".getBytes());
+		MockMultipartFile secondFile = new MockMultipartFile("files", "portfolio.pdf", "application/pdf", "portfolio".getBytes());
+		ApplicationCreateRequest request = new ApplicationCreateRequest(List.of(
+			"https://s3.test/registered/portfolio-a.pdf",
+			"https://s3.test/registered/portfolio-b.pdf"
+		));
 
 		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 		when(jobRepository.findById(10L)).thenReturn(Optional.of(job));
 		when(applicationRepository.existsByUserAndJob(user, job)).thenReturn(false);
 		when(applicationRepository.save(any(Application.class))).thenReturn(persisted);
-		when(portfolioFileS3Uploader.upload(1L, 99L, 0, file))
+		when(resumeRepository.findByUserAndUrl(user, "https://s3.test/registered/portfolio-a.pdf"))
+			.thenReturn(Optional.empty());
+		when(resumeRepository.findByUserAndUrl(user, "https://s3.test/registered/portfolio-b.pdf"))
+			.thenReturn(Optional.empty());
+		when(resumeRepository.save(any(Resume.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(portfolioFileS3Uploader.upload(1L, 99L, 0, firstFile))
 			.thenReturn("https://s3.test/portfolios/user-1/application-99/portfolio-0_resume.pdf");
+		when(portfolioFileS3Uploader.upload(1L, 99L, 1, secondFile))
+			.thenReturn("https://s3.test/portfolios/user-1/application-99/portfolio-1_portfolio.pdf");
 
 		jobService.createApplication(
 			1L,
 			10L,
-			new MockMultipartFile[] {file}
+			request,
+			List.of(firstFile, secondFile)
 		);
 
 		ArgumentCaptor<Resume> resumeCaptor = ArgumentCaptor.forClass(Resume.class);
-		verify(resumeRepository).save(resumeCaptor.capture());
-		Resume savedResume = resumeCaptor.getValue();
-		assertThat(savedResume.getUser()).isEqualTo(user);
-		assertThat(savedResume.getName()).isEqualTo("resume.pdf");
-		assertThat(savedResume.getUrl()).isEqualTo("https://s3.test/portfolios/user-1/application-99/portfolio-0_resume.pdf");
-		assertThat(persisted.getResume()).isEqualTo(savedResume);
+		verify(resumeRepository, times(4)).save(resumeCaptor.capture());
+		assertThat(resumeCaptor.getAllValues())
+			.extracting(Resume::getUrl)
+			.containsExactly(
+				"https://s3.test/registered/portfolio-a.pdf",
+				"https://s3.test/registered/portfolio-b.pdf",
+				"https://s3.test/portfolios/user-1/application-99/portfolio-0_resume.pdf",
+				"https://s3.test/portfolios/user-1/application-99/portfolio-1_portfolio.pdf"
+			);
 
-		ArgumentCaptor<Application> applicationCaptor = ArgumentCaptor.forClass(Application.class);
-		verify(applicationRepository, times(2)).save(applicationCaptor.capture());
-		assertThat(applicationCaptor.getAllValues().get(1).getResume()).isEqualTo(savedResume);
+		ArgumentCaptor<ApplicationResume> applicationResumeCaptor = ArgumentCaptor.forClass(ApplicationResume.class);
+		verify(applicationResumeRepository, times(4)).save(applicationResumeCaptor.capture());
+		assertThat(applicationResumeCaptor.getAllValues())
+			.allSatisfy(applicationResume -> assertThat(applicationResume.getApplication()).isEqualTo(persisted));
 	}
 
 	@Test
@@ -339,7 +439,7 @@ class JobServiceTest {
 		when(userRepository.findById(1L)).thenReturn(Optional.of(user(1L)));
 		when(jobRepository.findById(404L)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> jobService.createApplication(1L, 404L, null))
+		assertThatThrownBy(() -> jobService.createApplication(1L, 404L, new ApplicationCreateRequest(List.of()), null))
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
 			.isEqualTo(APPLICATION_NOT_FOUND);
@@ -354,7 +454,7 @@ class JobServiceTest {
 		when(jobRepository.findById(10L)).thenReturn(Optional.of(job));
 		when(applicationRepository.existsByUserAndJob(user, job)).thenReturn(true);
 
-		assertThatThrownBy(() -> jobService.createApplication(1L, 10L, null))
+		assertThatThrownBy(() -> jobService.createApplication(1L, 10L, new ApplicationCreateRequest(List.of()), null))
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
 			.isEqualTo(APPLICATION_ALREADY_EXISTS);
@@ -398,7 +498,6 @@ class JobServiceTest {
 		Long applicationId,
 		User user,
 		Job job,
-		Resume resume,
 		ApplicationStatus status,
 		LocalDateTime createdAt
 	) {
@@ -406,7 +505,6 @@ class JobServiceTest {
 			.applicationId(applicationId)
 			.user(user)
 			.job(job)
-			.resume(resume)
 			.status(status)
 			.build();
 		ReflectionTestUtils.setField(application, "createdAt", createdAt);
