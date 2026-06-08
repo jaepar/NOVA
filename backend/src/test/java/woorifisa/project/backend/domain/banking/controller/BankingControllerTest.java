@@ -10,20 +10,27 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
+import woorifisa.project.backend.domain.banking.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.backend.domain.banking.dto.response.AccountCreateResponse;
+import woorifisa.project.backend.domain.banking.dto.response.AccountHomeResponse;
 import woorifisa.project.backend.domain.banking.service.BankingService;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
+import woorifisa.project.backend.global.exception.CustomException;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.BANKING_TRANSACTION_MEMO_TOO_LONG;
 
 @WebMvcTest(BankingController.class)
 class BankingControllerTest {
@@ -187,14 +194,15 @@ class BankingControllerTest {
     }
 
     @Test
-    @DisplayName("계좌 비밀번호 검증 API는 더 이상 제공하지 않는다")
-    void verifyAccountPasswordRemoved() throws Exception {
+    @DisplayName("계좌 비밀번호 검증 요청을 처리한다")
+    void verifyAccountPasswordSuccess() throws Exception {
         Long userId = 1L;
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 new SessionUserPrincipal(userId),
                 null,
                 AuthorityUtils.NO_AUTHORITIES
         );
+        doNothing().when(bankingService).verifyAccountPassword(any(), any());
 
         mockMvc.perform(post("/banking/password/verify")
                         .with(authentication(authToken))
@@ -205,6 +213,66 @@ class BankingControllerTest {
                                   "accountPassword": "1234"
                                 }
                                 """))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("거래내역 메모 수정 요청을 처리하고 null data를 반환한다")
+    void updateTransactionMemoSuccess() throws Exception {
+        Long userId = 1L;
+        Long transactionId = 9001L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        doNothing().when(bankingService).updateTransactionMemo(any(), any());
+
+        mockMvc.perform(patch("/banking/transactions/{transactionId}/memo", transactionId)
+                        .with(authentication(authToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "memo": "월세"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("20000"))
+                .andExpect(jsonPath("$.data").doesNotExist());
+
+        verify(bankingService).updateTransactionMemo(eq(transactionId), any(UpdateTransactionMemoRequest.class));
+    }
+
+    @Test
+    @DisplayName("거래내역 메모가 20자를 초과하면 400 응답을 반환한다")
+    void updateTransactionMemoTooLong() throws Exception {
+        Long userId = 1L;
+        Long transactionId = 9001L;
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                new SessionUserPrincipal(userId),
+                null,
+                AuthorityUtils.NO_AUTHORITIES
+        );
+
+        doThrow(new CustomException(BANKING_TRANSACTION_MEMO_TOO_LONG))
+                .when(bankingService).updateTransactionMemo(eq(transactionId), any());
+
+        mockMvc.perform(patch("/banking/transactions/{transactionId}/memo", transactionId)
+                        .with(authentication(authToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "memo": "123456789012345678901"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("BANK-009"))
+                .andExpect(jsonPath("$.message").value("메모는 20자 이내로 입력해야 합니다."));
     }
 }

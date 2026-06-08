@@ -1,10 +1,11 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import { BottomNav } from '../components/layout/BottomNav'
 import { SideMenu } from '../components/layout/SideMenu'
 import { BottomSheet } from '../components/layout/BottomSheet'
 import { useMainPageStore } from '../stores/pageStores'
-import { authApi } from '../../api'
+import { authApi, bankingApi, type AccountHomeResponse } from '../../api'
 import { MainHeaderBrand } from './main/MainHeaderBrand'
 import { MainHeaderActions } from './main/MainHeaderActions'
 import { MainAccountPanel } from './main/MainAccountPanel'
@@ -21,7 +22,6 @@ export function Main() {
   const navigate = useNavigate();
   const isMenuOpen = useMainPageStore((state) => state.isMenuOpen);
   const isLoggedIn = useMainPageStore((state) => state.isLoggedIn);
-  const hasAccount = useMainPageStore((state) => state.hasAccount);
   const hasUnreadNotifications = useMainPageStore(
     (state) => state.hasUnreadNotifications
   );
@@ -33,6 +33,8 @@ export function Main() {
     (state) => state.setCertificateSheetOpen
   );
   const logout = useMainPageStore((state) => state.logout);
+  const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(null);
+  const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
 
   const services: ServiceItem[] = [
     {
@@ -62,15 +64,60 @@ export function Main() {
     }
   };
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadAccountHome() {
+      if (!isLoggedIn) {
+        if (isMounted) {
+          setAccountHome(null);
+          setAccountHomeLoading(false);
+        }
+        return;
+      }
+
+      if (isMounted) {
+        setAccountHomeLoading(true);
+      }
+
+      try {
+        const nextAccountHome = await bankingApi.getHome();
+
+        if (isMounted) {
+          setAccountHome(nextAccountHome);
+        }
+      } catch {
+        if (isMounted) {
+          setAccountHome(null);
+        }
+      } finally {
+        if (isMounted) {
+          setAccountHomeLoading(false);
+        }
+      }
+    }
+
+    loadAccountHome();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn]);
+
   const handleIssueCertificate = () => {
     setCertificateSheetOpen(false);
     navigate("/certificate/step-01");
+  };
+
+  const handleOpenAccount = () => {
+    navigate("/account/step-01");
   };
 
   const handleLogout = async () => {
     try {
       await authApi.logout();
       logout();
+      setAccountHome(null);
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -95,10 +142,12 @@ export function Main() {
           <section>
             <MainAccountPanel
               isLoggedIn={isLoggedIn}
-              hasAccount={hasAccount}
+              accountHome={accountHome}
+              isLoading={isAccountHomeLoading}
               onLoginClick={() => navigate("/login")}
               onSignupClick={() => navigate("/signup")}
               onOpenCertificateSheet={() => setCertificateSheetOpen(true)}
+              onOpenAccount={handleOpenAccount}
             />
           </section>
 

@@ -9,6 +9,7 @@ import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.account.repository.AccountRepository;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.DebitWalletAccountRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.TransferAccountRequest;
+import woorifisa.project.coreBanking.domain.accountTransaction.dto.request.UpdateTransactionMemoRequest;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionFlow;
 import woorifisa.project.coreBanking.domain.accountTransaction.entity.enums.TransactionType;
 import woorifisa.project.coreBanking.domain.accountTransaction.repository.AccountTransactionRepository;
@@ -338,4 +339,64 @@ class AccountTransactionServiceTest {
                 .hasMessage(ACCOUNT_TRANSFER_INSUFFICIENT_BALANCE.getMessage());
     }
 
+    @Test
+    @DisplayName("거래내역 ID로 메모를 수정한다")
+    void updateMemoSuccess() {
+        Long transactionId = 9001L;
+        AccountTransaction transaction = AccountTransaction.builder()
+                .accountTransactionId(transactionId)
+                .transactionFlow(TransactionFlow.WITHDRAWAL)
+                .transactionType(TransactionType.ACCOUNT_TRANSFER)
+                .amount(5000)
+                .memo("기존")
+                .build();
+
+        when(accountTransactionRepository.findById(transactionId))
+                .thenReturn(Optional.of(transaction));
+
+        accountTransactionService.updateMemo(
+                transactionId,
+                new UpdateTransactionMemoRequest("월세")
+        );
+
+        assertThat(transaction.getMemo()).isEqualTo("월세");
+    }
+
+    @Test
+    @DisplayName("거래내역 메모 수정 시 공백 메모는 null로 정규화한다")
+    void updateMemoBlankToNull() {
+        Long transactionId = 9001L;
+        AccountTransaction transaction = AccountTransaction.builder()
+                .accountTransactionId(transactionId)
+                .transactionFlow(TransactionFlow.WITHDRAWAL)
+                .transactionType(TransactionType.ACCOUNT_TRANSFER)
+                .amount(5000)
+                .memo("기존")
+                .build();
+
+        when(accountTransactionRepository.findById(transactionId))
+                .thenReturn(Optional.of(transaction));
+
+        accountTransactionService.updateMemo(
+                transactionId,
+                new UpdateTransactionMemoRequest(" ")
+        );
+
+        assertThat(transaction.getMemo()).isNull();
+    }
+
+    @Test
+    @DisplayName("거래내역이 없으면 메모 수정 예외를 반환한다")
+    void updateMemoNotFound() {
+        Long transactionId = 9001L;
+        when(accountTransactionRepository.findById(transactionId))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> accountTransactionService.updateMemo(
+                transactionId,
+                new UpdateTransactionMemoRequest("월세")
+        ))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ACCOUNT_TRANSACTION_NOT_FOUND.getMessage());
+    }
 }
