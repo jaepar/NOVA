@@ -1,10 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { AppButton } from '../../components/design-system/AppButton'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
-import { accountTransactionHistory } from './data'
 import { TransactionMemoSheet } from './components/TransactionMemoSheet'
 import { useTransactionHistoryStore } from './store'
 import { formatWon } from './utils'
@@ -25,16 +24,23 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 export function TransactionHistoryDetailPage() {
   const navigate = useNavigate()
   const { transactionId } = useParams()
-  const memoByTransactionId = useTransactionHistoryStore((state) => state.memoByTransactionId)
-  const setTransactionMemo = useTransactionHistoryStore((state) => state.setTransactionMemo)
+  const account = useTransactionHistoryStore((state) => state.account)
+  const errorMessage = useTransactionHistoryStore((state) => state.errorMessage)
+  const isLoading = useTransactionHistoryStore((state) => state.isLoading)
+  const isUpdatingMemo = useTransactionHistoryStore((state) => state.isUpdatingMemo)
+  const findTransaction = useTransactionHistoryStore((state) => state.findTransaction)
+  const fetchTransactionForDetail = useTransactionHistoryStore(
+    (state) => state.fetchTransactionForDetail
+  )
+  const updateTransactionMemo = useTransactionHistoryStore((state) => state.updateTransactionMemo)
   const [isMemoSheetOpen, setMemoSheetOpen] = useState(false)
-  const baseTransaction = accountTransactionHistory.find((item) => item.id === transactionId)
-  const transaction = baseTransaction
-    ? {
-        ...baseTransaction,
-        memo: memoByTransactionId[baseTransaction.id] ?? baseTransaction.memo,
-      }
-    : undefined
+  const transaction = findTransaction(transactionId)
+
+  useEffect(() => {
+    if (!transaction) {
+      void fetchTransactionForDetail(transactionId)
+    }
+  }, [fetchTransactionForDetail, transaction, transactionId])
 
   if (!transaction) {
     return (
@@ -45,7 +51,7 @@ export function TransactionHistoryDetailPage() {
         bottomContent={<Btn_1Col onClick={() => navigate('/transaction-history')}>확인</Btn_1Col>}
       >
         <div className="flex h-full items-center justify-center text-[15px] font-medium text-muted-foreground">
-          거래내역을 찾을 수 없습니다.
+          {isLoading ? '거래내역을 불러오는 중입니다.' : '거래내역을 찾을 수 없습니다.'}
         </div>
       </MobileLayout>
     )
@@ -103,19 +109,26 @@ export function TransactionHistoryDetailPage() {
 
             <dl>
               <DetailRow label="거래일시" value={transaction.dateTime} />
-              <DetailRow label="출금계좌" value={transaction.withdrawalAccount} />
+              <DetailRow label="출금계좌" value={account?.number ?? '-'} />
               <DetailRow label="거래유형" value={transaction.type} />
             </dl>
           </section>
+
+          {errorMessage && (
+            <p className="mt-4 text-[13px] font-semibold leading-5 text-destructive">
+              {errorMessage}
+            </p>
+          )}
         </div>
       </MobileLayout>
 
       <TransactionMemoSheet
         isOpen={isMemoSheetOpen}
         initialMemo={transaction.memo}
+        isSaving={isUpdatingMemo}
         onClose={() => setMemoSheetOpen(false)}
-        onSave={(nextMemo) => {
-          setTransactionMemo(transaction.id, nextMemo)
+        onSave={async (nextMemo) => {
+          await updateTransactionMemo(transaction.transactionId, nextMemo)
           setMemoSheetOpen(false)
         }}
       />
