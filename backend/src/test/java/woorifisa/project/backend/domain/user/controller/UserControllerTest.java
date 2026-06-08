@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
 import woorifisa.project.backend.domain.user.dto.request.OcrDocumentType;
+import woorifisa.project.backend.domain.user.dto.response.IdentityOcrResponse;
 import woorifisa.project.backend.domain.user.dto.response.IdentityVerificationResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
@@ -163,8 +164,8 @@ class UserControllerTest {
 		}
 
 	@Test
-	@DisplayName("신분증/여권 OCR 분기 API는 성공 응답을 반환한다")
-	void verifyIdentityReturnsSuccess() throws Exception {
+	@DisplayName("신분증/여권 OCR 추출 API는 성공 응답을 반환한다")
+	void recognizeIdentityReturnsSuccess() throws Exception {
 		MockMultipartFile idImage = new MockMultipartFile(
 			"file",
 			"idcard.jpg",
@@ -172,13 +173,9 @@ class UserControllerTest {
 			"idcard".getBytes()
 		);
 
-		IdentityVerificationResponse payload = IdentityVerificationResponse.builder()
+		IdentityOcrResponse payload = IdentityOcrResponse.builder()
 			.ocrDocumentType(OcrDocumentType.ID_CARD)
 			.result(new IdCardOcrResponse("홍길동", "900101-1234567", "2020.01.01"))
-			.nameMatchWithUser(true)
-			.identityMatchWithGovDb(true)
-			.verificationStatus("VERIFIED")
-			.failureReasonCode(null)
 			.build();
 
 		when(identityVerificationService.verifyIdentity(any(), any(), eq(OcrDocumentType.ID_CARD))).thenReturn(payload);
@@ -191,9 +188,44 @@ class UserControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.code").value("20000"))
-			.andExpect(jsonPath("$.data.verificationStatus").value("VERIFIED"));
+			.andExpect(jsonPath("$.data.ocrDocumentType").value("ID_CARD"))
+			.andExpect(jsonPath("$.data.result.residentRegistrationNumber").value("900101-1234567"));
 
 		verify(identityVerificationService).verifyIdentity(any(), any(), eq(OcrDocumentType.ID_CARD));
+	}
+
+	@Test
+	@DisplayName("신분증 OCR 확정 API는 성공 응답을 반환한다")
+	void confirmIdentityReturnsSuccess() throws Exception {
+		IdentityVerificationResponse payload = IdentityVerificationResponse.builder()
+			.ocrDocumentType(OcrDocumentType.ID_CARD)
+			.nameMatchWithUser(true)
+			.identityMatchWithGovDb(true)
+			.verificationStatus("VERIFIED")
+			.failureReasonCode(null)
+			.build();
+
+		when(identityVerificationService.confirmIdentity(nullable(Long.class), any())).thenReturn(payload);
+
+		mockMvc.perform(post("/users/verifications/identity/confirm")
+				.with(authentication(authToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "ocrDocumentType": "ID_CARD",
+					  "name": "홍길동",
+					  "residentRegistrationNumber": "900101-1234567",
+					  "issueDate": "2020.01.01"
+					}
+					"""))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"))
+			.andExpect(jsonPath("$.data.verificationStatus").value("VERIFIED"))
+			.andExpect(jsonPath("$.data.result").doesNotExist());
+
+		verify(identityVerificationService).confirmIdentity(nullable(Long.class), any());
 	}
 
 	@Test

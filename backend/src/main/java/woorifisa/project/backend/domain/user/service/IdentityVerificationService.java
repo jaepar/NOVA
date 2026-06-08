@@ -7,7 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
+import woorifisa.project.backend.domain.user.dto.request.IdentityVerificationConfirmRequest;
 import woorifisa.project.backend.domain.user.dto.request.OcrDocumentType;
+import woorifisa.project.backend.domain.user.dto.response.IdentityOcrResponse;
 import woorifisa.project.backend.domain.user.dto.response.IdentityVerificationResponse;
 import woorifisa.project.backend.domain.user.dto.response.ocr.IdCardOcrResponse;
 import woorifisa.project.backend.domain.user.dto.response.ocr.PassportOcrResponse;
@@ -32,7 +34,7 @@ public class IdentityVerificationService {
 	private final NotificationService notificationService;
 
 	@Transactional
-	public IdentityVerificationResponse verifyIdentity(Long userId, MultipartFile file, OcrDocumentType ocrDocumentType) {
+	public IdentityOcrResponse verifyIdentity(Long userId, MultipartFile file, OcrDocumentType ocrDocumentType) {
 		if (ocrDocumentType == null) {
 			throw new CustomException(IDENTITY_OCR_INVALID_DOCUMENT_TYPE);
 		}
@@ -43,43 +45,58 @@ public class IdentityVerificationService {
 		};
 	}
 
-	// 여권 인증
-	private IdentityVerificationResponse verifyPassport(Long userId, MultipartFile file) {
+	@Transactional
+	public IdentityVerificationResponse confirmIdentity(Long userId, IdentityVerificationConfirmRequest request) {
+		if (request.ocrDocumentType() == null || request.ocrDocumentType() != OcrDocumentType.ID_CARD) {
+			throw new CustomException(IDENTITY_OCR_INVALID_DOCUMENT_TYPE);
+		}
+
+		return verifyIdCard(
+			userId,
+			new IdCardOcrResponse(
+				request.name(),
+				request.residentRegistrationNumber(),
+				request.issueDate()
+			)
+		);
+	}
+
+	// 여권 OCR 추출
+	private IdentityOcrResponse verifyPassport(Long userId, MultipartFile file) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
 		PassportOcrResponse passportOcrResponse = passportOcrService.recognizePassport(file);
-		if(!passportOcrResponse.fullNameKor().equals(user.getName())) {
-			return IdentityVerificationResponse.builder()
-				.ocrDocumentType(OcrDocumentType.PASSPORT)
-				.result(passportOcrResponse)
-				.nameMatchWithUser(false)
-				.identityMatchWithGovDb(false)
-				.verificationStatus("FAILED")
-				.failureReasonCode("IDENTITY_NAME_MISMATCH_WITH_USER")
-				.build();
-		}
+		boolean nameMatchWithUser = passportOcrResponse.fullNameKor().equals(user.getName());
 
-		return IdentityVerificationResponse.builder()
+		return IdentityOcrResponse.builder()
 			.ocrDocumentType(OcrDocumentType.PASSPORT)
 			.result(passportOcrResponse)
-			.nameMatchWithUser(true)
-			.verificationStatus("OCR_EXTRACTED")
+			.nameMatchWithUser(nameMatchWithUser)
 			.build();
 	}
 
-	// 외국인 등록증(신분증) 인증
-	private IdentityVerificationResponse verifyIdCard(Long userId, MultipartFile file) {
+	// 외국인 등록증(신분증) OCR 추출
+	private IdentityOcrResponse verifyIdCard(Long userId, MultipartFile file) {
+		IdCardOcrResponse idCard = idCardOcrService.recognizeIdCard(file);
+
+		return IdentityOcrResponse.builder()
+			.ocrDocumentType(OcrDocumentType.ID_CARD)
+			.result(idCard)
+			.nameMatchWithUser(null)
+			.build();
+	}
+
+	// 외국인 등록증(신분증) 인증 확정
+	private IdentityVerificationResponse verifyIdCard(Long userId, IdCardOcrResponse idCard) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
-		IdCardOcrResponse idCard = idCardOcrService.recognizeIdCard(file);
 		boolean nameMatchWithUser = normalizeName(idCard.name()).equals(normalizeName(user.getName()));
 
 		if (!nameMatchWithUser) {
 			return IdentityVerificationResponse.builder()
 				.ocrDocumentType(OcrDocumentType.ID_CARD)
-				.result(idCard)
 				.nameMatchWithUser(false)
 				.identityMatchWithGovDb(false)
 				.verificationStatus("FAILED")
@@ -87,7 +104,7 @@ public class IdentityVerificationService {
 				.build();
 		}
 
-		String registrationNumberHash = registrationNumberHmacHasher.hash(idCard.residentRegistrationNumber());
+		String registrationNumberHash = registrationNumberHmacHasher.hash(normalizeDigits(idCard.residentRegistrationNumber()));
 		GovermentIdentityResponse governmentIdentity =
 			governmentIdentityClient.lookupByRegistrationNumberHash(registrationNumberHash);
 		boolean identityMatchWithGovDb = isSameIdentity(idCard, governmentIdentity);
@@ -95,7 +112,6 @@ public class IdentityVerificationService {
 		if (!identityMatchWithGovDb) {
 			return IdentityVerificationResponse.builder()
 				.ocrDocumentType(OcrDocumentType.ID_CARD)
-				.result(idCard)
 				.nameMatchWithUser(true)
 				.identityMatchWithGovDb(false)
 				.verificationStatus("FAILED")
@@ -108,7 +124,6 @@ public class IdentityVerificationService {
 
 		return IdentityVerificationResponse.builder()
 			.ocrDocumentType(OcrDocumentType.ID_CARD)
-			.result(idCard)
 			.nameMatchWithUser(true)
 			.identityMatchWithGovDb(true)
 			.verificationStatus("VERIFIED")

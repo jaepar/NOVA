@@ -8,6 +8,7 @@ import { profileRoutes } from "./profileRoutes";
 import { jobRoutes } from "./jobRoutes";
 import { globalTransferRoutes } from "./globalTransferRoutes";
 import { transferRoutes } from "./transferRoutes";
+import { foreignerCardRoutes } from "./foreignerCardRoutes";
 
 import { accountRoutes } from "./accountRoutes";
 import { transactionHistoryRoutes } from "./transactionHistoryRoutes";
@@ -22,6 +23,7 @@ export const appRoutes = [
   ...jobRoutes,
   ...transferRoutes,
   ...walletRoutes,
+  ...foreignerCardRoutes,
   ...accountRoutes,
   ...transactionHistoryRoutes,
   ...certificateRoutes,

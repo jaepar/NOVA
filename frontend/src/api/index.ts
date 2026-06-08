@@ -58,6 +58,12 @@ export type {
   EmailVerificationConfirmResponse,
   EmailVerificationSendResponse,
 } from './endpoints/emailVerification';
+export type {
+  IdCardOcrResult,
+  IdentityOcrResponse,
+  IdentityVerificationConfirmRequest,
+  IdentityVerificationResponse,
+} from './endpoints/certificate';
 export { createIdempotencyKey, walletApi } from './endpoints/wallet';
 export type {
   ChargeWalletRequest,
