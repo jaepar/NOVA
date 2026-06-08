@@ -35,6 +35,15 @@ export type {
   AccountHomeResponse,
   AccountHomeUiState,
   AccountSummary,
+  BankingTransaction,
+  BankingTransactionsResponse,
+  CertificateStatus,
+  GetTransactionsParams,
+  TransactionFlowFilter,
+  TransactionPeriod,
+  TransactionSortDirection,
+  TransactionType,
+  UpdateTransactionMemoRequest,
 } from './endpoints/banking';
 export type { NotificationResponse, NotificationType } from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';

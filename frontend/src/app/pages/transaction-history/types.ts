@@ -1,4 +1,5 @@
 export interface AccountInfo {
+  accountId: number
   isLimited: boolean
   name: string
   number: string
@@ -8,13 +9,13 @@ export interface AccountInfo {
 
 export interface AccountTransaction {
   id: string
+  transactionId: number
   title: string
   counterParty: string
   type: string
   amount: number
   date: string
   dateTime: string
-  withdrawalAccount: string
   balanceAfter: number
   memo: string
 }
