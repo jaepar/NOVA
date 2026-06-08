@@ -37,7 +37,7 @@ export function Home() {
             <AppButton
               variant="unstyled"
               onClick={() => navigate('/design-system')}
-              className="w-full p-4 bg-primary text-primary-foreground hover:bg-blue-700 rounded-xl transition-all"
+              className="w-full p-4 bg-primary text-primary-foreground hover:bg-primary-dark rounded-xl transition-all"
             >
               <div className="flex items-center justify-between">
                 <span>Design System</span>

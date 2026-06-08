@@ -19,7 +19,7 @@ import { PortfolioItem, useProfileStore } from '../../stores/profileStore'
 
 const fileStyleByType = {
   pdf: { icon: FileText, color: 'text-red-500', bg: 'bg-red-50', label: 'PDF' },
-  docx: { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50', label: 'DOCX' },
+  docx: { icon: FileText, color: 'text-primary-light', bg: 'bg-primary-soft', label: 'DOCX' },
 }
 
 export function Profile() {

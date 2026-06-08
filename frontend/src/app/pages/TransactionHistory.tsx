@@ -56,7 +56,7 @@ export function TransactionHistory() {
             <div className="flex gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">입금 </span>
-                <span className="text-blue-600">+530,000원</span>
+                <span className="text-primary-light">+530,000원</span>
               </div>
               <div>
                 <span className="text-muted-foreground">출금 </span>
@@ -91,7 +91,7 @@ export function TransactionHistory() {
                     <p className="mb-1">{transaction.description}</p>
                     <p
                       className={`font-medium ${
-                        transaction.amount.startsWith('+') ? 'text-blue-600' : 'text-foreground'
+                        transaction.amount.startsWith('+') ? 'text-primary-light' : 'text-foreground'
                       }`}
                     >
                       {transaction.amount}

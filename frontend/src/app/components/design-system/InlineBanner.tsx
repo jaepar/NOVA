@@ -9,7 +9,7 @@ type InlineBannerProps = {
 const variantClassMap: Record<InlineBannerVariant, string> = {
   success: "border-emerald-400/60 bg-emerald-500/10 text-emerald-900",
   error: "border-red-400/50 bg-red-500/10 text-black",
-  info: "border-blue-400/60 bg-blue-500/10 text-blue-900",
+  info: "border-primary-light/60 bg-primary-soft text-primary",
   warning: "border-amber-400/60 bg-amber-500/15 text-amber-900",
 };
 
@@ -30,4 +30,3 @@ export function InlineBanner({
     </div>
   );
 }
-

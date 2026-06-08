@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
-import { X } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
+import failedIllustrationSrc from './assets/failed-illustration.png'
 
 interface FailedProps {
   headerTitle: string
@@ -47,13 +47,15 @@ export function Failed({
         </Btn_1Col>
       }
     >
-      <CenteredTaskContent task={task} description={description}>
+      <CenteredTaskContent task={task} description={description} contentGapClassName="gap-3">
         {visualImageSrc ? (
-          <img src={visualImageSrc} alt={visualImageAlt} className="h-20 w-20 object-contain" />
+          <img src={visualImageSrc} alt={visualImageAlt} className="h-56 w-56 object-contain" />
         ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
-            <X className="h-10 w-10 stroke-[3] text-red-500" />
-          </div>
+          <img
+            src={failedIllustrationSrc}
+            alt={visualImageAlt}
+            className="h-56 w-56 object-contain"
+          />
         )}
       </CenteredTaskContent>
     </MobileLayout>

@@ -82,7 +82,7 @@ export function WalletHome() {
             type="button"
             variant="unstyled"
             onClick={() => navigate("/wallet/charge")}
-            className="flex h-[56px] w-full items-center justify-center rounded-lg bg-[#014ede] text-[17px] font-semibold text-white transition-colors hover:bg-[#0142bd]"
+            className="flex h-[56px] w-full items-center justify-center rounded-lg bg-[#003CA6] text-[17px] font-semibold text-white transition-colors hover:bg-[#002A73]"
           >
             충전
           </AppButton>
@@ -129,7 +129,7 @@ export function WalletHome() {
                       }}
                       className={`block w-full rounded-lg px-4 py-3 text-left text-sm transition-colors ${
                         selectedFilter === option
-                          ? "bg-blue-50 font-semibold text-[#014ede]"
+                          ? "bg-primary-soft font-semibold text-[#003CA6]"
                           : "text-foreground hover:bg-secondary"
                       }`}
                     >

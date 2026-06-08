@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react'
 import { AppButton } from '../design-system/AppButton'
@@ -139,7 +139,7 @@ export function ConsentOverviewAccordion({
                     className="p-1"
                   >
                     <CheckCircle2
-                      className={`w-5 h-5 ${isCategoryAllChecked ? 'text-blue-600 fill-blue-100' : 'text-muted-foreground'}`}
+                      className={`w-5 h-5 ${isCategoryAllChecked ? 'text-primary-light fill-primary-soft' : 'text-muted-foreground'}`}
                     />
                   </AppButton>
                   <AppButton
@@ -173,7 +173,7 @@ export function ConsentOverviewAccordion({
                         className="p-1"
                       >
                         <CheckCircle2
-                          className={`w-4 h-4 ${checkedTermIds.has(term.id) ? 'text-blue-600 fill-blue-100' : 'text-muted-foreground'}`}
+                          className={`w-4 h-4 ${checkedTermIds.has(term.id) ? 'text-primary-light fill-primary-soft' : 'text-muted-foreground'}`}
                         />
                       </AppButton>
                       <AppButton

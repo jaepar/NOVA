@@ -19,7 +19,13 @@ export function MainAccountPanel({
 }: MainAccountPanelProps) {
   if (!isLoggedIn) {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-center">
+      <div className="min-h-[220px] rounded-[24px] border border-border bg-background px-5 py-8 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
+        <div className="mb-6 space-y-3 text-center">
+          <h3 className="text-lg font-semibold text-foreground">로그인하고 내 계좌를 확인하세요</h3>
+          <p className="text-sm font-medium text-muted-foreground">
+            안전하고 빠른 금융생활을 시작해보세요.
+          </p>
+        </div>
         <div className="space-y-3">
           <Btn_1Col onClick={onLoginClick}>로그인</Btn_1Col>
           <Btn_1Col variant="outline" onClick={onSignupClick}>
@@ -32,10 +38,12 @@ export function MainAccountPanel({
 
   if (!hasAccount) {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-base">계좌 개설로 더 다양한 서비스를 이용하세요</h3>
-          <p className="text-sm text-muted-foreground">새로운 금융의 시작 NOAVA</p>
+      <div className="min-h-[220px] rounded-[24px] border border-border bg-background px-5 py-8 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
+        <div className="mb-6 space-y-3 text-center">
+          <h3 className="text-lg font-semibold text-foreground">
+            계좌 개설로 더 다양한 서비스를 이용하세요
+          </h3>
+          <p className="text-sm font-medium text-muted-foreground">새로운 금융의 시작 NOVA</p>
         </div>
         <Btn_1Col onClick={onOpenCertificateSheet}>계좌 개설하기</Btn_1Col>
       </div>
@@ -43,7 +51,7 @@ export function MainAccountPanel({
   }
 
   return (
-    <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white min-h-[180px] flex flex-col justify-between">
+    <div className="bg-gradient-to-br from-[#003CA6] to-[#2563EB] rounded-2xl p-6 text-white min-h-[180px] flex flex-col justify-between">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">

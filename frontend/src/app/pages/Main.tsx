@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { CreditCard, Headphones, MessageSquare, Wallet } from 'lucide-react'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import { BottomNav } from '../components/layout/BottomNav'
 import { SideMenu } from '../components/layout/SideMenu'
@@ -13,6 +12,9 @@ import { MainJobBanner } from './main/MainJobBanner'
 import { MainServiceGrid } from './main/MainServiceGrid'
 import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
 import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
+import hospitalReservationIcon from './main/assets/hospital-reservation-icon.png'
+import registrationCardIcon from './main/assets/registration-card-icon.png'
+import walletIcon from './main/assets/wallet-icon.png'
 import type { ExchangeRateItem, ServiceItem } from './main/types'
 
 export function Main() {
@@ -33,16 +35,19 @@ export function Main() {
   const logout = useMainPageStore((state) => state.logout);
 
   const services: ServiceItem[] = [
-    // 임시 연결: 계좌 개설 플로우 검증을 위해 화상상담 버튼을 account step-01로 라우팅
-    // TODO: 계좌 개설 진입 동선 확정 후 아래 path 제거
     {
-      icon: <Headphones className="w-8 h-8" />,
-      label: "계좌개설",
-      path: "/account/step-01",
+      icon: <img src={hospitalReservationIcon} alt="" className="h-9 w-9 object-contain" />,
+      label: "병원예약",
     },
-    { icon: <MessageSquare className="w-8 h-8" />, label: "병원예약" },
-    { icon: <CreditCard className="w-8 h-8" />, label: "외국인등록증" },
-    { icon: <Wallet className="w-8 h-8" />, label: "월렛", path: "/wallet" },
+    {
+      icon: <img src={registrationCardIcon} alt="" className="h-9 w-9 object-contain" />,
+      label: "외국인등록증",
+    },
+    {
+      icon: <img src={walletIcon} alt="" className="h-9 w-9 rounded-lg object-cover" />,
+      label: "월렛",
+      path: "/wallet",
+    },
   ];
 
   const exchangeRates: ExchangeRateItem[] = [
@@ -86,7 +91,7 @@ export function Main() {
           />
         }
       >
-        <div className="space-y-4">
+        <div className="space-y-4 pt-3">
           <section>
             <MainAccountPanel
               isLoggedIn={isLoggedIn}

@@ -1,4 +1,4 @@
-﻿import { AppButton } from '../../components/design-system/AppButton'
+import { AppButton } from '../../components/design-system/AppButton'
 import type { ServiceItem } from './types'
 
 interface MainServiceGridProps {
@@ -8,17 +8,17 @@ interface MainServiceGridProps {
 
 export function MainServiceGrid({ services, onServiceClick }: MainServiceGridProps) {
   return (
-    <section className="space-y-4">
+    <section className="main-responsive-grid-container space-y-4">
       <h3>생활</h3>
-      <div className="grid grid-cols-4 max-[389px]:grid-cols-1 gap-4">
+      <div className="main-responsive-grid">
         {services.map((service) => (
           <AppButton
             variant="unstyled"
             key={service.label}
             onClick={() => onServiceClick(service.path)}
-            className="flex flex-col items-center gap-2 hover:bg-secondary rounded-xl transition-colors max-[389px]:bg-secondary max-[389px]:p-4"
+            className="main-service-button flex min-w-0 flex-col items-center gap-2 rounded-xl transition-colors hover:bg-secondary"
           >
-            <div className="text-blue-500">{service.icon}</div>
+            <div className="text-primary-light">{service.icon}</div>
             <span className="text-center w-full text-xs">{service.label}</span>
           </AppButton>
         ))}

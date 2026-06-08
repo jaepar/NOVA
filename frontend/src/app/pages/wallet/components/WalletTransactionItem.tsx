@@ -37,7 +37,7 @@ export function WalletTransactionItem({
           </p>
           <p
             className={`shrink-0 text-[18px] font-semibold leading-7 ${
-              isDeposit ? 'text-[#014ede]' : 'text-foreground'
+              isDeposit ? 'text-[#003CA6]' : 'text-foreground'
             }`}
           >
             {formattedAmount}
