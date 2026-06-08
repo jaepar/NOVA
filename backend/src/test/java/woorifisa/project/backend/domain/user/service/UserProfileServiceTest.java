@@ -105,6 +105,7 @@ class UserProfileServiceTest {
 		assertThat(response.portfolios()).hasSize(1);
 		assertThat(response.portfolios().get(0).portfolioId()).isEqualTo(10L);
 		assertThat(response.portfolios().get(0).name()).isEqualTo("nurse_resume.pdf");
+		assertThat(response.portfolios().get(0).url()).isEqualTo("https://s3.test/portfolio.pdf");
 	}
 
 	@Test
