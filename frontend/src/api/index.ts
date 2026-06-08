@@ -24,6 +24,8 @@ export { certificateApi, getCertificateApiError } from './endpoints/certificate'
 export { userApi } from './endpoints/user';
 export type {
   AuthMessageResponse,
+  EmailVerificationConfirmRequest,
+  EmailVerificationSendRequest,
   LoginRequest,
   LoginResponse,
   SessionCheckResponse,
