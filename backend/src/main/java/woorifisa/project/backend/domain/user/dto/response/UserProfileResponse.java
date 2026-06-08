@@ -31,13 +31,15 @@ public record UserProfileResponse(
 
 	public record PortfolioResponse(
 		Long portfolioId,
-		String name
+		String name,
+		String url
 	) {
 
 		public static PortfolioResponse from(Resume resume) {
 			return new PortfolioResponse(
 				resume.getResumeId(),
-				resume.getName()
+				resume.getName(),
+				resume.getUrl()
 			);
 		}
 	}
