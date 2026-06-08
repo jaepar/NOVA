@@ -2,27 +2,25 @@ import apiClient from "../client";
 import { extractApiErrorBody } from "../utils";
 
 type BankingApiResponse<T> = {
-  success: boolean;
-  code: string;
-  message: string;
-  data: T;
+    success: boolean;
+    code: string;
+    message: string;
+    data: T;
 };
 
-export type CertificateStatus = "NOT_ISSUED" | "PENDING" | "ISSUED";
-
 export type AccountHomeUiState =
-  | "NEED_CERTIFICATE"
-  | "CERTIFICATE_ISSUING"
-  | "READY_TO_OPEN_ACCOUNT"
-  | "HAS_ACCOUNT";
+    | "NEED_CERTIFICATE"
+    | "CERTIFICATE_ISSUING"
+    | "READY_TO_OPEN_ACCOUNT"
+    | "HAS_ACCOUNT";
 
 export type AccountSummary = {
-  accountId: number;
-  accountName: string;
-  accountNumber: string;
-  bankName: string;
-  balance: number;
-  hasLimit: boolean;
+    accountId: number;
+    accountName: string;
+    accountNumber: string;
+    bankName: string;
+    balance: number;
+    hasLimit: boolean;
 };
 
 export type AccountHomeResponse = {
@@ -52,7 +50,6 @@ export type AccountCreateResponse = {
     bankCode: string;
     accountNumber: string;
 };
-
 
 export type TransferPreviewRequest = {
     recipientBankCode: string;
@@ -87,7 +84,7 @@ export type BankingApiErrorBody = {
 };
 
 type AccountHomeApiResponse = Omit<AccountHomeResponse, "hasNotification"> & {
-  has_notification: boolean;
+    has_notification: boolean;
 };
 
 function normalizeAccountHome(
@@ -122,30 +119,30 @@ export const bankingApi = {
     ): Promise<TransferPreviewResponse> => {
         const response = await apiClient.post<
             BankingApiResponse<TransferPreviewResponse>
-        >(
-            "/banking/transfers/preview",
-            request
-        );
+        >("/banking/transfers/preview", request);
 
         return response.data.data;
     },
-  transfer: async (request: TransferRequest, idempotencyKey: string): Promise<void> => {
-    const response = await apiClient.post<BankingApiResponse<null>>(
-      "/banking/transfers",
-      request,
-      {
-        headers: {
-          "Idempotency-Key": idempotencyKey,
-        },
-      }
-    );
+    transfer: async (
+        request: TransferRequest,
+        idempotencyKey: string
+    ): Promise<void> => {
+        const response = await apiClient.post<BankingApiResponse<null>>(
+            "/banking/transfers",
+            request,
+            {
+                headers: {
+                    "Idempotency-Key": idempotencyKey,
+                },
+            }
+        );
 
-    if (!response.data.success) {
-      throw response.data;
-    }
-  },
+        if (!response.data.success) {
+            throw response.data;
+        }
+    },
 };
 
 export function getBankingApiError(error: unknown): BankingApiErrorBody | null {
-  return extractApiErrorBody<BankingApiErrorBody>(error);
+    return extractApiErrorBody<BankingApiErrorBody>(error);
 }

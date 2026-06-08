@@ -72,8 +72,8 @@ export function Main() {
       if (!isLoggedIn) {
         if (isMounted) {
           setAccountHome(null);
-          setAccountHomeLoading(false);
           setHasUnreadNotifications(false);
+          setAccountHomeLoading(false);
         }
         return;
       }
@@ -106,7 +106,7 @@ export function Main() {
     return () => {
       isMounted = false;
     };
-  }, [isLoggedIn, setHasUnreadNotifications]);
+  }, [isLoggedIn]);
 
   const loadNotifications = async () => {
     if (!isLoggedIn) {

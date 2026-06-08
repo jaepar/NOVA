@@ -35,7 +35,6 @@ export type {
   AccountHomeResponse,
   AccountHomeUiState,
   AccountSummary,
-  CertificateStatus,
 } from './endpoints/banking';
 export type { NotificationResponse, NotificationType } from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';

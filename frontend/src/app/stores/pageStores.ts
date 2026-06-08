@@ -40,7 +40,13 @@ export const useMainPageStore = create<MainPageState>((set) => ({
       userId: loggedIn ? state.userId : null,
     })),
   setAuthenticated: (userId) => set({ isLoggedIn: true, isAuthChecked: true, userId }),
-  clearAuth: () => set({ isLoggedIn: false, isAuthChecked: true, userId: null }),
+  clearAuth: () =>
+    set({
+      isLoggedIn: false,
+      isAuthChecked: true,
+      userId: null,
+      hasUnreadNotifications: false,
+    }),
   setHasAccount: (hasAccount) => set({ hasAccount }),
   setHasUnreadNotifications: (hasUnreadNotifications) => set({ hasUnreadNotifications }),
   setCertificateSheetOpen: (isCertificateSheetOpen) => set({ isCertificateSheetOpen }),
