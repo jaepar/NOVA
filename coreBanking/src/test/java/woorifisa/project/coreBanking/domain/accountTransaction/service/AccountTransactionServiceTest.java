@@ -234,6 +234,8 @@ class AccountTransactionServiceTest {
         verify(accountTransactionRepository, times(2)).save(captor.capture());
         assertThat(captor.getAllValues().get(0).getCounterParty()).isEqualTo("박재하");
         assertThat(captor.getAllValues().get(1).getCounterParty()).isEqualTo("홍길동");
+        assertThat(captor.getAllValues().get(0).getBalanceAfter()).isEqualTo(25000);
+        assertThat(captor.getAllValues().get(1).getBalanceAfter()).isEqualTo(12000);
         assertThat(captor.getAllValues().get(0).getMemo()).isNull();
         assertThat(captor.getAllValues().get(1).getMemo()).isNull();
     }

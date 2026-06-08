@@ -147,6 +147,7 @@ public class AccountTransactionService {
 				.transactionType(TransactionType.ACCOUNT_TRANSFER)
 				.counterParty(depositAccount.getCustomer().getName())
 				.amount(request.transferAmount())
+				.balanceAfter(withdrawBalanceAfter)
 				.externalRequestId(request.externalRequestId())
 				.build());
 
@@ -157,6 +158,7 @@ public class AccountTransactionService {
 				.transactionType(TransactionType.ACCOUNT_TRANSFER)
 				.counterParty(withdrawAccount.getCustomer().getName())
 				.amount(request.transferAmount())
+				.balanceAfter(depositBalanceAfter)
 				.externalRequestId(request.externalRequestId())
 				.build());
         } catch (DataIntegrityViolationException exception) {
