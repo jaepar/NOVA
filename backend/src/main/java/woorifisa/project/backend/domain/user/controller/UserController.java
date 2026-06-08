@@ -17,8 +17,10 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
+import woorifisa.project.backend.domain.user.dto.request.IdentityVerificationConfirmRequest;
 import woorifisa.project.backend.domain.user.dto.request.OcrDocumentType;
 import woorifisa.project.backend.domain.user.dto.response.CorrectionDocumentResponse;
+import woorifisa.project.backend.domain.user.dto.response.IdentityOcrResponse;
 import woorifisa.project.backend.domain.user.dto.response.IdentityVerificationResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
@@ -76,14 +78,23 @@ public class UserController {
 		return BaseResponse.ok(userService.getCorrectionDocuments(principal.userId()));
 	}
 
-	// OCR 인증 처리 -> 여권/신분증 분기처리
+	// OCR 추출 처리 -> 여권/신분증 분기처리
 	@PostMapping(value = "/verifications/identity", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public BaseResponse<IdentityVerificationResponse> verifyIdentity(
+	public BaseResponse<IdentityOcrResponse> verifyIdentity(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
 		@RequestPart("file") MultipartFile file,
 		@RequestParam("ocrDocumentType") OcrDocumentType ocrDocumentType
 	) {
 		return BaseResponse.ok(identityVerificationService.verifyIdentity(principal.userId(), file, ocrDocumentType));
+	}
+
+	// OCR 추출값 확정 후 정부 DB 검증
+	@PostMapping("/verifications/identity/confirm")
+	public BaseResponse<IdentityVerificationResponse> confirmIdentity(
+		@AuthenticationPrincipal SessionUserPrincipal principal,
+		@Valid @RequestBody IdentityVerificationConfirmRequest request
+	) {
+		return BaseResponse.ok(identityVerificationService.confirmIdentity(principal.userId(), request));
 	}
 
 	// 인증서 발급 요청

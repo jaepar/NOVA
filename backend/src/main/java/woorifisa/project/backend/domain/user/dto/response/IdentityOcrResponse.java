@@ -4,11 +4,9 @@ import lombok.Builder;
 import woorifisa.project.backend.domain.user.dto.request.OcrDocumentType;
 
 @Builder
-public record IdentityVerificationResponse(
+public record IdentityOcrResponse(
 	OcrDocumentType ocrDocumentType,
-	Boolean nameMatchWithUser,
-	Boolean identityMatchWithGovDb,
-	String verificationStatus,
-	String failureReasonCode
+	Object result,
+	Boolean nameMatchWithUser
 ) {
 }
