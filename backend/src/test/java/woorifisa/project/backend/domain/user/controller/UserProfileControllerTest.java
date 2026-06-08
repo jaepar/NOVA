@@ -41,7 +41,11 @@ class UserProfileControllerTest {
 			"FEMALE",
 			true,
 			"ISSUED",
-			List.of(new UserProfileResponse.PortfolioResponse(10L, "nurse_resume.pdf"))
+			List.of(new UserProfileResponse.PortfolioResponse(
+				10L,
+				"nurse_resume.pdf",
+				"https://s3.test/portfolio.pdf"
+			))
 		);
 
 		when(userService.getUserProfile(1L)).thenReturn(payload);
