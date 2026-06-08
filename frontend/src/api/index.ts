@@ -21,6 +21,10 @@ export { extractApiErrorBody } from './utils';
 
 export { authApi } from './endpoints/auth';
 export { certificateApi, getCertificateApiError } from './endpoints/certificate';
+export {
+  emailVerificationApi,
+  getEmailVerificationApiErrorMessage,
+} from './endpoints/emailVerification';
 export { userApi } from './endpoints/user';
 export type {
   AuthMessageResponse,
@@ -39,7 +43,6 @@ export type {
   AccountSummary,
   BankingTransaction,
   BankingTransactionsResponse,
-  CertificateStatus,
   GetTransactionsParams,
   TransactionFlowFilter,
   TransactionPeriod,
@@ -51,6 +54,10 @@ export type { NotificationResponse, NotificationType } from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
 export type { CertificateRequestErrorBody } from './endpoints/certificate';
+export type {
+  EmailVerificationConfirmResponse,
+  EmailVerificationSendResponse,
+} from './endpoints/emailVerification';
 export { createIdempotencyKey, walletApi } from './endpoints/wallet';
 export type {
   ChargeWalletRequest,

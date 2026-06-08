@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
+import {
+  emailVerificationApi,
+  getEmailVerificationApiErrorMessage,
+} from "../../../api";
 import { useSignupPageStore } from "../../stores/pageStores";
 import { SignupContent } from "./components/SignupContent";
 import { SignupInputGroup } from "./components/SignupInputGroup";
-import {
-  confirmEmailVerification,
-  getEmailVerificationErrorMessage,
-  sendEmailVerification,
-} from "./emailVerificationApi";
 
 const verificationExpiresSeconds = 5 * 60;
 
@@ -77,12 +76,12 @@ export function EmailVerification() {
     setErrorMessage("");
 
     try {
-      await sendEmailVerification(email);
+      await emailVerificationApi.send(email);
       setVerificationCode("");
       setCodeSent(true);
       setRemainingSeconds(verificationExpiresSeconds);
     } catch (error) {
-      setErrorMessage(getEmailVerificationErrorMessage(error));
+      setErrorMessage(getEmailVerificationApiErrorMessage(error));
     } finally {
       setSendingCode(false);
     }
@@ -97,10 +96,10 @@ export function EmailVerification() {
     setErrorMessage("");
 
     try {
-      await confirmEmailVerification(email, verificationCode);
+      await emailVerificationApi.confirm(email, verificationCode);
       navigate("/signup/personal-info");
     } catch (error) {
-      setErrorMessage(getEmailVerificationErrorMessage(error));
+      setErrorMessage(getEmailVerificationApiErrorMessage(error));
     } finally {
       setVerifying(false);
     }

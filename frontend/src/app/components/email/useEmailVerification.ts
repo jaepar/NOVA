@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  confirmEmailVerification,
-  sendEmailVerification,
-} from "../../pages/signup/emailVerificationApi";
+  emailVerificationApi,
+  getEmailVerificationApiErrorMessage,
+} from "../../../api";
 
 const DEFAULT_RESEND_SECONDS = 60;
 
@@ -68,26 +68,19 @@ export function useEmailVerification({
       setErrorMessage("");
 
       try {
-        const response = await confirmEmailVerification(email, verificationCode);
+        await emailVerificationApi.confirm(email, verificationCode);
 
         if (!isCurrentRequest) {
           return;
         }
 
-        if (response.verified === false) {
-          setEmailVerified(false);
-          onVerifiedChange?.(false);
-          setErrorMessage("인증번호가 일치하지 않습니다.");
-          return;
-        }
-
         setEmailVerified(true);
         onVerifiedChange?.(true);
-      } catch {
+      } catch (error) {
         if (isCurrentRequest) {
           setEmailVerified(false);
           onVerifiedChange?.(false);
-          setErrorMessage("인증번호를 확인할 수 없습니다. 다시 입력해주세요.");
+          setErrorMessage(getEmailVerificationApiErrorMessage(error));
         }
       } finally {
         if (isCurrentRequest) {
@@ -135,17 +128,17 @@ export function useEmailVerification({
     setErrorMessage("");
 
     try {
-      await sendEmailVerification(email);
+      await emailVerificationApi.send(email);
       setCodeSent(true);
       setEmailVerified(false);
       onVerifiedChange?.(false);
       setVerificationCode("");
       setResendSeconds(resendLimit);
-    } catch {
+    } catch (error) {
       setCodeSent(false);
       setEmailVerified(false);
       onVerifiedChange?.(false);
-      setErrorMessage("인증번호를 발송할 수 없습니다. 다시 시도해주세요.");
+      setErrorMessage(getEmailVerificationApiErrorMessage(error));
     } finally {
       setSendingCode(false);
     }
