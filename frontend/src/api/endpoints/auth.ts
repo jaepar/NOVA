@@ -23,6 +23,15 @@ export type LoginRequest = {
   password: string;
 };
 
+export type EmailVerificationSendRequest = {
+  email: string;
+};
+
+export type EmailVerificationConfirmRequest = {
+  email: string;
+  code: string;
+};
+
 export type LoginResponse = {
   userId: number;
 };
@@ -59,5 +68,25 @@ export const authApi = {
     );
 
     return response.data.data;
+  },
+  sendEmailVerification: async (
+    payload: EmailVerificationSendRequest
+  ): Promise<AuthMessageResponse> => {
+    const response = await apiClient.post<AuthMessageResponse>(
+      "/auth/email-verifications",
+      payload
+    );
+
+    return response.data;
+  },
+  confirmEmailVerification: async (
+    payload: EmailVerificationConfirmRequest
+  ): Promise<AuthMessageResponse> => {
+    const response = await apiClient.post<AuthMessageResponse>(
+      "/auth/email-verifications/confirm",
+      payload
+    );
+
+    return response.data;
   },
 };
