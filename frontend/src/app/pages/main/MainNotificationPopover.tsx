@@ -7,6 +7,8 @@ function getNotificationTitle(type: NotificationType) {
       return '보완서류 알림'
     case 'RESIDENCE_CARD_PERIOD':
       return '외국인등록증 기간 알림'
+    case 'CERTIFICATE_ISSUED':
+      return '인증서 발급 완료'
   }
 }
 
@@ -27,7 +29,7 @@ function formatNotificationTime(createdAt: string) {
 }
 
 function NotificationIcon({ type }: { type: NotificationType }) {
-  const Icon = type === 'SUPPLEMENT_DOCUMENT' ? ShieldCheck : CalendarClock
+  const Icon = (type === 'SUPPLEMENT_DOCUMENT' || type === 'CERTIFICATE_ISSUED') ? ShieldCheck : CalendarClock
 
   return (
     <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -112,7 +114,7 @@ export function MainNotificationPopover({
                   {getNotificationTitle(notification.type)}
                 </h3>
                 <p className="mt-1 text-[14px] leading-[1.4] text-foreground">
-                  {notification.content}
+                  {notification.type === 'CERTIFICATE_ISSUED' ? '인증서 발급이 성공적으로 완료되었습니다.' : notification.content}
                 </p>
                 <p className="mt-1 text-[13px] leading-none text-muted-foreground">
                   {formatNotificationTime(notification.createdAt)}
