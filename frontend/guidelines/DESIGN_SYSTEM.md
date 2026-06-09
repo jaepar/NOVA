@@ -12,6 +12,8 @@
 ## 2) 핵심 토큰
 
 - 기준 프레임: `390 x 844`
+- 브레이크포인트 기준: `768px`
+- 데스크탑(`>768px`)은 중앙 `390x844` 프레임, 모바일/앱 브라우저(`<=768px`)는 기기 뷰포트 기준 렌더링
 - 좌우 기본 패딩: `px-5` (20px)
 - Primary: `#6366F1`
 - 본문 텍스트: `#1F2937`
@@ -46,6 +48,36 @@
 - `CommonInputGroup` 등 공통 입력 컴포넌트를 우선 사용한다.
 - 공통 컴포넌트가 존재하면 임의 입력 스타일을 추가하지 않는다.
 
+### 5.1) 이메일 인증 입력 규격
+
+- 이메일 인증 플로우는 공통 컴포넌트 조합을 표준으로 사용한다.
+  - `EmailVerificationFields`: 이메일 입력, 인증번호 입력, 상태 메시지 UI
+  - `useEmailVerification`: 인증번호 발송, 타이머, 검증 상태 로직
+- 회원가입, 계좌개설, 해외송금 페이지에서 동일 인증 UI를 각각 다시 구현하지 않는다.
+- 페이지는 인증 시작 조건, 완료 후 이동, 보조 문구만 조합하고 인증 자체 UI는 공통 블록을 사용한다.
+
+### 5.2) 국가 선택 입력 규격
+
+- 국가 검색/선택은 `CountrySelectBottomSheet`를 공통 컴포넌트로 사용한다.
+- 구성 규격:
+  - 상단: 제목 + 닫기 버튼
+  - 검색창: 라벨 없이 placeholder만 사용
+  - 검색창 위치: 상단 고정
+  - 리스트 영역: 하단 목록만 스크롤
+- 페이지에서 국가 검색 로직, 검색창, 리스트 아이템 UI를 반복 구현하지 않는다.
+- 국가 데이터는 `data` 폴더 정의 파일을 주입받아 사용한다.
+
+### 5.3) 2분할 선택 박스 규격
+
+- 2개의 선택지 중 하나를 고르는 분할형 선택 UI는 `SegmentedOptionField`를 공통 사용한다.
+- 기본 규격:
+  - 레이아웃: `2열`, `rounded-2xl`, `border border-border`, `bg-background`
+  - 선택 상태: `bg-primary/10`, `text-primary`, `font-semibold`
+  - 비선택 상태: `text-foreground`
+  - 구분선: 두 번째 옵션 시작 지점에 `border-l border-border`
+- 페이지에서 동일 박스 구조를 직접 반복 구현하지 않는다.
+- 특정 기능 전용 컴포넌트로 보지 않고, 2개의 상호 배타 옵션을 보여주는 모든 화면에서 공통 선택 패턴으로 사용한다.
+
 ## 6) 공통 레이아웃 컴포넌트
 
 - `FixedHeader`
@@ -55,6 +87,11 @@
 - `FloatingBottom`
 - `BottomNav`
 - `BottomSheet`
+
+### 레이아웃 적용 범위
+
+- 모든 페이지는 예외 없이 공통 레이아웃 규격(`MobileLayout` + 동일 헤더/본문/하단 구조)을 따른다.
+- 신규 페이지도 동일 규격을 기본값으로 적용하며, 페이지별 독자 프레임 규칙을 추가하지 않는다.
 
 ### 헤더 선택 규칙
 
@@ -67,6 +104,52 @@
 
 - 하단 고정 액션은 `MobileLayout`의 `bottomContent`로 구성한다.
 - 하단 배경색은 `bottomBackgroundColor`로 제어하며 기본값은 `#ffffff`이다.
+
+## 6.1) 토스트 시스템 (필수)
+
+- 토스트 메시지는 디자인 시스템 컴포넌트/유틸을 사용한다.
+- 사용 컴포넌트:
+  - `NovaToast`: 전역 토스트 렌더러 (`App.tsx` 루트에 1회 마운트)
+  - `novaToast`: 페이지/도메인에서 호출하는 공통 API
+- 직접 `sonner`의 `toast`를 페이지에서 import해 호출하지 않는다.
+- 기본 규격:
+  - 위치: `top-center`
+  - 지속시간: `2500ms`
+  - 모서리 반경: `12px`
+  - 본문 크기/두께: `14px` / `500`
+- 상태 타입:
+  - 성공: `novaToast.success(message)`
+  - 오류: `novaToast.error(message)`
+  - 정보: `novaToast.info(message)`
+  - 경고: `novaToast.warning(message)`
+
+## 6.2) 인라인 배너 시스템 (필수)
+
+- 페이지 내 안내 배너는 공통 컴포넌트 `InlineBanner`를 사용한다.
+- 페이지 파일에서 배경/보더 스타일을 직접 작성해 중복 구현하지 않는다.
+- 기본 레이아웃 규격:
+  - 모서리 반경: `rounded-xl`
+  - 내부 여백: `p-3`
+  - 텍스트: `text-sm`, `text-center`
+- 상태 타입:
+  - 성공: `variant="success"`
+  - 오류: `variant="error"`
+  - 정보: `variant="info"`
+  - 경고: `variant="warning"`
+- 상태별 색상 규격:
+  - 성공: `border-emerald-400/60`, `bg-emerald-500/10`, `text-emerald-900`
+  - 오류: `border-red-400/50`, `bg-red-500/10`, `text-black`
+  - 정보: `border-blue-400/60`, `bg-blue-500/10`, `text-blue-900`
+  - 경고: `border-amber-400/60`, `bg-amber-500/15`, `text-amber-900`
+- 접근성 규격:
+  - `role="alert"`
+  - `aria-live="polite"`
+
+### Main 페이지 구현 정책 참조
+
+- `Main.tsx` 구조 규칙은 디자인 토큰 규칙과 별도로 관리한다.
+- Main 페이지 신규 UI는 `src/app/pages/main/` 하위 컴포넌트로 분리하고, `Main.tsx`는 조립 전용으로 유지한다.
+- 상세 구현 규칙은 `frontend/AGENTS.md`와 `frontend/guidelines/LAYOUT_GUIDELINES.md`를 따른다.
 
 ## 7) 상호작용 원칙
 
@@ -129,7 +212,7 @@
 - 정의 파일 권장 경로: `src/app/domains/<service-domain>/`
 - 정의 파일 권장 네이밍: `definition.<scenario>.ts`
 
-## 헤더 뒤로가기 정책 (스텝형 플로우 필수)
+## 13) 헤더 뒤로가기 정책 (스텝형 플로우 필수)
 
 - 스텝형 플로우(예: 인증서 발급)에서는 `navigate(-1)`을 뒤로가기 기본 동작으로 사용하지 않는다.
 - 각 스텝 페이지는 `MobileLayout`의 `backPath`를 명시하고, 현재 스텝 기준 이전 스텝 경로로 이동해야 한다.

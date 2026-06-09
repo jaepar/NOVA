@@ -1,8 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
-import { X } from 'lucide-react'
-import { AppButton } from '../design-system/AppButton'
 
 interface BottomSheetProps {
   isOpen: boolean
@@ -12,6 +10,7 @@ interface BottomSheetProps {
   bottomAction?: React.ReactNode
   height?: string
   disableScroll?: boolean
+  dimBackground?: boolean
 }
 
 export function BottomSheet({
@@ -22,6 +21,7 @@ export function BottomSheet({
   bottomAction,
   height,
   disableScroll = false,
+  dimBackground = true,
 }: BottomSheetProps) {
   const visibilityStore = useMemo(
     () =>
@@ -58,14 +58,16 @@ export function BottomSheet({
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[60] transition-opacity duration-300 ${
+          dimBackground ? 'bg-black/50' : 'bg-transparent'
+        } ${
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}
       />
 
       <div
-        className={`fixed bottom-0 left-0 right-0 z-[70] bg-background rounded-t-3xl w-full transition-transform duration-300 ease-out flex flex-col ${
+        className={`fixed bottom-0 left-0 right-0 z-[70] bg-[rgb(253,253,253)] rounded-t-3xl w-full transition-transform duration-300 ease-out flex flex-col ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{
@@ -73,21 +75,15 @@ export function BottomSheet({
           maxHeight: '80vh',
         }}
       >
-        <div className="flex justify-center pt-3 pb-2">
+        <div className="flex justify-center pt-2 pb-1">
           <div className="w-12 h-1 bg-border rounded-full"></div>
         </div>
 
-        <div className="flex items-center justify-between px-5 py-3">
-          <h3>{title}</h3>
-          <AppButton
-            variant="unstyled"
-            onClick={onClose}
-            className="p-2 hover:bg-secondary rounded-lg transition-colors"
-            aria-label="닫기"
-          >
-            <X className="w-5 h-5" />
-          </AppButton>
-        </div>
+        {title && (
+          <div className="px-5 py-2">
+            <h3>{title}</h3>
+          </div>
+        )}
 
         <div
           className={`flex-1 px-5 py-6 ${disableScroll ? 'overflow-hidden' : 'overflow-y-auto'}`}

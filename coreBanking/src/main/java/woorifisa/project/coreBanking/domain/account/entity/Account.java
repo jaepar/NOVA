@@ -17,7 +17,12 @@ import lombok.NoArgsConstructor;
 import woorifisa.project.coreBanking.domain.account.entity.enums.AccountType;
 import woorifisa.project.coreBanking.domain.account.entity.enums.BankCode;
 import woorifisa.project.coreBanking.domain.customer.entity.Customer;
+import woorifisa.project.coreBanking.global.exception.CustomException;
 import woorifisa.project.coreBanking.global.entity.BaseEntity;
+
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_CREDIT_INVALID_AMOUNT;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_DEBIT_INSUFFICIENT_BALANCE;
+import static woorifisa.project.coreBanking.global.response.status.BaseResponseStatus.ACCOUNT_DEBIT_INVALID_AMOUNT;
 
 @Getter
 @Entity
@@ -55,10 +60,30 @@ public class Account extends BaseEntity {
     @Column(name = "password", length = 100, nullable = false)
     private String password;
 
-    @Column(name = "daily_transfer_limit", nullable = false)
-    private Integer dailyTransferLimit;
+    @Column(name = "transfer_limit", nullable = false)
+    private Integer transferLimit;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "bank_code", nullable = false)
     private BankCode bankCode;
+
+    // 출금
+    public void debit(Integer amount) {
+        if (amount == null || amount <= 0) {
+            throw new CustomException(ACCOUNT_DEBIT_INVALID_AMOUNT);
+        }
+        if (balance < amount) {
+            throw new CustomException(ACCOUNT_DEBIT_INSUFFICIENT_BALANCE);
+        }
+
+        this.balance -= amount;
+    }
+
+    // 압금
+    public void credit(Integer amount) {
+        if (amount == null || amount <= 0) {
+            throw new CustomException(ACCOUNT_CREDIT_INVALID_AMOUNT);
+        }
+        this.balance += amount;
+    }
 }

@@ -1,11 +1,15 @@
-import { MobileLayout } from '../components/layout/MobileLayout'
-import { BottomSheet } from '../components/layout/BottomSheet'
-import { CommonInputGroup } from '../components/design-system/CommonInputGroup'
-import { Btn_1Col } from '../components/design-system/Btn_1Col'
-import { Btn_2Col } from '../components/design-system/Btn_2Col'
-import { FilterBottomSheet } from '../components/design-system/FilterBottomSheet'
-import { PinInputBottomSheet } from '../components/design-system/PinInputBottomSheet'
-import { Spinner } from '../components/design-system/Spinner'
+import { useState } from "react";
+import { MobileLayout } from "../components/layout/MobileLayout";
+import { BottomSheet } from "../components/layout/BottomSheet";
+import { CommonInputGroup } from "../components/design-system/CommonInputGroup";
+import { Btn_1Col } from "../components/design-system/Btn_1Col";
+import { Btn_2Col } from "../components/design-system/Btn_2Col";
+import { SegmentedOptionField } from "../components/design-system/SegmentedOptionField";
+import { FilterBottomSheet } from "../components/design-system/FilterBottomSheet";
+import { InlineBanner } from "../components/design-system/InlineBanner";
+import { PinInputBottomSheet } from "../components/design-system/PinInputBottomSheet";
+import { Spinner } from "../components/design-system/Spinner";
+import { novaToast } from "../components/design-system/toast";
 import {
   spacing,
   typography,
@@ -13,22 +17,45 @@ import {
   header,
   bottomSheet,
   scrollbar,
-} from '../components/design-system/tokens'
-import { useDesignSystemPageStore } from '../stores/pageStores'
+} from "../components/design-system/tokens";
+import { useDesignSystemPageStore } from "../stores/pageStores";
 
 export function DesignSystem() {
-  const inputValue = useDesignSystemPageStore((state) => state.inputValue)
-  const isBottomSheetOpen = useDesignSystemPageStore((state) => state.isBottomSheetOpen)
-  const isFilterSheetOpen = useDesignSystemPageStore((state) => state.isFilterSheetOpen)
-  const isPinSheetOpen = useDesignSystemPageStore((state) => state.isPinSheetOpen)
-  const selectedPeriod = useDesignSystemPageStore((state) => state.selectedPeriod)
-  const selectedType = useDesignSystemPageStore((state) => state.selectedType)
-  const setInputValue = useDesignSystemPageStore((state) => state.setInputValue)
-  const setBottomSheetOpen = useDesignSystemPageStore((state) => state.setBottomSheetOpen)
-  const setFilterSheetOpen = useDesignSystemPageStore((state) => state.setFilterSheetOpen)
-  const setPinSheetOpen = useDesignSystemPageStore((state) => state.setPinSheetOpen)
-  const setSelectedPeriod = useDesignSystemPageStore((state) => state.setSelectedPeriod)
-  const setSelectedType = useDesignSystemPageStore((state) => state.setSelectedType)
+  const [selectedFeeBurden, setSelectedFeeBurden] = useState<
+    "sender" | "receiver"
+  >("sender");
+  const inputValue = useDesignSystemPageStore((state) => state.inputValue);
+  const isBottomSheetOpen = useDesignSystemPageStore(
+    (state) => state.isBottomSheetOpen
+  );
+  const isFilterSheetOpen = useDesignSystemPageStore(
+    (state) => state.isFilterSheetOpen
+  );
+  const isPinSheetOpen = useDesignSystemPageStore(
+    (state) => state.isPinSheetOpen
+  );
+  const selectedPeriod = useDesignSystemPageStore(
+    (state) => state.selectedPeriod
+  );
+  const selectedType = useDesignSystemPageStore((state) => state.selectedType);
+  const setInputValue = useDesignSystemPageStore(
+    (state) => state.setInputValue
+  );
+  const setBottomSheetOpen = useDesignSystemPageStore(
+    (state) => state.setBottomSheetOpen
+  );
+  const setFilterSheetOpen = useDesignSystemPageStore(
+    (state) => state.setFilterSheetOpen
+  );
+  const setPinSheetOpen = useDesignSystemPageStore(
+    (state) => state.setPinSheetOpen
+  );
+  const setSelectedPeriod = useDesignSystemPageStore(
+    (state) => state.setSelectedPeriod
+  );
+  const setSelectedType = useDesignSystemPageStore(
+    (state) => state.setSelectedType
+  );
 
   return (
     <>
@@ -37,7 +64,7 @@ export function DesignSystem() {
           <section className="space-y-4">
             <h2>Typography</h2>
             <div className="space-y-2 rounded-xl bg-secondary p-4">
-              <p>2xl: {typography['2xl']} (24px)</p>
+              <p>2xl: {typography["2xl"]} (24px)</p>
               <p>xl: {typography.xl} (20px)</p>
               <p>lg: {typography.lg} (18px)</p>
               <p>base: {typography.base} (16px)</p>
@@ -95,6 +122,70 @@ export function DesignSystem() {
               <Btn_1Col variant="secondary">Secondary</Btn_1Col>
               <Btn_1Col variant="outline">Outline</Btn_1Col>
               <Btn_2Col leftLabel="Cancel" rightLabel="Confirm" />
+              <SegmentedOptionField
+                options={[
+                  { label: "Select A", value: "A" },
+                  { label: "Select B", value: "B" },
+                ]}
+                value={selectedFeeBurden}
+                onChange={setSelectedFeeBurden}
+              />
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <h2>Toast Message</h2>
+            <div className="space-y-3">
+              <Btn_1Col
+                onClick={() =>
+                  novaToast.success("요청이 정상적으로 처리되었습니다.")
+                }
+              >
+                Success
+              </Btn_1Col>
+              <Btn_1Col
+                onClick={() =>
+                  novaToast.error("오류가 발생했습니다. 다시 시도해 주세요.")
+                }
+              >
+                Error
+              </Btn_1Col>
+              <Btn_1Col
+                onClick={() =>
+                  novaToast.info("잠시 후 다음 단계로 이동합니다.")
+                }
+              >
+                Info
+              </Btn_1Col>
+              <Btn_1Col
+                onClick={() =>
+                  novaToast.warning("입력값을 다시 확인해 주세요.")
+                }
+              >
+                Warning
+              </Btn_1Col>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <h2>In-line Banner</h2>
+            <div className="space-y-3">
+              <InlineBanner
+                message="요청이 정상적으로 처리되었습니다."
+                variant="success"
+              />
+              <InlineBanner
+                message="오류가 발생했습니다. 다시 시도해 주세요."
+                variant="error"
+              />
+              <InlineBanner
+                message="잠시 후 다음 단계로 이동합니다."
+                variant="info"
+              />
+              <InlineBanner
+                message="입력값을 다시 확인해 주세요."
+                variant="warning"
+              />
             </div>
           </section>
 
@@ -118,9 +209,15 @@ export function DesignSystem() {
               <p>- Header padding: {bottomSheet.headerPadding}</p>
               <p>- Content padding: {bottomSheet.contentPadding}</p>
             </div>
-            <Btn_1Col onClick={() => setBottomSheetOpen(true)}>Open Basic Bottom Sheet</Btn_1Col>
-            <Btn_1Col onClick={() => setFilterSheetOpen(true)}>Open Filter Bottom Sheet</Btn_1Col>
-            <Btn_1Col onClick={() => setPinSheetOpen(true)}>Open PIN Bottom Sheet</Btn_1Col>
+            <Btn_1Col onClick={() => setBottomSheetOpen(true)}>
+              Open Basic Bottom Sheet
+            </Btn_1Col>
+            <Btn_1Col onClick={() => setFilterSheetOpen(true)}>
+              Open Filter Bottom Sheet
+            </Btn_1Col>
+            <Btn_1Col onClick={() => setPinSheetOpen(true)}>
+              Open PIN Bottom Sheet
+            </Btn_1Col>
           </section>
         </div>
       </MobileLayout>
@@ -131,7 +228,9 @@ export function DesignSystem() {
         title="Bottom Sheet Demo"
       >
         <div className="space-y-4">
-          <p className="text-muted-foreground">Shared BottomSheet template demo.</p>
+          <p className="text-muted-foreground">
+            Shared BottomSheet template demo.
+          </p>
           <Btn_1Col onClick={() => setBottomSheetOpen(false)}>Close</Btn_1Col>
         </div>
       </BottomSheet>
@@ -141,24 +240,24 @@ export function DesignSystem() {
         onClose={() => setFilterSheetOpen(false)}
         sections={[
           {
-            title: 'Period',
+            title: "Period",
             options: [
-              { value: 'all', label: 'All' },
-              { value: '1m', label: '1 Month' },
-              { value: '3m', label: '3 Months' },
-              { value: '6m', label: '6 Months' },
+              { value: "all", label: "All" },
+              { value: "1m", label: "1 Month" },
+              { value: "3m", label: "3 Months" },
+              { value: "6m", label: "6 Months" },
             ],
             selectedValue: selectedPeriod,
             onSelect: setSelectedPeriod,
           },
           {
-            title: 'Transaction Type',
+            title: "Transaction Type",
             options: [
-              { value: 'all', label: 'All' },
-              { value: 'deposit', label: 'Deposit' },
-              { value: 'withdrawal', label: 'Withdrawal' },
-              { value: 'transfer', label: 'Transfer' },
-              { value: 'exchange', label: 'Exchange' },
+              { value: "all", label: "All" },
+              { value: "deposit", label: "Deposit" },
+              { value: "withdrawal", label: "Withdrawal" },
+              { value: "transfer", label: "Transfer" },
+              { value: "exchange", label: "Exchange" },
             ],
             selectedValue: selectedType,
             onSelect: setSelectedType,
@@ -171,9 +270,9 @@ export function DesignSystem() {
         isOpen={isPinSheetOpen}
         onClose={() => setPinSheetOpen(false)}
         onComplete={() => {
-          setTimeout(() => setPinSheetOpen(false), 300)
+          setTimeout(() => setPinSheetOpen(false), 300);
         }}
       />
     </>
-  )
+  );
 }

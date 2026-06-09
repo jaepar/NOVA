@@ -15,24 +15,48 @@ export function PersonalInfo() {
   const setName = useSignupPageStore((state) => state.setName);
   const setBirthDate = useSignupPageStore((state) => state.setBirthDate);
   const setGender = useSignupPageStore((state) => state.setGender);
-  const canContinue = name.trim().length > 0 && birthDate.length === 8 && Boolean(gender);
+  const resetEmailVerification = useSignupPageStore(
+    (state) => state.resetEmailVerification
+  );
+  const resetPersonalInfo = useSignupPageStore(
+    (state) => state.resetPersonalInfo
+  );
+  const canContinue =
+    name.trim().length > 0 && birthDate.length === 8 && Boolean(gender);
+
+  const handleBack = () => {
+    resetEmailVerification();
+    resetPersonalInfo();
+    navigate("/signup");
+  };
 
   return (
     <MobileLayout
       title="회원가입"
+      onBack={handleBack}
       bottomContent={
-        <Btn_1Col onClick={() => navigate("/signup/terms")} disabled={!canContinue}>
-          다음으로
+        <Btn_1Col
+          onClick={() => navigate("/signup/terms")}
+          disabled={!canContinue}
+        >
+          다음
         </Btn_1Col>
       }
     >
       <SignupContent className="space-y-10">
         <section>
-          <h2 className="text-2xl font-semibold leading-tight">개인 정보 입력</h2>
+          <h2 className="text-2xl font-semibold leading-tight">
+            개인 정보 입력
+          </h2>
         </section>
 
         <section className="space-y-6">
-          <CommonInputGroup label="이름" placeholder="이름 입력" value={name} onChange={setName} />
+          <CommonInputGroup
+            label="이름"
+            placeholder="이름 입력"
+            value={name}
+            onChange={setName}
+          />
 
           <BirthDatePicker value={birthDate} onChange={setBirthDate} />
 

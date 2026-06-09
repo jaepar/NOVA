@@ -5,9 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,13 +17,16 @@ import lombok.NoArgsConstructor;
 import woorifisa.project.backend.domain.banking.entity.AccountRef;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.global.entity.BaseEntity;
+import woorifisa.project.backend.global.exception.CustomException;
+
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.WALLET_INVALID_CHARGE_AMOUNT;
 
 @Getter
 @Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "wallet")
+@Table(name = "wallet", uniqueConstraints = @UniqueConstraint(columnNames = "user_id"))
 public class Wallet extends BaseEntity {
 
     @Id
@@ -29,14 +34,21 @@ public class Wallet extends BaseEntity {
     @Column(name = "wallet_id")
     private Long walletId;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_account_id", nullable = false)
     private AccountRef userAccount;
 
     @Column(name = "balance", nullable = false)
     private Integer balance;
+
+    public void charge(Integer amount) {
+        if (amount == null || amount <= 0 || balance == null || balance > Integer.MAX_VALUE - amount) {
+            throw new CustomException(WALLET_INVALID_CHARGE_AMOUNT);
+        }
+        this.balance += amount;
+    }
 }

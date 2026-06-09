@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react'
 import { AppButton } from '../design-system/AppButton'
-import { ConsentDefinition, getRequiredTermIds } from '../../domains/certificate-consent/spec'
+import { ConsentDefinition, getRequiredTermIds } from '../../domains/spec'
 import {
   getAgreedTermIds,
   getOpenCategoryIds,
@@ -10,7 +10,7 @@ import {
   setAgreedTermIds,
   setCategoryCursor,
   setOpenCategoryIds,
-} from '../../domains/certificate-consent/storage'
+} from '../../domains/storage'
 
 interface ConsentOverviewAccordionProps {
   definition: ConsentDefinition
@@ -45,7 +45,7 @@ export function ConsentOverviewAccordion({
   })
   const [checkedTermIds, setCheckedTermIds] = useState<Set<string>>(() => getAgreedTermIds())
 
-  const titleLines = title.split('\n')
+  const titleLines = title ? title.split('\n') : []
   const requiredIds = useMemo(() => getRequiredTermIds(definition), [definition])
   const isRequiredComplete = requiredIds.every((id) => checkedTermIds.has(id))
 
@@ -112,17 +112,21 @@ export function ConsentOverviewAccordion({
 
   return (
     <div className="space-y-4 pb-2">
-      <section className="space-y-2">
-        <h2 className="text-2xl font-semibold leading-tight">
-          {titleLines.map((line, idx) => (
-            <span key={`${line}-${idx}`}>
-              {line}
-              {idx < titleLines.length - 1 && <br />}
-            </span>
-          ))}
-        </h2>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
-      </section>
+      {(title || description) && (
+        <section className="space-y-2">
+          {title && (
+            <h2 className="text-2xl font-semibold leading-tight">
+              {titleLines.map((line, idx) => (
+                <span key={`${line}-${idx}`}>
+                  {line}
+                  {idx < titleLines.length - 1 && <br />}
+                </span>
+              ))}
+            </h2>
+          )}
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        </section>
+      )}
 
       <section className="space-y-3">
         {definition.categories.map((category) => {
@@ -210,3 +214,4 @@ export function ConsentOverviewAccordion({
     </div>
   )
 }
+

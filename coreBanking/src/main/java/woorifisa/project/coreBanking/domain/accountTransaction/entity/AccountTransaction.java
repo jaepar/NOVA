@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +25,15 @@ import woorifisa.project.coreBanking.global.entity.BaseEntity;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "account_transaction")
+@Table(
+        name = "account_transaction",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_account_transaction_external_request_id_flow",
+                        columnNames = {"external_request_id", "transaction_flow"}
+                )
+        }
+)
 public class AccountTransaction extends BaseEntity {
 
     @Id
@@ -50,9 +59,16 @@ public class AccountTransaction extends BaseEntity {
     @Column(name = "amount", nullable = false)
     private Integer amount;
 
+    @Column(name = "balance_after", nullable = false)
+    private Integer balanceAfter;
+
     @Column(name = "memo", length = 100)
     private String memo;
 
-    @Column(name = "transfer_request_id", length = 100)
-    private String transferRequestId;
+    @Column(name = "external_request_id", length = 100)
+    private String externalRequestId;
+
+    public void updateMemo(String memo) {
+        this.memo = memo;
+    }
 }

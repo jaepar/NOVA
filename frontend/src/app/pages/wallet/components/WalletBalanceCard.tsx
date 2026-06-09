@@ -1,5 +1,5 @@
 interface WalletBalanceCardProps {
-  balance: number
+  balance: number | null
 }
 
 export function WalletBalanceCard({ balance }: WalletBalanceCardProps) {
@@ -16,7 +16,7 @@ export function WalletBalanceCard({ balance }: WalletBalanceCardProps) {
           <div>
             <p className="text-[15px] font-medium text-white/75">월렛 잔액</p>
             <p className="mt-2 whitespace-nowrap text-[32px] font-semibold leading-none tracking-normal">
-              {balance.toLocaleString('ko-KR')}
+              {balance === null ? "-" : balance.toLocaleString('ko-KR')}
               <span className="ml-1 text-[18px]">원</span>
             </p>
           </div>

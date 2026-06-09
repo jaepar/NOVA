@@ -1,15 +1,18 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { walletApi } from "../../../api";
 import { AppButton } from "../../components/design-system/AppButton";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { WalletAgreementItem } from "./components/WalletAgreementItem";
 import { walletTerms } from "./data/walletTerms";
+import { walletPrimaryButtonClass } from "./styles";
 import { useWalletStore } from "./stores/walletStore";
 
 export function WalletTerms() {
   const navigate = useNavigate();
+  const [isCreating, setIsCreating] = useState(false);
+  const [createErrorMessage, setCreateErrorMessage] = useState<string | null>(null);
   const checkedTermIds = useWalletStore((state) => state.checkedTermIds);
   const expandedTermId = useWalletStore((state) => state.expandedTermId);
   const agreementsOpen = useWalletStore((state) => state.agreementsOpen);
@@ -34,19 +37,47 @@ export function WalletTerms() {
     toggleAllRequiredTerms(requiredTermIds);
   };
 
-  const handleAgree = () => {
-    if (!allRequiredChecked) return;
-    resetTermsFlow();
-    navigate("/wallet/home");
+  const handleAgree = async () => {
+    if (!allRequiredChecked || isCreating) return;
+
+    setIsCreating(true);
+    setCreateErrorMessage(null);
+
+    try {
+      await walletApi.create({ termsAgreed: true });
+      resetTermsFlow();
+      navigate("/wallet/home", { replace: true });
+    } catch {
+      setCreateErrorMessage("월렛 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
     <MobileLayout
       title="월렛"
       bottomContent={
-        <Btn_1Col onClick={handleAgree}>
-          동의
-        </Btn_1Col>
+        <div className="space-y-3">
+          {createErrorMessage && (
+            <div
+              role="alert"
+              className="rounded-xl bg-[#fff2f2] px-4 py-3 text-center text-[14px] font-medium text-[#d92d20] shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+            >
+              {createErrorMessage}
+            </div>
+          )}
+
+          <AppButton
+            type="button"
+            variant="unstyled"
+            disabled={!allRequiredChecked || isCreating}
+            onClick={handleAgree}
+            className={walletPrimaryButtonClass}
+          >
+            {isCreating ? "생성 중" : "동의"}
+          </AppButton>
+        </div>
       }
     >
       <section className="pt-12 pl-3 pr-5">
@@ -68,7 +99,7 @@ export function WalletTerms() {
               aria-pressed={allRequiredChecked}
               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors ${
                 allRequiredChecked
-                  ? "border-primary bg-primary text-primary-foreground"
+                  ? "border-[#111111] bg-[#111111] text-white"
                   : "border-gray-300 bg-background text-transparent"
               }`}
             >

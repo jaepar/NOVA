@@ -6,6 +6,7 @@
 
 - `guidelines/DESIGN_SYSTEM.md`
 - `guidelines/LAYOUT_GUIDELINES.md`
+- `src/app/domains/AGENTS.md`
 
 ## 1) 목표
 
@@ -20,22 +21,31 @@
 3. `frontend/guidelines/LAYOUT_GUIDELINES.md`
 4. 기존 페이지 구현
 
-## 2.1) Codex 실행 정책
+### 2.1) Codex 실행 정책
 
 - 본 저장소는 별도 브리지 파일을 사용하지 않는다.
-- Codex 작업 시 규칙 소스는 `AGENTS.md`와 `guidelines/*.md`만 사용한다.
+- Codex 작업 시 규칙 소스는 `AGENTS.md`, `guidelines/*.md`, `src/app/**/AGENTS.md`만 사용한다.
+- `README.md`는 시스템 가이드라인 소스로 취급하지 않는다.
+
+### 2.2) API 작업 규칙 소스 (필수)
+
+- `src/api/*` 파일을 생성/수정하는 작업은 반드시 `src/api/AGENTS.md`를 함께 확인한다.
+- API 레이어 구현 규칙(클라이언트 사용, DTO 타입, 에러 처리, export 정책)은 `src/api/AGENTS.md`를 우선 적용한다.
+- 본 문서와 `src/api/AGENTS.md`가 충돌하면, API 레이어 범위에서는 `src/api/AGENTS.md`를 우선한다.
 
 ## 3) 프레임 규격 (필수)
 
 - 기준 프레임: `390 x 844`
 - 프레임 기준 요소: `#root`
-- 화면이 작아지면 비율 유지 축소
-- 화면이 커져도 `390x844` 이상 확장 금지
+- 데스크탑 브라우저(`>768px`)에서는 `390x844` 프레임을 중앙 고정으로 유지한다.
+- 모바일/앱 브라우저(`<=768px`)에서는 기기 뷰포트 너비/높이에 맞춰 `#root`를 확장해 사용한다.
+- 모바일/앱 브라우저에서는 프레임 스케일 축소를 적용하지 않는다(`--app-scale: 1`).
 - 프레임 외부 영역은 별도 배경으로 구분 유지
 
 ## 4) 레이아웃 규칙 (필수)
 
 - 모든 페이지는 `MobileLayout`을 기본 스캐폴드로 사용
+- 페이지 유형과 관계없이 예외 없이 동일 레이아웃 규격을 적용한다.
 - 상단 네비게이션은 `MobileLayout`의 `headerType`으로 관리한다.
   - `headerType="back"`: 뒤로가기 헤더(`FixedHeader`)
   - `headerType="close"`: 닫기 헤더(`CloseFixedHeader`)
@@ -52,15 +62,16 @@
 - 입력 블록은 `CommonInputGroup` 등 공통 입력 컴포넌트 우선
 - 임시/일회성 스타일 남발 금지
 
-## 5.2) 상태 관리 규칙
+### 5.1) 상태 관리 규칙
 
 - 프론트엔드에서 상태 관리가 필요한 경우 `zustand`를 표준으로 사용한다.
 - 다중 페이지/다중 컴포넌트에서 공유되는 상태는 `zustand store`로 관리한다.
 - 임의 전역 객체/직접 `sessionStorage` 접근으로 상태를 분산 관리하지 않는다.
 
-## 5.1) 약관 동의 페이지 규격 (필수)
+### 5.2) 약관 동의 페이지 규격 (필수)
 
-- 인증서 약관 동의 화면은 `src/app/domains/certificate-consent/` 규격을 사용한다.
+- 약관 동의 화면은 `src/app/domains/AGENTS.md`의 공통 규격을 사용한다.
+- 인증서/여권/생체/계좌 약관 정의는 각 도메인 폴더(`certificate-consent`, `verification-consent`, `account-consent`)의 정의 파일을 사용한다.
 - 약관 데이터는 `ConsentDefinition` 스키마를 사용한다.
 - 페이지 컴포넌트 내부에 약관 텍스트를 하드코딩하지 않는다.
 - 동의/아코디언/캐러셀 상태는 `storage.ts` API만 사용한다.
@@ -83,14 +94,39 @@
   - 선택 카테고리 개수
   - 각 카테고리(필수/선택)의 세부 약관 개수
 
+### 5.3) 이메일 인증 공통 규칙 (필수)
+
+- 회원가입, 계좌개설, 해외송금에서 사용하는 이메일 인증 UI/로직은 공통 컴포넌트를 사용한다.
+- 표준 구성:
+  - UI: `EmailVerificationFields`
+  - 상태/타이머/발송 흐름: `useEmailVerification`
+- 페이지 파일에서 인증번호 입력, 타이머, 발송/재발송, 검증 상태 UI를 중복 구현하지 않는다.
+- 도메인별 차이는 상위 페이지에서 활성 조건, 완료 후 이동, 보조 안내문구만 조합한다.
+
+### 5.4) 국가 선택 공통 규칙 (필수)
+
+- 국가 검색 및 선택 UI는 `CountrySelectBottomSheet`를 공통 사용한다.
+- 페이지 내부에서 국가 필터링, 검색 입력, 선택 리스트 UI를 중복 구현하지 않는다.
+- 국가 데이터는 `src/app/data/transferCountries.ts`처럼 `data` 폴더 정의 파일에서 관리한다.
+- 국가 선택 바텀시트의 검색 입력은 상단 고정 형태를 유지하고, 국가 목록만 스크롤되도록 구성한다.
+- 검색 입력 라벨 텍스트(`국가 검색`)는 별도 표시하지 않고 placeholder 기반으로만 노출한다.
+
+### 5.5) 2분할 선택 박스 공통 규칙 (필수)
+
+- 2개의 상호 배타 옵션을 토글하는 박스 UI는 `SegmentedOptionField`를 공통 사용한다.
+- 페이지 내부에서 `grid grid-cols-2` 형태의 선택 박스를 반복 구현하지 않는다.
+- 선택 상태 색상은 디자인 시스템 토큰(`bg-primary/10`, `text-primary`, `border-border`, `bg-background`)을 따른다.
+- 특정 도메인이나 화면 용도로 한정하지 않고, 동일한 2분할 선택 패턴이 필요한 모든 페이지에서 재사용한다.
+
 ## 6) 검증 체크리스트
 
-- [ ] `390x844` 프레임 규칙 유지
-- [ ] 작은 화면에서 비율 유지 축소 동작 확인
+- [ ] 데스크탑(`>768px`)에서 `390x844` 중앙 고정 프레임 유지
+- [ ] 모바일/앱 브라우저(`<=768px`)에서 기기 뷰포트 기준 렌더링
+- [ ] 모바일/앱 브라우저에서 `--app-scale: 1` 유지
 - [ ] 헤더/본문/하단 고정 영역 겹침 없음
 - [ ] 공통 레이아웃 컴포넌트 일관 사용
 - [ ] 페이지별 프레임 중복 규칙 없음
-- [ ] 약관 샘플 페이지는 `src/app/domains/certificate-consent/README.md`의 완료 기준을 모두 충족
+- [ ] 약관 샘플 페이지는 `src/app/domains/AGENTS.md`의 완료 기준을 모두 충족
 
 ## 7) 파일 책임 범위
 
@@ -98,8 +134,35 @@
 - 공통 레이아웃: `src/app/components/layout/*`
 - 페이지 구현: `src/app/pages/*`
 - 디자인 시스템: `src/app/components/design-system/*`
+- API 레이어: `src/api/*` (`src/api/AGENTS.md` 규칙 필수 적용)
 
-## 7.1) 서비스 도메인 폴더 작업 원칙
+### 7.1) API 개발 가이드라인 (필수)
+
+목적:
+- 프론트엔드 API 연동 시 계약 일관성, 보안, 유지보수성을 보장한다.
+
+적용 대상:
+- `src/api/*` 내 신규/수정 작업
+- 페이지/도메인에서 API 호출 흐름을 연결하는 작업
+
+필수 규칙:
+- API 호출은 `src/api/client.ts`의 `apiClient`를 사용하고, raw `axios` 인스턴스를 새로 만들지 않는다.
+- 엔드포인트 함수마다 요청/응답 DTO 타입을 명시하고 `any` 사용을 최소화한다.
+- envelope 응답 구조는 `response.data.data` 기준으로 일관되게 반환한다.
+- Axios 에러 본문 추출은 엔드포인트별 중복 구현 대신 `src/api/utils.ts` 공용 유틸을 우선 사용한다.
+- 신규 엔드포인트 추가 시 `src/api/index.ts` export를 반드시 갱신한다.
+- UI 상태 변경/라우팅 로직은 API 모듈에 넣지 않고 페이지/서비스 레이어에서 처리한다.
+- 시크릿/토큰/고정 자격증명은 코드와 로그에 남기지 않고 환경변수/보안 경로로만 처리한다.
+
+AI 실행 체크리스트:
+- [ ] 작업 시작 전에 `src/api/AGENTS.md`를 확인했는가
+- [ ] 새 API가 `apiClient`를 사용했는가
+- [ ] 요청/응답 DTO 타입이 정의되었는가
+- [ ] `src/api/index.ts` export가 갱신되었는가
+- [ ] 4xx/5xx 실패 경로를 호출부에서 처리했는가
+- [ ] 민감 정보 로그가 없는가
+
+### 7.2) 서비스 도메인 폴더 작업 원칙
 
 - 하나의 서비스 기능에서 여러 페이지가 필요한지 먼저 확인한다.
 - 이미 해당 서비스 도메인 폴더가 있으면 그 폴더에서 작업한다.
@@ -109,11 +172,19 @@
   - `CertificateIssueService`
   - `TransferService`
 
-## 7.2) domains 폴더 역할
+### 7.3) domains 폴더 역할
 
 - `src/app/domains/*`는 공통으로 재사용되는 페이지 규격 파일을 관리한다.
 - 새로운 공통 페이지를 만들 때 정의해야 할 규격(예: 스키마, 상태 저장, 샘플 정의)이 있으면 해당 서비스 도메인 폴더에 파일을 생성한다.
 - 페이지 UI 파일(`pages/*`)과 규격 파일(`domains/*`)을 분리해 유지한다.
+
+### 7.4) Main 페이지 컴포넌트 분리 원칙 (필수)
+
+- `src/app/pages/Main.tsx`에 새로운 UI 블록/기능 컴포넌트를 직접 추가하지 않는다.
+- Main 페이지 변경 시 신규 요소는 `src/app/pages/main/` 하위의 별도 컴포넌트 파일로 분리해 구현한다.
+- `Main.tsx`는 페이지 조립 전용 파일로 유지하고, 상태 조회/이벤트 핸들러/라우팅 연결만 담당한다.
+- 공통 타입이 필요하면 `src/app/pages/main/types.ts`로 분리해 재사용한다.
+- 한 파일에 과도한 마크업이 다시 쌓이지 않도록 기능 단위 컴포넌트 분리를 기본값으로 한다.
 
 ## 8) 동기화 정책
 
@@ -199,7 +270,7 @@
 
 상태 관리:
 
-- 약관 상태는 `zustand`(`domains/certificate-consent/storage.ts`)를 사용한다.
+- 약관 상태는 `zustand`(`domains/storage.ts`)를 사용한다.
 - 컴포넌트 외부에서 `sessionStorage`를 직접 조작하지 않는다.
 
 진입/복귀 규칙:
@@ -231,18 +302,18 @@
 
 - 약관 데이터는 페이지에 하드코딩하지 않고 정의 파일에서 관리한다.
 - 권장 위치: `src/app/domains/<service-domain>/`
-- 권장 파일명: `definition.<scenario>.ts`
-  - 예: `definition.issue-account.ts`, `definition.wallet.ts`
+- 권장 파일명: `definition.<domain-or-scenario>.ts`
+  - 예: `definition.certificate.ts`, `definition.liveness-consent.ts`, `definition.open-account.ts`
 - 페이지는 목적에 맞는 정의 파일을 import해서 `definition` props로 주입한다.
 
-## 헤더 뒤로가기 정책 (스텝형 플로우 필수)
+## 12) 헤더 뒤로가기 정책 (스텝형 플로우 필수)
 
 - 스텝형 플로우(예: 인증서 발급)에서는 `navigate(-1)`을 뒤로가기 기본 동작으로 사용하지 않는다.
 - 각 스텝 페이지는 `MobileLayout`의 `backPath`를 명시하고, 현재 스텝 기준 이전 스텝 경로로 이동해야 한다.
 - 히스토리 기반 이동이 필요한 예외 케이스는 `onBack`을 사용하되, 예외 사유를 PR 설명에 반드시 남긴다.
 - 템플릿 기반 페이지(`Failed` 등)도 스텝형 플로우에 포함될 경우 `backPath`를 받아 동일 정책을 따른다.
 
-## 12) 라우팅 구조 규칙 (필수)
+## 13) 라우팅 구조 규칙 (필수)
 
 목적:
 - `routes.tsx` 단일 파일 충돌을 줄이고, 도메인별 병렬 개발 시 머지 충돌 비용을 낮춘다.
@@ -265,14 +336,14 @@
 - [ ] `routes.tsx`는 조립 전용(얇은 파일) 상태를 유지하는가
 - [ ] `*` fallback 라우트가 배열 마지막에 위치하는가
 
-## 13) 문서 수정 안전 규칙 (인코딩/누락 방지)
+## 14) 문서 수정 안전 규칙 (인코딩/누락 방지)
 
-### 13.1 목적
+### 14.1 목적
 - 한글 깨짐(인코딩 손상), 문서 누락, 범위 외 수정, 언어 혼용(영문 본문) 문제를 방지한다.
 - 본 규칙은 이 저장소에서 수행되는 모든 문서 수정 작업에 공통 적용한다.
 - 기존 대화/신규 대화 여부와 무관하게 동일하게 준수한다.
 
-### 13.2 PowerShell UTF-8 기본 설정(권장)
+### 14.2 PowerShell UTF-8 기본 설정(권장)
 - PowerShell 프로필(`$PROFILE`)에 아래를 설정해 기본 인코딩을 UTF-8로 고정한다.
 
 ```powershell
@@ -285,17 +356,17 @@ $PSDefaultParameterValues['Add-Content:Encoding'] = 'utf8'
 $PSDefaultParameterValues['Export-Csv:Encoding']  = 'utf8'
 ```
 
-### 13.3 수정 방식 규칙(필수)
+### 14.3 수정 방식 규칙(필수)
 - 문서 수정은 부분 패치(`apply_patch`) 우선으로 수행한다.
 - 한글 문서를 통째 재작성(`Set-Content` 전체 덮어쓰기)하지 않는다.
 - 요청된 경로 범위를 벗어난 문서는 수정하지 않는다.
 - 문서 본문은 한국어로 작성한다(코드, 경로, 라이브러리/타입명 제외).
 
-### 13.4 복구 규칙(필수)
+### 14.4 복구 규칙(필수)
 - 깨짐/누락이 의심되면 새로 쓰지 않고, 우선 Git 원복(`git restore`) 후 최소 변경만 다시 적용한다.
 - 인코딩 변환 작업은 단독 변경 단위로 분리해 추적 가능하게 한다.
 
-### 13.5 검증 규칙(필수)
+### 14.5 검증 규칙(필수)
 - 완료 전 아래를 반드시 확인한다.
 1. `rg`로 주요 한글 키워드 검색이 정상 동작하는가
 2. `git diff`에서 의도하지 않은 대량 삭제/섹션 누락이 없는가

@@ -11,8 +11,10 @@ interface SuccessProps {
   visualImageSrc?: string
   visualImageAlt?: string
   buttonText?: string
+  buttonDisabled?: boolean
   onButtonClick?: () => void
   redirectPath?: string
+  headerType?: 'back' | 'none'
 }
 
 export function Success({
@@ -22,8 +24,10 @@ export function Success({
   visualImageSrc,
   visualImageAlt = '성공 이미지',
   buttonText = '확인',
+  buttonDisabled = false,
   onButtonClick,
   redirectPath = '/main',
+  headerType = 'back',
 }: SuccessProps) {
   const navigate = useNavigate()
 
@@ -38,8 +42,9 @@ export function Success({
   return (
     <MobileLayout
       title={headerTitle}
+      headerType={headerType}
       bottomContent={
-        <Btn_1Col variant="primary" onClick={handleConfirm}>
+        <Btn_1Col variant="primary" onClick={handleConfirm} disabled={buttonDisabled}>
           {buttonText}
         </Btn_1Col>
       }

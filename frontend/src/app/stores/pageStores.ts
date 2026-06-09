@@ -1,13 +1,23 @@
 import { create } from 'zustand'
 
+function clearSessionStorage() {
+  if (typeof window === 'undefined' || typeof window.sessionStorage === 'undefined') return
+
+  window.sessionStorage.clear()
+}
+
 interface MainPageState {
   isMenuOpen: boolean
   isLoggedIn: boolean
+  isAuthChecked: boolean
+  userId: number | null
   hasAccount: boolean
   hasUnreadNotifications: boolean
   isCertificateSheetOpen: boolean
   setMenuOpen: (open: boolean) => void
   setLoggedIn: (loggedIn: boolean) => void
+  setAuthenticated: (userId: number) => void
+  clearAuth: () => void
   setHasAccount: (hasAccount: boolean) => void
   setHasUnreadNotifications: (hasUnread: boolean) => void
   setCertificateSheetOpen: (open: boolean) => void
@@ -17,15 +27,39 @@ interface MainPageState {
 export const useMainPageStore = create<MainPageState>((set) => ({
   isMenuOpen: false,
   isLoggedIn: false,
+  isAuthChecked: false,
+  userId: null,
   hasAccount: false,
-  hasUnreadNotifications: true,
+  hasUnreadNotifications: false,
   isCertificateSheetOpen: false,
   setMenuOpen: (open) => set({ isMenuOpen: open }),
-  setLoggedIn: (loggedIn) => set({ isLoggedIn: loggedIn }),
+  setLoggedIn: (loggedIn) =>
+    set((state) => ({
+      isLoggedIn: loggedIn,
+      isAuthChecked: true,
+      userId: loggedIn ? state.userId : null,
+    })),
+  setAuthenticated: (userId) => set({ isLoggedIn: true, isAuthChecked: true, userId }),
+  clearAuth: () =>
+    set({
+      isLoggedIn: false,
+      isAuthChecked: true,
+      userId: null,
+      hasUnreadNotifications: false,
+    }),
   setHasAccount: (hasAccount) => set({ hasAccount }),
   setHasUnreadNotifications: (hasUnreadNotifications) => set({ hasUnreadNotifications }),
   setCertificateSheetOpen: (isCertificateSheetOpen) => set({ isCertificateSheetOpen }),
-  logout: () => set({ isLoggedIn: false, hasAccount: false }),
+  logout: () => {
+    clearSessionStorage()
+    set({
+      isLoggedIn: false,
+      isAuthChecked: true,
+      userId: null,
+      hasAccount: false,
+      hasUnreadNotifications: false,
+    })
+  },
 }))
 
 interface Step1PageState {
@@ -59,6 +93,9 @@ interface SignupPageState {
   setGender: (gender: SignupGender) => void;
   setPassword: (password: string) => void;
   setPasswordConfirm: (passwordConfirm: string) => void;
+  resetEmailVerification: () => void;
+  resetPersonalInfo: () => void;
+  resetPassword: () => void;
   resetSignup: () => void;
 }
 
@@ -81,6 +118,9 @@ export const useSignupPageStore = create<SignupPageState>((set) => ({
   setGender: (gender) => set({ gender }),
   setPassword: (password) => set({ password }),
   setPasswordConfirm: (passwordConfirm) => set({ passwordConfirm }),
+  resetEmailVerification: () => set({ email: "", verificationCode: "" }),
+  resetPersonalInfo: () => set({ name: "", birthDate: "", gender: "" }),
+  resetPassword: () => set({ password: "", passwordConfirm: "" }),
   resetSignup: () => set(signupInitialState),
 }));
 
@@ -100,6 +140,166 @@ export const useTransactionHistoryPageStore = create<TransactionHistoryPageState
   setFilterOpen: (isFilterOpen) => set({ isFilterOpen }),
   setSelectedPeriod: (selectedPeriod) => set({ selectedPeriod }),
   setSelectedType: (selectedType) => set({ selectedType }),
+}))
+
+interface TransferSendPageState {
+  isInitialVerificationComplete: boolean
+  completeInitialVerification: () => void
+  resetInitialVerification: () => void
+}
+
+export const useTransferSendPageStore = create<TransferSendPageState>((set) => ({
+  isInitialVerificationComplete: false,
+  completeInitialVerification: () => set({ isInitialVerificationComplete: true }),
+  resetInitialVerification: () => set({ isInitialVerificationComplete: false }),
+}))
+
+type TransferFeeBurden = 'sender' | 'receiver'
+
+interface TransferBasicInfoPageState {
+  purpose: string
+  countryId: string
+  currencyCode: string
+  amount: string
+  feeBurden: TransferFeeBurden
+  setPurpose: (purpose: string) => void
+  setCountryId: (countryId: string) => void
+  setCurrencyCode: (currencyCode: string) => void
+  setAmount: (amount: string) => void
+  setFeeBurden: (feeBurden: TransferFeeBurden) => void
+  reset: () => void
+}
+
+const transferBasicInfoInitialState = {
+  purpose: '거주자(외국인 제외)의 무증빙 해외송금',
+  countryId: 'us',
+  currencyCode: 'USD',
+  amount: '',
+  feeBurden: 'sender' as TransferFeeBurden,
+}
+
+export const useTransferBasicInfoPageStore = create<TransferBasicInfoPageState>((set) => ({
+  ...transferBasicInfoInitialState,
+  setPurpose: (purpose) => set({ purpose }),
+  setCountryId: (countryId) => set({ countryId }),
+  setCurrencyCode: (currencyCode) => set({ currencyCode }),
+  setAmount: (amount) => set({ amount }),
+  setFeeBurden: (feeBurden) => set({ feeBurden }),
+  reset: () => set(transferBasicInfoInitialState),
+}))
+
+interface TransferSenderInfoPageState {
+  senderName: string
+  phoneNumber: string
+  address: string
+  detailAddress: string
+  district: string
+  city: string
+  postalCode: string
+  countryId: string
+  setSenderName: (senderName: string) => void
+  setPhoneNumber: (phoneNumber: string) => void
+  setAddress: (address: string) => void
+  setDetailAddress: (detailAddress: string) => void
+  setDistrict: (district: string) => void
+  setCity: (city: string) => void
+  setPostalCode: (postalCode: string) => void
+  setCountryId: (countryId: string) => void
+  reset: () => void
+}
+
+const transferSenderInfoInitialState = {
+  senderName: '',
+  phoneNumber: '',
+  address: '',
+  detailAddress: '',
+  district: '',
+  city: '',
+  postalCode: '',
+  countryId: 'kr',
+}
+
+export const useTransferSenderInfoPageStore = create<TransferSenderInfoPageState>((set) => ({
+  ...transferSenderInfoInitialState,
+  setSenderName: (senderName) => set({ senderName }),
+  setPhoneNumber: (phoneNumber) => set({ phoneNumber }),
+  setAddress: (address) => set({ address }),
+  setDetailAddress: (detailAddress) => set({ detailAddress }),
+  setDistrict: (district) => set({ district }),
+  setCity: (city) => set({ city }),
+  setPostalCode: (postalCode) => set({ postalCode }),
+  setCountryId: (countryId) => set({ countryId }),
+  reset: () => set(transferSenderInfoInitialState),
+}))
+
+type TransferPaymentDetailMode = 'reason-select' | 'manual-input'
+
+interface TransferRecipientInfoPageState {
+  recipientName: string
+  recipientAddress: string
+  recipientDetailAddress: string
+  recipientDistrict: string
+  recipientCity: string
+  recipientPostalCode: string
+  recipientPhoneNumber: string
+  swiftCode: string
+  accountNumber: string
+  routingNumber: string
+  bankBranchName: string
+  paymentDetailMode: TransferPaymentDetailMode
+  paymentReason: string
+  manualPaymentDetail: string
+  setRecipientName: (recipientName: string) => void
+  setRecipientAddress: (recipientAddress: string) => void
+  setRecipientDetailAddress: (recipientDetailAddress: string) => void
+  setRecipientDistrict: (recipientDistrict: string) => void
+  setRecipientCity: (recipientCity: string) => void
+  setRecipientPostalCode: (recipientPostalCode: string) => void
+  setRecipientPhoneNumber: (recipientPhoneNumber: string) => void
+  setSwiftCode: (swiftCode: string) => void
+  setAccountNumber: (accountNumber: string) => void
+  setRoutingNumber: (routingNumber: string) => void
+  setBankBranchName: (bankBranchName: string) => void
+  setPaymentDetailMode: (paymentDetailMode: TransferPaymentDetailMode) => void
+  setPaymentReason: (paymentReason: string) => void
+  setManualPaymentDetail: (manualPaymentDetail: string) => void
+  reset: () => void
+}
+
+const transferRecipientInfoInitialState = {
+  recipientName: '',
+  recipientAddress: '',
+  recipientDetailAddress: '',
+  recipientDistrict: '',
+  recipientCity: '',
+  recipientPostalCode: '',
+  recipientPhoneNumber: '',
+  swiftCode: '',
+  accountNumber: '',
+  routingNumber: '',
+  bankBranchName: '',
+  paymentDetailMode: 'reason-select' as TransferPaymentDetailMode,
+  paymentReason: '',
+  manualPaymentDetail: '',
+}
+
+export const useTransferRecipientInfoPageStore = create<TransferRecipientInfoPageState>((set) => ({
+  ...transferRecipientInfoInitialState,
+  setRecipientName: (recipientName) => set({ recipientName }),
+  setRecipientAddress: (recipientAddress) => set({ recipientAddress }),
+  setRecipientDetailAddress: (recipientDetailAddress) => set({ recipientDetailAddress }),
+  setRecipientDistrict: (recipientDistrict) => set({ recipientDistrict }),
+  setRecipientCity: (recipientCity) => set({ recipientCity }),
+  setRecipientPostalCode: (recipientPostalCode) => set({ recipientPostalCode }),
+  setRecipientPhoneNumber: (recipientPhoneNumber) => set({ recipientPhoneNumber }),
+  setSwiftCode: (swiftCode) => set({ swiftCode }),
+  setAccountNumber: (accountNumber) => set({ accountNumber }),
+  setRoutingNumber: (routingNumber) => set({ routingNumber }),
+  setBankBranchName: (bankBranchName) => set({ bankBranchName }),
+  setPaymentDetailMode: (paymentDetailMode) => set({ paymentDetailMode }),
+  setPaymentReason: (paymentReason) => set({ paymentReason }),
+  setManualPaymentDetail: (manualPaymentDetail) => set({ manualPaymentDetail }),
+  reset: () => set(transferRecipientInfoInitialState),
 }))
 
 interface DesignSystemPageState {
@@ -173,9 +373,23 @@ interface Step5PassportCaptureState {
   mode: 'live' | 'review'
   capturedImage: string | null
   cameraError: string | null
+  parsedPassportData: {
+    type: string
+    issueCountry: string
+    num: string
+    surName: string
+    givenName: string
+    nationlity: string
+    birthDate: string
+    sex: string
+    authority: string
+    issueDate: string
+    expireDate: string
+  } | null
   setMode: (mode: 'live' | 'review') => void
   setCapturedImage: (capturedImage: string | null) => void
   setCameraError: (cameraError: string | null) => void
+  setParsedPassportData: (parsedPassportData: Step5PassportCaptureState['parsedPassportData']) => void
   reset: () => void
 }
 
@@ -183,15 +397,86 @@ export const useStep5PassportCaptureStore = create<Step5PassportCaptureState>((s
   mode: 'live',
   capturedImage: null,
   cameraError: null,
+  parsedPassportData: null,
   setMode: (mode) => set({ mode }),
   setCapturedImage: (capturedImage) => set({ capturedImage }),
   setCameraError: (cameraError) => set({ cameraError }),
+  setParsedPassportData: (parsedPassportData) => set({ parsedPassportData }),
   reset: () =>
     set({
       mode: 'live',
       capturedImage: null,
       cameraError: null,
+      parsedPassportData: null,
     }),
+}))
+
+type ForeignerCardOcrValues = {
+  name: string
+  registrationNumber: string
+  issueDate: string
+}
+
+interface ForeignerCardRegistrationState {
+  capturedImage: string | null
+  cameraError: string | null
+  ocrValues: ForeignerCardOcrValues
+  verificationStatus: string | null
+  failureReasonCode: string | null
+  setCapturedImage: (capturedImage: string | null) => void
+  setCameraError: (cameraError: string | null) => void
+  setOcrValues: (ocrValues: ForeignerCardOcrValues) => void
+  setOcrValue: (key: keyof ForeignerCardOcrValues, value: string) => void
+  setVerificationResult: (verificationStatus: string | null, failureReasonCode: string | null) => void
+  reset: () => void
+}
+
+const initialForeignerCardOcrValues: ForeignerCardOcrValues = {
+  name: '',
+  registrationNumber: '',
+  issueDate: '',
+}
+
+export const useForeignerCardRegistrationStore = create<ForeignerCardRegistrationState>((set) => ({
+  capturedImage: null,
+  cameraError: null,
+  ocrValues: initialForeignerCardOcrValues,
+  verificationStatus: null,
+  failureReasonCode: null,
+  setCapturedImage: (capturedImage) => set({ capturedImage }),
+  setCameraError: (cameraError) => set({ cameraError }),
+  setOcrValues: (ocrValues) => set({ ocrValues }),
+  setOcrValue: (key, value) =>
+    set((state) => ({
+      ocrValues: {
+        ...state.ocrValues,
+        [key]: value,
+      },
+    })),
+  setVerificationResult: (verificationStatus, failureReasonCode) =>
+    set({ verificationStatus, failureReasonCode }),
+  reset: () =>
+    set({
+      capturedImage: null,
+      cameraError: null,
+      ocrValues: initialForeignerCardOcrValues,
+      verificationStatus: null,
+      failureReasonCode: null,
+    }),
+}))
+
+interface LivenessFlowState {
+  sessionId: string | null
+  expiresAt: string | null
+  setSession: (sessionId: string, expiresAt: string) => void
+  resetSession: () => void
+}
+
+export const useLivenessFlowStore = create<LivenessFlowState>((set) => ({
+  sessionId: null,
+  expiresAt: null,
+  setSession: (sessionId, expiresAt) => set({ sessionId, expiresAt }),
+  resetSession: () => set({ sessionId: null, expiresAt: null }),
 }))
 
 interface Step10TermsPageState {
@@ -241,4 +526,39 @@ export const useConsentCarouselTemplateStore = create<ConsentCarouselTemplateSta
           : Math.max(0, currentIndex),
     })),
   reset: () => set({ currentIndex: 0 }),
+}))
+
+interface AccountCreateFlowState {
+  address: string
+  addressDetail: string
+  job: string
+  isOwner: boolean
+  transactionPurpose: string
+  fundSource: string
+  hasForeignTax: boolean
+  setCustomerInfo: (address: string, addressDetail: string) => void
+  setJob: (job: string) => void
+  setTransactionInfo: (isOwner: boolean, transactionPurpose: string, fundSource: string) => void
+  setHasForeignTax: (hasForeignTax: boolean) => void
+  reset: () => void
+}
+
+const initialAccountCreateFlowState = {
+  address: '',
+  addressDetail: '',
+  job: '',
+  isOwner: false,
+  transactionPurpose: '',
+  fundSource: '',
+  hasForeignTax: false,
+}
+
+export const useAccountCreateFlowStore = create<AccountCreateFlowState>((set) => ({
+  ...initialAccountCreateFlowState,
+  setCustomerInfo: (address, addressDetail) => set({ address, addressDetail }),
+  setJob: (job) => set({ job }),
+  setTransactionInfo: (isOwner, transactionPurpose, fundSource) =>
+    set({ isOwner, transactionPurpose, fundSource }),
+  setHasForeignTax: (hasForeignTax) => set({ hasForeignTax }),
+  reset: () => set(initialAccountCreateFlowState),
 }))

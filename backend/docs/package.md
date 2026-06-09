@@ -19,6 +19,8 @@ flowchart TD
   domain --> cs["cs<br/>화상 상담 요청/처리(실시간 번역 STT)"]
 
   global --> config["config<br/>공통 설정(Security, JPA, CORS, OpenAPI)"]
+  global --> corebanking["corebanking<br/>Core Banking 공통 REST 연동 클라이언트"]
+  global --> government["government<br/>Government DB 공통 REST 연동 클라이언트"]
   global --> exception["exception<br/>공통 예외, 에러 코드, 전역 핸들러"]
   global --> response["response<br/>공통 API 응답 래퍼"]
   global --> entity["entity<br/>BaseEntity(감사 필드)"]
@@ -43,7 +45,7 @@ flowchart TD
 | `job` | 구인공고, 지원 상태(`application`), 이력서(`resume`) |
 | `hospital` | 병원 메타 정보, 예약 생성/조회 |
 | `cs` | 상담 요청/유형/완료 상태 관리 |
-| `global` | 공통 응답, 예외, 설정, 감사 필드 |
+| `global` | 공통 응답, 예외, 설정, 감사 필드, Core Banking/Government DB 공통 REST 연동 |
 
 ## Placement Rules
 
@@ -54,6 +56,8 @@ flowchart TD
 - `reservation`은 `hospital` 도메인에 둔다.
 - `cs` 관련 엔티티/enum은 `cs` 도메인에 둔다.
 - 공통 예외/응답/설정은 `global`에만 둔다.
+- Core Banking 클라이언트 인터페이스/구현은 `global/corebanking/client`에 단일 구성으로 두고, 도메인(`banking`, `wallet`)에서 별도 CoreBanking 클라이언트를 생성하지 않는다.
+- Government DB 클라이언트 인터페이스/구현은 `global/government/client`에 단일 구성으로 두고, `user` 도메인은 해당 글로벌 클라이언트만 의존한다.
 - `BaseEntity`는 `global/entity`에 두고 도메인 엔티티에서 상속한다.
 
 ## Service Boundaries

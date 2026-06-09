@@ -1,9 +1,9 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { ConsentOverviewAccordion } from '../../components/consent/ConsentOverviewAccordion'
-import { certificateConsentDefinitionSample } from '../../domains/certificate-consent/definition.sample'
+import { certificateConsentDefinition } from '../../domains/certificate-consent/definition.certificate'
 
 export function CertificateIssuanceConsentAgreement() {
   const navigate = useNavigate()
@@ -24,7 +24,7 @@ export function CertificateIssuanceConsentAgreement() {
       }
     >
       <ConsentOverviewAccordion
-        definition={certificateConsentDefinitionSample}
+        definition={certificateConsentDefinition}
         preserveState={preserveState}
         basePath="/certificate/step-01"
         preserveStateKey="preserveConsentState"
@@ -36,3 +36,4 @@ export function CertificateIssuanceConsentAgreement() {
     </MobileLayout>
   )
 }
+

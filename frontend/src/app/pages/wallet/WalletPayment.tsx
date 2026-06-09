@@ -1,12 +1,18 @@
 import { RefreshCcw } from "lucide-react";
-import { useMemo } from "react";
+import { AxiosError } from "axios";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { walletApi } from "../../../api";
 import { AppButton } from "../../components/design-system/AppButton";
 import { MobileLayout } from "../../components/layout/MobileLayout";
+import { walletPrimaryButtonClass, walletSecondaryButtonClass } from "./styles";
 import { useWalletStore } from "./stores/walletStore";
 
-const paymentBalance = 12500;
 const qrSize = 29;
+
+function isUnauthorizedError(error: unknown) {
+  return error instanceof AxiosError && error.response?.status === 401;
+}
 
 function isFinderPattern(row: number, col: number, startRow: number, startCol: number) {
   const localRow = row - startRow;
@@ -88,13 +94,47 @@ function WalletQrCode({ seed }: { seed: number }) {
 export function WalletPayment() {
   const navigate = useNavigate();
   const qrSeed = useWalletStore((state) => state.qrSeed);
+  const walletBalance = useWalletStore((state) => state.walletBalance);
   const refreshQrSeed = useWalletStore((state) => state.refreshQrSeed);
   const resetQrSeed = useWalletStore((state) => state.resetQrSeed);
+  const setWalletBalance = useWalletStore((state) => state.setWalletBalance);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+  const [summaryErrorMessage, setSummaryErrorMessage] = useState<string | null>(null);
+  const [isLoginRequired, setIsLoginRequired] = useState(false);
+
+  const loadWalletSummaryFallback = useCallback(async () => {
+    if (walletBalance !== null) {
+      return;
+    }
+
+    setIsSummaryLoading(true);
+    setSummaryErrorMessage(null);
+    setIsLoginRequired(false);
+
+    try {
+      const response = await walletApi.summary();
+
+      setWalletBalance(response.balance);
+    } catch (error) {
+      if (isUnauthorizedError(error)) {
+        setIsLoginRequired(true);
+        setSummaryErrorMessage("로그인이 필요한 서비스입니다.");
+      } else {
+        setSummaryErrorMessage("잔액을 불러오지 못했습니다.");
+      }
+    } finally {
+      setIsSummaryLoading(false);
+    }
+  }, [setWalletBalance, walletBalance]);
 
   const handleDone = () => {
     resetQrSeed();
     navigate("/wallet/home");
   };
+
+  useEffect(() => {
+    loadWalletSummaryFallback();
+  }, [loadWalletSummaryFallback]);
 
   return (
     <MobileLayout
@@ -104,7 +144,7 @@ export function WalletPayment() {
           type="button"
           variant="unstyled"
           onClick={handleDone}
-          className="h-[56px] w-full rounded-lg bg-black text-[17px] font-semibold text-white"
+          className={walletPrimaryButtonClass}
         >
           완료
         </AppButton>
@@ -134,21 +174,49 @@ export function WalletPayment() {
               현재 잔액
             </p>
             <p className="mt-2 text-[38px] font-bold leading-[46px] tracking-[-0.02em] text-[#111111]">
-              {paymentBalance.toLocaleString("ko-KR")}
+              {isSummaryLoading
+                ? "조회 중"
+                : walletBalance === null
+                  ? "-"
+                  : walletBalance.toLocaleString("ko-KR")}
               <span className="ml-1 text-[24px] font-semibold">원</span>
             </p>
+            {summaryErrorMessage && walletBalance === null && (
+              <div className="mt-4 rounded-xl bg-[#fff2f2] px-4 py-3">
+                <p className="text-[14px] font-medium leading-5 text-[#d92d20]">
+                  {summaryErrorMessage}
+                </p>
+                <AppButton
+                  type="button"
+                  variant="unstyled"
+                  onClick={() => {
+                    if (isLoginRequired) {
+                      navigate("/login");
+                      return;
+                    }
+
+                    loadWalletSummaryFallback();
+                  }}
+                  disabled={isSummaryLoading}
+                  className="mt-2 text-[14px] font-semibold text-[#014ede]"
+                >
+                  {isLoginRequired ? "NOVA 로그인 하러가기" : "다시 조회"}
+                </AppButton>
+              </div>
+            )}
           </div>
 
           <AppButton
             type="button"
             variant="unstyled"
             onClick={refreshQrSeed}
-            className="mt-6 flex h-[52px] w-full items-center justify-center gap-3 rounded-[8px] border border-[#e0e0e0] bg-white text-[17px] font-semibold text-[#111111]"
+            className={`mt-6 gap-3 ${walletSecondaryButtonClass}`}
           >
             <RefreshCcw className="h-5 w-5" strokeWidth={2.2} />
             새로고침
           </AppButton>
         </section>
+
       </div>
     </MobileLayout>
   );

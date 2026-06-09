@@ -2,6 +2,8 @@ server:
   port: 8000
   servlet:
     context-path: /
+    session:
+      timeout: 30m
 
 spring:
   datasource:
@@ -23,6 +25,24 @@ spring:
     compose:
       enabled: false
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT:465}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+
 logging:
   level:
     root: info
@@ -30,8 +50,36 @@ logging:
 
 app:
   core-banking:
-    base-url: ${ONPREM_GATEWAY_BASE_URL}
+    base-url: ${CORE_BANKING_BASE_URL:http://localhost:8001}
   government:
-    base-url: ${ONPREM_GATEWAY_BASE_URL}
+    base-url: ${GOVERNMENT_DB_URL:http://localhost:8002}
 #  ai:
 #    base-url: ${AI_BASE_URL}
+
+banking:
+  transfer:
+    password-verified-sleep-ms: ${BANKING_TRANSFER_PASSWORD_VERIFIED_SLEEP_MS:10000}
+
+identity:
+  registration-number:
+    hmac-secret: ${REGISTRATION_NUMBER_HMAC_SECRET}
+
+cloud:
+  aws:
+    s3:
+      region: ap-northeast-1
+      bucket: ${AWS_S3_BUCKET}
+      base-url: ${AWS_S3_BASE_URL}
+
+kyc:
+  verification:
+    passport-ocr:
+      url: ${CLOVA_OCR_URL}
+      secret: ${CLOVA_OCR_SECRET}
+    rekognition:
+      region: ap-northeast-1
+      output-bucket: ${AWS_S3_BUCKET}
+      output-prefix: ${AWS_LIVENESS_OUTPUT_PREFIX:liveness}
+      liveness-threshold: ${AWS_LIVENESS_THRESHOLD}
+      similarity-threshold: ${AWS_SIMILARITY_THRESHOLD}
+      audit-images-limit: ${AWS_AUDIT_IMAGES_LIMIT}

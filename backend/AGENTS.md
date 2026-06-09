@@ -113,11 +113,31 @@ flowchart TD
 - API prefix는 `/{도메인 이름}`를 기본으로 한다.
 - 공통 응답은 `global/response` 래퍼 규칙을 유지한다.
 - 비즈니스 예외는 `global/exception` 계층을 사용한다.
+- Core Banking REST 연동 인터페이스/구현은 `global/corebanking/client` 단일 컴포넌트로 관리하고, `banking`/`wallet` 서비스는 해당 글로벌 클라이언트만 주입받아 사용한다.
 - 컨트롤러에서 엔티티 직접 반환 금지, DTO 변환 필수.
 - 삭제는 DELETE 메서드 대신 POST 기반 soft delete(`has_delete=true`)로 처리한다.
 - 금융 거래 확정 로직은 서비스 계층에서만 처리한다.
 - 금융 원장 상태와 비금융 상태 모두 AI(FastAPI) 및 클라우드 애플리케이션 계층에서 직접 수정하지 않는다.
 - 금융 원장 상태 변경은 클라우드 banking 도메인에서 온프레미스 Core Banking Gateway/Server로 요청을 전달한 뒤, 온프레미스 Core Banking에서만 최종 반영한다.
+- 이체 사전 조회는 클라우드 `banking` API에서 처리하되, 내 계좌 정보는 `account_ref` 조회를 사용하고 수취인 예금주명은 coreBanking 연동 API 응답을 기준으로 한다.
+- 계좌 비밀번호 검증은 클라우드 `banking` API에서 본인 계좌 소유 확인 후 coreBanking 검증 API 응답을 기준으로 처리한다.
+- Government DB 신원 조회는 `global/government/client` 단일 클라이언트로만 수행한다.
+- 주민등록번호/외국인등록번호 원문은 `gateway`로 전송하지 않는다. OCR 값은 숫자만 남기도록 정규화한 뒤 `REGISTRATION_NUMBER_HMAC_SECRET` 기반 HMAC-SHA256 해시(`registrationNumberHash`)로 조회한다.
+- Government DB 조회 응답은 식별번호 원문을 포함하지 않는다. 조회 성공은 식별번호 해시 일치를 의미하며, backend는 이름/발급일/active 여부를 추가 검증한다.
+
+## Notification Rules (`user/notification`)
+
+- 알림은 `user` 도메인에서 관리하며, 동일 `user + type` 알림은 최신 1건만 유지한다.
+- 보완 서류 알림(`SUPPLEMENT_DOCUMENT`):
+  - 관리자 서류 심사 결과에서 두 문서가 모두 심사 완료(`APPROVED`/`REJECTED`)일 때만 생성한다.
+  - 두 문서 중 하나라도 `REJECTED`이면 "보완 필요" 알림을 생성한다.
+  - 사용자가 보완 서류를 재제출하면 기존 보완 알림을 삭제한다.
+- 서류 승인 완료 알림:
+  - 두 문서가 모두 `APPROVED`일 때 생성한다.
+- 외국인등록증 기간 알림(`RESIDENCE_CARD_PERIOD`):
+  - 대상은 `certificateStatus=NOT_ISSUED`, `hasResidenceCard=false`, `issuedTime!=null` 사용자로 제한한다.
+  - 발급 1개월/2개월 시점과 만료 7일 전부터 만료 전일까지 스케줄로 생성한다.
+- 알림 클릭 삭제 API는 본인 소유 알림만 삭제 가능해야 한다.
 
 ## Logging Policy
 
