@@ -83,7 +83,7 @@
 | `HOSPITAL-001` | 예약                   | POST   | `/reservations`                                          | O    | USER   |                               |
 | `HOSPITAL-002` | 예약 내역 확인             | GET    | `/{user_id}/reservations`                                | O    | USER   |                               |
 | `HOSPITAL-003` | 예약 취소 & 변경           | PATCH  | `/reservations/{reservation_id}`                         | O    | USER   | action enum=`CANCEL`,`CHANGE` |
-| `HOSPITAL-004` | 병원 목록 확인             | GET    | `/`                                                      | O    | USER   | day off는 일요일 고정               |
+| `HOSPITAL-004` | 병원 목록 확인             | GET    | `/`                                                      | O    | USER   | `type` 쿼리 파라미터 선택 지원, day off는 일요일 고정 |
 | `HOSPITAL-005` | 에이전트 호출              | TBD    | `TBD`                                                    | O    | USER   | API 경로/계약 미정                  |
 | `CS-001`       | 화상 상담 신청             | POST   | `/consultations`                                         | O    | USER   |                               |
 | `CS-002`       | 대기 고객 목록 조회          | GET    | `/consultations?status=WAITING`                          | X    | PUBLIC |                               |
