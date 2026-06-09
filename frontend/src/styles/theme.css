@@ -198,7 +198,8 @@
     @apply text-foreground;
     font-family: var(--font-family);
     width: 100%;
-    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
     margin: 0;
     overflow: hidden;
     display: flex;
@@ -213,6 +214,7 @@
   #root {
     width: var(--app-width);
     height: var(--app-height);
+    flex-shrink: 0;
     overflow: hidden;
     position: relative;
     transform: scale(var(--app-scale));
@@ -237,6 +239,25 @@
   * {
     -ms-overflow-style: none; /* IE, Edge */
     scrollbar-width: none; /* Firefox */
+  }
+
+  @media (max-width: 343px) {
+    html,
+    body {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: auto;
+    }
+
+    body {
+      justify-content: flex-start;
+    }
+
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      display: block;
+      height: 12px;
+    }
   }
 
   /**
