@@ -13,27 +13,25 @@
 
 ## 선택한 방식
 
-예약 가능한 시간만 DB에 저장한다.
-
-즉, `hospital_available_slot` 테이블에 해당 시간이 존재하면 예약 가능하고, 존재하지 않으면 예약 불가로 본다.
+시간대별 슬롯 row를 미리 생성해 두고, `is_available` 상태값으로 예약 가능 여부를 관리한다.
 
 예시:
 
-- `hospital_id=1`, `available_at=2026-06-10 09:00:00`
-- `hospital_id=1`, `available_at=2026-06-10 09:30:00`
-- `hospital_id=1`, `available_at=2026-06-10 10:00:00`
+- `hospital_id=1`, `available_at=2026-06-10 09:00:00`, `is_available=true`
+- `hospital_id=1`, `available_at=2026-06-10 09:30:00`, `is_available=true`
+- `hospital_id=1`, `available_at=2026-06-10 10:00:00`, `is_available=false`
 
-위처럼 저장되어 있으면 이 세 시간만 예약 가능하다.
+즉, 시간대 row는 미리 존재하고 예약 가능 여부만 상태값으로 바뀐다.
 
 ## 선택하지 않은 방식
 
-모든 시간 슬롯을 미리 넣고 `is_available` 상태값으로 on/off 관리하는 방식은 이번 단계에서 채택하지 않는다.
+예약 시 슬롯 row를 삭제하고, 취소 시 다시 삽입하는 방식은 채택하지 않는다.
 
 이유:
 
-- 초기 구조가 더 무거워진다
-- 현재 목표는 최소 검증 구조 확정이다
-- 병원 1개당 의사 1명 전제에서는 가능한 시간만 저장하는 방식이 더 단순하다
+- 데이터 row를 유지한 채 상태만 바꾸는 편이 운영에 더 안정적이다
+- 예약 취소 시 `false -> true` 복구가 단순하다
+- 이력 추적과 디버깅이 더 쉽다
 
 ## 테이블 구조
 
@@ -46,6 +44,7 @@
 - `slot_id` `BIGINT` PK
 - `hospital_id` `BIGINT` FK
 - `available_at` `DATETIME`
+- `is_available` `BOOLEAN`
 - `created_at` `TIMESTAMP`
 - `updated_at` `TIMESTAMP`
 
@@ -62,6 +61,7 @@ HOSPITAL_AVAILABLE_SLOT {
   BIGINT slot_id PK
   BIGINT hospital_id FK
   DATETIME available_at
+  BOOLEAN is_available
   TIMESTAMP created_at
   TIMESTAMP updated_at
 }
@@ -69,7 +69,7 @@ HOSPITAL_AVAILABLE_SLOT {
 
 ## 조회 방식
 
-예약 생성 검증은 `IN`이 아니라 `존재 여부 조회`를 기본으로 한다.
+예약 생성 검증은 `IN`이 아니라 `단건 조회 + 상태 확인`을 기본으로 한다.
 
 예를 들어 사용자가 아래 요청을 보내면:
 
@@ -85,19 +85,18 @@ WHERE hospital_id = 1
   AND available_at = '2026-06-10 09:30:00';
 ```
 
-결과가 있으면 예약 가능, 없으면 예약 불가다.
+그리고 조회된 row의 `is_available=true`인지 추가로 확인한다.
 
 ## 예약 생성 검증 흐름
 
 1. `POST /hospital/reservations` 요청에서 `hospital_id`, `reserved_at` 수신
 2. 병원 존재 여부 확인
-3. `hospital_available_slot`에서 `hospital_id + reserved_at` 존재 여부 확인
-4. 존재하면 예약 생성 진행
-5. 없으면 예약 불가 예외 반환
+3. `hospital_available_slot`에서 `hospital_id + reserved_at` 슬롯 조회
+4. 슬롯이 없거나 `is_available=false`면 예약 불가 예외 반환
+5. 가능하면 예약 생성 후 슬롯을 `true -> false`로 변경
 
 ## 이번 단계에서 보류하는 것
 
-- 예약 완료 후 슬롯 자동 제거
 - 예약 취소 시 슬롯 자동 복구
 - 동일 시간 중복 예약 차단 전략
 - 병원 운영시간 문자열(`open_time`, `close_time`) 기반 슬롯 자동 생성
@@ -110,6 +109,6 @@ WHERE hospital_id = 1
 1. `docs/erd.md`에 `hospital_available_slot` 반영
 2. 슬롯 엔티티/리포지토리 추가
 3. 예약 생성 API에서 슬롯 존재 여부 검증 추가
-4. 필요 시 슬롯 적재 SQL 추가
+4. 슬롯 적재 SQL 추가
 
-이 방식은 병원당 의사 1명 전제에서는 가장 단순하고, 나중에 의사 개념이 추가되면 `hospital_id` 옆에 `doctor_id`를 확장하는 방향으로 이어갈 수 있다.
+이 방식은 병원당 의사 1명 전제에서는 가장 자연스럽고, 나중에 의사 개념이 추가되면 `hospital_id` 옆에 `doctor_id`를 확장하는 방향으로 이어갈 수 있다.

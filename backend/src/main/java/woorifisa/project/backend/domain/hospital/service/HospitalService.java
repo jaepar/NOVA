@@ -50,6 +50,13 @@ public class HospitalService {
             .findByHospitalHospitalIdAndAvailableAt(request.hospitalId(), request.reservedAt())
             .orElseThrow(() -> new CustomException(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND));
 
+        if (!hospitalAvailableSlot.isAvailable()) {
+            throw new CustomException(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND);
+        }
+
+        hospitalAvailableSlot.markUnavailable();
+        hospitalAvailableSlotRepository.save(hospitalAvailableSlot);
+
         reservationRepository.save(
             Reservation.builder()
                 .user(user)

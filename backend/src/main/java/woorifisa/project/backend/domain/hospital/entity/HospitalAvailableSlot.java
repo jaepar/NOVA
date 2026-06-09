@@ -35,4 +35,11 @@ public class HospitalAvailableSlot extends BaseEntity {
 
     @Column(name = "available_at", nullable = false)
     private LocalDateTime availableAt;
+
+    @Column(name = "is_available", nullable = false)
+    private boolean isAvailable;
+
+    public void markUnavailable() {
+        this.isAvailable = false;
+    }
 }

@@ -3,6 +3,7 @@ package woorifisa.project.backend.domain.hospital.service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.HOSPITAL_AVAILABLE_SLOT_NOT_FOUND;
@@ -44,18 +45,29 @@ class HospitalReservationServiceTest {
             1L,
             LocalDateTime.of(2026, 6, 10, 14, 0)
         );
+        Hospital hospital = Hospital.builder()
+            .hospitalId(1L)
+            .build();
+        HospitalAvailableSlot slot = HospitalAvailableSlot.builder()
+            .slotId(10L)
+            .hospital(hospital)
+            .availableAt(request.reservedAt())
+            .isAvailable(true)
+            .build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(mock(User.class)));
-        when(hospitalRepository.findById(1L)).thenReturn(Optional.of(mock(Hospital.class)));
+        when(hospitalRepository.findById(1L)).thenReturn(Optional.of(hospital));
         when(hospitalAvailableSlotRepository.findByHospitalHospitalIdAndAvailableAt(1L, request.reservedAt()))
-            .thenReturn(Optional.of(mock(HospitalAvailableSlot.class)));
+            .thenReturn(Optional.of(slot));
 
         hospitalService.createReservation(1L, request);
 
         verify(userRepository).findById(1L);
         verify(hospitalRepository).findById(1L);
         verify(hospitalAvailableSlotRepository).findByHospitalHospitalIdAndAvailableAt(1L, request.reservedAt());
+        verify(hospitalAvailableSlotRepository).save(slot);
         verify(reservationRepository).save(any());
+        org.assertj.core.api.Assertions.assertThat(slot.isAvailable()).isFalse();
     }
 
     @Test
@@ -138,5 +150,45 @@ class HospitalReservationServiceTest {
             .isInstanceOf(CustomException.class)
             .extracting("exceptionStatus")
             .isEqualTo(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("예약 가능한 슬롯이 비활성화 상태면 예외를 던진다")
+    void createReservationSlotUnavailable() {
+        HospitalRepository hospitalRepository = mock(HospitalRepository.class);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
+        CreateReservationRequest request = new CreateReservationRequest(
+            1L,
+            LocalDateTime.of(2026, 6, 10, 14, 0)
+        );
+        Hospital hospital = Hospital.builder()
+            .hospitalId(1L)
+            .build();
+        HospitalAvailableSlot slot = HospitalAvailableSlot.builder()
+            .slotId(10L)
+            .hospital(hospital)
+            .availableAt(request.reservedAt())
+            .isAvailable(false)
+            .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mock(User.class)));
+        when(hospitalRepository.findById(1L)).thenReturn(Optional.of(hospital));
+        when(hospitalAvailableSlotRepository.findByHospitalHospitalIdAndAvailableAt(1L, request.reservedAt()))
+            .thenReturn(Optional.of(slot));
+
+        assertThatThrownBy(() -> hospitalService.createReservation(1L, request))
+            .isInstanceOf(CustomException.class)
+            .extracting("exceptionStatus")
+            .isEqualTo(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND);
+
+        verify(reservationRepository, never()).save(any());
     }
 }
