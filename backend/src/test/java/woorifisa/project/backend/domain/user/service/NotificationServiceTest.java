@@ -71,6 +71,18 @@ class NotificationServiceTest {
 	}
 
 	@Test
+	@DisplayName("인증서 발급 완료 시 알림을 생성한다")
+	void createOrReplaceCertificateIssuedNotification() {
+		User user = User.builder().userId(1L).build();
+		String content = "인증서 발급이 완료되었습니다.";
+
+		notificationService.createOrReplaceCertificateIssuedNotification(user, content);
+
+		verify(notificationRepository).deleteByUserAndType(user, NotificationType.CERTIFICATE_ISSUED);
+		verify(notificationRepository).save(any(Notification.class));
+	}
+
+	@Test
 	@DisplayName("알림 클릭 시 본인 소유 알림만 삭제한다")
 	void deleteNotificationById() {
 		when(notificationRepository.deleteByNotificationIdAndUser_UserId(10L, 1L)).thenReturn(1L);

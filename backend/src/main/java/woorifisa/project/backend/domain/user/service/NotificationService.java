@@ -115,6 +115,12 @@ public class NotificationService {
 		notificationRepository.deleteByUserAndType(user, NotificationType.RESIDENCE_CARD_PERIOD);
 	}
 
+	// 인증서 발급 완료 타입 알림을 유저 기준으로 최신 1건만 유지하며 저장
+	@Transactional
+	public void createOrReplaceCertificateIssuedNotification(User user, String content) {
+		createOrReplace(user, NotificationType.CERTIFICATE_ISSUED, content);
+	}
+
 	// 알림 클릭 시 본인 소유 알림만 삭제한다.
 	@Transactional
 	public boolean deleteNotificationById(Long userId, Long notificationId) {
