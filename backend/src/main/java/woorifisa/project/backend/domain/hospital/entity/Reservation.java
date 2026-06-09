@@ -1,5 +1,7 @@
 package woorifisa.project.backend.domain.hospital.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -36,6 +38,6 @@ public class Reservation extends BaseEntity {
     @JoinColumn(name = "hospital_id", nullable = false)
     private Hospital hospital;
 
-    @Column(name = "rsv_date", length = 100, nullable = false)
-    private String rsvDate;
+    @Column(name = "reserved_at", nullable = false)
+    private LocalDateTime reservedAt;
 }
