@@ -51,7 +51,6 @@ export function LoginForm() {
     try {
       const loginResult = await authApi.login({ email: email.trim(), password })
       setAuthenticated(loginResult.userId)
-      setHasAccount(false)
       navigate(redirectTo)
     } catch (error) {
       setErrorMessage(getLoginErrorMessage(error))

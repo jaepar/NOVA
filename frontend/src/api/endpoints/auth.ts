@@ -59,7 +59,6 @@ export const authApi = {
       "/auth/login",
       payload
     );
-    console.log(response.data.data);
     return response.data.data;
   },
   me: async (): Promise<SessionCheckResponse> => {
