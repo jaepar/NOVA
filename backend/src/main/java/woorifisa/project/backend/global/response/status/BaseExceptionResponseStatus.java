@@ -72,6 +72,12 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     USER_CERTIFICATE_STATUS_TRANSITION_INVALID("USER-023", "인증서 상태 전이가 올바르지 않습니다."),
 
     /**
+     * hospital
+     */
+    HOSPITAL_NOT_FOUND("HOSPITAL-001", "병원 정보를 찾을 수 없습니다."),
+    HOSPITAL_AVAILABLE_SLOT_NOT_FOUND("HOSPITAL-002", "예약 가능한 병원 시간이 아닙니다."),
+
+    /**
      * admin
      */
     DOCUMENT_NOT_FOUND("ADMIN-001", "심사 대상 문서를 찾을 수 없습니다."),
