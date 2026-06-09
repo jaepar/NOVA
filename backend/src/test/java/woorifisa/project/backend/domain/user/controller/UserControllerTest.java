@@ -7,9 +7,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
@@ -19,9 +21,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MultipartFile;
 
 import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
 import woorifisa.project.backend.domain.user.dto.request.OcrDocumentType;
+import woorifisa.project.backend.domain.user.dto.request.UpdateUserRequest;
 import woorifisa.project.backend.domain.user.dto.response.IdentityOcrResponse;
 import woorifisa.project.backend.domain.user.dto.response.IdentityVerificationResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
@@ -34,8 +38,11 @@ import woorifisa.project.backend.domain.user.service.NotificationService;
 import woorifisa.project.backend.domain.user.service.UserService;
 import woorifisa.project.backend.domain.user.service.ocr.PassportOcrService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
+import woorifisa.project.backend.global.exception.CustomException;
+import woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus;
 
 @WebMvcTest(UserController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
 
 	@Autowired
@@ -55,6 +62,129 @@ class UserControllerTest {
 
 	@MockitoBean
 	private JpaMetamodelMappingContext jpaMetamodelMappingContext;
+
+	@Test
+	@DisplayName("PATCH /users changes language cookie")
+	void updateUserLanguageReturnsLanguageCookie() throws Exception {
+		doNothing().when(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), nullable(List.class));
+
+		mockMvc.perform(multipart("/users")
+				.param("language", "ko")
+				.with(request -> {
+					request.setMethod("PATCH");
+					return request;
+				})
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"))
+			.andExpect(jsonPath("$.message").value("요청에 성공했습니다."))
+			.andExpect(cookie().value("NOVA_LANGUAGE", "ko"))
+			.andExpect(cookie().maxAge("NOVA_LANGUAGE", 31_536_000));
+
+		verify(userService).updateUser(nullable(Long.class), argThat(request -> "ko".equals(request.language())), nullable(List.class));
+	}
+
+	@Test
+	@DisplayName("PATCH /users accepts password fields")
+	void updateUserPasswordFields() throws Exception {
+		doNothing().when(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), nullable(List.class));
+
+		mockMvc.perform(multipart("/users")
+				.param("currentPassword", "Password123!")
+				.param("newPassword", "NewPassword123!")
+				.param("newPasswordConfirm", "NewPassword123!")
+				.with(request -> {
+					request.setMethod("PATCH");
+					return request;
+				})
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("20000"));
+
+		verify(userService).updateUser(nullable(Long.class), argThat(request ->
+			"Password123!".equals(request.currentPassword())
+				&& "NewPassword123!".equals(request.newPassword())
+				&& "NewPassword123!".equals(request.newPasswordConfirm())
+		), nullable(List.class));
+	}
+
+	@Test
+	@DisplayName("PATCH /users accepts multiple portfolio uploads")
+	void updateUserPortfolioUploads() throws Exception {
+		MockMultipartFile firstPortfolio = new MockMultipartFile(
+			"portfolioFiles",
+			"portfolio.pdf",
+			MediaType.APPLICATION_PDF_VALUE,
+			"portfolio".getBytes()
+		);
+		MockMultipartFile secondPortfolio = new MockMultipartFile(
+			"portfolioFiles",
+			"cover.docx",
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			"cover".getBytes()
+		);
+		doNothing().when(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), anyList());
+
+		mockMvc.perform(multipart("/users")
+				.file(firstPortfolio)
+				.file(secondPortfolio)
+				.with(request -> {
+					request.setMethod("PATCH");
+					return request;
+				})
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("20000"));
+
+		verify(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), argThat((List<MultipartFile> files) ->
+			files.size() == 2
+				&& "portfolio.pdf".equals(files.get(0).getOriginalFilename())
+				&& "cover.docx".equals(files.get(1).getOriginalFilename())
+		));
+	}
+
+	@Test
+	@DisplayName("PATCH /users accepts portfolio delete id")
+	void updateUserPortfolioDelete() throws Exception {
+		doNothing().when(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), nullable(List.class));
+
+		mockMvc.perform(multipart("/users")
+				.param("deletePortfolioId", "3")
+				.with(request -> {
+					request.setMethod("PATCH");
+					return request;
+				})
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("20000"));
+
+		verify(userService).updateUser(nullable(Long.class), argThat(request -> Long.valueOf(3L).equals(request.deletePortfolioId())), nullable(List.class));
+	}
+
+	@Test
+	@DisplayName("PATCH /users rejects empty update")
+	void updateUserRejectsEmptyRequest() throws Exception {
+		doThrow(new CustomException(BaseExceptionResponseStatus.USER_UPDATE_TARGET_REQUIRED))
+			.when(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), nullable(List.class));
+
+		mockMvc.perform(multipart("/users")
+				.with(request -> {
+					request.setMethod("PATCH");
+					return request;
+				})
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.code").value("USER-024"));
+
+		verify(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), nullable(List.class));
+	}
 
 		@Test
 		@DisplayName("문서 업로드 API 호출에 성공한다")
