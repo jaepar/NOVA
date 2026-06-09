@@ -13,7 +13,10 @@ import org.junit.jupiter.api.Test;
 import woorifisa.project.backend.domain.hospital.dto.response.HospitalListResponse;
 import woorifisa.project.backend.domain.hospital.entity.Hospital;
 import woorifisa.project.backend.domain.hospital.entity.enums.DepartmentType;
+import woorifisa.project.backend.domain.hospital.repository.HospitalAvailableSlotRepository;
 import woorifisa.project.backend.domain.hospital.repository.HospitalRepository;
+import woorifisa.project.backend.domain.hospital.repository.ReservationRepository;
+import woorifisa.project.backend.domain.user.repository.UserRepository;
 
 class HospitalServiceTest {
 
@@ -21,7 +24,15 @@ class HospitalServiceTest {
     @DisplayName("type이 없으면 전체 병원 목록을 조회한다")
     void findHospitalsWithoutType() {
         HospitalRepository hospitalRepository = mock(HospitalRepository.class);
-        HospitalService hospitalService = new HospitalService(hospitalRepository);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
         when(hospitalRepository.findAll()).thenReturn(List.of(
             Hospital.builder()
                 .hospitalId(1L)
@@ -48,7 +59,15 @@ class HospitalServiceTest {
     @DisplayName("type이 있으면 해당 진료과 병원 목록만 조회한다")
     void findHospitalsWithType() {
         HospitalRepository hospitalRepository = mock(HospitalRepository.class);
-        HospitalService hospitalService = new HospitalService(hospitalRepository);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
         when(hospitalRepository.findAllByType(DepartmentType.DENTAL)).thenReturn(List.of(
             Hospital.builder()
                 .hospitalId(2L)
