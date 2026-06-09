@@ -154,7 +154,15 @@ erDiagram
     BIGINT reservation_id PK
     BIGINT user_id FK
     BIGINT hospital_id FK
-    VARCHAR_100 rsv_date
+    DATETIME reserved_at
+    TIMESTAMP created_at
+    TIMESTAMP updated_at
+  }
+
+  HOSPITAL_AVAILABLE_SLOT {
+    BIGINT slot_id PK
+    BIGINT hospital_id FK
+    DATETIME available_at
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
@@ -213,7 +221,9 @@ erDiagram
 
 ## Notes
 
-- Hospital 도메인(`hospital`, `reservation`)의 `reservation.rsv_date`, `hospital.open_time`, `hospital.close_time`, `hospital.break_time`, `hospital.day_off`는 현재 문자열 기반으로 저장한다.
+- Hospital 도메인에서 `hospital.open_time`, `hospital.close_time`, `hospital.break_time`, `hospital.day_off`는 현재 문자열 기반으로 저장한다.
+- `reservation.reserved_at`은 `DATETIME` 기반으로 저장한다.
+- `hospital_available_slot.available_at`은 병원 예약 가능 30분 슬롯을 의미하며, 예약 생성 시 `hospital_id + available_at` 존재 여부로 검증한다.
 - Residence Card 관련 필드(`registration_num`, `issue_date`, `expiration_date`)도 현재 문자열 기반으로 저장한다.
 - `job.gender`는 현재 enum이 아닌 문자열 컬럼이다.
 - `user.certificate_status` 상태 전이는 `NOT_ISSUED -> PENDING -> ISSUED` 순서만 허용한다.
