@@ -5,6 +5,7 @@ import {
   type CorrectionDocumentResponse,
   type CorrectionDocumentType,
 } from '../../../../api'
+import { novaToast } from '../../../components/design-system'
 import {
   correctionUploadFieldMap,
   type RejectedCorrectionDocument,
@@ -134,7 +135,7 @@ export function useCertificateCorrection(onSubmitSuccess: () => void) {
       onSubmitSuccess()
     } catch (error) {
       const apiError = getCertificateApiError(error)
-      setErrorMessage(apiError?.message || '서류 제출에 실패했어요. 잠시 후 다시 시도해 주세요.')
+      novaToast.error(apiError?.message || '서류 제출에 실패했어요. 잠시 후 다시 시도해 주세요.')
     } finally {
       setIsSubmitting(false)
     }

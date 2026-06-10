@@ -35,21 +35,24 @@ export function CertificateCorrectionDetail() {
     loadCorrectionDocuments()
   }, [loadCorrectionDocuments])
 
+  const bottomAction =
+    errorMessage && rejectedDocuments.length === 0 ? (
+      <Btn_1Col variant="outline" onClick={loadCorrectionDocuments}>
+        다시 불러오기
+      </Btn_1Col>
+    ) : rejectedDocuments.length > 0 ? (
+      <div className="[&>button]:border-0">
+        <Btn_1Col disabled={!isAllAttached || isSubmitting} onClick={handleSubmit}>
+          {isSubmitting ? '제출 중...' : '제출하기'}
+        </Btn_1Col>
+      </div>
+    ) : undefined
+
   return (
     <MobileLayout
       title="보완 서류 제출"
       backPath="/main"
-      bottomContent={
-        errorMessage && rejectedDocuments.length === 0 ? (
-          <Btn_1Col variant="outline" onClick={loadCorrectionDocuments}>
-            다시 불러오기
-          </Btn_1Col>
-        ) : rejectedDocuments.length > 0 ? (
-          <Btn_1Col disabled={!isAllAttached || isSubmitting} onClick={handleSubmit}>
-            {isSubmitting ? '제출 중...' : '제출하기'}
-          </Btn_1Col>
-        ) : undefined
-      }
+      bottomContent={bottomAction}
     >
       <div className="space-y-6 pb-2">
         <p className="text-[15px] leading-relaxed text-muted-foreground">

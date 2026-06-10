@@ -26,10 +26,7 @@ export function AppButton({
   }
 
   return (
-    <button
-      {...props}
-      className={`${variants[variant]} outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-0 ${className}`.trim()}
-    >
+    <button {...props} className={`${variants[variant]} ${className}`.trim()}>
       {children}
     </button>
   )

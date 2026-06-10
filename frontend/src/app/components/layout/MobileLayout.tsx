@@ -51,7 +51,7 @@ export function MobileLayout({
         : 'back'
 
   return (
-    <div className="relative h-full w-full bg-background flex flex-col overflow-hidden">
+    <div className="h-full w-full bg-background flex flex-col overflow-hidden">
       {effectiveHeaderType === 'close' ? (
         <CloseFixedHeader
           title={title}
