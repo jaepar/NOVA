@@ -12,4 +12,8 @@ import woorifisa.project.backend.domain.hospital.entity.HospitalAvailableSlot;
 public interface HospitalAvailableSlotRepository extends JpaRepository<HospitalAvailableSlot, Long> {
 
     Optional<HospitalAvailableSlot> findByHospitalHospitalIdAndAvailableAt(Long hospitalId, LocalDateTime availableAt);
+
+    boolean existsByHospitalHospitalIdAndAvailableAt(Long hospitalId, LocalDateTime availableAt);
+
+    void deleteByAvailableAtBefore(LocalDateTime availableAt);
 }
