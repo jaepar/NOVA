@@ -4,8 +4,15 @@ import { MobileLayout } from "../../components/layout/MobileLayout";
 import { AppButton } from "../../components/design-system/AppButton";
 import { useTransferSendPageStore } from "../../stores/pageStores";
 
+type TransferEntryType = "해외송금" | "해외송금관리";
+
+const ENTRY_BUTTON_LABELS: Record<TransferEntryType, string> = {
+  해외송금: "해외송금 보내기",
+  해외송금관리: "송금내역 조회",
+};
+
 interface TransferEntryCardProps {
-  title: string;
+  title: TransferEntryType;
   description: string;
   onClick: () => void;
 }
@@ -15,7 +22,6 @@ function TransferEntryCard({
   description,
   onClick,
 }: TransferEntryCardProps) {
-  const label = { 해외송금: "해외송금 보내기", 해외송금관리: "송금내역 조회" };
   return (
     <section className="space-y-3">
       <div className="space-y-1">
@@ -31,7 +37,7 @@ function TransferEntryCard({
         className="flex w-full items-center justify-between rounded-2xl border border-border bg-background px-5 py-5 text-left transition-colors hover:bg-secondary/40"
       >
         <span className="text-sm font-semibold text-foreground">
-          {label[title]}
+          {ENTRY_BUTTON_LABELS[title]}
         </span>
         <ChevronRight className="h-5 w-5 text-muted-foreground" />
       </AppButton>

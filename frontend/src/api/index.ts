@@ -100,4 +100,5 @@ export type {
   TransferPreviewRequest,
   TransferPreviewResponse,
   TransferRequest,
+  GlobalTransferHistoryItem,
 } from './endpoints/banking';
