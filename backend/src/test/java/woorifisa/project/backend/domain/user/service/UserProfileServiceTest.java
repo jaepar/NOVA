@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import software.amazon.awssdk.services.rekognition.RekognitionClient;
 import woorifisa.project.backend.domain.user.dto.response.UserProfileResponse;
@@ -42,6 +43,12 @@ class UserProfileServiceTest {
 	private UserDocumentS3Uploader userDocumentS3Uploader;
 
 	@Mock
+	private PortfolioFileS3Uploader portfolioFileS3Uploader;
+
+	@Mock
+	private PasswordEncoder passwordEncoder;
+
+	@Mock
 	private NotificationService notificationService;
 
 	@Mock
@@ -65,6 +72,8 @@ class UserProfileServiceTest {
 			documentRepository,
 			resumeRepository,
 			userDocumentS3Uploader,
+			portfolioFileS3Uploader,
+			passwordEncoder,
 			notificationService,
 			rekognitionClient,
 			new KycRekognitionProperties(rekognition)
@@ -92,7 +101,7 @@ class UserProfileServiceTest {
 			.build();
 
 		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-		when(resumeRepository.findByUserOrderByResumeIdDesc(user)).thenReturn(List.of(resume));
+		when(resumeRepository.findByUserAndDeletedFromMyPageFalseOrderByResumeIdDesc(user)).thenReturn(List.of(resume));
 
 		UserProfileResponse response = userService.getUserProfile(userId);
 
@@ -123,7 +132,7 @@ class UserProfileServiceTest {
 			.build();
 
 		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-		when(resumeRepository.findByUserOrderByResumeIdDesc(user)).thenReturn(List.of());
+		when(resumeRepository.findByUserAndDeletedFromMyPageFalseOrderByResumeIdDesc(user)).thenReturn(List.of());
 
 		UserProfileResponse response = userService.getUserProfile(userId);
 
