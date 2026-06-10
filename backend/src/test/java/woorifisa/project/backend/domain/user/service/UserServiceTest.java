@@ -56,6 +56,9 @@ class UserServiceTest {
 	private DocumentRepository documentRepository;
 
 	@Mock
+	private ResumeRepository resumeRepository;
+
+	@Mock
 	private UserDocumentS3Uploader userDocumentS3Uploader;
 
 	@Mock
@@ -91,6 +94,7 @@ class UserServiceTest {
 		userService = new UserService(
 			userRepository,
 			documentRepository,
+			resumeRepository,
 			userDocumentS3Uploader,
 			portfolioFileS3Uploader,
 			resumeRepository,
@@ -702,6 +706,7 @@ class UserServiceTest {
 			UserService service = new UserService(
 				userRepository,
 				documentRepository,
+				resumeRepository,
 				userDocumentS3Uploader,
 				portfolioFileS3Uploader,
 				resumeRepository,

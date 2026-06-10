@@ -9,7 +9,8 @@ type UserApiResponse<T> = {
 
 export type NotificationType =
   | "SUPPLEMENT_DOCUMENT"
-  | "RESIDENCE_CARD_PERIOD";
+  | "RESIDENCE_CARD_PERIOD"
+  | "CERTIFICATE_ISSUED";
 
 export type NotificationResponse = {
   notificationId: number;

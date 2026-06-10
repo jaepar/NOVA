@@ -55,7 +55,7 @@ class AdminDocumentReviewServiceTest {
 	@DisplayName("관리자 심사 시 PENDING 문서를 APPROVED로 변경하고 S3 상태를 변경한다")
 	void reviewPendingDocumentToApproved() {
 		Long userId = 1L;
-		User user = User.builder().userId(userId).certificateStatus(CertificateStatus.NOT_ISSUED).build();
+		User user = User.builder().userId(userId).certificateStatus(CertificateStatus.PENDING).build();
 		Document latestResidence = Document.builder()
 			.user(user)
 			.documentType(DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)
@@ -88,8 +88,10 @@ class AdminDocumentReviewServiceTest {
 		assertThat(user.getCertificateStatus()).isEqualTo(CertificateStatus.ISSUED);
 		assertThat(user.getIssuedTime()).isNotNull();
 		verify(documentRepository).save(latestResidence);
-			verify(coreBankingClient).createCustomer(org.mockito.ArgumentMatchers.any());
-			verify(notificationService).createOrReplaceSupplementDocumentNotification(user, "제출한 서류가 모두 승인되었습니다.");
+		verify(coreBankingClient).createCustomer(org.mockito.ArgumentMatchers.any());
+		verify(notificationService).createOrReplaceSupplementDocumentNotification(user, "제출한 서류가 모두 승인되었습니다.");
+		verify(notificationService).createOrReplaceCertificateIssuedNotification(user, "인증서 발급이 완료되었습니다.");
+		verify(notificationService).deleteSupplementDocumentNotification(user);
 	}
 
 	@Test

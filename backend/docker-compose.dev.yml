@@ -10,7 +10,7 @@ services:
       - redis-dev-data:/data
 
   backend:
-    image: jaypark0205/nova-backend:latest
+    image: jaypark0205/nova-backend:dev
     container_name: nova-backend-dev
     restart: unless-stopped
     env_file:

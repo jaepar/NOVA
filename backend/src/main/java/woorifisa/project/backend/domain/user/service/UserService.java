@@ -38,6 +38,7 @@ import woorifisa.project.backend.domain.user.dto.response.CorrectionDocumentResp
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
+import woorifisa.project.backend.domain.user.dto.response.UserProfileResponse;
 import woorifisa.project.backend.domain.user.entity.Document;
 import woorifisa.project.backend.domain.user.entity.Resume;
 import woorifisa.project.backend.domain.user.entity.User;
@@ -59,11 +60,20 @@ public class UserService {
 
 	private final UserRepository userRepository;
 	private final DocumentRepository documentRepository;
+	private final ResumeRepository resumeRepository;
 	private final UserDocumentS3Uploader userDocumentS3Uploader;
 	private final PortfolioFileS3Uploader portfolioFileS3Uploader;
 	private final ResumeRepository resumeRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final NotificationService notificationService;
+
+	@Transactional(readOnly = true)
+	public UserProfileResponse getUserProfile(Long userId) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+
+		return UserProfileResponse.from(user, resumeRepository.findByUserOrderByResumeIdDesc(user));
+	}
 
 	@Transactional
 	public void updateUser(Long userId, UpdateUserRequest request, List<MultipartFile> portfolioFiles) {
