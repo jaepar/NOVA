@@ -3,6 +3,8 @@ package woorifisa.project.backend.domain.hospital.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import woorifisa.project.backend.domain.hospital.dto.request.CreateReservationRequest;
+import woorifisa.project.backend.domain.hospital.dto.request.UpdateReservationRequest;
 import woorifisa.project.backend.domain.hospital.dto.response.HospitalListResponse;
 import woorifisa.project.backend.domain.hospital.entity.enums.DepartmentType;
 import woorifisa.project.backend.domain.hospital.service.HospitalService;
@@ -37,6 +40,16 @@ public class HospitalController {
         @RequestBody CreateReservationRequest request
     ) {
         hospitalService.createReservation(principal.userId(), request);
+        return BaseResponse.ok(null);
+    }
+
+    @PatchMapping("/reservations/{reservationId}")
+    public BaseResponse<Void> updateReservation(
+        @AuthenticationPrincipal SessionUserPrincipal principal,
+        @PathVariable Long reservationId,
+        @RequestBody UpdateReservationRequest request
+    ) {
+        hospitalService.cancelReservation(principal.userId(), reservationId);
         return BaseResponse.ok(null);
     }
 }
