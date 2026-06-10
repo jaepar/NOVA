@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
-import { Btn_2Col } from '../../components/design-system/Btn_2Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import {
@@ -122,14 +121,7 @@ export function Profile() {
           </section>
 
           <section className="pt-2">
-            <Btn_2Col
-              leftLabel="회원탈퇴"
-              rightLabel="회원정보 수정"
-              leftVariant="outline"
-              rightVariant="primary"
-              onLeftClick={() => navigate('/mypage/withdraw')}
-              onRightClick={() => navigate('/mypage/edit')}
-            />
+            <Btn_1Col onClick={() => navigate('/mypage/edit')}>회원정보 수정</Btn_1Col>
           </section>
         </div>
       )}
