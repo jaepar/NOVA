@@ -80,11 +80,11 @@
 | `JOB-004`      | 지원서 제출               | POST   | `/{job_id}/applications`                                 | O    | USER   | multipart `body.portfolio_urls` + `files` |
 | `JOB-005`      | 지원 내역 목록 조회          | GET    | `/applications`                                          | O    | USER   | 목록에는 포트폴리오 미포함           |
 | `JOB-006`      | 지원 내역 포트폴리오 조회     | GET    | `/applications/{application_id}/portfolios`              | O    | USER   | 지원 건 클릭 시 포트폴리오 목록 조회 |
-| `HOSPITAL-001` | 예약                   | POST   | `/reservations`                                          | O    | USER   |                               |
-| `HOSPITAL-002` | 예약 내역 확인             | GET    | `/{user_id}/reservations`                                | O    | USER   |                               |
-| `HOSPITAL-003` | 예약 취소 & 변경           | PATCH  | `/reservations/{reservation_id}`                         | O    | USER   | action enum=`CANCEL`,`CHANGE` |
-| `HOSPITAL-004` | 병원 목록 확인             | GET    | `/`                                                      | O    | USER   | day off는 일요일 고정               |
-| `HOSPITAL-005` | 에이전트 호출              | TBD    | `TBD`                                                    | O    | USER   | API 경로/계약 미정                  |
+| `HOSPITAL-001` | 예약                   | POST   | `/reservations`                                          | O    | USER   | 요청 `hospital_id`, `reserved_at`, 응답 data는 null |
+| `HOSPITAL-002` | 예약 내역 확인             | GET    | `/reservations`                                          | O    | USER   | 응답 `reservation_id`, `hospital_id`, `hospital_name`, `doctor_name`, `reserved_at`, `status` |
+| `HOSPITAL-003` | 예약 변경/취소               | PATCH  | `/reservations/{reservation_id}`                         | O    | USER   | 요청 `action=CANCEL` 또는 `action=CHANGE`, `CHANGE`일 때 `reserved_at` 사용, 응답 data는 null |
+| `HOSPITAL-004` | 병원 목록 확인             | GET    | `/`                                                      | O    | USER   | `type` 쿼리 파라미터 선택 지원, day off는 일요일 고정 |
+| `HOSPITAL-005` | 병원 예약 가능 시간 조회       | GET    | `/{hospital_id}/available-slots`                        | O    | USER   | 쿼리 `date`, 응답 `hospital_id`, `date`, `items[].available_at`, `items[].is_available` |
 | `CS-001`       | 화상 상담 신청             | POST   | `/consultations`                                         | O    | USER   |                               |
 | `CS-002`       | 대기 고객 목록 조회          | GET    | `/consultations?status=WAITING`                          | X    | PUBLIC |                               |
 | `CS-003`       | 화상 상담 상태 변경          | PATCH  | `/consultations/{cs_id}/status`                          | X    | PUBLIC | 상담 내역 저장 여부 논의                |

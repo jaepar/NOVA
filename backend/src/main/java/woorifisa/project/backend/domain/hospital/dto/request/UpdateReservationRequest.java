@@ -4,9 +4,8 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record CreateReservationRequest(
-    @JsonProperty("hospital_id")
-    Long hospitalId,
+public record UpdateReservationRequest(
+    String action,
     @JsonProperty("reserved_at")
     LocalDateTime reservedAt
 ) {
