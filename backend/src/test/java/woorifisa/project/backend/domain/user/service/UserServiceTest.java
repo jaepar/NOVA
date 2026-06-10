@@ -65,9 +65,6 @@ class UserServiceTest {
 	private PortfolioFileS3Uploader portfolioFileS3Uploader;
 
 	@Mock
-	private ResumeRepository resumeRepository;
-
-	@Mock
 	private PasswordEncoder passwordEncoder;
 
 	@Mock
@@ -97,7 +94,6 @@ class UserServiceTest {
 			resumeRepository,
 			userDocumentS3Uploader,
 			portfolioFileS3Uploader,
-			resumeRepository,
 			passwordEncoder,
 			notificationService,
 			rekognitionClient,
@@ -257,8 +253,9 @@ class UserServiceTest {
 
 		userService.updateUser(1L, request, List.of());
 
-		verify(portfolioFileS3Uploader).deleteByUrl("https://s3.test/portfolios/user-1/profile/file.pdf");
-		verify(resumeRepository).delete(resume);
+		assertThat(resume.isDeletedFromMyPage()).isTrue();
+		verifyNoInteractions(portfolioFileS3Uploader);
+		verify(resumeRepository, never()).delete(any());
 	}
 
 	@Test
@@ -709,7 +706,6 @@ class UserServiceTest {
 				resumeRepository,
 				userDocumentS3Uploader,
 				portfolioFileS3Uploader,
-				resumeRepository,
 				passwordEncoder,
 				notificationService,
 				rekognitionClient,

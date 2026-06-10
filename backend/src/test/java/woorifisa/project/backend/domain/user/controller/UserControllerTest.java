@@ -69,7 +69,7 @@ class UserControllerTest {
 		doNothing().when(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), nullable(List.class));
 
 		mockMvc.perform(multipart("/users")
-				.param("language", "ko")
+				.file(jsonRequestPart("{\"language\":\"ko\"}"))
 				.with(request -> {
 					request.setMethod("PATCH");
 					return request;
@@ -92,9 +92,13 @@ class UserControllerTest {
 		doNothing().when(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), nullable(List.class));
 
 		mockMvc.perform(multipart("/users")
-				.param("currentPassword", "Password123!")
-				.param("newPassword", "NewPassword123!")
-				.param("newPasswordConfirm", "NewPassword123!")
+				.file(jsonRequestPart("""
+					{
+					  "currentPassword": "Password123!",
+					  "newPassword": "NewPassword123!",
+					  "newPasswordConfirm": "NewPassword123!"
+					}
+					"""))
 				.with(request -> {
 					request.setMethod("PATCH");
 					return request;
@@ -126,7 +130,7 @@ class UserControllerTest {
 			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 			"cover".getBytes()
 		);
-		doNothing().when(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), anyList());
+		doNothing().when(userService).updateUser(nullable(Long.class), nullable(UpdateUserRequest.class), anyList());
 
 		mockMvc.perform(multipart("/users")
 				.file(firstPortfolio)
@@ -140,7 +144,7 @@ class UserControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("20000"));
 
-		verify(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), argThat((List<MultipartFile> files) ->
+		verify(userService).updateUser(nullable(Long.class), isNull(), argThat((List<MultipartFile> files) ->
 			files.size() == 2
 				&& "portfolio.pdf".equals(files.get(0).getOriginalFilename())
 				&& "cover.docx".equals(files.get(1).getOriginalFilename())
@@ -153,7 +157,7 @@ class UserControllerTest {
 		doNothing().when(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), nullable(List.class));
 
 		mockMvc.perform(multipart("/users")
-				.param("deletePortfolioId", "3")
+				.file(jsonRequestPart("{\"deletePortfolioId\":3}"))
 				.with(request -> {
 					request.setMethod("PATCH");
 					return request;
@@ -170,7 +174,7 @@ class UserControllerTest {
 	@DisplayName("PATCH /users rejects empty update")
 	void updateUserRejectsEmptyRequest() throws Exception {
 		doThrow(new CustomException(BaseExceptionResponseStatus.USER_UPDATE_TARGET_REQUIRED))
-			.when(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), nullable(List.class));
+			.when(userService).updateUser(nullable(Long.class), nullable(UpdateUserRequest.class), nullable(List.class));
 
 		mockMvc.perform(multipart("/users")
 				.with(request -> {
@@ -183,7 +187,16 @@ class UserControllerTest {
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.code").value("USER-024"));
 
-		verify(userService).updateUser(nullable(Long.class), any(UpdateUserRequest.class), nullable(List.class));
+		verify(userService).updateUser(nullable(Long.class), isNull(), nullable(List.class));
+	}
+
+	private MockMultipartFile jsonRequestPart(String json) {
+		return new MockMultipartFile(
+			"request",
+			"",
+			MediaType.APPLICATION_JSON_VALUE,
+			json.getBytes()
+		);
 	}
 
 		@Test
