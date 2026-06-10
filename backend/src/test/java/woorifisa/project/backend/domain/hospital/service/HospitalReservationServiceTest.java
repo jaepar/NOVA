@@ -8,6 +8,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.HOSPITAL_AVAILABLE_SLOT_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.HOSPITAL_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.HOSPITAL_RESERVATION_ALREADY_CANCELED;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.HOSPITAL_RESERVATION_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
 
 import java.time.LocalDateTime;
@@ -22,6 +24,8 @@ import woorifisa.project.backend.domain.hospital.entity.Hospital;
 import woorifisa.project.backend.domain.hospital.repository.HospitalAvailableSlotRepository;
 import woorifisa.project.backend.domain.hospital.repository.HospitalRepository;
 import woorifisa.project.backend.domain.hospital.repository.ReservationRepository;
+import woorifisa.project.backend.domain.hospital.entity.Reservation;
+import woorifisa.project.backend.domain.hospital.entity.enums.ReservationStatus;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -190,5 +194,102 @@ class HospitalReservationServiceTest {
             .isEqualTo(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND);
 
         verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("본인 예약을 취소하면 상태를 변경하고 슬롯을 복구한다")
+    void cancelReservation() {
+        HospitalRepository hospitalRepository = mock(HospitalRepository.class);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
+        Hospital hospital = Hospital.builder()
+            .hospitalId(1L)
+            .build();
+        User user = mock(User.class);
+        Reservation reservation = Reservation.builder()
+            .reservationId(1L)
+            .user(user)
+            .hospital(hospital)
+            .reservedAt(LocalDateTime.of(2026, 6, 10, 14, 0))
+            .status(ReservationStatus.RESERVED)
+            .build();
+        HospitalAvailableSlot slot = HospitalAvailableSlot.builder()
+            .slotId(10L)
+            .hospital(hospital)
+            .availableAt(LocalDateTime.of(2026, 6, 10, 14, 0))
+            .isAvailable(false)
+            .build();
+
+        when(reservationRepository.findByReservationIdAndUserUserId(1L, 1L)).thenReturn(Optional.of(reservation));
+        when(hospitalAvailableSlotRepository.findByHospitalHospitalIdAndAvailableAt(1L, reservation.getReservedAt()))
+            .thenReturn(Optional.of(slot));
+
+        hospitalService.cancelReservation(1L, 1L);
+
+        verify(reservationRepository).save(reservation);
+        verify(hospitalAvailableSlotRepository).save(slot);
+        org.assertj.core.api.Assertions.assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CANCELED);
+        org.assertj.core.api.Assertions.assertThat(slot.isAvailable()).isTrue();
+    }
+
+    @Test
+    @DisplayName("예약이 없으면 취소할 수 없다")
+    void cancelReservationNotFound() {
+        HospitalRepository hospitalRepository = mock(HospitalRepository.class);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
+
+        when(reservationRepository.findByReservationIdAndUserUserId(1L, 1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> hospitalService.cancelReservation(1L, 1L))
+            .isInstanceOf(CustomException.class)
+            .extracting("exceptionStatus")
+            .isEqualTo(HOSPITAL_RESERVATION_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("이미 취소된 예약은 다시 취소할 수 없다")
+    void cancelReservationAlreadyCanceled() {
+        HospitalRepository hospitalRepository = mock(HospitalRepository.class);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
+        Hospital hospital = Hospital.builder()
+            .hospitalId(1L)
+            .build();
+        Reservation reservation = Reservation.builder()
+            .reservationId(1L)
+            .user(mock(User.class))
+            .hospital(hospital)
+            .reservedAt(LocalDateTime.of(2026, 6, 10, 14, 0))
+            .status(ReservationStatus.CANCELED)
+            .build();
+
+        when(reservationRepository.findByReservationIdAndUserUserId(1L, 1L)).thenReturn(Optional.of(reservation));
+
+        assertThatThrownBy(() -> hospitalService.cancelReservation(1L, 1L))
+            .isInstanceOf(CustomException.class)
+            .extracting("exceptionStatus")
+            .isEqualTo(HOSPITAL_RESERVATION_ALREADY_CANCELED);
     }
 }
