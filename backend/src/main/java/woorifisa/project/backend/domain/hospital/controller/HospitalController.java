@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import woorifisa.project.backend.domain.hospital.dto.request.CreateReservationRequest;
 import woorifisa.project.backend.domain.hospital.dto.request.UpdateReservationRequest;
 import woorifisa.project.backend.domain.hospital.dto.response.HospitalListResponse;
+import woorifisa.project.backend.domain.hospital.dto.response.ReservationListResponse;
 import woorifisa.project.backend.domain.hospital.entity.enums.DepartmentType;
 import woorifisa.project.backend.domain.hospital.service.HospitalService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
@@ -32,6 +33,13 @@ public class HospitalController {
         @RequestParam(required = false) DepartmentType type
     ) {
         return BaseResponse.ok(hospitalService.findHospitals(type));
+    }
+
+    @GetMapping("/reservations")
+    public BaseResponse<ReservationListResponse> findReservations(
+        @AuthenticationPrincipal SessionUserPrincipal principal
+    ) {
+        return BaseResponse.ok(hospitalService.findReservations(principal.userId()));
     }
 
     @PostMapping("/reservations")
