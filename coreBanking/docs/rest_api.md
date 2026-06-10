@@ -226,6 +226,7 @@ Response (200)
   "data": [
     {
       "globalTransactionId": 1,
+      "targetCountry": "US",
       "receiverEngName": "JOHN SMITH",
       "remitAmount": "1000.00",
       "currency": "USD",
