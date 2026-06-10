@@ -1,6 +1,6 @@
 from unittest.mock import Mock, patch
 
-from app.services.hospital_chat_agent_factory import create_hospital_chat_agent
+from app.agent import create_hospital_chat_agent
 
 
 def test_create_hospital_chat_agent_returns_none_when_llm_disabled():
@@ -13,7 +13,10 @@ def test_create_hospital_chat_agent_returns_none_when_llm_disabled():
 
 
 def test_create_hospital_chat_agent_builds_agent_when_llm_enabled():
-    with patch("app.services.hospital_chat_agent_factory.LangGraphHospitalAgent") as agent_cls:
+    with patch("app.agent.ChatOpenAI") as chat_openai_cls:
+        llm = Mock()
+        llm.bind_tools.return_value = Mock()
+        chat_openai_cls.return_value = llm
         agent = create_hospital_chat_agent(
             use_llm=True,
             openai_api_key="test-key",
@@ -22,4 +25,8 @@ def test_create_hospital_chat_agent_builds_agent_when_llm_enabled():
         )
 
     assert agent is not None
-    agent_cls.assert_called_once()
+    chat_openai_cls.assert_called_once_with(
+        api_key="test-key",
+        model="gpt-4.1-mini",
+        temperature=0,
+    )

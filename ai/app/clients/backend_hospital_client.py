@@ -2,6 +2,7 @@ import httpx
 
 
 class BackendHospitalClient:
+    # 병원/예약 관련 백엔드 REST API 호출을 한 곳으로 모아두는 클라이언트다.
     def __init__(
         self,
         base_url: str,
@@ -15,6 +16,7 @@ class BackendHospitalClient:
         jsessionid: str,
         department_type: str | None = None,
     ) -> dict:
+        # 진료과 필터는 백엔드 enum 코드 기준으로만 전달한다.
         params = {}
         if department_type is not None:
             params["type"] = department_type
@@ -33,6 +35,7 @@ class BackendHospitalClient:
         hospital_id: int,
         date: str,
     ) -> dict:
+        # 날짜별 슬롯 조회는 병원 단위로 분리되어 있으므로 hospital_id가 필수다.
         response = self.http_client.get(
             f"{self.base_url}/hospital/{hospital_id}/available-slots",
             params={"date": date},
@@ -47,6 +50,7 @@ class BackendHospitalClient:
         hospital_id: int,
         reserved_at: str,
     ) -> dict:
+        # 예약 생성은 병원과 확정 시간 둘 다 있어야만 요청할 수 있다.
         response = self.http_client.post(
             f"{self.base_url}/hospital/reservations",
             json={
@@ -65,6 +69,7 @@ class BackendHospitalClient:
         action: str,
         reserved_at: str | None = None,
     ) -> dict:
+        # 변경과 취소를 하나의 endpoint에서 action 값으로 구분한다.
         payload = {"action": action}
         if reserved_at is not None:
             payload["reserved_at"] = reserved_at
@@ -78,6 +83,7 @@ class BackendHospitalClient:
         return response.json()
 
     def get_reservations(self, jsessionid: str) -> dict:
+        # 로그인 세션 기준으로 현재 사용자의 예약 목록을 조회한다.
         response = self.http_client.get(
             f"{self.base_url}/hospital/reservations",
             cookies={"JSESSIONID": jsessionid},

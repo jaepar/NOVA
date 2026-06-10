@@ -2,6 +2,7 @@ import uuid
 
 
 class SessionStore:
+    # 지금은 메모리 기반 저장소로 두고, 대화 히스토리와 graph state를 함께 관리한다.
     def __init__(self) -> None:
         self._sessions: dict[str, dict] = {}
 
@@ -17,6 +18,7 @@ class SessionStore:
         if not self.exists(conversation_id):
             raise KeyError(conversation_id)
 
+        # 메시지는 직렬화하기 쉬운 단순 dict 형태로 저장한다.
         self._sessions[conversation_id]["messages"].append(
             {"role": role, "message": message}
         )
@@ -34,6 +36,7 @@ class SessionStore:
     def set_graph_state(self, conversation_id: str, graph_state: dict) -> None:
         if not self.exists(conversation_id):
             raise KeyError(conversation_id)
+        # graph state는 다음 턴에서 이어서 쓸 최소 실행 결과만 저장한다.
         self._sessions[conversation_id]["graph_state"] = dict(graph_state)
 
     def delete(self, conversation_id: str) -> None:

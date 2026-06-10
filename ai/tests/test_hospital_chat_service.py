@@ -34,12 +34,6 @@ def test_send_message_uses_langgraph_agent_and_persists_state():
         "action": "ask_user",
         "items": [{"hospital_id": 1, "name": "서울하나내과"}],
         "state": {
-            "last_tool_result": {
-                "tool_name": "get_hospitals",
-                "success": True,
-                "payload": {"data": {"items": [{"hospital_id": 1, "name": "서울하나내과"}]}},
-                "error": None,
-            },
             "response_items": [{"hospital_id": 1, "name": "서울하나내과"}],
         },
     }
