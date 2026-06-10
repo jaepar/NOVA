@@ -42,4 +42,8 @@ public class HospitalAvailableSlot extends BaseEntity {
     public void markUnavailable() {
         this.isAvailable = false;
     }
+
+    public void markAvailable() {
+        this.isAvailable = true;
+    }
 }
