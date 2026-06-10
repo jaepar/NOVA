@@ -2,6 +2,7 @@ package woorifisa.project.backend.domain.hospital.service;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.hospital.dto.request.CreateReservationRequest;
+import woorifisa.project.backend.domain.hospital.dto.response.HospitalAvailableSlotResponse;
 import woorifisa.project.backend.domain.hospital.dto.response.HospitalListResponse;
 import woorifisa.project.backend.domain.hospital.dto.response.ReservationListResponse;
 import woorifisa.project.backend.domain.hospital.entity.Hospital;
@@ -45,6 +47,24 @@ public class HospitalService {
     public ReservationListResponse findReservations(Long userId) {
         return ReservationListResponse.from(
             reservationRepository.findAllByUserUserIdOrderByReservedAtDesc(userId)
+        );
+    }
+
+    public HospitalAvailableSlotResponse findAvailableSlots(Long hospitalId, LocalDate date) {
+        hospitalRepository.findById(hospitalId)
+            .orElseThrow(() -> new CustomException(HOSPITAL_NOT_FOUND));
+
+        LocalDateTime startAt = date.atStartOfDay();
+        LocalDateTime endAt = date.plusDays(1).atStartOfDay();
+
+        return HospitalAvailableSlotResponse.from(
+            hospitalId,
+            date,
+            hospitalAvailableSlotRepository.findAllByHospitalHospitalIdAndAvailableAtBetweenOrderByAvailableAtAsc(
+                hospitalId,
+                startAt,
+                endAt
+            )
         );
     }
 
