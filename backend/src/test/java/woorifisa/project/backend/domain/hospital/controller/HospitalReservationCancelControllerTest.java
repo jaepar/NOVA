@@ -29,6 +29,7 @@ import woorifisa.project.backend.global.auth.security.SessionAuthenticationEntry
 import woorifisa.project.backend.global.auth.security.SessionAuthenticationFilter;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.config.SecurityConfig;
+import java.time.LocalDateTime;
 
 @WebMvcTest(HospitalController.class)
 @Import({SecurityConfig.class, SessionAuthenticationFilter.class, SessionAuthenticationEntryPoint.class})
@@ -64,7 +65,39 @@ class HospitalReservationCancelControllerTest {
             .andExpect(jsonPath("$.code").value("20000"))
             .andExpect(jsonPath("$.data").doesNotExist());
 
-        verify(hospitalService).cancelReservation(eq(1L), eq(1L));
+        verify(hospitalService).updateReservation(
+            eq(1L),
+            eq(1L),
+            eq("CANCEL"),
+            eq(null)
+        );
+    }
+
+    @Test
+    @DisplayName("인증 사용자는 예약 시간을 변경할 수 있다")
+    void changeReservation() throws Exception {
+        LocalDateTime reservedAt = LocalDateTime.of(2026, 6, 11, 15, 0);
+
+        mockMvc.perform(patch("/hospital/reservations/{reservationId}", 1L)
+                .with(authentication(authToken()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "action": "CHANGE",
+                      "reserved_at": "2026-06-11T15:00:00"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.code").value("20000"))
+            .andExpect(jsonPath("$.data").doesNotExist());
+
+        verify(hospitalService).updateReservation(
+            eq(1L),
+            eq(1L),
+            eq("CHANGE"),
+            eq(reservedAt)
+        );
     }
 
     @Test

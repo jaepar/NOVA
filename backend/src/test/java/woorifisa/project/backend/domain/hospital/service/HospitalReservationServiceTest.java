@@ -234,7 +234,7 @@ class HospitalReservationServiceTest {
         when(hospitalAvailableSlotRepository.findByHospitalHospitalIdAndAvailableAt(1L, reservation.getReservedAt()))
             .thenReturn(Optional.of(slot));
 
-        hospitalService.cancelReservation(1L, 1L);
+        hospitalService.updateReservation(1L, 1L, "CANCEL", null);
 
         verify(reservationRepository).save(reservation);
         verify(hospitalAvailableSlotRepository).save(slot);
@@ -258,7 +258,7 @@ class HospitalReservationServiceTest {
 
         when(reservationRepository.findByReservationIdAndUserUserId(1L, 1L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> hospitalService.cancelReservation(1L, 1L))
+        assertThatThrownBy(() -> hospitalService.updateReservation(1L, 1L, "CANCEL", null))
             .isInstanceOf(CustomException.class)
             .extracting("exceptionStatus")
             .isEqualTo(HOSPITAL_RESERVATION_NOT_FOUND);
@@ -290,10 +290,105 @@ class HospitalReservationServiceTest {
 
         when(reservationRepository.findByReservationIdAndUserUserId(1L, 1L)).thenReturn(Optional.of(reservation));
 
-        assertThatThrownBy(() -> hospitalService.cancelReservation(1L, 1L))
+        assertThatThrownBy(() -> hospitalService.updateReservation(1L, 1L, "CANCEL", null))
             .isInstanceOf(CustomException.class)
             .extracting("exceptionStatus")
             .isEqualTo(HOSPITAL_RESERVATION_ALREADY_CANCELED);
+    }
+
+    @Test
+    @DisplayName("본인 예약을 변경하면 기존 슬롯을 복구하고 새 슬롯을 점유한다")
+    void changeReservation() {
+        HospitalRepository hospitalRepository = mock(HospitalRepository.class);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
+        Hospital hospital = Hospital.builder()
+            .hospitalId(1L)
+            .build();
+        Reservation reservation = Reservation.builder()
+            .reservationId(1L)
+            .user(mock(User.class))
+            .hospital(hospital)
+            .reservedAt(LocalDateTime.of(2026, 6, 10, 14, 0))
+            .status(ReservationStatus.RESERVED)
+            .build();
+        HospitalAvailableSlot currentSlot = HospitalAvailableSlot.builder()
+            .slotId(10L)
+            .hospital(hospital)
+            .availableAt(LocalDateTime.of(2026, 6, 10, 14, 0))
+            .isAvailable(false)
+            .build();
+        HospitalAvailableSlot newSlot = HospitalAvailableSlot.builder()
+            .slotId(11L)
+            .hospital(hospital)
+            .availableAt(LocalDateTime.of(2026, 6, 11, 15, 0))
+            .isAvailable(true)
+            .build();
+
+        when(reservationRepository.findByReservationIdAndUserUserId(1L, 1L)).thenReturn(Optional.of(reservation));
+        when(hospitalAvailableSlotRepository.findByHospitalHospitalIdAndAvailableAt(1L, reservation.getReservedAt()))
+            .thenReturn(Optional.of(currentSlot));
+        when(hospitalAvailableSlotRepository.findByHospitalHospitalIdAndAvailableAt(1L, LocalDateTime.of(2026, 6, 11, 15, 0)))
+            .thenReturn(Optional.of(newSlot));
+
+        hospitalService.updateReservation(1L, 1L, "CHANGE", LocalDateTime.of(2026, 6, 11, 15, 0));
+
+        verify(reservationRepository).save(reservation);
+        verify(hospitalAvailableSlotRepository).save(currentSlot);
+        verify(hospitalAvailableSlotRepository).save(newSlot);
+        assertThat(currentSlot.isAvailable()).isTrue();
+        assertThat(newSlot.isAvailable()).isFalse();
+        assertThat(reservation.getReservedAt()).isEqualTo(LocalDateTime.of(2026, 6, 11, 15, 0));
+        assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.RESERVED);
+    }
+
+    @Test
+    @DisplayName("변경할 예약 시간이 없으면 예약을 변경할 수 없다")
+    void changeReservationSlotNotFound() {
+        HospitalRepository hospitalRepository = mock(HospitalRepository.class);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
+        Hospital hospital = Hospital.builder()
+            .hospitalId(1L)
+            .build();
+        Reservation reservation = Reservation.builder()
+            .reservationId(1L)
+            .user(mock(User.class))
+            .hospital(hospital)
+            .reservedAt(LocalDateTime.of(2026, 6, 10, 14, 0))
+            .status(ReservationStatus.RESERVED)
+            .build();
+        HospitalAvailableSlot currentSlot = HospitalAvailableSlot.builder()
+            .slotId(10L)
+            .hospital(hospital)
+            .availableAt(LocalDateTime.of(2026, 6, 10, 14, 0))
+            .isAvailable(false)
+            .build();
+
+        when(reservationRepository.findByReservationIdAndUserUserId(1L, 1L)).thenReturn(Optional.of(reservation));
+        when(hospitalAvailableSlotRepository.findByHospitalHospitalIdAndAvailableAt(1L, reservation.getReservedAt()))
+            .thenReturn(Optional.of(currentSlot));
+        when(hospitalAvailableSlotRepository.findByHospitalHospitalIdAndAvailableAt(1L, LocalDateTime.of(2026, 6, 11, 15, 0)))
+            .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> hospitalService.updateReservation(1L, 1L, "CHANGE", LocalDateTime.of(2026, 6, 11, 15, 0)))
+            .isInstanceOf(CustomException.class)
+            .extracting("exceptionStatus")
+            .isEqualTo(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND);
     }
 
     @Test
