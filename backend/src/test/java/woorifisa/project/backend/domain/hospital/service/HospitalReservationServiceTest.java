@@ -13,6 +13,7 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.HOSPITAL_RESERVATION_NOT_FOUND;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import woorifisa.project.backend.domain.hospital.dto.request.CreateReservationRequest;
+import woorifisa.project.backend.domain.hospital.dto.response.HospitalAvailableSlotResponse;
 import woorifisa.project.backend.domain.hospital.dto.response.ReservationListResponse;
 import woorifisa.project.backend.domain.hospital.entity.HospitalAvailableSlot;
 import woorifisa.project.backend.domain.hospital.entity.Hospital;
@@ -428,5 +430,105 @@ class HospitalReservationServiceTest {
         assertThat(response.items().get(0).doctorName()).isEqualTo("이준호");
         assertThat(response.items().get(0).reservedAt()).isEqualTo(LocalDateTime.of(2026, 6, 10, 14, 0));
         assertThat(response.items().get(0).status()).isEqualTo(ReservationStatus.RESERVED);
+    }
+
+    @Test
+    @DisplayName("특정 병원의 특정 날짜 슬롯을 시간순으로 조회한다")
+    void findAvailableSlots() {
+        HospitalRepository hospitalRepository = mock(HospitalRepository.class);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
+        Hospital hospital = Hospital.builder()
+            .hospitalId(1L)
+            .build();
+        HospitalAvailableSlot first = HospitalAvailableSlot.builder()
+            .slotId(1L)
+            .hospital(hospital)
+            .availableAt(LocalDateTime.of(2026, 6, 11, 9, 0))
+            .isAvailable(true)
+            .build();
+        HospitalAvailableSlot second = HospitalAvailableSlot.builder()
+            .slotId(2L)
+            .hospital(hospital)
+            .availableAt(LocalDateTime.of(2026, 6, 11, 9, 30))
+            .isAvailable(false)
+            .build();
+
+        when(hospitalRepository.findById(1L)).thenReturn(Optional.of(hospital));
+        when(hospitalAvailableSlotRepository.findAllByHospitalHospitalIdAndAvailableAtBetweenOrderByAvailableAtAsc(
+            1L,
+            LocalDate.of(2026, 6, 11).atStartOfDay(),
+            LocalDate.of(2026, 6, 12).atStartOfDay()
+        )).thenReturn(List.of(first, second));
+
+        HospitalAvailableSlotResponse response = hospitalService.findAvailableSlots(1L, LocalDate.of(2026, 6, 11));
+
+        assertThat(response.hospitalId()).isEqualTo(1L);
+        assertThat(response.date()).isEqualTo(LocalDate.of(2026, 6, 11));
+        assertThat(response.items()).hasSize(2);
+        assertThat(response.items().get(0).availableAt()).isEqualTo(LocalDateTime.of(2026, 6, 11, 9, 0));
+        assertThat(response.items().get(0).isAvailable()).isTrue();
+        assertThat(response.items().get(1).availableAt()).isEqualTo(LocalDateTime.of(2026, 6, 11, 9, 30));
+        assertThat(response.items().get(1).isAvailable()).isFalse();
+    }
+
+    @Test
+    @DisplayName("병원이 없으면 예약 가능 시간을 조회할 수 없다")
+    void findAvailableSlotsHospitalNotFound() {
+        HospitalRepository hospitalRepository = mock(HospitalRepository.class);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
+
+        when(hospitalRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> hospitalService.findAvailableSlots(1L, LocalDate.of(2026, 6, 11)))
+            .isInstanceOf(CustomException.class)
+            .extracting("exceptionStatus")
+            .isEqualTo(HOSPITAL_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("슬롯이 없으면 빈 목록을 반환한다")
+    void findAvailableSlotsEmpty() {
+        HospitalRepository hospitalRepository = mock(HospitalRepository.class);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
+        Hospital hospital = Hospital.builder()
+            .hospitalId(1L)
+            .build();
+
+        when(hospitalRepository.findById(1L)).thenReturn(Optional.of(hospital));
+        when(hospitalAvailableSlotRepository.findAllByHospitalHospitalIdAndAvailableAtBetweenOrderByAvailableAtAsc(
+            1L,
+            LocalDate.of(2026, 6, 11).atStartOfDay(),
+            LocalDate.of(2026, 6, 12).atStartOfDay()
+        )).thenReturn(List.of());
+
+        HospitalAvailableSlotResponse response = hospitalService.findAvailableSlots(1L, LocalDate.of(2026, 6, 11));
+
+        assertThat(response.hospitalId()).isEqualTo(1L);
+        assertThat(response.date()).isEqualTo(LocalDate.of(2026, 6, 11));
+        assertThat(response.items()).isEmpty();
     }
 }
