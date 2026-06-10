@@ -1,24 +1,22 @@
 package woorifisa.project.backend.domain.hospital.service;
 
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.HOSPITAL_AVAILABLE_SLOT_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.HOSPITAL_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.HOSPITAL_RESERVATION_ALREADY_CANCELED;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.HOSPITAL_RESERVATION_NOT_FOUND;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.hospital.dto.request.CreateReservationRequest;
-import woorifisa.project.backend.domain.hospital.dto.response.ReservationListResponse;
-import woorifisa.project.backend.domain.hospital.entity.enums.ReservationStatus;
-import woorifisa.project.backend.domain.hospital.entity.HospitalAvailableSlot;
 import woorifisa.project.backend.domain.hospital.dto.response.HospitalListResponse;
+import woorifisa.project.backend.domain.hospital.dto.response.ReservationListResponse;
 import woorifisa.project.backend.domain.hospital.entity.Hospital;
+import woorifisa.project.backend.domain.hospital.entity.HospitalAvailableSlot;
 import woorifisa.project.backend.domain.hospital.entity.Reservation;
 import woorifisa.project.backend.domain.hospital.entity.enums.DepartmentType;
+import woorifisa.project.backend.domain.hospital.entity.enums.ReservationStatus;
 import woorifisa.project.backend.domain.hospital.repository.HospitalAvailableSlotRepository;
 import woorifisa.project.backend.domain.hospital.repository.HospitalRepository;
 import woorifisa.project.backend.domain.hospital.repository.ReservationRepository;
@@ -26,6 +24,7 @@ import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.exception.CustomException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HospitalService {
@@ -54,11 +53,11 @@ public class HospitalService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
-        Hospital hospital = hospitalRepository.findById(request.hospitalId())
+        Hospital hospital = hospitalRepository.findById(request.hospitalId())  // 병원 확인
             .orElseThrow(() -> new CustomException(HOSPITAL_NOT_FOUND));
 
         HospitalAvailableSlot hospitalAvailableSlot = hospitalAvailableSlotRepository
-            .findByHospitalHospitalIdAndAvailableAt(request.hospitalId(), request.reservedAt())
+            .findByHospitalHospitalIdAndAvailableAt(hospital.getHospitalId(), request.reservedAt())
             .orElseThrow(() -> new CustomException(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND));
 
         if (!hospitalAvailableSlot.isAvailable()) {
@@ -78,7 +77,7 @@ public class HospitalService {
         );
     }
 
-    public void cancelReservation(Long userId, Long reservationId) {
+    public void updateReservation(Long userId, Long reservationId, String action, LocalDateTime reservedAt) {
         Reservation reservation = reservationRepository.findByReservationIdAndUserUserId(reservationId, userId)
             .orElseThrow(() -> new CustomException(HOSPITAL_RESERVATION_NOT_FOUND));
 
@@ -86,6 +85,20 @@ public class HospitalService {
             throw new CustomException(HOSPITAL_RESERVATION_ALREADY_CANCELED);
         }
 
+        if ("CANCEL".equals(action)) {
+            cancelReservation(reservation);
+            return;
+        }
+
+        if ("CHANGE".equals(action) && reservedAt != null) {
+            changeReservation(reservation, reservedAt);
+            return;
+        }
+
+        throw new CustomException(HOSPITAL_RESERVATION_INVALID_ACTION);
+    }
+
+    private void cancelReservation(Reservation reservation) {
         HospitalAvailableSlot hospitalAvailableSlot = hospitalAvailableSlotRepository
             .findByHospitalHospitalIdAndAvailableAt(reservation.getHospital().getHospitalId(), reservation.getReservedAt())
             .orElseThrow(() -> new CustomException(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND));
@@ -95,5 +108,27 @@ public class HospitalService {
 
         reservationRepository.save(reservation);
         hospitalAvailableSlotRepository.save(hospitalAvailableSlot);
+    }
+
+    private void changeReservation(Reservation reservation, LocalDateTime reservedAt) {
+        HospitalAvailableSlot currentSlot = hospitalAvailableSlotRepository
+            .findByHospitalHospitalIdAndAvailableAt(reservation.getHospital().getHospitalId(), reservation.getReservedAt())
+            .orElseThrow(() -> new CustomException(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND));
+
+        HospitalAvailableSlot newSlot = hospitalAvailableSlotRepository
+            .findByHospitalHospitalIdAndAvailableAt(reservation.getHospital().getHospitalId(), reservedAt)
+            .orElseThrow(() -> new CustomException(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND));
+
+        if (!newSlot.isAvailable()) {
+            throw new CustomException(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND);
+        }
+
+        currentSlot.markAvailable();
+        newSlot.markUnavailable();
+        reservation.changeReservedAt(reservedAt);
+
+        reservationRepository.save(reservation);
+        hospitalAvailableSlotRepository.save(currentSlot);
+        hospitalAvailableSlotRepository.save(newSlot);
     }
 }
