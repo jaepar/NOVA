@@ -21,7 +21,7 @@ export function Landing() {
 
       <MobileLayout
         title=""
-        headerType="close"
+        headerType="none"
         bottomContent={<Btn_1Col onClick={() => navigate('/language')}>시작하기</Btn_1Col>}
       >
         <div className="flex flex-col items-center justify-center min-h-full">

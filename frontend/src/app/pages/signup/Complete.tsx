@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { useSignupPageStore } from "../../stores/pageStores";
+import { completeOnboarding } from "../../utils/onboardingStorage";
 import { SignupContent } from "./components/SignupContent";
 
 export function Complete() {
@@ -12,6 +13,7 @@ export function Complete() {
 
   const handleComplete = () => {
     resetSignup();
+    completeOnboarding();
     navigate("/main");
   };
 

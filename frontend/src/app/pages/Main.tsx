@@ -190,8 +190,11 @@ export function Main() {
               isLoggedIn={isLoggedIn}
               accountHome={accountHome}
               isLoading={isAccountHomeLoading}
-              onLoginClick={() => navigate("/login")}
-              onSignupClick={() => navigate("/signup")}
+              onLoginClick={() =>
+                navigate("/login/form", {
+                  state: { backPath: "/main", redirectTo: "/main" },
+                })
+              }
               onOpenCertificateSheet={() => setCertificateSheetOpen(true)}
               onOpenAccount={handleOpenAccount}
               onAccountPanelClick={() => navigate("/transaction-history")}
@@ -218,7 +221,11 @@ export function Main() {
         onClose={() => setMenuOpen(false)}
         isLoggedIn={isLoggedIn}
         onLogout={handleLogout}
-        onLogin={() => navigate("/login")}
+        onLogin={() =>
+          navigate("/login/form", {
+            state: { backPath: "/main", redirectTo: "/main" },
+          })
+        }
         onProfile={() => navigate('/mypage')}
       />
 
