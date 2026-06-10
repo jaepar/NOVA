@@ -53,7 +53,13 @@ export type {
 export type { NotificationResponse, NotificationType } from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
-export type { CertificateRequestErrorBody } from './endpoints/certificate';
+export type {
+  CertificateRequestErrorBody,
+  CorrectionDocumentResponse,
+  CorrectionDocumentStatus,
+  CorrectionDocumentType,
+  CorrectionDocumentUploadRequest,
+} from './endpoints/certificate';
 export type {
   EmailVerificationConfirmResponse,
   EmailVerificationSendResponse,

@@ -139,6 +139,13 @@ export function Main() {
     }
   };
 
+  const handleNotificationClick = (notification: NotificationResponse) => {
+    if (notification.type === "SUPPLEMENT_DOCUMENT") {
+      setNotificationOpen(false);
+      navigate("/certificate/corrections");
+    }
+  };
+
   const handleIssueCertificate = () => {
     setCertificateSheetOpen(false);
     navigate("/certificate/step-01");
@@ -177,6 +184,7 @@ export function Main() {
             notificationsError={notificationsError}
             onNotificationsClick={handleNotificationsClick}
             onNotificationsClose={() => setNotificationOpen(false)}
+            onNotificationClick={handleNotificationClick}
             onMenuClick={() => {
               setNotificationOpen(false);
               setMenuOpen(true);
