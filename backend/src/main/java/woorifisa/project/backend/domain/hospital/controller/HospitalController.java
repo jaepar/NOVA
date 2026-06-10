@@ -1,6 +1,5 @@
 package woorifisa.project.backend.domain.hospital.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -11,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.hospital.dto.request.CreateReservationRequest;
 import woorifisa.project.backend.domain.hospital.dto.request.UpdateReservationRequest;
 import woorifisa.project.backend.domain.hospital.dto.response.HospitalListResponse;
@@ -20,6 +21,7 @@ import woorifisa.project.backend.domain.hospital.service.HospitalService;
 import woorifisa.project.backend.global.auth.security.SessionUserPrincipal;
 import woorifisa.project.backend.global.response.BaseResponse;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/hospital")
@@ -57,7 +59,12 @@ public class HospitalController {
         @PathVariable Long reservationId,
         @RequestBody UpdateReservationRequest request
     ) {
-        hospitalService.cancelReservation(principal.userId(), reservationId);
+        hospitalService.updateReservation(
+            principal.userId(),
+            reservationId,
+            request.action(),
+            request.reservedAt()
+        );
         return BaseResponse.ok(null);
     }
 }
