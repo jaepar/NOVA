@@ -141,15 +141,27 @@ export function Main() {
     }
   };
 
+  const dismissNotification = (notificationId: number) => {
+    const nextNotifications = notifications.filter(
+      (notification) => notification.notificationId !== notificationId
+    );
+
+    setNotifications(nextNotifications);
+    setHasUnreadNotifications(nextNotifications.length > 0);
+
+    userApi.deleteNotification(notificationId).catch(() => undefined);
+  };
+
   const handleNotificationClick = (notification: NotificationResponse) => {
+    setNotificationOpen(false);
+
     if (notification.type === "SUPPLEMENT_DOCUMENT") {
-      setNotificationOpen(false);
       navigate("/certificate/corrections");
       return;
     }
 
     if (notification.type === "CERTIFICATE_ISSUED") {
-      setNotificationOpen(false);
+      dismissNotification(notification.notificationId);
       setCertificateIssuedModalOpen(true);
     }
   };
