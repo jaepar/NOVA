@@ -20,6 +20,7 @@ import { MainJobBanner } from './main/MainJobBanner'
 import { MainServiceGrid } from './main/MainServiceGrid'
 import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
 import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
+import { CertificateIssuedModal } from './main/CertificateIssuedModal'
 import type { ExchangeRateItem, ServiceItem } from './main/types'
 
 export function Main() {
@@ -46,6 +47,7 @@ export function Main() {
   const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
   const [isNotificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState(false);
+  const [isCertificateIssuedModalOpen, setCertificateIssuedModalOpen] = useState(false);
 
   const services: ServiceItem[] = [
     { icon: <MessageSquare className="w-8 h-8" />, label: "병원예약" },
@@ -143,6 +145,12 @@ export function Main() {
     if (notification.type === "SUPPLEMENT_DOCUMENT") {
       setNotificationOpen(false);
       navigate("/certificate/corrections");
+      return;
+    }
+
+    if (notification.type === "CERTIFICATE_ISSUED") {
+      setNotificationOpen(false);
+      setCertificateIssuedModalOpen(true);
     }
   };
 
@@ -152,6 +160,11 @@ export function Main() {
   };
 
   const handleOpenAccount = () => {
+    navigate("/account/step-01");
+  };
+
+  const handleOpenAccountFromIssuedModal = () => {
+    setCertificateIssuedModalOpen(false);
     navigate("/account/step-01");
   };
 
@@ -240,6 +253,12 @@ export function Main() {
           onIssueClick={handleIssueCertificate}
         />
       </BottomSheet>
+
+      <CertificateIssuedModal
+        isOpen={isCertificateIssuedModalOpen}
+        onClose={() => setCertificateIssuedModalOpen(false)}
+        onOpenAccount={handleOpenAccountFromIssuedModal}
+      />
     </div>
   );
 }
