@@ -155,6 +155,7 @@ erDiagram
     BIGINT user_id FK
     BIGINT hospital_id FK
     DATETIME reserved_at
+    ENUM status "RESERVED | CANCELED"
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
@@ -215,6 +216,7 @@ erDiagram
 | `wallet_transaction.transaction_flow` | `DEPOSIT`, `WITHDRAWAL` |
 | `application.status` | `PASSED`, `FAILED`, `READ`, `UNREAD` |
 | `hospital.type` | `INTERNAL_MEDICINE`, `ORTHOPEDICS`, `DENTAL`, `OTHER` |
+| `reservation.status` | `RESERVED`, `CANCELED` |
 | `cs.cs_type` | `PRODUCT_SUBSCRIPTION`, `ACCOUNT_MAINTENANCE` |
 | `document.document_type` | `ALIEN_REGISTRATION_SUPPORTING_DOCUMENT`, `RESIDENCE_VERIFICATION_DOCUMENT` |
 | `document.status` | `PENDING`, `APPROVED`, `REJECTED`, `MODIFIED` |
