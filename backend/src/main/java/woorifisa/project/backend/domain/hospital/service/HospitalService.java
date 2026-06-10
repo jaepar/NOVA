@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import woorifisa.project.backend.domain.hospital.dto.request.CreateReservationRequest;
+import woorifisa.project.backend.domain.hospital.dto.response.ReservationListResponse;
 import woorifisa.project.backend.domain.hospital.entity.enums.ReservationStatus;
 import woorifisa.project.backend.domain.hospital.entity.HospitalAvailableSlot;
 import woorifisa.project.backend.domain.hospital.dto.response.HospitalListResponse;
@@ -40,6 +41,12 @@ public class HospitalService {
             : hospitalRepository.findAllByType(type);
 
         return HospitalListResponse.from(hospitals);
+    }
+
+    public ReservationListResponse findReservations(Long userId) {
+        return ReservationListResponse.from(
+            reservationRepository.findAllByUserUserIdOrderByReservedAtDesc(userId)
+        );
     }
 
     // 실제 예약 요청 1건을 처리하는 흐름으로, 미리 준비된 슬롯 존재 여부만 검증한다.
