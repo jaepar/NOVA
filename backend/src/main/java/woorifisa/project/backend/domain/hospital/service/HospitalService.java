@@ -39,6 +39,7 @@ public class HospitalService {
         return HospitalListResponse.from(hospitals);
     }
 
+    // 실제 예약 요청 1건을 처리하는 흐름으로, 미리 준비된 슬롯 존재 여부만 검증한다.
     public void createReservation(Long userId, CreateReservationRequest request) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
