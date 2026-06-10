@@ -36,21 +36,17 @@ function DetailSection({ title, children }: DetailSectionProps) {
   )
 }
 
-function formatDate(value: string) {
+function formatRecruitCount(value: string) {
   if (!value) {
-    return ''
+    return '-'
   }
 
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
+  const trimmedValue = value.trim()
+  if (trimmedValue.includes('인원미정')) {
+    return '인원미정'
   }
 
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
+  return trimmedValue.endsWith('명') ? trimmedValue : `${trimmedValue}명`
 }
 
 export function JobDetail() {
@@ -105,7 +101,7 @@ export function JobDetail() {
         ['급여', job.salary],
         ['근무기간', job.work_period],
         ['마감', job.deadline_type],
-        ['모집인원', `${job.recruit_count}명`],
+        ['모집인원', formatRecruitCount(job.recruit_count)],
         ['근무지', job.address],
         ['복리후생', job.benefits],
       ]
@@ -143,9 +139,6 @@ export function JobDetail() {
               {job.opening_title}
             </h2>
             <p className="mb-3 text-[17px] text-[#374151]">{job.company}</p>
-            <p className="text-[16px] text-muted-foreground">
-              {formatDate(job.created_at)} 등록
-            </p>
           </div>
 
           <section className="border-t border-border py-6">
