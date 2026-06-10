@@ -55,6 +55,7 @@ public class UserController {
 	@PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public BaseResponse<Void> updateUser(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
+		// @RequestPart("request") 어노테이션 추가 -> json
 		UpdateUserRequest request,
 		@RequestPart(value = "portfolioFiles", required = false) List<MultipartFile> portfolioFiles,
 		HttpServletResponse response  // 언어 변경 시 응답 헤더에 Set-Cookie를 직접 추가 목적
