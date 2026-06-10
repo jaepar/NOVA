@@ -6,10 +6,15 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,12 +33,14 @@ import software.amazon.awssdk.services.rekognition.model.Image;
 import software.amazon.awssdk.services.rekognition.model.LivenessOutputConfig;
 import software.amazon.awssdk.services.rekognition.model.S3Object;
 import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
+import woorifisa.project.backend.domain.user.dto.request.UpdateUserRequest;
 import woorifisa.project.backend.domain.user.dto.response.CorrectionDocumentResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
 import woorifisa.project.backend.domain.user.dto.response.UserProfileResponse;
 import woorifisa.project.backend.domain.user.entity.Document;
+import woorifisa.project.backend.domain.user.entity.Resume;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
@@ -48,10 +55,15 @@ import woorifisa.project.backend.global.exception.CustomException;
 @RequiredArgsConstructor
 public class UserService {
 
+	private static final Pattern PASSWORD_PATTERN = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,16}$");
+	private static final Set<String> SUPPORTED_LANGUAGES = Set.of("vi", "fr", "en", "ja", "pt", "zh", "ko", "ne", "ru");
+
 	private final UserRepository userRepository;
 	private final DocumentRepository documentRepository;
 	private final ResumeRepository resumeRepository;
 	private final UserDocumentS3Uploader userDocumentS3Uploader;
+	private final PortfolioFileS3Uploader portfolioFileS3Uploader;
+	private final PasswordEncoder passwordEncoder;
 	private final NotificationService notificationService;
 
 	@Transactional(readOnly = true)
@@ -59,7 +71,157 @@ public class UserService {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
-		return UserProfileResponse.from(user, resumeRepository.findByUserOrderByResumeIdDesc(user));
+		// 마이페이지에서 삭제 처리한 포트폴리오는 회원 정보 조회 목록에서 제외한다.
+		return UserProfileResponse.from(user, resumeRepository.findByUserAndDeletedFromMyPageFalseOrderByResumeIdDesc(user));
+	}
+
+	@Transactional
+	public void updateUser(Long userId, UpdateUserRequest request, List<MultipartFile> portfolioFiles) {
+		// 전달된 항목만 선택적으로 처리한다. 언어는 DB에 저장하지 않고 컨트롤러에서 쿠키만 갱신한다.
+		request = normalizeRequest(request);
+		validateUpdateTarget(request, portfolioFiles);
+		validateLanguage(request.language());
+		validatePasswordChangeFields(request);
+		log.info(
+			"회원 정보 수정 처리 시작: userId={}, languageChange={}, passwordChange={}, portfolioDelete={}, portfolioUploadCount={}",
+			userId,
+			!isBlank(request.language()),
+			isPasswordChangeRequested(request),
+			request.deletePortfolioId() != null,
+			uploadedPortfolioFiles(portfolioFiles).size()
+		);
+
+		// 언어만 변경하는 요청은 회원 원장성 데이터 조회가 필요 없다.
+		User user = null;
+		if (needsUser(request, portfolioFiles)) {
+			user = userRepository.findById(userId)
+				.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+		}
+
+		if (isPasswordChangeRequested(request)) {
+			changePassword(user, request);
+		}
+
+		// 포트폴리오는 삭제 후 등록 순서로 처리해 하나의 요청 안에서 교체할 수 있게 한다.
+		if (request.deletePortfolioId() != null) {
+			deletePortfolio(user, request.deletePortfolioId());
+		}
+
+		for (MultipartFile portfolioFile : uploadedPortfolioFiles(portfolioFiles)) {
+			uploadPortfolio(user, portfolioFile);
+		}
+		log.info("회원 정보 수정 처리 완료: userId={}", userId);
+	}
+
+	private UpdateUserRequest normalizeRequest(UpdateUserRequest request) {
+		// 포트폴리오 파일만 등록하는 요청은 request 파트가 없을 수 있으므로 빈 요청 객체로 맞춘다.
+		return request == null ? new UpdateUserRequest(null, null, null, null, null) : request;
+	}
+
+	private void validateUpdateTarget(UpdateUserRequest request, List<MultipartFile> portfolioFiles) {
+		// 빈 multipart 요청은 실수 가능성이 높으므로 명시적으로 실패시킨다.
+		if (isBlank(request.language())
+				&& isBlank(request.currentPassword())
+				&& isBlank(request.newPassword())
+				&& isBlank(request.newPasswordConfirm())
+				&& request.deletePortfolioId() == null
+				&& uploadedPortfolioFiles(portfolioFiles).isEmpty()) {
+			throw new CustomException(USER_UPDATE_TARGET_REQUIRED);
+		}
+	}
+
+	private void validateLanguage(String language) {
+		// 지원 언어 검증만 수행하고, 저장 위치는 NOVA_LANGUAGE 쿠키로 한정한다.
+		if (isBlank(language)) {
+			return;
+		}
+		if (!SUPPORTED_LANGUAGES.contains(language.trim().toLowerCase(Locale.ROOT))) {
+			throw new CustomException(INVALID_LANGUAGE_CODE);
+		}
+	}
+
+	// 실제 회원 엔티티가 필요한 변경 항목인지 판단해 불필요한 DB 접근을 줄인다.
+	// 비밀번호 변경 요청이 있거나, 포트폴리오 삭제 요청이 있거나, 포트폴리오 등록 파일이 있으면 User 엔티티가 필요하다.
+	private boolean needsUser(UpdateUserRequest request, List<MultipartFile> portfolioFiles) {
+		return isPasswordChangeRequested(request)
+			|| request.deletePortfolioId() != null
+			|| !uploadedPortfolioFiles(portfolioFiles).isEmpty();
+	}
+
+	// 비밀번호 변경은 선택 항목이지만, 변경을 시도한 경우에는 세 필드가 모두 필요하다.
+	// 아무 필드도 보내지 않은 경우는 허용하고, 일부 필드만 보낸 경우만 실패 처리한다.
+	private void validatePasswordChangeFields(UpdateUserRequest request) {
+		if (isPasswordChangeRequested(request) && hasIncompletePasswordFields(request)) {
+			throw new CustomException(USER_PASSWORD_CHANGE_FIELDS_REQUIRED);
+		}
+	}
+
+	// 비밀번호 변경을 하려는 시도가 있는지 확인
+	private boolean isPasswordChangeRequested(UpdateUserRequest request) {
+		return !isBlank(request.currentPassword())
+			|| !isBlank(request.newPassword())
+			|| !isBlank(request.newPasswordConfirm());
+	}
+
+	// 비밀번호 변경에 필요한 값 중 하나라도 비어있는지 확인
+	private boolean hasIncompletePasswordFields(UpdateUserRequest request) {
+		return isBlank(request.currentPassword()) || isBlank(request.newPassword()) || isBlank(request.newPasswordConfirm());
+	}
+
+
+
+	private void changePassword(User user, UpdateUserRequest request) {
+		// 현재 비밀번호 확인과 새 비밀번호 정책은 기존 인증 규칙을 재사용한다.
+		if (!PASSWORD_PATTERN.matcher(request.newPassword()).matches()) {
+			throw new CustomException(INVALID_PASSWORD_FORMAT);
+		}
+		if (!request.newPassword().equals(request.newPasswordConfirm())) {
+			throw new CustomException(PASSWORD_CONFIRM_NOT_MATCHED);
+		}
+		if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+			throw new CustomException(PASSWORD_NOT_MATCHED);
+		}
+		user.changePassword(passwordEncoder.encode(request.newPassword()));
+	}
+
+
+	private void deletePortfolio(User user, Long portfolioId) {
+		// 마이페이지 삭제는 과거 지원서 참조를 보존해야 하므로 DB row와 S3 객체를 물리 삭제하지 않는다.
+		// 본인 소유 Resume인지 확인한 뒤 마이페이지 목록에서만 제외되도록 표시한다.
+		Resume resume = resumeRepository.findById(portfolioId)
+			.filter(candidate -> Objects.equals(candidate.getUser().getUserId(), user.getUserId()))
+			.orElseThrow(() -> new CustomException(PORTFOLIO_NOT_FOUND));
+		resume.deleteFromMyPage();
+	}
+
+	private void uploadPortfolio(User user, MultipartFile portfolioFile) {
+		// 회원 정보 수정 화면에서 등록한 포트폴리오는 지원서가 아닌 프로필용 경로에 저장한다.
+		String fileUrl = portfolioFileS3Uploader.uploadProfile(user.getUserId(), portfolioFile);
+		Resume resume = Resume.builder()
+			.user(user)
+			.name(resolvePortfolioName(portfolioFile))
+			.url(fileUrl)
+			.build();
+		resumeRepository.save(resume);
+	}
+
+	private String resolvePortfolioName(MultipartFile file) {
+		String filename = file.getOriginalFilename();
+		return isBlank(filename) ? "portfolio" : filename.trim();
+	}
+
+	private List<MultipartFile> uploadedPortfolioFiles(List<MultipartFile> portfolioFiles) {
+		// 파일 파트가 없거나 비어 있을 수 있어 실제 업로드 파일만 정규화한다.
+		if (portfolioFiles == null) {
+			return List.of();
+		}
+		return portfolioFiles.stream()
+			.filter(this::isUploadedFile)
+			.toList();
+	}
+
+	private boolean isBlank(String value) {
+		return value == null || value.isBlank();
 	}
 
 	@Transactional

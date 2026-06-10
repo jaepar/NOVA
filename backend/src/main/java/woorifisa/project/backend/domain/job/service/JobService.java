@@ -69,14 +69,14 @@ public class JobService {
 			});
 	}
 
-	// 지원서 작성 화면에 필요한 사용자 기본 정보와 프로필 포트폴리오를 조회한다.
+	// 지원서 작성 화면에서는 마이페이지에서 삭제 처리되지 않은 포트폴리오만 선택지로 보여준다.
 	@Transactional(readOnly = true)
 	public ApplicationFormResponse getApplicationForm(Long userId) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
 		List<ApplicationFormPortfolioResponse> portfolios = resumeRepository
-			.findByUserOrderByResumeIdDesc(user)
+			.findByUserAndDeletedFromMyPageFalseOrderByResumeIdDesc(user)
 			.stream()
 			.map(ApplicationFormPortfolioResponse::from)
 			.toList();
@@ -141,6 +141,7 @@ public class JobService {
 	}
 
 	// 지원 내역 세부 조회
+	// 과거 지원서에 이미 연결된 포트폴리오는 마이페이지 삭제 여부와 관계없이 조회되어야 한다.
 	@Transactional(readOnly = true)
 	public List<PortfolioFileResponse> findApplicationPortfolio(Long userId, Long applicationId) {
 		log.info("[job_application_portfolios:requested] userId={}, applicationId={}", userId, applicationId);
@@ -197,6 +198,7 @@ public class JobService {
 			return List.of();
 		}
 
+		// 기존 application.resume_id 방식으로 저장된 지원서 포트폴리오도 함께 조회한다.
 		return jdbcTemplate.query(
 			"""
 				select resume.name, resume.url
@@ -251,7 +253,8 @@ public class JobService {
 	}
 
 	private Resume findOrCreateResumeByUrl(User user, String url) {
-		return resumeRepository.findByUserAndUrl(user, url)
+		// 마이페이지에서 삭제 처리한 포트폴리오 URL은 새 지원서에서 재사용하지 않는다.
+		return resumeRepository.findByUserAndUrlAndDeletedFromMyPageFalse(user, url)
 			.orElseGet(() -> resumeRepository.save(Resume.builder()
 				.user(user)
 				.name(resolveFilename(url))
@@ -271,7 +274,7 @@ public class JobService {
 				continue;
 			}
 
-			// 파일명 저장 형식
+			// 지원서 제출 중 새로 첨부한 파일은 application 경로에 저장한다.
 			// portfolios/user-{userId}/application-{applicationId}/portfolio-{fileIndex}_{filename}
 			String fileUrl = portfolioFileS3Uploader.upload(
 				user.getUserId(),
