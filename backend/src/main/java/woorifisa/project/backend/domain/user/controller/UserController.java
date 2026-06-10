@@ -52,7 +52,7 @@ public class UserController {
 	private final NotificationService notificationService;
 	private final IdentityVerificationService identityVerificationService;
 
-  // 회원 정보 조회
+	// 회원 정보 조회
 	@GetMapping
 	public BaseResponse<UserProfileResponse> getUserProfile(
 		@AuthenticationPrincipal SessionUserPrincipal principal
@@ -64,16 +64,16 @@ public class UserController {
 	@PatchMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public BaseResponse<Void> updateUser(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
-		@Valid @RequestPart("request") UpdateUserRequest request,
+		@Valid @RequestPart(value = "request", required = false) UpdateUserRequest request,
 		@RequestPart(value = "portfolioFiles", required = false) List<MultipartFile> portfolioFiles,
-		HttpServletResponse response  // 언어 변경 시 응답 헤더에 Set-Cookie를 직접 추가 목적
+		HttpServletResponse response  // 언어 변경 시 응답 헤더에 Set-Cookie를 직접 추가하기 위해 사용한다.
 	) {
-		// 회원 정보 수정은 multipart 요청의 전달된 필드만 반영한다.
+		// 회원 정보 수정은 multipart 요청으로 들어온 항목만 선택적으로 반영한다.
 		Long userId = principal.userId();
 		log.info("회원 정보 수정 API 요청: userId={}", userId);
 		userService.updateUser(userId, request, portfolioFiles);
-		if (request.language() != null && !request.language().isBlank()) {
-			// 언어는 DB에 저장하지 않고 응답 쿠키로만 갱신한다.
+		if (request != null && request.language() != null && !request.language().isBlank()) {
+			// 언어는 회원 원장성 정보가 아니므로 DB에 저장하지 않고 쿠키로만 갱신한다.
 			addLanguageCookie(response, request.language().trim());
 			log.info("회원 정보 수정 API 언어 쿠키 갱신: userId={}", userId);
 		}
@@ -88,7 +88,7 @@ public class UserController {
 			.sameSite("Lax")
 			.build();
 		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-  }
+	}
 	
 
 	// 서류 제출

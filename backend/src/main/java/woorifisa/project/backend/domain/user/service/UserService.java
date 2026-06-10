@@ -63,7 +63,6 @@ public class UserService {
 	private final ResumeRepository resumeRepository;
 	private final UserDocumentS3Uploader userDocumentS3Uploader;
 	private final PortfolioFileS3Uploader portfolioFileS3Uploader;
-	private final ResumeRepository resumeRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final NotificationService notificationService;
 
@@ -72,12 +71,14 @@ public class UserService {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
-		return UserProfileResponse.from(user, resumeRepository.findByUserOrderByResumeIdDesc(user));
+		// 마이페이지에서 삭제 처리한 포트폴리오는 회원 정보 조회 목록에서 제외한다.
+		return UserProfileResponse.from(user, resumeRepository.findByUserAndDeletedFromMyPageFalseOrderByResumeIdDesc(user));
 	}
 
 	@Transactional
 	public void updateUser(Long userId, UpdateUserRequest request, List<MultipartFile> portfolioFiles) {
 		// 전달된 항목만 선택적으로 처리한다. 언어는 DB에 저장하지 않고 컨트롤러에서 쿠키만 갱신한다.
+		request = normalizeRequest(request);
 		validateUpdateTarget(request, portfolioFiles);
 		validateLanguage(request.language());
 		validatePasswordChangeFields(request);
@@ -112,16 +113,19 @@ public class UserService {
 		log.info("회원 정보 수정 처리 완료: userId={}", userId);
 	}
 
+	private UpdateUserRequest normalizeRequest(UpdateUserRequest request) {
+		// 포트폴리오 파일만 등록하는 요청은 request 파트가 없을 수 있으므로 빈 요청 객체로 맞춘다.
+		return request == null ? new UpdateUserRequest(null, null, null, null, null) : request;
+	}
+
 	private void validateUpdateTarget(UpdateUserRequest request, List<MultipartFile> portfolioFiles) {
 		// 빈 multipart 요청은 실수 가능성이 높으므로 명시적으로 실패시킨다.
-		if (request == null || (
-			isBlank(request.language())
+		if (isBlank(request.language())
 				&& isBlank(request.currentPassword())
 				&& isBlank(request.newPassword())
 				&& isBlank(request.newPasswordConfirm())
 				&& request.deletePortfolioId() == null
-				&& uploadedPortfolioFiles(portfolioFiles).isEmpty()
-		)) {
+				&& uploadedPortfolioFiles(portfolioFiles).isEmpty()) {
 			throw new CustomException(USER_UPDATE_TARGET_REQUIRED);
 		}
 	}
@@ -145,7 +149,7 @@ public class UserService {
 	}
 
 	// 비밀번호 변경은 선택 항목이지만, 변경을 시도한 경우에는 세 필드가 모두 필요하다.
-	// 아래 메서드 2개 조합해서 아예 안 보낸 건 괜찮고, 일부만 보낸 건 안 되는 것을 확인
+	// 아무 필드도 보내지 않은 경우는 허용하고, 일부 필드만 보낸 경우만 실패 처리한다.
 	private void validatePasswordChangeFields(UpdateUserRequest request) {
 		if (isPasswordChangeRequested(request) && hasIncompletePasswordFields(request)) {
 			throw new CustomException(USER_PASSWORD_CHANGE_FIELDS_REQUIRED);
@@ -182,16 +186,16 @@ public class UserService {
 
 
 	private void deletePortfolio(User user, Long portfolioId) {
-		// 본인 소유 Resume만 S3 객체와 DB row를 함께 삭제할 수 있다.
+		// 마이페이지 삭제는 과거 지원서 참조를 보존해야 하므로 DB row와 S3 객체를 물리 삭제하지 않는다.
+		// 본인 소유 Resume인지 확인한 뒤 마이페이지 목록에서만 제외되도록 표시한다.
 		Resume resume = resumeRepository.findById(portfolioId)
 			.filter(candidate -> Objects.equals(candidate.getUser().getUserId(), user.getUserId()))
 			.orElseThrow(() -> new CustomException(PORTFOLIO_NOT_FOUND));
-
-		portfolioFileS3Uploader.deleteByUrl(resume.getUrl());
-		resumeRepository.delete(resume);
+		resume.deleteFromMyPage();
 	}
 
 	private void uploadPortfolio(User user, MultipartFile portfolioFile) {
+		// 회원 정보 수정 화면에서 등록한 포트폴리오는 지원서가 아닌 프로필용 경로에 저장한다.
 		String fileUrl = portfolioFileS3Uploader.uploadProfile(user.getUserId(), portfolioFile);
 		Resume resume = Resume.builder()
 			.user(user)

@@ -31,7 +31,7 @@ public class PortfolioFileS3Uploader {
 	// 회원 정보 수정에서 등록하는 프로필 포트폴리오용 업로드
 	// 특정 지원서에 묶이지 않으므로 applicationId 없이 profile 경로에 저장한다.
 	public String uploadProfile(Long userId, MultipartFile file) {
-		String key = buildProfileKey(userId, file.getOriginalFilename());  // 파일명이 될 식별키
+		String key = buildProfileKey(userId, file.getOriginalFilename());
 		PutObjectRequest request = PutObjectRequest.builder()
 			.bucket(s3Properties.s3().bucket())
 			.key(key)
@@ -48,7 +48,8 @@ public class PortfolioFileS3Uploader {
 		}
 	}
 
-	// 회원 정보 수정에서 포트폴리오 삭제 시 DB row와 함께 S3 객체도 제거하기 위해 사용
+	// S3 객체를 실제로 지워야 하는 별도 삭제 흐름에서 사용한다.
+	// 현재 마이페이지 포트폴리오 삭제는 과거 지원서 파일 보존을 위해 이 메서드를 호출하지 않는다.
 	public void deleteByUrl(String fileUrl) {
 		String key = extractKey(fileUrl);
 		DeleteObjectRequest request = DeleteObjectRequest.builder()
@@ -85,7 +86,7 @@ public class PortfolioFileS3Uploader {
 		}
 	}
 
-	// 프로필 포트폴리오는 같은 파일명을 여러 번 올릴 수 있어 uuid를 붙여 충돌을 피한다.
+	// 프로필 포트폴리오는 같은 파일명을 여러 번 올릴 수 있어 uuid를 붙여 S3 key 충돌을 피한다.
 	private String buildProfileKey(Long userId, String originalFilename) {
 		return "portfolios/user-" + userId
 			+ "/profile/"
@@ -100,6 +101,7 @@ public class PortfolioFileS3Uploader {
 	}
 
 	private String sanitizeFilename(String originalFilename) {
+		// 기존 구인구직 업로드 방식과 동일하게 파일명에 사용할 수 없는 문자는 치환한다.
 		return originalFilename == null || originalFilename.isBlank()
 			? "attachment"
 			: originalFilename.trim()
