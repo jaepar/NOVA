@@ -32,11 +32,13 @@ import woorifisa.project.backend.domain.user.dto.response.CorrectionDocumentResp
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
+import woorifisa.project.backend.domain.user.dto.response.UserProfileResponse;
 import woorifisa.project.backend.domain.user.entity.Document;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
+import woorifisa.project.backend.domain.user.repository.ResumeRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.config.KycRekognitionProperties;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -48,8 +50,17 @@ public class UserService {
 
 	private final UserRepository userRepository;
 	private final DocumentRepository documentRepository;
+	private final ResumeRepository resumeRepository;
 	private final UserDocumentS3Uploader userDocumentS3Uploader;
 	private final NotificationService notificationService;
+
+	@Transactional(readOnly = true)
+	public UserProfileResponse getUserProfile(Long userId) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+
+		return UserProfileResponse.from(user, resumeRepository.findByUserOrderByResumeIdDesc(user));
+	}
 
 	@Transactional
 	public void requestCertificateIssuance(Long userId) {

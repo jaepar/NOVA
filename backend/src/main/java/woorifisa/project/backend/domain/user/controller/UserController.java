@@ -26,6 +26,7 @@ import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeRespon
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
 import woorifisa.project.backend.domain.user.dto.response.NotificationResponse;
+import woorifisa.project.backend.domain.user.dto.response.UserProfileResponse;
 import woorifisa.project.backend.domain.user.service.IdentityVerificationService;
 import woorifisa.project.backend.domain.user.service.NotificationService;
 import woorifisa.project.backend.domain.user.service.UserService;
@@ -40,6 +41,14 @@ public class UserController {
 	private final UserService userService;
 	private final NotificationService notificationService;
 	private final IdentityVerificationService identityVerificationService;
+
+	// 회원 정보 조회
+	@GetMapping
+	public BaseResponse<UserProfileResponse> getUserProfile(
+		@AuthenticationPrincipal SessionUserPrincipal principal
+	) {
+		return BaseResponse.ok(userService.getUserProfile(principal.userId()));
+	}
 
 	// 서류 제출
 	@PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

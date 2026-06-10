@@ -38,6 +38,7 @@ import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
+import woorifisa.project.backend.domain.user.repository.ResumeRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.config.KycRekognitionProperties;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -50,6 +51,9 @@ class UserServiceTest {
 
 	@Mock
 	private DocumentRepository documentRepository;
+
+	@Mock
+	private ResumeRepository resumeRepository;
 
 	@Mock
 	private UserDocumentS3Uploader userDocumentS3Uploader;
@@ -78,6 +82,7 @@ class UserServiceTest {
 		userService = new UserService(
 			userRepository,
 			documentRepository,
+			resumeRepository,
 			userDocumentS3Uploader,
 			notificationService,
 			rekognitionClient,
@@ -508,6 +513,7 @@ class UserServiceTest {
 			UserService service = new UserService(
 				userRepository,
 				documentRepository,
+				resumeRepository,
 				userDocumentS3Uploader,
 				notificationService,
 				rekognitionClient,
