@@ -1,5 +1,6 @@
 package woorifisa.project.backend.domain.hospital.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -14,11 +15,13 @@ import static woorifisa.project.backend.global.response.status.BaseExceptionResp
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import woorifisa.project.backend.domain.hospital.dto.request.CreateReservationRequest;
+import woorifisa.project.backend.domain.hospital.dto.response.ReservationListResponse;
 import woorifisa.project.backend.domain.hospital.entity.HospitalAvailableSlot;
 import woorifisa.project.backend.domain.hospital.entity.Hospital;
 import woorifisa.project.backend.domain.hospital.repository.HospitalAvailableSlotRepository;
@@ -291,5 +294,44 @@ class HospitalReservationServiceTest {
             .isInstanceOf(CustomException.class)
             .extracting("exceptionStatus")
             .isEqualTo(HOSPITAL_RESERVATION_ALREADY_CANCELED);
+    }
+
+    @Test
+    @DisplayName("사용자 예약 목록을 최신순으로 조회한다")
+    void findReservations() {
+        HospitalRepository hospitalRepository = mock(HospitalRepository.class);
+        HospitalAvailableSlotRepository hospitalAvailableSlotRepository = mock(HospitalAvailableSlotRepository.class);
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        HospitalService hospitalService = new HospitalService(
+            hospitalRepository,
+            hospitalAvailableSlotRepository,
+            reservationRepository,
+            userRepository
+        );
+        Hospital hospital = Hospital.builder()
+            .hospitalId(2L)
+            .name("강남튼튼정형외과")
+            .doctorName("이준호")
+            .build();
+        Reservation reservation = Reservation.builder()
+            .reservationId(1L)
+            .hospital(hospital)
+            .reservedAt(LocalDateTime.of(2026, 6, 10, 14, 0))
+            .status(ReservationStatus.RESERVED)
+            .build();
+
+        when(reservationRepository.findAllByUserUserIdOrderByReservedAtDesc(1L)).thenReturn(List.of(reservation));
+
+        ReservationListResponse response = hospitalService.findReservations(1L);
+
+        verify(reservationRepository).findAllByUserUserIdOrderByReservedAtDesc(1L);
+        assertThat(response.items()).hasSize(1);
+        assertThat(response.items().get(0).reservationId()).isEqualTo(1L);
+        assertThat(response.items().get(0).hospitalId()).isEqualTo(2L);
+        assertThat(response.items().get(0).hospitalName()).isEqualTo("강남튼튼정형외과");
+        assertThat(response.items().get(0).doctorName()).isEqualTo("이준호");
+        assertThat(response.items().get(0).reservedAt()).isEqualTo(LocalDateTime.of(2026, 6, 10, 14, 0));
+        assertThat(response.items().get(0).status()).isEqualTo(ReservationStatus.RESERVED);
     }
 }
