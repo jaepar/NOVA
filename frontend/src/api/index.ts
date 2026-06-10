@@ -56,9 +56,7 @@ export type { PassportResponse } from './endpoints/certificate';
 export type {
   CertificateRequestErrorBody,
   CorrectionDocumentResponse,
-  CorrectionDocumentStatus,
   CorrectionDocumentType,
-  CorrectionDocumentUploadRequest,
 } from './endpoints/certificate';
 export type {
   EmailVerificationConfirmResponse,
