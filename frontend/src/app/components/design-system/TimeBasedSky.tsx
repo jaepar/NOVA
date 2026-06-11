@@ -36,7 +36,7 @@ export function TimeBasedSky() {
 
   const skyConfig = {
     morning: {
-      gradient: 'from-blue-400 via-blue-300 to-blue-100',
+      gradient: 'from-primary-light via-primary-soft to-primary-soft',
       sunMoon: (
         <div className="absolute top-8 right-12 w-16 h-16 bg-yellow-400 rounded-full shadow-lg shadow-yellow-300/50">
           <div className="absolute inset-2 bg-yellow-300 rounded-full opacity-50"></div>

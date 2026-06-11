@@ -388,14 +388,14 @@ export function JobApply() {
                       onClick={() => togglePortfolio(portfolio.portfolio_id)}
                       className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all ${
                         isSelected
-                          ? 'border-[#0057ff] bg-blue-50'
+                          ? 'border-[#2563EB] bg-primary-soft'
                           : 'border-border bg-background hover:bg-secondary'
                       }`}
                     >
                       <span
                         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
                           isSelected
-                            ? 'bg-blue-100 text-[#0057ff]'
+                            ? 'bg-primary-soft text-[#2563EB]'
                             : 'bg-secondary text-muted-foreground'
                         }`}
                       >
@@ -431,7 +431,7 @@ export function JobApply() {
                         </span>
                       </span>
                       {isSelected ? (
-                        <CheckCircle2 className="h-7 w-7 shrink-0 text-[#0057ff]" />
+                        <CheckCircle2 className="h-7 w-7 shrink-0 text-[#2563EB]" />
                       ) : (
                         <span className="h-7 w-7 shrink-0 rounded-full border-2 border-[#9ca3af]" />
                       )}
@@ -450,14 +450,14 @@ export function JobApply() {
                       onClick={() => toggleLocalFile(file.id)}
                       className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all ${
                         isSelected
-                          ? 'border-[#0057ff] bg-blue-50'
+                          ? 'border-[#2563EB] bg-primary-soft'
                           : 'border-border bg-background hover:bg-secondary'
                       }`}
                     >
                       <span
                         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
                           isSelected
-                            ? 'bg-blue-100 text-[#0057ff]'
+                            ? 'bg-primary-soft text-[#2563EB]'
                             : 'bg-secondary text-muted-foreground'
                         }`}
                       >
@@ -472,7 +472,7 @@ export function JobApply() {
                         </span>
                       </span>
                       {isSelected ? (
-                        <CheckCircle2 className="h-7 w-7 shrink-0 text-[#0057ff]" />
+                        <CheckCircle2 className="h-7 w-7 shrink-0 text-[#2563EB]" />
                       ) : (
                         <span className="h-7 w-7 shrink-0 rounded-full border-2 border-[#9ca3af]" />
                       )}
@@ -492,7 +492,7 @@ export function JobApply() {
                   type="button"
                   variant="unstyled"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex h-14 w-full items-center justify-center gap-3 rounded-xl border border-dashed border-border text-[#0057ff] transition-colors hover:bg-blue-50"
+                  className="flex h-14 w-full items-center justify-center gap-3 rounded-xl border border-dashed border-border text-[#2563EB] transition-colors hover:bg-primary-soft"
                 >
                   <Plus className="h-5 w-5" />새 파일 추가
                 </AppButton>

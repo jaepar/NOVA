@@ -136,7 +136,7 @@ export function JobDetail() {
       {!isLoading && !errorMessage && job && (
         <article className="pt-6">
           <div className="pb-6">
-            <span className="mb-4 inline-flex rounded-lg bg-blue-50 px-3 py-1 text-sm font-semibold text-[#0057ff]">
+            <span className="mb-4 inline-flex rounded-lg bg-primary-soft px-3 py-1 text-sm font-semibold text-[#2563EB]">
               {job.region}
             </span>
             <h2 className="mb-3 text-[24px] font-semibold leading-9 text-[#111827]">

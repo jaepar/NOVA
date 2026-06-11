@@ -4,14 +4,20 @@ interface CenteredTaskContentProps {
   task: string
   description?: string
   children?: ReactNode
+  contentGapClassName?: string
 }
 
-export function CenteredTaskContent({ task, description, children }: CenteredTaskContentProps) {
+export function CenteredTaskContent({
+  task,
+  description,
+  children,
+  contentGapClassName = 'gap-6',
+}: CenteredTaskContentProps) {
   const normalizedDescription = description?.replace(/\\n/g, '\n')
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
-      <div className="flex flex-col items-center gap-6">
+      <div className={`flex flex-col items-center ${contentGapClassName}`}>
         {children}
 
         <div className="space-y-2 text-center">

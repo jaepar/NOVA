@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CreditCard, MessageSquare, Wallet } from 'lucide-react'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import { BottomNav } from '../components/layout/BottomNav'
 import { SideMenu } from '../components/layout/SideMenu'
@@ -20,6 +19,9 @@ import { MainJobBanner } from './main/MainJobBanner'
 import { MainServiceGrid } from './main/MainServiceGrid'
 import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
 import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
+import hospitalReservationIcon from './main/assets/hospital-reservation-icon.png'
+import registrationCardIcon from './main/assets/registration-card-icon.png'
+import walletIcon from './main/assets/wallet-icon.png'
 import type { ExchangeRateItem, ServiceItem } from './main/types'
 
 export function Main() {
@@ -48,9 +50,19 @@ export function Main() {
   const [notificationsError, setNotificationsError] = useState(false);
 
   const services: ServiceItem[] = [
-    { icon: <MessageSquare className="w-8 h-8" />, label: "병원예약" },
-    { icon: <CreditCard className="w-8 h-8" />, label: "외국인등록증" },
-    { icon: <Wallet className="w-8 h-8" />, label: "월렛", path: "/wallet" },
+    {
+      icon: <img src={hospitalReservationIcon} alt="" className="h-9 w-9 object-contain" />,
+      label: "병원예약",
+    },
+    {
+      icon: <img src={registrationCardIcon} alt="" className="h-9 w-9 object-contain" />,
+      label: "외국인등록증",
+    },
+    {
+      icon: <img src={walletIcon} alt="" className="h-9 w-9 rounded-lg object-cover" />,
+      label: "월렛",
+      path: "/wallet",
+    },
   ];
 
   const exchangeRates: ExchangeRateItem[] = [
@@ -184,7 +196,7 @@ export function Main() {
           />
         }
       >
-        <div className="space-y-4">
+        <div className="space-y-4 pt-3">
           <section>
             <MainAccountPanel
               isLoggedIn={isLoggedIn}

@@ -64,9 +64,9 @@ export function Notifications() {
       case 'alert':
         return <AlertCircle className="w-6 h-6 text-red-600" />
       case 'event':
-        return <Gift className="w-6 h-6 text-blue-600" />
+        return <Gift className="w-6 h-6 text-primary-light" />
       default:
-        return <Info className="w-6 h-6 text-blue-600" />
+        return <Info className="w-6 h-6 text-primary-light" />
     }
   }
 
@@ -83,8 +83,8 @@ export function Notifications() {
       <div className="space-y-4 pb-8">
         {/* Header Info */}
         {unreadCount > 0 && (
-          <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl">
-            <p className="text-sm text-blue-800">읽지 않은 알림 {unreadCount}개가 있습니다.</p>
+          <div className="bg-primary-soft border border-primary-light/30 p-4 rounded-xl">
+            <p className="text-sm text-primary">읽지 않은 알림 {unreadCount}개가 있습니다.</p>
           </div>
         )}
 
@@ -107,7 +107,7 @@ export function Notifications() {
                 className={`w-full text-left p-4 rounded-xl transition-colors ${
                   notification.isRead
                     ? 'bg-secondary hover:bg-accent'
-                    : 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                    : 'bg-primary-soft hover:bg-primary-soft border border-primary-light/30'
                 }`}
               >
                 <div className="flex gap-3">
@@ -118,7 +118,7 @@ export function Notifications() {
                         {notification.title}
                       </h4>
                       {!notification.isRead && (
-                        <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></span>
+                        <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2"></span>
                       )}
                     </div>
                     <p

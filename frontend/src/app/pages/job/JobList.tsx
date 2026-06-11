@@ -144,10 +144,10 @@ export function JobList() {
               type="button"
               variant="unstyled"
               onClick={() => navigate(`/jobs/${job.job_id}`)}
-              className="block w-full border-b border-border px-5 py-6 text-left transition-colors hover:bg-blue-50"
+              className="block w-full border-b border-border px-5 py-6 text-left transition-colors hover:bg-primary-soft"
             >
               <div className="mb-4 flex items-start justify-between gap-3">
-                <span className="rounded-lg bg-blue-50 px-3 py-1 text-sm font-semibold text-[#0057ff]">
+                <span className="rounded-lg bg-primary-soft px-3 py-1 text-sm font-semibold text-[#2563EB]">
                   {job.region}
                 </span>
                 <span className="shrink-0 text-[15px] text-muted-foreground">

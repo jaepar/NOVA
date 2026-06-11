@@ -18,7 +18,7 @@ export function Btn_2Col({
   rightVariant = 'primary',
 }: Btn2ColProps) {
   const variants = {
-    primary: 'bg-primary text-primary-foreground hover:bg-blue-700 border-2 border-primary',
+    primary: 'bg-primary text-primary-foreground hover:bg-primary-dark border-2 border-primary',
     secondary: 'bg-secondary text-secondary-foreground hover:bg-accent border-2 border-secondary',
     outline: 'bg-background border-2 border-border text-foreground hover:bg-secondary',
   }

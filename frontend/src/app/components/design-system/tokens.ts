@@ -113,8 +113,10 @@ export const typography = {
 } as const
 
 export const colors = {
-  primary: '#6366F1',
-  primaryDark: '#4F46E5',
+  primary: '#003CA6',
+  primaryDark: '#002A73',
+  primaryLight: '#2563EB',
+  primarySoft: '#EAF3FF',
   text: {
     primary: '#1F2937',
     secondary: '#6B7280',

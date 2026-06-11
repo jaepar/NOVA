@@ -22,7 +22,7 @@ export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
           strokeWidth="4"
           strokeLinecap="round"
           strokeDasharray="31.4 94.2"
-          className="text-blue-600"
+          className="text-primary-light"
         />
       </svg>
     </div>
