@@ -69,9 +69,7 @@ export function MainAccountPanel({
             인증서 발급 후 계좌 개설을 이어갈 수 있어요.
           </p>
         </div>
-        <Btn_1Col onClick={onOpenCertificateSheet}>
-          인증서 발급하기
-        </Btn_1Col>
+        <Btn_1Col onClick={onOpenCertificateSheet}>인증서 발급하기</Btn_1Col>
       </div>
     );
   }
@@ -153,10 +151,6 @@ export function MainAccountPanel({
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-            <div className="w-6 h-6 rounded-full bg-white" />
-          </div>
-
           <div>
             <div className="flex items-center gap-2">
               <span className="font-medium">{account.accountName}</span>
