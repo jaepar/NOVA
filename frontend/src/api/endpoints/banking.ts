@@ -135,6 +135,16 @@ export type UpdateTransactionMemoRequest = {
   memo: string | null;
 };
 
+export type GlobalTransferHistoryItem = {
+  globalTransactionId: number;
+  targetCountry: string | null;
+  receiverEngName: string;
+  remitAmount: string;
+  currency: string;
+  status: string;
+  createdAt: string | null;
+};
+
 type AccountHomeApiResponse = Omit<AccountHomeResponse, "hasNotification"> & {
     has_notification: boolean;
 };
@@ -211,6 +221,13 @@ export const bankingApi = {
       `/banking/transactions/${transactionId}/memo`,
       request
     );
+  },
+  getGlobalTransferHistory: async (): Promise<GlobalTransferHistoryItem[]> => {
+    const response = await apiClient.get<
+      BankingApiResponse<GlobalTransferHistoryItem[]>
+    >("/banking/global-transactions");
+
+    return response.data.data;
   },
 };
 

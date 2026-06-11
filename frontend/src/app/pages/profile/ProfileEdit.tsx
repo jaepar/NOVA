@@ -1,6 +1,7 @@
-import { ChangeEvent, useRef, useState } from 'react'
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, ChevronDown, Eye, EyeOff, FileText, Plus, Trash2 } from 'lucide-react'
+import { userApi } from '../../../api'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
@@ -11,9 +12,6 @@ import { useMainPageStore } from '../../stores/pageStores'
 import { PortfolioFileType, PortfolioItem, useProfileStore } from '../../stores/profileStore'
 
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,16}$/
-const MAX_PORTFOLIO_FILE_SIZE = 5 * 1024 * 1024
-const PORTFOLIO_FILE_ACCEPT =
-  '.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
 const fileStyleByType = {
   pdf: {
@@ -28,6 +26,12 @@ const fileStyleByType = {
     bg: 'bg-blue-50',
     label: 'DOCX',
   },
+  file: {
+    icon: FileText,
+    color: 'text-slate-500',
+    bg: 'bg-slate-50',
+    label: 'FILE',
+  },
 }
 
 function formatDate(date: Date) {
@@ -38,7 +42,7 @@ function formatDate(date: Date) {
   return `${year}.${month}.${day}`
 }
 
-function getPortfolioFileType(file: File): 'pdf' | 'docx' | null {
+function getPortfolioFileType(file: File): PortfolioFileType {
   const lowerName = file.name.toLowerCase()
 
   if (file.type === 'application/pdf' || lowerName.endsWith('.pdf')) {
@@ -52,7 +56,7 @@ function getPortfolioFileType(file: File): 'pdf' | 'docx' | null {
     return 'docx'
   }
 
-  return null
+  return 'file'
 }
 
 export function ProfileEdit() {
@@ -61,8 +65,8 @@ export function ProfileEdit() {
   const isLoggedIn = useMainPageStore((state) => state.isLoggedIn)
   const profile = useProfileStore((state) => state.profile)
   const storedPortfolios = useProfileStore((state) => state.portfolios)
-  const updateProfile = useProfileStore((state) => state.updateProfile)
-  const [language, setLanguage] = useState(profile.languageId)
+  const setProfileFromResponse = useProfileStore((state) => state.setProfileFromResponse)
+  const [language, setLanguage] = useState(profile?.languageId ?? 'ko')
   const [isLanguageSheetOpen, setLanguageSheetOpen] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
@@ -72,7 +76,41 @@ export function ProfileEdit() {
   const [isPasswordVisible, setPasswordVisible] = useState(false)
   const [isPasswordConfirmVisible, setPasswordConfirmVisible] = useState(false)
   const [portfolios, setPortfolios] = useState<PortfolioItem[]>(() => storedPortfolios)
+  const [deletedPortfolioIds, setDeletedPortfolioIds] = useState<number[]>([])
   const [portfolioError, setPortfolioError] = useState('')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  const loadProfile = useCallback(async () => {
+    if (!isLoggedIn) return
+
+    setIsLoading(true)
+    setErrorMessage(null)
+
+    try {
+      const response = await userApi.getProfile()
+      setProfileFromResponse(response, profile?.languageId)
+    } catch (error) {
+      setErrorMessage('프로필 정보를 불러오지 못했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [isLoggedIn, profile?.languageId, setProfileFromResponse])
+
+  useEffect(() => {
+    if (isLoggedIn && !profile) {
+      void loadProfile()
+    }
+  }, [isLoggedIn, loadProfile, profile])
+
+  useEffect(() => {
+    if (!profile) return
+
+    setLanguage(profile.languageId)
+    setPortfolios(storedPortfolios)
+    setDeletedPortfolioIds([])
+  }, [profile, storedPortfolios])
 
   const CurrentPasswordIcon = isCurrentPasswordVisible ? EyeOff : Eye
   const PasswordIcon = isPasswordVisible ? EyeOff : Eye
@@ -93,9 +131,17 @@ export function ProfileEdit() {
     isPasswordInputCompleted &&
     !isPasswordFormatInvalid &&
     !isSameAsCurrentPassword
-  const isPasswordMismatch =
-    passwordConfirm.length > 0 && password !== passwordConfirm
+  const isPasswordMismatch = passwordConfirm.length > 0 && password !== passwordConfirm
+  const newPortfolioFiles = portfolios
+    .filter((portfolio) => portfolio.isNew && portfolio.file)
+    .map((portfolio) => portfolio.file as File)
+  const isLanguageChanged = Boolean(profile && language !== profile.languageId)
+  const hasPortfolioChange = deletedPortfolioIds.length > 0 || newPortfolioFiles.length > 0
+  const hasChanges = isLanguageChanged || isPasswordChangeStarted || hasPortfolioChange
   const canSave =
+    Boolean(profile) &&
+    hasChanges &&
+    !isSaving &&
     !isCurrentPasswordMissing &&
     !isPasswordIncomplete &&
     !isPasswordFormatInvalid &&
@@ -113,42 +159,77 @@ export function ProfileEdit() {
 
     const fileType = getPortfolioFileType(file)
 
-    if (!fileType) {
-      setPortfolioError('PDF, DOCX 파일만 업로드 가능합니다.')
-      event.target.value = ''
-      return
-    }
-
-    if (file.size > MAX_PORTFOLIO_FILE_SIZE) {
-      setPortfolioError('파일은 최대 5MB까지 업로드 가능합니다.')
-      event.target.value = ''
-      return
-    }
-
     setPortfolios((current) => [
       ...current,
       {
         name: file.name,
         date: formatDate(new Date()),
         type: fileType,
+        file,
+        isNew: true,
       },
     ])
     setPortfolioError('')
     event.target.value = ''
   }
 
-  const handleSave = () => {
-    if (!canSave) return
+  const handleRemovePortfolio = (portfolio: PortfolioItem, index: number) => {
+    if (portfolio.isNew) {
+      setPortfolios((current) => current.filter((_, itemIndex) => itemIndex !== index))
+      setPortfolioError('')
+      return
+    }
 
-    updateProfile({
-      languageId: language,
-      portfolios,
-    })
-    navigate('/mypage')
+    if (!portfolio.portfolioId) {
+      setPortfolioError('삭제할 포트폴리오 정보를 확인할 수 없습니다.')
+      return
+    }
+
+    setDeletedPortfolioIds((current) => [...current, portfolio.portfolioId as number])
+    setPortfolios((current) => current.filter((_, itemIndex) => itemIndex !== index))
+    setPortfolioError('')
+  }
+
+  const handleSave = async () => {
+    if (!canSave || !profile) return
+
+    setIsSaving(true)
+    setErrorMessage(null)
+
+    try {
+      const [firstDeletePortfolioId, ...remainingDeletePortfolioIds] = deletedPortfolioIds
+
+      await userApi.updateProfile({
+        request: {
+          language: isLanguageChanged ? language : undefined,
+          currentPassword: isPasswordChangeStarted ? currentPassword : undefined,
+          newPassword: isPasswordChangeStarted ? password : undefined,
+          newPasswordConfirm: isPasswordChangeStarted ? passwordConfirm : undefined,
+          deletePortfolioId: firstDeletePortfolioId,
+        },
+        portfolioFiles: newPortfolioFiles,
+      })
+
+      for (const deletePortfolioId of remainingDeletePortfolioIds) {
+        await userApi.updateProfile({
+          request: {
+            deletePortfolioId,
+          },
+        })
+      }
+
+      const latestProfile = await userApi.getProfile()
+      setProfileFromResponse(latestProfile, language)
+      navigate('/mypage')
+    } catch (error) {
+      setErrorMessage('회원정보를 저장하지 못했습니다. 입력값을 확인해주세요.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const bottomContent = !isLoggedIn ? (
-    <Btn_1Col onClick={() => navigate('/login')}>로그인하기</Btn_1Col>
+    <Btn_1Col onClick={() => navigate('/login/form')}>로그인하기</Btn_1Col>
   ) : undefined
 
   return (
@@ -160,10 +241,19 @@ export function ProfileEdit() {
     >
       {!isLoggedIn ? (
         <CenteredTaskContent
-          task="로그인이 필요합니다."
-          description="프로필 정보를 확인하려면 먼저 로그인해주세요."
+          task="로그인이 필요합니다"
+          description="프로필 정보를 수정하려면 먼저 로그인해주세요."
         />
-      ) : (
+      ) : isLoading ? (
+        <CenteredTaskContent
+          task="프로필 정보를 불러오고 있습니다"
+          description="잠시만 기다려주세요."
+        />
+      ) : errorMessage && !profile ? (
+        <CenteredTaskContent task={errorMessage} description="잠시 후 다시 시도해주세요.">
+          <Btn_1Col onClick={loadProfile}>다시 시도</Btn_1Col>
+        </CenteredTaskContent>
+      ) : profile ? (
         <div className="-mb-32 space-y-6 pb-3 pt-3">
           <section className="space-y-3">
             <p className="text-xs text-muted-foreground">
@@ -186,7 +276,7 @@ export function ProfileEdit() {
                 <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground" />
               </AppButton>
               <p className="text-xs text-muted-foreground">
-                언어를 변경하면 앱 전체에 적용됩니다.
+                언어를 변경하면 다음 요청부터 적용됩니다.
               </p>
             </div>
           </section>
@@ -314,7 +404,7 @@ export function ProfileEdit() {
 
                   return (
                     <div
-                      key={`${portfolio.name}-${index}`}
+                      key={`${portfolio.portfolioId ?? portfolio.name}-${index}`}
                       className={`flex items-center gap-3 px-3 py-3 ${
                         index !== portfolios.length - 1 ? 'border-b border-border' : ''
                       }`}
@@ -329,18 +419,11 @@ export function ProfileEdit() {
                         <p className="truncate text-xs font-medium text-foreground">
                           {portfolio.name}
                         </p>
-                        <p className="mt-1 text-[11px] text-muted-foreground">
-                          업로드일: {portfolio.date}
-                        </p>
                       </div>
                       <AppButton
                         type="button"
                         variant="unstyled"
-                        onClick={() =>
-                          setPortfolios((current) =>
-                            current.filter((_, itemIndex) => itemIndex !== index)
-                          )
-                        }
+                        onClick={() => handleRemovePortfolio(portfolio, index)}
                         className="shrink-0 rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50"
                         aria-label={`${portfolio.name} 삭제`}
                       >
@@ -365,21 +448,28 @@ export function ProfileEdit() {
               ref={fileInputRef}
               type="file"
               className="hidden"
-              accept={PORTFOLIO_FILE_ACCEPT}
               onChange={handlePortfolioFileChange}
             />
             {portfolioError && <p className="text-xs text-red-500">{portfolioError}</p>}
-            <p className="text-xs text-muted-foreground">
-              PDF, DOCX 파일만 업로드 가능합니다. 최대 5MB
-            </p>
           </section>
+
+          {errorMessage && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-500">{errorMessage}</p>
+          )}
 
           <section>
             <Btn_1Col disabled={!canSave} onClick={handleSave}>
-              저장하기
+              {isSaving ? '저장 중' : '저장하기'}
             </Btn_1Col>
           </section>
         </div>
+      ) : (
+        <CenteredTaskContent
+          task="프로필 정보가 없습니다"
+          description="프로필 정보를 다시 불러와주세요."
+        >
+          <Btn_1Col onClick={loadProfile}>다시 시도</Btn_1Col>
+        </CenteredTaskContent>
       )}
 
       {isLoggedIn && (

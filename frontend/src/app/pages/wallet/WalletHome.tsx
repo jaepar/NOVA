@@ -231,7 +231,7 @@ export function WalletHome() {
                     variant="unstyled"
                     onClick={() => {
                       if (isLoginRequired) {
-                        navigate("/login");
+                        navigate("/login/form");
                         return;
                       }
 

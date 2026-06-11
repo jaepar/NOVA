@@ -14,6 +14,8 @@ import { LivenessConsentAllTermsAgreements } from "../pages/certificate/Step08-A
 import { LivenessCameraCapture } from "../pages/certificate/Step09-LivenessCameraCapture";
 import { VerificationCompleted } from "../pages/certificate/Step10-VerificationCompleted";
 import { CertificateRequestCompleted } from "../pages/certificate/Step11-CertificateRequestCompleted";
+import { CertificateCorrectionDetail } from "../pages/certificate/CertificateCorrectionDetail";
+import { Success } from "../pages/common/Success";
 
 export const certificateRoutes: RouteObject[] = [
   { path: "/certificate/step-01", Component: CertificateIssuanceConsentAgreement },
@@ -31,5 +33,19 @@ export const certificateRoutes: RouteObject[] = [
   { path: "/certificate/step-09", Component: LivenessCameraCapture },
   { path: "/certificate/step-10", Component: VerificationCompleted },
   { path: "/certificate/step-11", Component: CertificateRequestCompleted },
+  { path: "/certificate/corrections", Component: CertificateCorrectionDetail },
+  {
+    path: "/certificate/corrections/complete",
+    element: (
+      <Success
+        headerTitle="보완 서류 제출"
+        task="보완 서류를 제출했어요"
+        description={"담당자가 서류를 확인한 뒤\n알림으로 결과를 안내해드릴게요."}
+        buttonText="확인"
+        redirectPath="/main"
+        headerType="none"
+      />
+    ),
+  },
 ];
 

@@ -518,7 +518,7 @@ export function WalletCharge() {
 
     if (shouldNavigateLoginAfterChargeFailure) {
       resetChargeFlow();
-      navigate("/login");
+      navigate("/login/form");
       return;
     }
 

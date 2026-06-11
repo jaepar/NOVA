@@ -36,4 +36,12 @@ public class Resume extends BaseEntity {
 
     @Column(name = "url", length = 255, nullable = false)
     private String url;
+
+    // 파일 자체 삭제가 아니라 마이페이지 포트폴리오 목록에서 제외되었는지를 나타낸다.
+    @Column(name = "deleted_from_mypage", nullable = false)
+    private boolean deletedFromMyPage;
+
+    public void deleteFromMyPage() {
+        this.deletedFromMyPage = true;
+    }
 }
