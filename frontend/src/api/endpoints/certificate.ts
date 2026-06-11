@@ -1,5 +1,9 @@
 import apiClient from '../client'
 import { extractApiErrorBody } from '../utils'
+import {
+  normalizePassportOcrResponse,
+  type PassportResponse,
+} from './certificatePassport'
 
 type ApiEnvelope<T> = {
   success: boolean
@@ -32,20 +36,6 @@ export type LivenessFinalizeResponse = {
 export type FaceMatchRequest = {
   registeredImageBucket: string
   registeredImageKey: string
-}
-
-export type PassportResponse = {
-  type?: string
-  issueCountry?: string
-  num?: string
-  surName?: string
-  givenName?: string
-  nationality?: string
-  birthDate?: string
-  sex?: string
-  issueDate?: string
-  expireDate?: string
-  authority?: string
 }
 
 export type IdCardOcrResult = {
@@ -149,11 +139,11 @@ export const certificateApi = {
     const formData = new FormData()
     formData.append('file', imageFile)
 
-    const response = await apiClient.post<ApiEnvelope<PassportResponse>>(
-      '/users/verifications/passports',
+    const response = await apiClient.post<ApiEnvelope<IdentityOcrResponse>>(
+      '/users/verifications/identity?ocrDocumentType=PASSPORT',
       formData
     )
-    return response.data.data
+    return normalizePassportOcrResponse(response.data.data)
   },
   recognizeIdCard: async (imageFile: File): Promise<IdentityOcrResponse> => {
     const formData = new FormData()
