@@ -107,7 +107,7 @@ export function EmailVerification() {
 
   const handleBack = () => {
     resetSignup();
-    navigate("/main");
+    navigate("/login", { state: { fromLanguage: true } });
   };
 
   return (

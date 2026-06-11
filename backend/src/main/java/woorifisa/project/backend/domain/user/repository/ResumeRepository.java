@@ -9,7 +9,9 @@ import woorifisa.project.backend.domain.user.entity.User;
 
 public interface ResumeRepository extends JpaRepository<Resume, Long> {
 
-	List<Resume> findByUserOrderByResumeIdDesc(User user);
+	// 마이페이지에서 삭제되지 않은 포트폴리오만 조회
+	List<Resume> findByUserAndDeletedFromMyPageFalseOrderByResumeIdDesc(User user);
 
-	Optional<Resume> findByUserAndUrl(User user, String url);
+	// URL로 기존 포트폴리오를 찾을 때도 마찬가지로 마이페이지에서 삭제되지 않은 포트폴리오만 조회
+	Optional<Resume> findByUserAndUrlAndDeletedFromMyPageFalse(User user, String url);
 }

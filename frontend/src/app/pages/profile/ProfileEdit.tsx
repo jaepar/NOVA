@@ -148,7 +148,7 @@ export function ProfileEdit() {
   }
 
   const bottomContent = !isLoggedIn ? (
-    <Btn_1Col onClick={() => navigate('/login')}>로그인하기</Btn_1Col>
+    <Btn_1Col onClick={() => navigate('/login/form')}>로그인하기</Btn_1Col>
   ) : undefined
 
   return (

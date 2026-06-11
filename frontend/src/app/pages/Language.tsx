@@ -5,6 +5,7 @@ import { AppButton } from '../components/design-system/AppButton'
 import { Btn_1Col } from '../components/design-system/Btn_1Col'
 import { CommonInputGroup } from '../components/design-system/CommonInputGroup'
 import { languages } from '../data/languages'
+import { saveOnboardingLanguage } from '../utils/onboardingStorage'
 import { Check } from 'lucide-react'
 
 export function Language() {
@@ -13,8 +14,9 @@ export function Language() {
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   const handleConfirm = () => {
-    // 선택된 언어를 저장하고 랜딩 페이지로 이동
-    navigate('/main')
+    // 선택된 언어를 저장하고 로그인/회원가입 진입 페이지로 이동
+    saveOnboardingLanguage(selectedLanguage)
+    navigate('/login', { state: { fromLanguage: true } })
   }
 
   // 검색어로 언어 목록 필터링
@@ -33,6 +35,7 @@ export function Language() {
   return (
     <MobileLayout
       title="Language"
+      backPath="/landing"
       bottomContent={<Btn_1Col onClick={handleConfirm}>확인</Btn_1Col>}
     >
       <div className="space-y-4">

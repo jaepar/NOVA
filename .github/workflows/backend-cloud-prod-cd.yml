@@ -6,7 +6,7 @@ on:
       - 'main'
     paths:
       - 'backend/**'
-      - '.github/workflows/backend-aws-prod-cd.yml'
+      - '.github/workflows/backend-cloud-prod-cd.yml'
   workflow_dispatch:
 
 permissions:

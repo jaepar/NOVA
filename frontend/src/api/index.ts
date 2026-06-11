@@ -81,6 +81,7 @@ export type {
   WalletTransactionsResponse,
 } from './endpoints/wallet';
 export { jobApi } from './endpoints/job';
+export { hospitalChatApi } from './endpoints/hospitalChat';
 export type {
   ApplicationItemResponse,
   ApplicationListResponse,
@@ -93,6 +94,11 @@ export type {
   JobOpeningListResponse,
   JobOpeningResponse,
 } from './endpoints/job';
+export type {
+  HospitalChatData,
+  HospitalChatItem,
+  HospitalChatPayload,
+} from './endpoints/hospitalChat';
 export { transferApi } from "./endpoints/transfer";
 export type {
   SubmitRemittanceRequest,
@@ -104,4 +110,5 @@ export type {
   TransferPreviewRequest,
   TransferPreviewResponse,
   TransferRequest,
+  GlobalTransferHistoryItem,
 } from './endpoints/banking';

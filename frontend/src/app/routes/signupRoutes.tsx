@@ -11,8 +11,6 @@ export const signupRoutes: RouteObject[] = [
   { path: "/signup", Component: EmailVerification },
   { path: "/signup/personal-info", Component: PersonalInfo },
   { path: "/signup/terms", Component: Terms },
-  { path: "/signup/terms/terms/:termId", Component: ConsentDetail },
-  { path: "/signup/terms/categories/:categoryId/consent", Component: ConsentCategoryCarousel },
   { path: "/signup/terms/:termId", Component: ConsentDetail },
   { path: "/signup/categories/:categoryId/consent", Component: ConsentCategoryCarousel },
   { path: "/signup/password", Component: PasswordSetup },

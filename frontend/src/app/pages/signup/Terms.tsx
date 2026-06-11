@@ -42,7 +42,7 @@ export function Terms() {
         <ConsentOverviewAccordion
           definition={signupConsentDefinition}
           preserveState={preserveState}
-          basePath="/signup/terms"
+          basePath="/signup"
           title="약관 동의"
           description="서비스 이용을 위해 아래 약관을 읽고 동의해주세요."
           onRequiredCompleteChange={setIsRequiredComplete}
