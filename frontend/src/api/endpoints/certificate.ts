@@ -80,9 +80,48 @@ export type CertificateRequestErrorBody = {
   message: string
 }
 
+export type CorrectionDocumentType =
+  | 'RESIDENCE_VERIFICATION_DOCUMENT'
+  | 'ALIEN_REGISTRATION_SUPPORTING_DOCUMENT'
+
+export type CorrectionDocumentStatus = 'REJECTED' | 'APPROVED'
+
+export type CorrectionDocumentResponse = {
+  documentType: CorrectionDocumentType
+  status: CorrectionDocumentStatus
+  missingItems: string[]
+}
+
+export type CorrectionDocumentUploadRequest = {
+  residenceVerificationPdf?: File
+  alienRegistrationApplicationPdf?: File
+}
+
 export const certificateApi = {
   requestIssuance: async (): Promise<void> => {
     await apiClient.post<ApiEnvelope<null>>('/users/verifications')
+  },
+  getCorrectionDocuments: async (): Promise<CorrectionDocumentResponse[]> => {
+    const response = await apiClient.get<ApiEnvelope<CorrectionDocumentResponse[]>>(
+      '/users/documents/corrections'
+    )
+    return response.data.data
+  },
+  uploadCorrectionDocuments: async ({
+    residenceVerificationPdf,
+    alienRegistrationApplicationPdf,
+  }: CorrectionDocumentUploadRequest): Promise<void> => {
+    const formData = new FormData()
+
+    if (residenceVerificationPdf) {
+      formData.append('residenceVerificationPdf', residenceVerificationPdf)
+    }
+
+    if (alienRegistrationApplicationPdf) {
+      formData.append('alienRegistrationApplicationPdf', alienRegistrationApplicationPdf)
+    }
+
+    await apiClient.post<ApiEnvelope<null>>('/users/documents', formData)
   },
   createLivenessSession: async (): Promise<LivenessSessionResponse> => {
     const response = await apiClient.post<ApiEnvelope<LivenessSessionResponse>>(

@@ -114,7 +114,7 @@ export function Notifications() {
                   <div className="flex-shrink-0 mt-1">{getIcon(notification.type)}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className={notification.isRead ? 'text-muted-foreground' : ''}>
+                      <h4 className={`break-words ${notification.isRead ? 'text-muted-foreground' : ''}`}>
                         {notification.title}
                       </h4>
                       {!notification.isRead && (
@@ -122,7 +122,7 @@ export function Notifications() {
                       )}
                     </div>
                     <p
-                      className={`text-sm mb-2 ${
+                      className={`text-sm mb-2 whitespace-pre-wrap break-words ${
                         notification.isRead ? 'text-muted-foreground' : 'text-foreground'
                       }`}
                     >

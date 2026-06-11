@@ -76,6 +76,15 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     PORTFOLIO_NOT_FOUND("USER-028", "포트폴리오를 찾을 수 없습니다."),
 
     /**
+     * hospital
+     */
+    HOSPITAL_NOT_FOUND("HOSPITAL-001", "병원 정보를 찾을 수 없습니다."),
+    HOSPITAL_AVAILABLE_SLOT_NOT_FOUND("HOSPITAL-002", "예약 가능한 병원 시간이 아닙니다."),
+    HOSPITAL_RESERVATION_NOT_FOUND("HOSPITAL-003", "예약 정보를 찾을 수 없습니다."),
+    HOSPITAL_RESERVATION_ALREADY_CANCELED("HOSPITAL-004", "이미 취소된 예약입니다."),
+    HOSPITAL_RESERVATION_INVALID_ACTION("HOSPITAL-005", "지원하지 않는 예약 처리 요청입니다."),
+
+    /**
      * admin
      */
     DOCUMENT_NOT_FOUND("ADMIN-001", "심사 대상 문서를 찾을 수 없습니다."),

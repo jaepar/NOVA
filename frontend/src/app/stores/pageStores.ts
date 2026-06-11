@@ -124,24 +124,6 @@ export const useSignupPageStore = create<SignupPageState>((set) => ({
   resetSignup: () => set(signupInitialState),
 }));
 
-interface TransactionHistoryPageState {
-  isFilterOpen: boolean
-  selectedPeriod: string
-  selectedType: string
-  setFilterOpen: (open: boolean) => void
-  setSelectedPeriod: (period: string) => void
-  setSelectedType: (type: string) => void
-}
-
-export const useTransactionHistoryPageStore = create<TransactionHistoryPageState>((set) => ({
-  isFilterOpen: false,
-  selectedPeriod: '전체',
-  selectedType: '전체',
-  setFilterOpen: (isFilterOpen) => set({ isFilterOpen }),
-  setSelectedPeriod: (selectedPeriod) => set({ selectedPeriod }),
-  setSelectedType: (selectedType) => set({ selectedType }),
-}))
-
 interface TransferSendPageState {
   isInitialVerificationComplete: boolean
   completeInitialVerification: () => void

@@ -3,7 +3,7 @@ import type { ServiceItem } from './types'
 
 interface MainServiceGridProps {
   services: ServiceItem[]
-  onServiceClick: (path?: string) => void
+  onServiceClick: (service: ServiceItem) => void
 }
 
 export function MainServiceGrid({ services, onServiceClick }: MainServiceGridProps) {
@@ -14,9 +14,11 @@ export function MainServiceGrid({ services, onServiceClick }: MainServiceGridPro
         {services.map((service) => (
           <AppButton
             variant="unstyled"
-            key={service.label}
-            onClick={() => onServiceClick(service.path)}
-            className="flex flex-col items-center gap-2 rounded-xl transition-colors hover:bg-secondary max-[359px]:bg-secondary max-[359px]:p-4"
+            key={service.id}
+            type="button"
+            disabled={service.disabled}
+            onClick={() => onServiceClick(service)}
+            className="flex flex-col items-center gap-2 rounded-xl transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50 max-[359px]:bg-secondary max-[359px]:p-4"
           >
             <div className="text-blue-500">{service.icon}</div>
             <span className="text-center w-full text-xs">{service.label}</span>
