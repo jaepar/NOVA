@@ -86,7 +86,7 @@ export function Step03DocumentUpload() {
               <AppButton
                 variant="unstyled"
                 onClick={() => openPicker(doc.id)}
-                className="w-full rounded-xl border border-dashed border-border bg-background py-5 flex items-center justify-center gap-2 text-primary hover:bg-blue-50 transition-colors"
+                className="w-full rounded-xl border border-dashed border-border bg-background py-5 flex items-center justify-center gap-2 text-primary hover:bg-primary-soft transition-colors"
               >
                 <Upload className="w-4 h-4" />
                 파일 첨부

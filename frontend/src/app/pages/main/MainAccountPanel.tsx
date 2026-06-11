@@ -38,11 +38,15 @@ export function MainAccountPanel({
 
   if (!isLoggedIn) {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
+      <div className="min-h-[220px] rounded-[24px] border border-border bg-background px-5 py-8 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
         <div className="space-y-3">
           <div className="space-y-1">
-            <h3 className="font-semibold text-base">안전한 금융 생활을 시작하세요</h3>
-            <p className="text-sm leading-5 text-muted-foreground">로그인 후 금융 서비스를 이용할 수 있어요.</p>
+            <h3 className="font-semibold text-base">
+              안전한 금융 생활을 시작하세요
+            </h3>
+            <p className="text-sm leading-5 text-muted-foreground">
+              로그인 후 금융 서비스를 이용할 수 있어요.
+            </p>
           </div>
         </div>
         <div className="mt-5">
@@ -54,16 +58,18 @@ export function MainAccountPanel({
 
   if (!accountHome || accountHome.uiState === "NEED_CERTIFICATE") {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-base">
+      <div className="min-h-[220px] rounded-[24px] border border-border bg-background px-5 py-8 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
+        <div className="mb-6 space-y-3 text-center">
+          <h3 className="text-lg font-semibold text-foreground">
             계좌 개설로 더 다양한 서비스를 이용하세요
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm font-medium text-muted-foreground">
             인증서 발급 후 계좌 개설을 이어갈 수 있어요.
           </p>
         </div>
-        <Btn_1Col onClick={onOpenCertificateSheet}>인증서 발급하기</Btn_1Col>
+        <Btn_1Col onClick={onOpenCertificateSheet}>
+          인증서 발급하기
+        </Btn_1Col>
       </div>
     );
   }
@@ -110,7 +116,9 @@ export function MainAccountPanel({
     return null;
   }
 
-  const handleCopyAccountNumber = async (event: MouseEvent<HTMLButtonElement>) => {
+  const handleCopyAccountNumber = async (
+    event: MouseEvent<HTMLButtonElement>
+  ) => {
     event.stopPropagation();
 
     try {
@@ -134,13 +142,14 @@ export function MainAccountPanel({
       tabIndex={0}
       onClick={onAccountPanelClick}
       onKeyDown={handlePanelKeyDown}
-      className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white min-h-[180px] flex flex-col justify-between cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"
+      className="bg-gradient-to-br from-[#003CA6] to-[#2563EB] rounded-2xl p-6 text-white min-h-[180px] flex flex-col justify-between cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#003CA6]"
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
             <div className="w-6 h-6 rounded-full bg-white" />
           </div>
+
           <div>
             <div className="flex items-center gap-2">
               <span className="font-medium">{account.accountName}</span>
@@ -150,6 +159,7 @@ export function MainAccountPanel({
                 </span>
               )}
             </div>
+
             <AppButton
               variant="unstyled"
               onClick={handleCopyAccountNumber}
@@ -159,6 +169,7 @@ export function MainAccountPanel({
             </AppButton>
           </div>
         </div>
+
         <AppButton
           variant="unstyled"
           onClick={(event) => event.stopPropagation()}

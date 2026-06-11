@@ -7,7 +7,7 @@ export function WalletBalanceCard({ balance }: WalletBalanceCardProps) {
     <section className="relative h-[200px] overflow-hidden rounded-xl border border-zinc-300 bg-zinc-950 p-5 text-white shadow-[0_10px_24px_rgba(15,23,42,0.18)]">
       <div className="absolute inset-0 bg-[linear-gradient(112deg,#050505_0%,#080808_48%,#1d4ed8_100%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_92%_20%,rgba(37,99,235,0.78)_0%,rgba(37,99,235,0.26)_34%,rgba(0,0,0,0)_58%)]" />
-      <div className="absolute bottom-0 right-0 h-24 w-40 bg-blue-600/30 blur-2xl" />
+      <div className="absolute bottom-0 right-0 h-24 w-40 bg-primary/30 blur-2xl" />
 
       <div className="relative z-10 flex h-full flex-col justify-between">
         <p className="text-right text-[16px] font-medium text-white/85">Wallet Money</p>

@@ -1,8 +1,11 @@
-﻿export function MainHeaderBrand() {
+import headerBrandIcon from './assets/header-brand-icon.png'
+import headerBrandWordmark from './assets/header-brand-wordmark.png'
+
+export function MainHeaderBrand() {
   return (
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600" />
-      <span className="text-lg text-blue-600">NOVA</span>
+    <div className="flex w-max shrink-0 items-center gap-3">
+      <img src={headerBrandIcon} alt="" className="h-8 w-8 shrink-0 object-contain" />
+      <img src={headerBrandWordmark} alt="NOVA" className="h-[18px] w-auto shrink-0 object-contain" />
     </div>
   )
 }
