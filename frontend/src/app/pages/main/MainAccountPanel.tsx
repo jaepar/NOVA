@@ -16,6 +16,14 @@ interface MainAccountPanelProps {
   onTransferClick: () => void;
 }
 
+const panelShellClassName =
+  "min-h-[180px] rounded-2xl p-6 flex flex-col justify-between";
+
+const neutralPanelClassName = `${panelShellClassName} border border-border bg-background shadow-[0_4px_16px_rgba(15,23,42,0.05)]`;
+const secondaryPanelClassName = `${panelShellClassName} bg-secondary`;
+const accountPanelClassName =
+  "bg-gradient-to-br from-[#003CA6] to-[#2563EB] text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#003CA6]";
+
 export function MainAccountPanel({
   isLoggedIn,
   accountHome,
@@ -28,7 +36,7 @@ export function MainAccountPanel({
 }: MainAccountPanelProps) {
   if (isLoggedIn && isLoading) {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
+      <div className={secondaryPanelClassName}>
         <div className="space-y-3">
           <div className="h-6 w-32 rounded-lg bg-muted animate-pulse" />
           <div className="h-4 w-48 rounded-lg bg-muted animate-pulse" />
@@ -40,8 +48,8 @@ export function MainAccountPanel({
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-[220px] rounded-[24px] border border-border bg-background px-5 py-8 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
-        <div className="space-y-3">
+      <div className={neutralPanelClassName}>
+        <div className="space-y-2">
           <div className="space-y-1">
             <h3 className="font-semibold text-base">
               안전한 금융 생활을 시작하세요
@@ -51,21 +59,19 @@ export function MainAccountPanel({
             </p>
           </div>
         </div>
-        <div className="mt-5">
-          <Btn_1Col onClick={onLoginClick}>로그인</Btn_1Col>
-        </div>
+        <Btn_1Col onClick={onLoginClick}>로그인</Btn_1Col>
       </div>
     );
   }
 
   if (!accountHome || accountHome.uiState === "NEED_CERTIFICATE") {
     return (
-      <div className="min-h-[220px] rounded-[24px] border border-border bg-background px-5 py-8 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
-        <div className="mb-6 space-y-3 text-center">
-          <h3 className="text-lg font-semibold text-foreground">
+      <div className={neutralPanelClassName}>
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold text-foreground">
             계좌 개설로 더 다양한 서비스를 이용하세요
           </h3>
-          <p className="text-sm font-medium text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             인증서 발급 후 계좌 개설을 이어갈 수 있어요.
           </p>
         </div>
@@ -76,7 +82,7 @@ export function MainAccountPanel({
 
   if (accountHome.uiState === "CERTIFICATE_ISSUING") {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-center">
+      <div className={secondaryPanelClassName}>
         <div className="space-y-4">
           <div className="space-y-2">
             <h3 className="font-semibold text-base">
@@ -90,13 +96,14 @@ export function MainAccountPanel({
             제출한 서류를 심사 중입니다.
           </p>
         </div>
+        <div aria-hidden="true" className="h-11" />
       </div>
     );
   }
 
   if (accountHome.uiState === "READY_TO_OPEN_ACCOUNT") {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
+      <div className={secondaryPanelClassName}>
         <div className="space-y-2">
           <h3 className="font-semibold text-base">
             아직 계좌가 개설되지 않았어요.
@@ -147,7 +154,7 @@ export function MainAccountPanel({
       tabIndex={0}
       onClick={onAccountPanelClick}
       onKeyDown={handlePanelKeyDown}
-      className="bg-gradient-to-br from-[#003CA6] to-[#2563EB] rounded-2xl p-6 text-white min-h-[180px] flex flex-col justify-between cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#003CA6]"
+      className={`${panelShellClassName} ${accountPanelClassName}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
