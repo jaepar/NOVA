@@ -1,26 +1,28 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { CreditCard, MessageSquare, Wallet } from 'lucide-react'
-import { MobileLayout } from '../components/layout/MobileLayout'
-import { BottomNav } from '../components/layout/BottomNav'
-import { SideMenu } from '../components/layout/SideMenu'
-import { BottomSheet } from '../components/layout/BottomSheet'
-import { useMainPageStore } from '../stores/pageStores'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { CreditCard, MessageSquare, Wallet } from "lucide-react";
+import { MobileLayout } from "../components/layout/MobileLayout";
+import { BottomNav } from "../components/layout/BottomNav";
+import { SideMenu } from "../components/layout/SideMenu";
+import { BottomSheet } from "../components/layout/BottomSheet";
+import { novaToast } from "../components/design-system/toast";
+import { useMainPageStore } from "../stores/pageStores";
 import {
   authApi,
   bankingApi,
+  hospitalChatApi,
   userApi,
   type AccountHomeResponse,
   type NotificationResponse,
-} from '../../api'
-import { MainHeaderBrand } from './main/MainHeaderBrand'
-import { MainHeaderActions } from './main/MainHeaderActions'
-import { MainAccountPanel } from './main/MainAccountPanel'
-import { MainJobBanner } from './main/MainJobBanner'
-import { MainServiceGrid } from './main/MainServiceGrid'
-import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
-import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
-import type { ExchangeRateItem, ServiceItem } from './main/types'
+} from "../../api";
+import { MainHeaderBrand } from "./main/MainHeaderBrand";
+import { MainHeaderActions } from "./main/MainHeaderActions";
+import { MainAccountPanel } from "./main/MainAccountPanel";
+import { MainJobBanner } from "./main/MainJobBanner";
+import { MainServiceGrid } from "./main/MainServiceGrid";
+import { MainExchangeRateGrid } from "./main/MainExchangeRateGrid";
+import { MainCertificateSheetContent } from "./main/MainCertificateSheetContent";
+import type { ExchangeRateItem, ServiceItem } from "./main/types";
 
 export function Main() {
   const navigate = useNavigate();
@@ -40,17 +42,37 @@ export function Main() {
     (state) => state.setCertificateSheetOpen
   );
   const logout = useMainPageStore((state) => state.logout);
-  const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(null);
+  const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(
+    null
+  );
   const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
   const [isNotificationOpen, setNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
+  const [notifications, setNotifications] = useState<NotificationResponse[]>(
+    []
+  );
   const [isNotificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState(false);
+  const [isHospitalChatStarting, setHospitalChatStarting] = useState(false);
 
   const services: ServiceItem[] = [
-    { icon: <MessageSquare className="w-8 h-8" />, label: "병원예약" },
-    { icon: <CreditCard className="w-8 h-8" />, label: "외국인등록증", path: "/foreigner-card/step-01" },
-    { icon: <Wallet className="w-8 h-8" />, label: "월렛", path: "/wallet" },
+    {
+      id: "hospital-chat",
+      icon: <MessageSquare className="w-8 h-8" />,
+      label: isHospitalChatStarting ? "연결 중..." : "병원예약",
+      disabled: isHospitalChatStarting,
+    },
+    {
+      id: "foreigner-card",
+      icon: <CreditCard className="w-8 h-8" />,
+      label: "외국인등록증",
+      path: "/foreigner-card/step-01",
+    },
+    {
+      id: "wallet",
+      icon: <Wallet className="w-8 h-8" />,
+      label: "월렛",
+      path: "/wallet",
+    },
   ];
 
   const exchangeRates: ExchangeRateItem[] = [
@@ -59,9 +81,33 @@ export function Main() {
     { currency: "EUR", rate: "1,456.20", change: "+1.8%", isPositive: true },
   ];
 
-  const handleServiceClick = (path?: string) => {
-    if (path) {
-      navigate(path);
+  const handleServiceClick = async (service: ServiceItem) => {
+    if (service.disabled) {
+      return;
+    }
+
+    if (service.id === "hospital-chat") {
+      setHospitalChatStarting(true);
+
+      try {
+        const session = await hospitalChatApi.startSession();
+        navigate("/hospital-chat", {
+          state: {
+            conversationId: session.conversation_id,
+            initialMessage: session.message,
+          },
+        });
+      } catch {
+        novaToast.error("잠시 후 다시 시도해 주세요.");
+      } finally {
+        setHospitalChatStarting(false);
+      }
+
+      return;
+    }
+
+    if (service.path) {
+      navigate(service.path);
     }
   };
 
@@ -202,7 +248,7 @@ export function Main() {
           </section>
 
           <section>
-            <MainJobBanner onClick={() => navigate('/jobs')} />
+            <MainJobBanner onClick={() => navigate("/jobs")} />
           </section>
 
           <MainServiceGrid

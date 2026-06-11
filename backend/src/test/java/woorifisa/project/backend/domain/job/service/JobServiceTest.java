@@ -178,7 +178,7 @@ class JobServiceTest {
 			.url("https://s3.test/portfolios/user-1/profile/portfolio.pdf")
 			.build();
 		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-		when(resumeRepository.findByUserOrderByResumeIdDesc(user))
+		when(resumeRepository.findByUserAndDeletedFromMyPageFalseOrderByResumeIdDesc(user))
 			.thenReturn(List.of(portfolio));
 
 		ApplicationFormResponse response = jobService.getApplicationForm(1L);
@@ -399,9 +399,9 @@ class JobServiceTest {
 		when(jobRepository.findById(10L)).thenReturn(Optional.of(job));
 		when(applicationRepository.existsByUserAndJob(user, job)).thenReturn(false);
 		when(applicationRepository.save(any(Application.class))).thenReturn(persisted);
-		when(resumeRepository.findByUserAndUrl(user, "https://s3.test/registered/portfolio-a.pdf"))
+		when(resumeRepository.findByUserAndUrlAndDeletedFromMyPageFalse(user, "https://s3.test/registered/portfolio-a.pdf"))
 			.thenReturn(Optional.empty());
-		when(resumeRepository.findByUserAndUrl(user, "https://s3.test/registered/portfolio-b.pdf"))
+		when(resumeRepository.findByUserAndUrlAndDeletedFromMyPageFalse(user, "https://s3.test/registered/portfolio-b.pdf"))
 			.thenReturn(Optional.empty());
 		when(resumeRepository.save(any(Resume.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(portfolioFileS3Uploader.upload(1L, 99L, 0, firstFile))

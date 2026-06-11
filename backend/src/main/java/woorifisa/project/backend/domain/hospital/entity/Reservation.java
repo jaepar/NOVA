@@ -1,7 +1,11 @@
 package woorifisa.project.backend.domain.hospital.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import woorifisa.project.backend.domain.hospital.entity.enums.ReservationStatus;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.global.entity.BaseEntity;
 
@@ -36,6 +41,18 @@ public class Reservation extends BaseEntity {
     @JoinColumn(name = "hospital_id", nullable = false)
     private Hospital hospital;
 
-    @Column(name = "rsv_date", length = 100, nullable = false)
-    private String rsvDate;
+    @Column(name = "reserved_at", nullable = false)
+    private LocalDateTime reservedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ReservationStatus status;
+
+    public void cancel() {
+        this.status = ReservationStatus.CANCELED;
+    }
+
+    public void changeReservedAt(LocalDateTime reservedAt) {
+        this.reservedAt = reservedAt;
+    }
 }
