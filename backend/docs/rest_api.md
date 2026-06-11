@@ -66,7 +66,8 @@
 | `USER-017`     | Liveness 결과 조회       | GET    | `/users/verifications/liveness/{sessionId}`              | O    | USER   |                               |
 | `USER-018`     | Liveness 동일인 비교      | POST   | `/users/verifications/liveness/{sessionId}/face-match`   | O    | USER   |                               |
 | `USER-019`     | Liveness 최종 확정       | POST   | `/users/verifications/liveness/{sessionId}/finalize`     | O    | USER   |                               |
-| `USER-020`      | 신분증/여권 OCR 분기 인증 | POST   | `/users/verifications/identity`                          | O    | USER   | `ocrDocumentType=PASSPORT|ID_CARD` |
+| `USER-020`      | 신분증/여권 OCR 추출 | POST   | `/users/verifications/identity`                          | O    | USER   | `ocrDocumentType=PASSPORT|ID_CARD` |
+| `USER-021`      | 외국인등록증 OCR 확정 검증 | POST   | `/users/verifications/identity/confirm`                  | O    | USER   | 사용자가 확인/수정한 ID_CARD OCR 값으로 Government DB 검증 |
 | `WALLET-001`   | 월렛 계좌내역 조회           | GET    | `/wallet/transactions`                                   | O    | USER   |                               |
 | `WALLET-002`   | 월렛 충전                | POST   | `/wallet/charges`                                        | O    | USER   |                               |
 | `WALLET-003`   | 월렛 계좌 금액 차감(On-Prem) | POST   | `/wallet/charges/debit`                                  | O    | USER   |                               |
@@ -79,11 +80,11 @@
 | `JOB-004`      | 지원서 제출               | POST   | `/{job_id}/applications`                                 | O    | USER   | multipart `body.portfolio_urls` + `files` |
 | `JOB-005`      | 지원 내역 목록 조회          | GET    | `/applications`                                          | O    | USER   | 목록에는 포트폴리오 미포함           |
 | `JOB-006`      | 지원 내역 포트폴리오 조회     | GET    | `/applications/{application_id}/portfolios`              | O    | USER   | 지원 건 클릭 시 포트폴리오 목록 조회 |
-| `HOSPITAL-001` | 예약                   | POST   | `/reservations`                                          | O    | USER   |                               |
-| `HOSPITAL-002` | 예약 내역 확인             | GET    | `/{user_id}/reservations`                                | O    | USER   |                               |
-| `HOSPITAL-003` | 예약 취소 & 변경           | PATCH  | `/reservations/{reservation_id}`                         | O    | USER   | action enum=`CANCEL`,`CHANGE` |
-| `HOSPITAL-004` | 병원 목록 확인             | GET    | `/`                                                      | O    | USER   | day off는 일요일 고정               |
-| `HOSPITAL-005` | 에이전트 호출              | TBD    | `TBD`                                                    | O    | USER   | API 경로/계약 미정                  |
+| `HOSPITAL-001` | 예약                   | POST   | `/reservations`                                          | O    | USER   | 요청 `hospital_id`, `reserved_at`, 응답 data는 null |
+| `HOSPITAL-002` | 예약 내역 확인             | GET    | `/reservations`                                          | O    | USER   | 응답 `reservation_id`, `hospital_id`, `hospital_name`, `doctor_name`, `reserved_at`, `status` |
+| `HOSPITAL-003` | 예약 변경/취소               | PATCH  | `/reservations/{reservation_id}`                         | O    | USER   | 요청 `action=CANCEL` 또는 `action=CHANGE`, `CHANGE`일 때 `reserved_at` 사용, 응답 data는 null |
+| `HOSPITAL-004` | 병원 목록 확인             | GET    | `/`                                                      | O    | USER   | `type` 쿼리 파라미터 선택 지원, day off는 일요일 고정 |
+| `HOSPITAL-005` | 병원 예약 가능 시간 조회       | GET    | `/{hospital_id}/available-slots`                        | O    | USER   | 쿼리 `date`, 응답 `hospital_id`, `date`, `items[].available_at`, `items[].is_available` |
 | `CS-001`       | 화상 상담 신청             | POST   | `/consultations`                                         | O    | USER   |                               |
 | `CS-002`       | 대기 고객 목록 조회          | GET    | `/consultations?status=WAITING`                          | X    | PUBLIC |                               |
 | `CS-003`       | 화상 상담 상태 변경          | PATCH  | `/consultations/{cs_id}/status`                          | X    | PUBLIC | 상담 내역 저장 여부 논의                |
@@ -293,6 +294,7 @@ Response (200)
   "data": [
     {
       "globalTransactionId": 1,
+      "targetCountry": "US",
       "receiverEngName": "JOHN SMITH",
       "remitAmount": "1000.00",
       "currency": "USD",
@@ -398,7 +400,7 @@ Response (200)
 }
 ```
 
-## USER-015 신분증/여권 OCR 분기 인증
+## USER-020 신분증/여권 OCR 추출
 
 - Method: `POST`
 - Path: `/users/verifications/identity`
@@ -417,16 +419,12 @@ Response (ID_CARD 성공 예시)
   "message": "요청에 성공했습니다.",
   "data": {
     "ocrDocumentType": "ID_CARD",
-    "passport": null,
-    "idCard": {
+    "result": {
       "name": "홍길동",
       "residentRegistrationNumber": "900101-1234567",
       "issueDate": "2020.01.01"
     },
-    "nameMatchWithUser": true,
-    "identityMatchWithGovDb": true,
-    "verificationStatus": "VERIFIED",
-    "failureReasonCode": null
+    "nameMatchWithUser": null
   }
 }
 ```
@@ -437,6 +435,44 @@ Error Response
   "success": false,
   "code": "USER-009",
   "message": "여권 OCR을 위한 이미지 파일이 필요합니다."
+}
+```
+
+## USER-021 외국인등록증 OCR 확정 검증
+
+- Method: `POST`
+- Path: `/users/verifications/identity/confirm`
+- Auth: `O` (USER 세션 필수)
+- Content-Type: `application/json`
+
+Request
+```json
+{
+  "ocrDocumentType": "ID_CARD",
+  "name": "홍길동",
+  "residentRegistrationNumber": "900101-1234567",
+  "issueDate": "2020.01.01"
+}
+```
+
+처리 규칙:
+- `residentRegistrationNumber`는 backend 내부에서 숫자만 남기도록 정규화한 뒤 HMAC-SHA256 해시로 변환해 Government DB 조회 키로 사용한다.
+- `backend -> gateway` 요청에는 원문 식별번호를 포함하지 않는다.
+- 사용자 이름 및 Government DB 이름/발급일/active 여부가 일치하면 외국인등록증 등록을 완료한다.
+
+Response (검증 성공 예시)
+```json
+{
+  "success": true,
+  "code": "20000",
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "ocrDocumentType": "ID_CARD",
+    "nameMatchWithUser": true,
+    "identityMatchWithGovDb": true,
+    "verificationStatus": "VERIFIED",
+    "failureReasonCode": null
+  }
 }
 ```
 

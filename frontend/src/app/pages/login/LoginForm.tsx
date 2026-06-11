@@ -8,6 +8,7 @@ import { AppButton } from '../../components/design-system/AppButton'
 import { CommonInputGroup } from '../../components/design-system/CommonInputGroup'
 import { useMainPageStore } from '../../stores/pageStores'
 import { authApi } from '../../../api'
+import { completeOnboarding } from '../../utils/onboardingStorage'
 
 const LOGIN_FAILED_MESSAGE = '이메일 또는 비밀번호가 일치하지 않습니다.'
 const NETWORK_ERROR_MESSAGE = '서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.'
@@ -37,8 +38,17 @@ export function LoginForm() {
   const canSubmit = email.trim().length > 0 && password.trim().length > 0 && !isSubmitting
   const PasswordIcon = isPasswordVisible ? EyeOff : Eye
   const locationState = location.state as LoginLocationState | null
-  const backPath = locationState?.backPath ?? '/login'
+  const backPath = locationState?.backPath ?? '/main'
   const redirectTo = locationState?.redirectTo ?? '/main'
+
+  const handleBack = () => {
+    if (backPath === '/login') {
+      navigate('/login', { state: { fromLanguage: true } })
+      return
+    }
+
+    navigate(backPath)
+  }
 
   const handleSubmit = async () => {
     if (!canSubmit) {
@@ -51,7 +61,7 @@ export function LoginForm() {
     try {
       const loginResult = await authApi.login({ email: email.trim(), password })
       setAuthenticated(loginResult.userId)
-      setHasAccount(false)
+      completeOnboarding()
       navigate(redirectTo)
     } catch (error) {
       setErrorMessage(getLoginErrorMessage(error))
@@ -64,7 +74,7 @@ export function LoginForm() {
     <MobileLayout
       title="로그인"
       headerType="back"
-      backPath={backPath}
+      onBack={handleBack}
       bottomContent={
         <Btn_1Col onClick={handleSubmit} disabled={!canSubmit}>
           {isSubmitting ? '처리 중' : '로그인'}

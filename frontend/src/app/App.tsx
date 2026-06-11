@@ -4,6 +4,7 @@ import { authApi } from '../api'
 import { NovaToast } from './components/design-system'
 import { router } from './routes'
 import { useMainPageStore } from './stores/pageStores'
+import { completeOnboarding } from './utils/onboardingStorage'
 
 export default function App() {
   const isAuthChecked = useMainPageStore((state) => state.isAuthChecked)
@@ -19,6 +20,7 @@ export default function App() {
 
         if (isMounted) {
           setAuthenticated(session.userId)
+          completeOnboarding()
         }
       } catch {
         if (isMounted) {

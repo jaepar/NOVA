@@ -50,14 +50,31 @@ export type {
   TransactionType,
   UpdateTransactionMemoRequest,
 } from './endpoints/banking';
-export type { NotificationResponse, NotificationType } from './endpoints/user';
+export type {
+  NotificationResponse,
+  NotificationType,
+  UpdateUserProfilePayload,
+  UpdateUserRequestPayload,
+  UserProfilePortfolioResponse,
+  UserProfileResponse,
+} from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
-export type { CertificateRequestErrorBody } from './endpoints/certificate';
+export type {
+  CertificateRequestErrorBody,
+  CorrectionDocumentResponse,
+  CorrectionDocumentType,
+} from './endpoints/certificate';
 export type {
   EmailVerificationConfirmResponse,
   EmailVerificationSendResponse,
 } from './endpoints/emailVerification';
+export type {
+  IdCardOcrResult,
+  IdentityOcrResponse,
+  IdentityVerificationConfirmRequest,
+  IdentityVerificationResponse,
+} from './endpoints/certificate';
 export { createIdempotencyKey, walletApi } from './endpoints/wallet';
 export type {
   ChargeWalletRequest,
@@ -71,6 +88,7 @@ export type {
   WalletTransactionsResponse,
 } from './endpoints/wallet';
 export { jobApi } from './endpoints/job';
+export { hospitalChatApi } from './endpoints/hospitalChat';
 export type {
   ApplicationItemResponse,
   ApplicationListResponse,
@@ -83,6 +101,11 @@ export type {
   JobOpeningListResponse,
   JobOpeningResponse,
 } from './endpoints/job';
+export type {
+  HospitalChatData,
+  HospitalChatItem,
+  HospitalChatPayload,
+} from './endpoints/hospitalChat';
 export { transferApi } from "./endpoints/transfer";
 export type {
   SubmitRemittanceRequest,
@@ -94,4 +117,5 @@ export type {
   TransferPreviewRequest,
   TransferPreviewResponse,
   TransferRequest,
+  GlobalTransferHistoryItem,
 } from './endpoints/banking';

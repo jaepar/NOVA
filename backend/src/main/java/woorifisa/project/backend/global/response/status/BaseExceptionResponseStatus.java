@@ -70,6 +70,19 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     GOVERNMENT_DB_COMMUNICATION_FAILED("USER-021", "정부 DB 통신에 실패했습니다."),
     REGISTRATION_NUMBER_HMAC_SECRET_NOT_CONFIGURED("USER-022", "식별번호 HMAC 설정이 필요합니다."),
     USER_CERTIFICATE_STATUS_TRANSITION_INVALID("USER-023", "인증서 상태 전이가 올바르지 않습니다."),
+    USER_UPDATE_TARGET_REQUIRED("USER-024", "수정할 정보가 없습니다."),
+    INVALID_LANGUAGE_CODE("USER-025", "지원하지 않는 언어입니다."),
+    USER_PASSWORD_CHANGE_FIELDS_REQUIRED("USER-026", "비밀번호 변경 정보를 모두 입력해주세요."),
+    PORTFOLIO_NOT_FOUND("USER-028", "포트폴리오를 찾을 수 없습니다."),
+
+    /**
+     * hospital
+     */
+    HOSPITAL_NOT_FOUND("HOSPITAL-001", "병원 정보를 찾을 수 없습니다."),
+    HOSPITAL_AVAILABLE_SLOT_NOT_FOUND("HOSPITAL-002", "예약 가능한 병원 시간이 아닙니다."),
+    HOSPITAL_RESERVATION_NOT_FOUND("HOSPITAL-003", "예약 정보를 찾을 수 없습니다."),
+    HOSPITAL_RESERVATION_ALREADY_CANCELED("HOSPITAL-004", "이미 취소된 예약입니다."),
+    HOSPITAL_RESERVATION_INVALID_ACTION("HOSPITAL-005", "지원하지 않는 예약 처리 요청입니다."),
 
     /**
      * admin

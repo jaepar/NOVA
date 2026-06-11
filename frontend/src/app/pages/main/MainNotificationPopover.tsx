@@ -1,4 +1,5 @@
 import { Bell, CalendarClock, ShieldCheck } from 'lucide-react'
+import { AppButton } from '../../components/design-system/AppButton'
 import type { NotificationResponse, NotificationType } from '../../../api'
 
 function getNotificationTitle(type: NotificationType) {
@@ -7,6 +8,8 @@ function getNotificationTitle(type: NotificationType) {
       return '보완서류 알림'
     case 'RESIDENCE_CARD_PERIOD':
       return '외국인등록증 기간 알림'
+    case 'CERTIFICATE_ISSUED':
+      return '인증서 발급 완료'
   }
 }
 
@@ -27,7 +30,7 @@ function formatNotificationTime(createdAt: string) {
 }
 
 function NotificationIcon({ type }: { type: NotificationType }) {
-  const Icon = type === 'SUPPLEMENT_DOCUMENT' ? ShieldCheck : CalendarClock
+  const Icon = (type === 'SUPPLEMENT_DOCUMENT' || type === 'CERTIFICATE_ISSUED') ? ShieldCheck : CalendarClock
 
   return (
     <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -59,6 +62,7 @@ interface MainNotificationPopoverProps {
   notifications: NotificationResponse[]
   isLoading: boolean
   hasError: boolean
+  onNotificationClick?: (notification: NotificationResponse) => void
 }
 
 export function MainNotificationPopover({
@@ -66,6 +70,7 @@ export function MainNotificationPopover({
   notifications,
   isLoading,
   hasError,
+  onNotificationClick,
 }: MainNotificationPopoverProps) {
   const visibleNotifications = notifications.slice(0, 2)
 
@@ -105,20 +110,25 @@ export function MainNotificationPopover({
       ) : visibleNotifications.length > 0 ? (
         <div className="relative space-y-3">
           {visibleNotifications.map((notification) => (
-            <div key={notification.notificationId} className="flex gap-3">
+            <AppButton
+              key={notification.notificationId}
+              variant="unstyled"
+              onClick={() => onNotificationClick?.(notification)}
+              className="flex w-full gap-3 rounded-xl text-left transition-colors hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            >
               <NotificationIcon type={notification.type} />
               <div className="min-w-0 flex-1 pt-0.5">
-                <h3 className="text-[15px] font-semibold leading-[1.35] text-foreground">
+                <h3 className="break-words text-[15px] font-semibold leading-[1.35] text-foreground">
                   {getNotificationTitle(notification.type)}
                 </h3>
-                <p className="mt-1 text-[14px] leading-[1.4] text-foreground">
-                  {notification.content}
+                <p className="mt-1 whitespace-pre-wrap break-words text-[14px] leading-[1.4] text-foreground">
+                  {notification.type === 'CERTIFICATE_ISSUED' ? '인증서 발급이 성공적으로 완료되었습니다.' : notification.content}
                 </p>
                 <p className="mt-1 text-[13px] leading-none text-muted-foreground">
                   {formatNotificationTime(notification.createdAt)}
                 </p>
               </div>
-            </div>
+            </AppButton>
           ))}
         </div>
       ) : (

@@ -1,28 +1,31 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { MobileLayout } from '../components/layout/MobileLayout'
-import { BottomNav } from '../components/layout/BottomNav'
-import { SideMenu } from '../components/layout/SideMenu'
-import { BottomSheet } from '../components/layout/BottomSheet'
-import { useMainPageStore } from '../stores/pageStores'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { MobileLayout } from "../components/layout/MobileLayout";
+import { BottomNav } from "../components/layout/BottomNav";
+import { SideMenu } from "../components/layout/SideMenu";
+import { BottomSheet } from "../components/layout/BottomSheet";
+import { novaToast } from "../components/design-system/toast";
+import { useMainPageStore } from "../stores/pageStores";
 import {
   authApi,
   bankingApi,
+  hospitalChatApi,
   userApi,
   type AccountHomeResponse,
   type NotificationResponse,
-} from '../../api'
-import { MainHeaderBrand } from './main/MainHeaderBrand'
-import { MainHeaderActions } from './main/MainHeaderActions'
-import { MainAccountPanel } from './main/MainAccountPanel'
-import { MainJobBanner } from './main/MainJobBanner'
-import { MainServiceGrid } from './main/MainServiceGrid'
-import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
-import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
-import hospitalReservationIcon from './main/assets/hospital-reservation-icon.png'
-import registrationCardIcon from './main/assets/registration-card-icon.png'
-import walletIcon from './main/assets/wallet-icon.png'
-import type { ExchangeRateItem, ServiceItem } from './main/types'
+} from "../../api";
+import { MainHeaderBrand } from "./main/MainHeaderBrand";
+import { MainHeaderActions } from "./main/MainHeaderActions";
+import { MainAccountPanel } from "./main/MainAccountPanel";
+import { MainJobBanner } from "./main/MainJobBanner";
+import { MainServiceGrid } from "./main/MainServiceGrid";
+import { MainExchangeRateGrid } from "./main/MainExchangeRateGrid";
+import { MainCertificateSheetContent } from "./main/MainCertificateSheetContent";
+import { CertificateIssuedModal } from "./main/CertificateIssuedModal";
+import hospitalReservationIcon from "./main/assets/hospital-reservation-icon.png";
+import registrationCardIcon from "./main/assets/registration-card-icon.png";
+import walletIcon from "./main/assets/wallet-icon.png";
+import type { ExchangeRateItem, ServiceItem } from "./main/types";
 
 export function Main() {
   const navigate = useNavigate();
@@ -42,24 +45,54 @@ export function Main() {
     (state) => state.setCertificateSheetOpen
   );
   const logout = useMainPageStore((state) => state.logout);
-  const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(null);
+
+  const [accountHome, setAccountHome] =
+    useState<AccountHomeResponse | null>(null);
   const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
   const [isNotificationOpen, setNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
+  const [notifications, setNotifications] = useState<NotificationResponse[]>(
+    []
+  );
   const [isNotificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState(false);
+  const [isCertificateIssuedModalOpen, setCertificateIssuedModalOpen] =
+    useState(false);
+  const [isHospitalChatStarting, setHospitalChatStarting] = useState(false);
 
   const services: ServiceItem[] = [
     {
-      icon: <img src={hospitalReservationIcon} alt="" className="h-9 w-9 object-contain" />,
-      label: "병원예약",
+      id: "hospital-chat",
+      icon: (
+        <img
+          src={hospitalReservationIcon}
+          alt=""
+          className="h-9 w-9 object-contain"
+        />
+      ),
+      label: isHospitalChatStarting ? "연결 중..." : "병원예약",
+      disabled: isHospitalChatStarting,
     },
     {
-      icon: <img src={registrationCardIcon} alt="" className="h-9 w-9 object-contain" />,
+      id: "foreigner-card",
+      icon: (
+        <img
+          src={registrationCardIcon}
+          alt=""
+          className="h-9 w-9 object-contain"
+        />
+      ),
       label: "외국인등록증",
+      path: "/foreigner-card/step-01",
     },
     {
-      icon: <img src={walletIcon} alt="" className="h-9 w-9 rounded-lg object-cover" />,
+      id: "wallet",
+      icon: (
+        <img
+          src={walletIcon}
+          alt=""
+          className="h-9 w-9 rounded-lg object-cover"
+        />
+      ),
       label: "월렛",
       path: "/wallet",
     },
@@ -71,9 +104,33 @@ export function Main() {
     { currency: "EUR", rate: "1,456.20", change: "+1.8%", isPositive: true },
   ];
 
-  const handleServiceClick = (path?: string) => {
-    if (path) {
-      navigate(path);
+  const handleServiceClick = async (service: ServiceItem) => {
+    if (service.disabled) {
+      return;
+    }
+
+    if (service.id === "hospital-chat") {
+      setHospitalChatStarting(true);
+
+      try {
+        const session = await hospitalChatApi.startSession();
+        navigate("/hospital-chat", {
+          state: {
+            conversationId: session.conversation_id,
+            initialMessage: session.message,
+          },
+        });
+      } catch {
+        novaToast.error("잠시 후 다시 시도해 주세요.");
+      } finally {
+        setHospitalChatStarting(false);
+      }
+
+      return;
+    }
+
+    if (service.path) {
+      navigate(service.path);
     }
   };
 
@@ -118,7 +175,7 @@ export function Main() {
     return () => {
       isMounted = false;
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, setHasUnreadNotifications]);
 
   const loadNotifications = async () => {
     if (!isLoggedIn) {
@@ -151,12 +208,42 @@ export function Main() {
     }
   };
 
+  const dismissNotification = (notificationId: number) => {
+    const nextNotifications = notifications.filter(
+      (notification) => notification.notificationId !== notificationId
+    );
+
+    setNotifications(nextNotifications);
+    setHasUnreadNotifications(nextNotifications.length > 0);
+
+    userApi.deleteNotification(notificationId).catch(() => undefined);
+  };
+
+  const handleNotificationClick = (notification: NotificationResponse) => {
+    setNotificationOpen(false);
+
+    if (notification.type === "SUPPLEMENT_DOCUMENT") {
+      navigate("/certificate/corrections");
+      return;
+    }
+
+    if (notification.type === "CERTIFICATE_ISSUED") {
+      dismissNotification(notification.notificationId);
+      setCertificateIssuedModalOpen(true);
+    }
+  };
+
   const handleIssueCertificate = () => {
     setCertificateSheetOpen(false);
     navigate("/certificate/step-01");
   };
 
   const handleOpenAccount = () => {
+    navigate("/account/step-01");
+  };
+
+  const handleOpenAccountFromIssuedModal = () => {
+    setCertificateIssuedModalOpen(false);
     navigate("/account/step-01");
   };
 
@@ -189,6 +276,7 @@ export function Main() {
             notificationsError={notificationsError}
             onNotificationsClick={handleNotificationsClick}
             onNotificationsClose={() => setNotificationOpen(false)}
+            onNotificationClick={handleNotificationClick}
             onMenuClick={() => {
               setNotificationOpen(false);
               setMenuOpen(true);
@@ -202,7 +290,11 @@ export function Main() {
               isLoggedIn={isLoggedIn}
               accountHome={accountHome}
               isLoading={isAccountHomeLoading}
-              onLoginClick={() => navigate("/login")}
+              onLoginClick={() =>
+                navigate("/login/form", {
+                  state: { backPath: "/main", redirectTo: "/main" },
+                })
+              }
               onSignupClick={() => navigate("/signup")}
               onOpenCertificateSheet={() => setCertificateSheetOpen(true)}
               onOpenAccount={handleOpenAccount}
@@ -211,7 +303,7 @@ export function Main() {
           </section>
 
           <section>
-            <MainJobBanner onClick={() => navigate('/jobs')} />
+            <MainJobBanner onClick={() => navigate("/jobs")} />
           </section>
 
           <MainServiceGrid
@@ -230,8 +322,12 @@ export function Main() {
         onClose={() => setMenuOpen(false)}
         isLoggedIn={isLoggedIn}
         onLogout={handleLogout}
-        onLogin={() => navigate("/login")}
-        onProfile={() => navigate('/mypage')}
+        onLogin={() =>
+          navigate("/login/form", {
+            state: { backPath: "/main", redirectTo: "/main" },
+          })
+        }
+        onProfile={() => navigate("/mypage")}
       />
 
       <BottomSheet
@@ -244,6 +340,12 @@ export function Main() {
           onIssueClick={handleIssueCertificate}
         />
       </BottomSheet>
+
+      <CertificateIssuedModal
+        isOpen={isCertificateIssuedModalOpen}
+        onClose={() => setCertificateIssuedModalOpen(false)}
+        onOpenAccount={handleOpenAccountFromIssuedModal}
+      />
     </div>
   );
 }

@@ -10,7 +10,6 @@ interface MainAccountPanelProps {
   accountHome: AccountHomeResponse | null;
   isLoading: boolean;
   onLoginClick: () => void;
-  onSignupClick: () => void;
   onOpenCertificateSheet: () => void;
   onOpenAccount: () => void;
   onAccountPanelClick: () => void;
@@ -21,7 +20,6 @@ export function MainAccountPanel({
   accountHome,
   isLoading,
   onLoginClick,
-  onSignupClick,
   onOpenCertificateSheet,
   onOpenAccount,
   onAccountPanelClick,
@@ -41,19 +39,18 @@ export function MainAccountPanel({
   if (!isLoggedIn) {
     return (
       <div className="min-h-[220px] rounded-[24px] border border-border bg-background px-5 py-8 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
-        <div className="mb-6 space-y-3 text-center">
-          <h3 className="text-lg font-semibold text-foreground">
-            로그인하고 내 계좌를 확인하세요
-          </h3>
-          <p className="text-sm font-medium text-muted-foreground">
-            안전하고 빠른 금융생활을 시작해보세요.
-          </p>
-        </div>
         <div className="space-y-3">
+          <div className="space-y-1">
+            <h3 className="font-semibold text-base">
+              안전한 금융 생활을 시작하세요
+            </h3>
+            <p className="text-sm leading-5 text-muted-foreground">
+              로그인 후 금융 서비스를 이용할 수 있어요.
+            </p>
+          </div>
+        </div>
+        <div className="mt-5">
           <Btn_1Col onClick={onLoginClick}>로그인</Btn_1Col>
-          <Btn_1Col variant="outline" onClick={onSignupClick}>
-            회원가입
-          </Btn_1Col>
         </div>
       </div>
     );
@@ -79,20 +76,20 @@ export function MainAccountPanel({
 
   if (accountHome.uiState === "CERTIFICATE_ISSUING") {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
-        <div className="space-y-3">
+      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-center">
+        <div className="space-y-4">
           <div className="space-y-2">
             <h3 className="font-semibold text-base">
-              인증서 발급이 진행 중이에요
+              인증서 발급이 진행중이에요
             </h3>
             <p className="text-sm text-muted-foreground">
-              발급이 완료되면 바로 계좌 개설을 진행할 수 있어요.
+              발급이 완료되면 계좌 개설을 진행할 수 있어요.
             </p>
           </div>
+          <p className="rounded-lg bg-background/60 px-3 py-2.5 text-center text-sm font-medium text-foreground">
+            제출한 서류를 심사 중입니다.
+          </p>
         </div>
-        <Btn_1Col variant="secondary" disabled>
-          발급 중
-        </Btn_1Col>
       </div>
     );
   }

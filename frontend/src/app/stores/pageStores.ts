@@ -124,24 +124,6 @@ export const useSignupPageStore = create<SignupPageState>((set) => ({
   resetSignup: () => set(signupInitialState),
 }));
 
-interface TransactionHistoryPageState {
-  isFilterOpen: boolean
-  selectedPeriod: string
-  selectedType: string
-  setFilterOpen: (open: boolean) => void
-  setSelectedPeriod: (period: string) => void
-  setSelectedType: (type: string) => void
-}
-
-export const useTransactionHistoryPageStore = create<TransactionHistoryPageState>((set) => ({
-  isFilterOpen: false,
-  selectedPeriod: '전체',
-  selectedType: '전체',
-  setFilterOpen: (isFilterOpen) => set({ isFilterOpen }),
-  setSelectedPeriod: (selectedPeriod) => set({ selectedPeriod }),
-  setSelectedType: (selectedType) => set({ selectedType }),
-}))
-
 interface TransferSendPageState {
   isInitialVerificationComplete: boolean
   completeInitialVerification: () => void
@@ -408,6 +390,60 @@ export const useStep5PassportCaptureStore = create<Step5PassportCaptureState>((s
       capturedImage: null,
       cameraError: null,
       parsedPassportData: null,
+    }),
+}))
+
+type ForeignerCardOcrValues = {
+  name: string
+  registrationNumber: string
+  issueDate: string
+}
+
+interface ForeignerCardRegistrationState {
+  capturedImage: string | null
+  cameraError: string | null
+  ocrValues: ForeignerCardOcrValues
+  verificationStatus: string | null
+  failureReasonCode: string | null
+  setCapturedImage: (capturedImage: string | null) => void
+  setCameraError: (cameraError: string | null) => void
+  setOcrValues: (ocrValues: ForeignerCardOcrValues) => void
+  setOcrValue: (key: keyof ForeignerCardOcrValues, value: string) => void
+  setVerificationResult: (verificationStatus: string | null, failureReasonCode: string | null) => void
+  reset: () => void
+}
+
+const initialForeignerCardOcrValues: ForeignerCardOcrValues = {
+  name: '',
+  registrationNumber: '',
+  issueDate: '',
+}
+
+export const useForeignerCardRegistrationStore = create<ForeignerCardRegistrationState>((set) => ({
+  capturedImage: null,
+  cameraError: null,
+  ocrValues: initialForeignerCardOcrValues,
+  verificationStatus: null,
+  failureReasonCode: null,
+  setCapturedImage: (capturedImage) => set({ capturedImage }),
+  setCameraError: (cameraError) => set({ cameraError }),
+  setOcrValues: (ocrValues) => set({ ocrValues }),
+  setOcrValue: (key, value) =>
+    set((state) => ({
+      ocrValues: {
+        ...state.ocrValues,
+        [key]: value,
+      },
+    })),
+  setVerificationResult: (verificationStatus, failureReasonCode) =>
+    set({ verificationStatus, failureReasonCode }),
+  reset: () =>
+    set({
+      capturedImage: null,
+      cameraError: null,
+      ocrValues: initialForeignerCardOcrValues,
+      verificationStatus: null,
+      failureReasonCode: null,
     }),
 }))
 

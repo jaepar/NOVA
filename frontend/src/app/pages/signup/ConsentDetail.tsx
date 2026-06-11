@@ -4,5 +4,5 @@ import { signupConsentDefinition } from "../../domains/signup-consent/definition
 
 export function ConsentDetail() {
   const { termId } = useParams();
-  return <ConsentTermDetailView definition={signupConsentDefinition} termId={termId} basePath="/signup/terms" />;
+  return <ConsentTermDetailView definition={signupConsentDefinition} termId={termId} basePath="/signup" />;
 }

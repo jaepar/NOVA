@@ -135,7 +135,8 @@ public class AdminService {
 		}
 
 		if (targetStatus == DocumentStatus.APPROVED && isAllDocumentsApproved(user)) {
-			notificationService.createOrReplaceSupplementDocumentNotification(user, "제출한 서류가 모두 승인되었습니다.");
+			notificationService.createOrReplaceCertificateIssuedNotification(user, "인증서 발급이 완료되었습니다.");
+			notificationService.deleteSupplementDocumentNotification(user);
 		}
 	}
 
