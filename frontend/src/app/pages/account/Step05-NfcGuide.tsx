@@ -1,9 +1,10 @@
-﻿import { useMemo, useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { InlineBanner } from '../../components/design-system/InlineBanner'
 import { useStep5PassportCaptureStore } from '../../stores/pageStores'
+import { useTranslation } from '../../i18n'
 
 type ParsedNfcRecord = {
   recordType: string
@@ -80,41 +81,31 @@ function parseNdefRecords(event: NDEFReadingEvent): ParsedNfcRecord[] {
 
 export function NfcGuide() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const parsedPassportData = useStep5PassportCaptureStore((state) => state.parsedPassportData)
   const setParsedPassportData = useStep5PassportCaptureStore((state) => state.setParsedPassportData)
   const [isScanning, setIsScanning] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
-  const [isMismatchFailure, setIsMismatchFailure] = useState(false)
-  const statusVariant = isMismatchFailure
-    ? 'error'
-    : statusMessage.includes('성공')
-      ? 'success'
-      : statusMessage.includes('기다리는 중') || statusMessage.includes('테스트 우회')
-        ? 'info'
-        : statusMessage
-          ? 'warning'
-          : 'info'
-
-  const nfcUnsupportedMessage = useMemo(() => {
-    return '이 기기/브라우저에서는 Web NFC를 지원하지 않습니다.'
-  }, [])
+  const [statusVariant, setStatusVariant] = useState<'error' | 'success' | 'info' | 'warning'>('info')
 
   const handleStartNfcTagging = async () => {
     if (isScanning) return
-    setIsMismatchFailure(false)
     if (!parsedPassportData) {
-      setStatusMessage('Step05 여권 정보가 없습니다. 이전 단계에서 다시 진행해 주세요.')
+      setStatusVariant('warning')
+      setStatusMessage(t('account.nfc.missingPassport', '여권 정보가 없습니다. 이전 단계에서 다시 진행해 주세요.'))
       return
     }
 
     if (!('NDEFReader' in window)) {
-      setStatusMessage(nfcUnsupportedMessage)
+      setStatusVariant('warning')
+      setStatusMessage(t('account.nfc.unsupported', '이 기기/브라우저에서는 Web NFC를 지원하지 않습니다.'))
       console.warn('[NFC] Web NFC is not supported in this browser.')
       return
     }
 
     setIsScanning(true)
-    setStatusMessage('NFC 태깅을 기다리는 중입니다. (최대 10초)')
+    setStatusVariant('info')
+    setStatusMessage(t('account.nfc.waiting', 'NFC 태깅을 기다리는 중입니다. (최대 10초)'))
 
     try {
       const reader = new NDEFReader()
@@ -166,7 +157,8 @@ export function NfcGuide() {
       })
 
       if (!firstJsonRecord?.data) {
-        setStatusMessage('NFC 데이터에서 JSON 형식을 찾지 못했어요.')
+        setStatusVariant('warning')
+        setStatusMessage(t('account.nfc.jsonMissing', 'NFC 데이터에서 JSON 형식을 찾지 못했어요.'))
         return
       }
 
@@ -174,29 +166,32 @@ export function NfcGuide() {
       try {
         parsedNfcData = JSON.parse(firstJsonRecord.data) as PassportLikeData
       } catch {
-        setStatusMessage('NFC JSON 파싱에 실패했어요. 저장 포맷을 확인해 주세요.')
+        setStatusVariant('warning')
+        setStatusMessage(t('account.nfc.jsonParseFailed', 'NFC JSON 파싱에 실패했어요. 저장 포맷을 확인해 주세요.'))
         return
       }
 
       const compareResult = comparePassportData(parsedPassportData, parsedNfcData)
 
       if (!compareResult.isMatch) {
-        setIsMismatchFailure(true)
-        setStatusMessage('인증 정보가 일치하지 않습니다.')
+        setStatusVariant('error')
+        setStatusMessage(t('account.nfc.mismatch', '인증 정보가 일치하지 않습니다.'))
         return
       }
 
       // 인증 성공 직전에만 인증 비교용 데이터를 폐기
       setParsedPassportData(null)
-      setStatusMessage('NFC 인식 및 정보 비교에 성공했어요. 다음 단계로 이동합니다.')
+      setStatusVariant('success')
+      setStatusMessage(t('account.nfc.success', 'NFC 인식 및 정보 비교에 성공했어요. 다음 단계로 이동합니다.'))
       navigate('/account/step-06')
     } catch (error) {
+      setStatusVariant('warning')
       if (error instanceof Error && error.message === 'NFC_TIMEOUT') {
-        setStatusMessage('10초 안에 NFC를 인식하지 못했어요. 다시 시도해 주세요.')
+        setStatusMessage(t('account.nfc.timeout', '10초 안에 NFC를 인식하지 못했어요. 다시 시도해 주세요.'))
       } else if (error instanceof DOMException && error.name === 'NotAllowedError') {
-        setStatusMessage('NFC 권한이 필요합니다. 브라우저 권한을 허용해 주세요.')
+        setStatusMessage(t('account.nfc.permissionRequired', 'NFC 권한이 필요합니다. 브라우저 권한을 허용해 주세요.'))
       } else {
-        setStatusMessage('NFC 인식에 실패했어요. 다시 시도해 주세요.')
+        setStatusMessage(t('account.nfc.failed', 'NFC 인식에 실패했어요. 다시 시도해 주세요.'))
       }
       console.error('[NFC] read failed', error)
     } finally {
@@ -206,54 +201,57 @@ export function NfcGuide() {
 
   // [TEST ONLY START] 인증/비교와 무관하게 다음 단계 이동하는 임시 버튼
   const handleSkipForTest = () => {
-    setIsMismatchFailure(false)
-    setStatusMessage('테스트 우회: 인증/비교 없이 다음 단계로 이동합니다.')
+    setStatusVariant('info')
+    setStatusMessage(t('account.nfc.testSkipped', '테스트 우회: 인증/비교 없이 다음 단계로 이동합니다.'))
     navigate('/account/step-06')
   }
   // [TEST ONLY END]
 
   return (
     <MobileLayout
-      title="비대면 실명확인"
+      title={t('account.identityTitle', '비대면 실명확인')}
+      titleKey="account.identityTitle"
       backPath="/account/step-04"
       bottomContent={
         <div className="space-y-2">
           <Btn_1Col onClick={handleStartNfcTagging} disabled={isScanning}>
-            {isScanning ? 'NFC 태깅 중...' : 'NFC 태깅 시작'}
+            {isScanning ? t('account.nfc.scanning', 'NFC 태깅 중...') : t('account.nfc.start', 'NFC 태깅 시작')}
           </Btn_1Col>
           <Btn_1Col variant="outline" onClick={handleSkipForTest} disabled={isScanning}>
-            인증 없이 다음으로 (테스트)
+            {t('account.nfc.skipTest', '인증 없이 다음으로 (테스트)')}
           </Btn_1Col>
         </div>
       }
     >
       <div className="space-y-4 pb-2">
         <section className="space-y-1">
-          <h2 className="text-2xl font-semibold leading-tight">여권 NFC 태깅을 수행해 주세요</h2>
-          <p className="text-sm text-muted-foreground">전자여권(e-Passport) 대상</p>
+          <h2 className="text-2xl font-semibold leading-tight">
+            {t('account.nfc.heading', '여권 NFC 태깅을 수행해 주세요')}
+          </h2>
+          <p className="text-sm text-muted-foreground">{t('account.nfc.description', '전자여권(e-Passport) 대상')}</p>
         </section>
 
         <section className="rounded-2xl bg-secondary p-6">
           <div className="space-y-4">
             <div className="rounded-xl border border-dashed border-border bg-background min-h-[280px] flex items-center justify-center text-center px-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                이미지 자리 영역
+                {t('account.nfc.imageArea', '이미지 자리 영역')}
                 <br />
-                권장 규격: 280 x 220 (px)
+                {t('account.nfc.recommendedSize', '권장 규격: 280 x 220 (px)')}
                 <br />
-                비율: 14 : 11
+                {t('account.nfc.ratio', '비율: 14 : 11')}
               </p>
             </div>
             <p className="text-sm text-center text-foreground/90">
-              휴대폰 뒷면을 여권 칩에 가까이 대주세요
+              {t('account.nfc.instruction', '휴대폰 뒷면을 여권 칩에 가까이 대주세요')}
             </p>
           </div>
         </section>
 
         <section className="rounded-2xl bg-secondary p-4">
           <ul className="text-sm text-foreground/90 space-y-2 list-disc pl-5">
-            <li>NFC 기능이 켜져 있는지 확인해 주세요.</li>
-            <li>여권을 움직이지 않고 가만히 대주세요.</li>
+            <li>{t('account.nfc.guide1', 'NFC 기능이 켜져 있는지 확인해 주세요.')}</li>
+            <li>{t('account.nfc.guide2', '여권을 움직이지 않고 가만히 대주세요.')}</li>
           </ul>
         </section>
 

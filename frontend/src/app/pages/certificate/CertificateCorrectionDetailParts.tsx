@@ -1,11 +1,8 @@
+import { useMemo } from 'react'
 import { Check, CheckCircle2, ChevronDown, ChevronUp, FileText, Upload, X } from 'lucide-react'
 import type { CorrectionDocumentResponse, CorrectionDocumentType } from '../../../api'
 import { AppButton } from '../../components/design-system'
-
-export const correctionDocumentLabelMap: Record<CorrectionDocumentType, string> = {
-  RESIDENCE_VERIFICATION_DOCUMENT: '거소확인서',
-  ALIEN_REGISTRATION_SUPPORTING_DOCUMENT: '외국인등록증 신청서',
-}
+import { useTranslation } from '../../i18n'
 
 export const correctionUploadFieldMap: Record<
   CorrectionDocumentType,
@@ -23,20 +20,6 @@ function formatFileSize(size: number) {
   if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)}MB`
   if (size >= 1024) return `${(size / 1024).toFixed(1)}KB`
   return `${size}B`
-}
-
-const uploadedDateFormatter = new Intl.DateTimeFormat('ko-KR', {
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-})
-
-function formatUploadedDate() {
-  return uploadedDateFormatter.format(new Date()).replace(/\. /g, '.').replace(/\.$/, '')
-}
-
-export function getCorrectionDocumentLabel(documentType: CorrectionDocumentType) {
-  return correctionDocumentLabelMap[documentType]
 }
 
 export function CorrectionSkeleton() {
@@ -58,17 +41,19 @@ export function CorrectionSkeleton() {
   )
 }
 
-const reviewSteps = [
-  { label: '접수완료', state: 'done' },
-  { label: '보완요청', state: 'active' },
-  { label: '심사중', state: 'pending' },
-  { label: '완료', state: 'pending' },
-] as const
-
 export function CorrectionReviewProgress() {
+  const { t } = useTranslation()
+
+  const reviewSteps = [
+    { label: t('certificate.correctionStepReceived'), state: 'done' },
+    { label: t('certificate.correctionStepRequest'), state: 'active' },
+    { label: t('certificate.correctionStepReviewing'), state: 'pending' },
+    { label: t('certificate.correctionStepDone'), state: 'pending' },
+  ] as const
+
   return (
     <section className="space-y-4">
-      <h3 className="text-[17px] font-semibold text-foreground">서류 심사 진행 상태</h3>
+      <h3 className="text-[17px] font-semibold text-foreground">{t('certificate.correctionProgressTitle')}</h3>
       <div className="grid grid-cols-4 items-start">
         {reviewSteps.map((step, index) => (
           <div key={step.label} className="relative flex flex-col items-center gap-2">
@@ -107,14 +92,15 @@ export function CorrectionReviewProgress() {
 }
 
 export function CorrectionEmptyState() {
+  const { t } = useTranslation()
   return (
     <div className="rounded-xl bg-secondary p-5 text-center">
       <CheckCircle2 className="mx-auto h-9 w-9 text-emerald-600" strokeWidth={2.4} />
       <h4 className="mt-3 text-[16px] font-semibold text-foreground">
-        다시 제출할 서류가 없습니다
+        {t('certificate.correctionEmptyTitle')}
       </h4>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        현재 보완이 필요한 서류가 없어요.
+        {t('certificate.correctionEmptyDescription')}
       </p>
     </div>
   )
@@ -143,8 +129,25 @@ export function CorrectionDocumentCard({
   onFileChange,
   onRemove,
 }: CorrectionDocumentCardProps) {
+  const { t, language } = useTranslation()
+
+  const documentLabelMap: Record<CorrectionDocumentType, string> = {
+    RESIDENCE_VERIFICATION_DOCUMENT: t('certificate.correctionDocResidence'),
+    ALIEN_REGISTRATION_SUPPORTING_DOCUMENT: t('certificate.correctionDocAlienReg'),
+  }
+
+  const label = documentLabelMap[document.documentType] ?? document.documentType
   const reasons = document.missingItems.filter(Boolean)
-  const label = getCorrectionDocumentLabel(document.documentType)
+
+  const formatUploadedDate = useMemo(() => {
+    const locale = language === 'en' ? 'en-US' : 'ko-KR'
+    const formatter = new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
+    return () => formatter.format(new Date()).replace(/\. /g, '.').replace(/\.$/, '')
+  }, [language])
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border bg-background">
@@ -159,7 +162,7 @@ export function CorrectionDocumentCard({
             {label}
           </h4>
           <span className="mt-2 inline-flex rounded-full bg-red-50 px-2.5 py-1 text-[12px] font-medium leading-none text-red-600">
-            보완 필요
+            {t('certificate.correctionNeedBadge')}
           </span>
         </div>
         {isOpen ? (
@@ -173,7 +176,7 @@ export function CorrectionDocumentCard({
         <div className="border-t border-border bg-secondary/20 px-4 py-4">
           {reasons.length > 0 ? (
             <div>
-              <p className="text-[14px] font-semibold text-foreground">누락 항목</p>
+              <p className="text-[14px] font-semibold text-foreground">{t('certificate.correctionMissingItems')}</p>
               <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-foreground/90">
                 {reasons.map((reason) => (
                   <li key={reason}>{reason}</li>
@@ -201,9 +204,9 @@ export function CorrectionDocumentCard({
           >
             <Upload className="h-7 w-7 text-primary" strokeWidth={2.2} />
             <span className="mt-2 text-[15px] font-semibold text-primary">
-              파일을 업로드해 주세요
+              {t('certificate.correctionUploadPrompt')}
             </span>
-            <span className="mt-1 text-[13px] text-muted-foreground">PDF 최대 10MB</span>
+            <span className="mt-1 text-[13px] text-muted-foreground">{t('certificate.correctionPdfLimit')}</span>
           </AppButton>
 
           {selectedFile ? (
@@ -216,14 +219,14 @@ export function CorrectionDocumentCard({
                   {selectedFile.name}
                 </p>
                 <p className="mt-0.5 text-[13px] text-muted-foreground">
-                  {formatUploadedDate()} 업로드 완료 · {formatFileSize(selectedFile.size)}
+                  {formatUploadedDate()} {t('certificate.correctionUploadDate')} · {formatFileSize(selectedFile.size)}
                 </p>
               </div>
               <CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-500" strokeWidth={2.3} />
               <AppButton
                 variant="unstyled"
                 onClick={onRemove}
-                aria-label={`${label} 파일 삭제`}
+                aria-label={`${label} ${t('certificate.deleteFile')}`}
                 className="rounded-md p-1 transition-colors hover:bg-secondary"
               >
                 <X className="h-4 w-4 text-muted-foreground" />
@@ -239,16 +242,17 @@ export function CorrectionDocumentCard({
 }
 
 export function CorrectionExpectedTimeCard() {
+  const { t } = useTranslation()
   return (
     <section className="rounded-2xl border border-border bg-background p-4">
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[14px] font-medium text-foreground">제출 후 예상 소요시간</p>
-          <p className="shrink-0 text-[17px] font-semibold text-primary">약 1영업일</p>
+          <p className="text-[14px] font-medium text-foreground">{t('certificate.correctionExpectedTime')}</p>
+          <p className="shrink-0 text-[17px] font-semibold text-primary">{t('certificate.correctionExpectedDays')}</p>
         </div>
         <div className="my-3 h-px bg-border" />
         <p className="text-[13px] leading-relaxed text-muted-foreground">
-          담당자가 확인 후 알림으로 결과를 안내해드립니다.
+          {t('certificate.correctionReviewNote')}
         </p>
       </div>
     </section>

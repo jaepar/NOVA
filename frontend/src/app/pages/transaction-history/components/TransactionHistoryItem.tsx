@@ -1,4 +1,5 @@
 import { AppButton } from '../../../components/design-system/AppButton'
+import { useTranslation } from '../../../i18n'
 import type { AccountTransaction } from '../types'
 import { formatWon } from '../utils'
 
@@ -13,6 +14,7 @@ export function TransactionHistoryItem({
   showBalance,
   onClick,
 }: TransactionHistoryItemProps) {
+  const { t } = useTranslation()
   const isDeposit = transaction.amount > 0
   const formattedAmount = `${isDeposit ? '+' : '-'}${formatWon(Math.abs(transaction.amount))}`
   const [, timeWithSeconds] = transaction.dateTime.split(' ')
@@ -46,7 +48,7 @@ export function TransactionHistoryItem({
 
       {showBalance && (
         <p className="mt-1 text-[12px] font-medium leading-4 text-right text-muted-foreground">
-          잔액 {formatWon(transaction.balanceAfter)}
+          {t('transactionHistory.afterBalance')} {formatWon(transaction.balanceAfter)}
         </p>
       )}
     </AppButton>

@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { CreditCard, MessageSquare, Wallet } from "lucide-react";
-import { MobileLayout } from "../components/layout/MobileLayout";
-import { BottomNav } from "../components/layout/BottomNav";
-import { SideMenu } from "../components/layout/SideMenu";
-import { BottomSheet } from "../components/layout/BottomSheet";
-import { novaToast } from "../components/design-system/toast";
-import { useMainPageStore } from "../stores/pageStores";
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { CreditCard, MessageSquare, Wallet } from 'lucide-react'
+import { MobileLayout } from '../components/layout/MobileLayout'
+import { BottomNav } from '../components/layout/BottomNav'
+import { SideMenu } from '../components/layout/SideMenu'
+import { BottomSheet } from '../components/layout/BottomSheet'
+import { novaToast } from '../components/design-system/toast'
+import { useTranslation } from '../i18n'
+import { useMainPageStore } from '../stores/pageStores'
 import {
   authApi,
   bankingApi,
@@ -26,217 +27,206 @@ import { CertificateIssuedModal } from './main/CertificateIssuedModal'
 import type { ExchangeRateItem, ServiceItem } from './main/types'
 
 export function Main() {
-  const navigate = useNavigate();
-  const isMenuOpen = useMainPageStore((state) => state.isMenuOpen);
-  const isLoggedIn = useMainPageStore((state) => state.isLoggedIn);
-  const hasUnreadNotifications = useMainPageStore(
-    (state) => state.hasUnreadNotifications
-  );
-  const isCertificateSheetOpen = useMainPageStore(
-    (state) => state.isCertificateSheetOpen
-  );
-  const setMenuOpen = useMainPageStore((state) => state.setMenuOpen);
-  const setHasUnreadNotifications = useMainPageStore(
-    (state) => state.setHasUnreadNotifications
-  );
-  const setCertificateSheetOpen = useMainPageStore(
-    (state) => state.setCertificateSheetOpen
-  );
-  const logout = useMainPageStore((state) => state.logout);
-  const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(
-    null
-  );
-  const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
-  const [isNotificationOpen, setNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationResponse[]>(
-    []
-  );
-  const [isNotificationsLoading, setNotificationsLoading] = useState(false);
-  const [notificationsError, setNotificationsError] = useState(false);
-  const [isCertificateIssuedModalOpen, setCertificateIssuedModalOpen] = useState(false);
-  const [isHospitalChatStarting, setHospitalChatStarting] = useState(false);
+  const navigate = useNavigate()
+  const { t } = useTranslation()
+  const isMenuOpen = useMainPageStore((state) => state.isMenuOpen)
+  const isLoggedIn = useMainPageStore((state) => state.isLoggedIn)
+  const hasUnreadNotifications = useMainPageStore((state) => state.hasUnreadNotifications)
+  const isCertificateSheetOpen = useMainPageStore((state) => state.isCertificateSheetOpen)
+  const setMenuOpen = useMainPageStore((state) => state.setMenuOpen)
+  const setHasUnreadNotifications = useMainPageStore((state) => state.setHasUnreadNotifications)
+  const setCertificateSheetOpen = useMainPageStore((state) => state.setCertificateSheetOpen)
+  const logout = useMainPageStore((state) => state.logout)
+  const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(null)
+  const [isAccountHomeLoading, setAccountHomeLoading] = useState(false)
+  const [isNotificationOpen, setNotificationOpen] = useState(false)
+  const [notifications, setNotifications] = useState<NotificationResponse[]>([])
+  const [isNotificationsLoading, setNotificationsLoading] = useState(false)
+  const [notificationsError, setNotificationsError] = useState(false)
+  const [isCertificateIssuedModalOpen, setCertificateIssuedModalOpen] = useState(false)
+  const [isHospitalChatStarting, setHospitalChatStarting] = useState(false)
 
   const services: ServiceItem[] = [
     {
-      id: "hospital-chat",
+      id: 'hospital-chat',
       icon: <MessageSquare className="w-8 h-8" />,
-      label: isHospitalChatStarting ? "연결 중..." : "병원예약",
+      label: isHospitalChatStarting ? t('main.connecting') : t('main.hospitalReservation'),
       disabled: isHospitalChatStarting,
     },
     {
-      id: "foreigner-card",
+      id: 'foreigner-card',
       icon: <CreditCard className="w-8 h-8" />,
-      label: "외국인등록증",
-      path: "/foreigner-card/step-01",
+      label: t('main.residenceCard'),
+      path: '/foreigner-card/step-01',
     },
     {
-      id: "wallet",
+      id: 'wallet',
       icon: <Wallet className="w-8 h-8" />,
-      label: "월렛",
-      path: "/wallet",
+      label: t('main.wallet'),
+      path: '/wallet',
     },
-  ];
+  ]
 
   const exchangeRates: ExchangeRateItem[] = [
-    { currency: "USD", rate: "1,340.50", change: "+2.3%", isPositive: true },
-    { currency: "JPY", rate: "9.82", change: "-0.5%", isPositive: false },
-    { currency: "EUR", rate: "1,456.20", change: "+1.8%", isPositive: true },
-  ];
+    { currency: 'USD', rate: '1,340.50', change: '+2.3%', isPositive: true },
+    { currency: 'JPY', rate: '9.82', change: '-0.5%', isPositive: false },
+    { currency: 'EUR', rate: '1,456.20', change: '+1.8%', isPositive: true },
+  ]
 
   const handleServiceClick = async (service: ServiceItem) => {
     if (service.disabled) {
-      return;
+      return
     }
 
-    if (service.id === "hospital-chat") {
-      setHospitalChatStarting(true);
+    if (service.id === 'hospital-chat') {
+      setHospitalChatStarting(true)
 
       try {
-        const session = await hospitalChatApi.startSession();
-        navigate("/hospital-chat", {
+        const session = await hospitalChatApi.startSession()
+        navigate('/hospital-chat', {
           state: {
             conversationId: session.conversation_id,
             initialMessage: session.message,
           },
-        });
+        })
       } catch {
-        novaToast.error("잠시 후 다시 시도해 주세요.");
+        novaToast.error(t('main.retryLater'))
       } finally {
-        setHospitalChatStarting(false);
+        setHospitalChatStarting(false)
       }
 
-      return;
+      return
     }
 
     if (service.path) {
-      navigate(service.path);
+      navigate(service.path)
     }
-  };
+  }
 
   useEffect(() => {
-    let isMounted = true;
+    let isMounted = true
 
     async function loadAccountHome() {
       if (!isLoggedIn) {
         if (isMounted) {
-          setAccountHome(null);
-          setHasUnreadNotifications(false);
-          setAccountHomeLoading(false);
+          setAccountHome(null)
+          setHasUnreadNotifications(false)
+          setAccountHomeLoading(false)
         }
-        return;
+        return
       }
 
       if (isMounted) {
-        setAccountHomeLoading(true);
+        setAccountHomeLoading(true)
       }
 
       try {
-        const nextAccountHome = await bankingApi.getHome();
+        const nextAccountHome = await bankingApi.getHome()
 
         if (isMounted) {
-          setAccountHome(nextAccountHome);
-          setHasUnreadNotifications(nextAccountHome.hasNotification);
+          setAccountHome(nextAccountHome)
+          setHasUnreadNotifications(nextAccountHome.hasNotification)
         }
       } catch {
         if (isMounted) {
-          setAccountHome(null);
-          setHasUnreadNotifications(false);
+          setAccountHome(null)
+          setHasUnreadNotifications(false)
         }
       } finally {
         if (isMounted) {
-          setAccountHomeLoading(false);
+          setAccountHomeLoading(false)
         }
       }
     }
 
-    loadAccountHome();
+    loadAccountHome()
 
     return () => {
-      isMounted = false;
-    };
-  }, [isLoggedIn]);
+      isMounted = false
+    }
+  }, [isLoggedIn, setHasUnreadNotifications])
 
   const loadNotifications = async () => {
     if (!isLoggedIn) {
-      setNotifications([]);
-      setNotificationsError(false);
-      return;
+      setNotifications([])
+      setNotificationsError(false)
+      return
     }
 
-    setNotificationsLoading(true);
-    setNotificationsError(false);
+    setNotificationsLoading(true)
+    setNotificationsError(false)
 
     try {
-      const nextNotifications = await userApi.getNotifications();
-      setNotifications(nextNotifications);
-      setHasUnreadNotifications(nextNotifications.length > 0);
+      const nextNotifications = await userApi.getNotifications()
+      setNotifications(nextNotifications)
+      setHasUnreadNotifications(nextNotifications.length > 0)
     } catch {
-      setNotifications([]);
-      setNotificationsError(true);
+      setNotifications([])
+      setNotificationsError(true)
     } finally {
-      setNotificationsLoading(false);
+      setNotificationsLoading(false)
     }
-  };
+  }
 
   const handleNotificationsClick = () => {
-    const willOpen = !isNotificationOpen;
-    setNotificationOpen(willOpen);
+    const willOpen = !isNotificationOpen
+    setNotificationOpen(willOpen)
 
     if (willOpen) {
-      loadNotifications();
+      loadNotifications()
     }
-  };
+  }
 
   const dismissNotification = (notificationId: number) => {
     const nextNotifications = notifications.filter(
       (notification) => notification.notificationId !== notificationId
-    );
+    )
 
-    setNotifications(nextNotifications);
-    setHasUnreadNotifications(nextNotifications.length > 0);
+    setNotifications(nextNotifications)
+    setHasUnreadNotifications(nextNotifications.length > 0)
 
-    userApi.deleteNotification(notificationId).catch(() => undefined);
-  };
+    userApi.deleteNotification(notificationId).catch(() => undefined)
+  }
 
   const handleNotificationClick = (notification: NotificationResponse) => {
-    setNotificationOpen(false);
+    setNotificationOpen(false)
 
-    if (notification.type === "SUPPLEMENT_DOCUMENT") {
-      navigate("/certificate/corrections");
-      return;
+    if (notification.type === 'SUPPLEMENT_DOCUMENT') {
+      navigate('/certificate/corrections')
+      return
     }
 
-    if (notification.type === "CERTIFICATE_ISSUED") {
-      dismissNotification(notification.notificationId);
-      setCertificateIssuedModalOpen(true);
+    if (notification.type === 'CERTIFICATE_ISSUED') {
+      dismissNotification(notification.notificationId)
+      setCertificateIssuedModalOpen(true)
     }
-  };
+  }
 
   const handleIssueCertificate = () => {
-    setCertificateSheetOpen(false);
-    navigate("/certificate/step-01");
-  };
+    setCertificateSheetOpen(false)
+    navigate('/certificate/step-01')
+  }
 
   const handleOpenAccount = () => {
-    navigate("/account/step-01");
-  };
+    navigate('/account/step-01')
+  }
 
   const handleOpenAccountFromIssuedModal = () => {
-    setCertificateIssuedModalOpen(false);
-    navigate("/account/step-01");
-  };
+    setCertificateIssuedModalOpen(false)
+    navigate('/account/step-01')
+  }
 
   const handleLogout = async () => {
     try {
-      await authApi.logout();
-      logout();
-      setAccountHome(null);
-      setNotifications([]);
-      setNotificationOpen(false);
+      await authApi.logout()
+      logout()
+      setAccountHome(null)
+      setNotifications([])
+      setNotificationOpen(false)
     } catch (error) {
-      console.error("Logout failed", error);
+      console.error('Logout failed', error)
     }
-  };
+  }
 
   return (
     <div className="h-full w-full bg-background">
@@ -257,8 +247,8 @@ export function Main() {
             onNotificationsClose={() => setNotificationOpen(false)}
             onNotificationClick={handleNotificationClick}
             onMenuClick={() => {
-              setNotificationOpen(false);
-              setMenuOpen(true);
+              setNotificationOpen(false)
+              setMenuOpen(true)
             }}
           />
         }
@@ -270,24 +260,21 @@ export function Main() {
               accountHome={accountHome}
               isLoading={isAccountHomeLoading}
               onLoginClick={() =>
-                navigate("/login/form", {
-                  state: { backPath: "/main", redirectTo: "/main" },
+                navigate('/login/form', {
+                  state: { backPath: '/main', redirectTo: '/main' },
                 })
               }
               onOpenCertificateSheet={() => setCertificateSheetOpen(true)}
               onOpenAccount={handleOpenAccount}
-              onAccountPanelClick={() => navigate("/transaction-history")}
+              onAccountPanelClick={() => navigate('/transaction-history')}
             />
           </section>
 
           <section>
-            <MainJobBanner onClick={() => navigate("/jobs")} />
+            <MainJobBanner onClick={() => navigate('/jobs')} />
           </section>
 
-          <MainServiceGrid
-            services={services}
-            onServiceClick={handleServiceClick}
-          />
+          <MainServiceGrid services={services} onServiceClick={handleServiceClick} />
 
           <MainExchangeRateGrid exchangeRates={exchangeRates} />
         </div>
@@ -301,8 +288,8 @@ export function Main() {
         isLoggedIn={isLoggedIn}
         onLogout={handleLogout}
         onLogin={() =>
-          navigate("/login/form", {
-            state: { backPath: "/main", redirectTo: "/main" },
+          navigate('/login/form', {
+            state: { backPath: '/main', redirectTo: '/main' },
           })
         }
         onProfile={() => navigate('/mypage')}
@@ -325,5 +312,5 @@ export function Main() {
         onOpenAccount={handleOpenAccountFromIssuedModal}
       />
     </div>
-  );
+  )
 }

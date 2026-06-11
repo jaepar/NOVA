@@ -2,39 +2,33 @@ import { CalendarDays, IdCard, ScanLine, SunMedium, Type } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { MobileLayout } from '../../components/layout/MobileLayout'
-
-const cautionItems = [
-  {
-    icon: SunMedium,
-    text: '빛 반사가 없는 곳에서 촬영해 주세요',
-  },
-  {
-    icon: Type,
-    text: '글자가 선명하게 보여야 합니다',
-  },
-  {
-    icon: CalendarDays,
-    text: '유효기간이 지난 등록증은 사용할 수 없어요',
-  },
-]
+import { useTranslation } from '../../i18n'
 
 export function ForeignerCardCaptureGuide() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
+
+  const cautionItems = [
+    { icon: SunMedium, text: t('foreignerCard.caution1') },
+    { icon: Type, text: t('foreignerCard.caution2') },
+    { icon: CalendarDays, text: t('foreignerCard.caution3') },
+  ]
 
   return (
     <MobileLayout
-      title="외국인등록증 등록"
+      title={t('foreignerCard.title')}
       backPath="/foreigner-card/step-01"
       bottomContent={
-        <Btn_1Col onClick={() => navigate('/foreigner-card/step-03')}>촬영하기</Btn_1Col>
+        <Btn_1Col onClick={() => navigate('/foreigner-card/step-03')}>{t('foreignerCard.capture')}</Btn_1Col>
       }
     >
       <div className="space-y-7 pb-2">
         <section className="space-y-3 pt-2">
           <h2 className="text-2xl font-semibold leading-tight">
-            외국인 등록증을
+            {t('foreignerCard.captureHeadingLine1')}
             <br />
-            <span className="text-primary">촬영</span>해 주세요.
+            <span className="text-primary">{t('foreignerCard.captureHeadingHighlight')}</span>
+            {t('foreignerCard.captureHeadingLine2')}
           </h2>
         </section>
 
@@ -44,15 +38,15 @@ export function ForeignerCardCaptureGuide() {
               <IdCard className="h-8 w-8" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">등록증이 프레임 안에</p>
-              <p className="text-sm text-muted-foreground">꽉 차도록 배치해 주세요</p>
+              <p className="text-sm text-muted-foreground">{t('foreignerCard.captureFrameLine1')}</p>
+              <p className="text-sm text-muted-foreground">{t('foreignerCard.captureFrameLine2')}</p>
             </div>
             <ScanLine className="h-5 w-5 text-primary/60" />
           </div>
         </section>
 
         <section className="space-y-3">
-          <p className="font-semibold">주의사항</p>
+          <p className="font-semibold">{t('foreignerCard.cautionTitle')}</p>
           <div className="divide-y divide-border">
             {cautionItems.map((item) => {
               const Icon = item.icon

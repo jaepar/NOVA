@@ -4,6 +4,7 @@ import { bankingApi, getBankingApiError } from '../../../api'
 import { AppButton, Btn_1Col, novaToast } from '../../components/design-system'
 import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { translateError } from '../../i18n'
 import { Loading } from '../common/Loading'
 import { BANK_OPTIONS, formatCurrency, RECIPIENT_NAME, SOURCE_BANK } from './types'
 import { useTransferStore } from './transferStore'
@@ -63,14 +64,17 @@ export function TransferReview() {
 
       setPassword('')
       if (isPasswordError) {
-        novaToast.error('계좌 비밀번호가 일치하지 않습니다.')
+        novaToast.error(translateError(apiError?.code, '계좌 비밀번호가 일치하지 않습니다.'))
         return
       }
 
       setIsPasswordSheetOpen(false)
       navigate('/transfer/failed', {
         state: {
-          message: apiError?.message || '이체 요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.',
+          message: translateError(
+            apiError?.code,
+            apiError?.message || '이체 요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.'
+          ),
         },
       })
     } finally {
@@ -94,6 +98,7 @@ export function TransferReview() {
     <>
       <MobileLayout
         title="이체"
+        titleKey="transfer.title"
         headerType="back"
         onBack={() => navigate('/transfer/amount-confirm')}
         bottomContent={
@@ -152,7 +157,7 @@ export function TransferReview() {
             }}
             className="absolute right-0 top-0 text-[34px] leading-none"
           >
-            ×
+            x
           </AppButton>
           <h2 className="pt-8 text-[20px] font-bold">계좌 비밀번호</h2>
           <div className="mt-12 flex justify-center gap-5">
@@ -184,8 +189,11 @@ export function TransferReview() {
         <div className="fixed inset-0 z-[100] bg-white">
           <Loading
             headerTitle="이체"
+            headerTitleKey="transfer.title"
             task="이체를 처리하고 있어요"
+            taskKey="transfer.loadingTask"
             description="잠시만 기다려주세요."
+            descriptionKey="transfer.loadingDescription"
             spinnerSize="lg"
           />
         </div>

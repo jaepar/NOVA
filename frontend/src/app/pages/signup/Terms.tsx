@@ -1,15 +1,17 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { ConsentOverviewAccordion } from "../../components/consent/ConsentOverviewAccordion";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { resetConsentStorage } from "../../domains/storage";
 import { signupConsentDefinition } from "../../domains/signup-consent/definition.signup";
+import { useTranslation } from "../../i18n";
 import { useSignupPageStore } from "../../stores/pageStores";
 
 export function Terms() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const [isRequiredComplete, setIsRequiredComplete] = useState(false);
   const resetPersonalInfo = useSignupPageStore(
     (state) => state.resetPersonalInfo
@@ -27,14 +29,14 @@ export function Terms() {
 
   return (
     <MobileLayout
-      title="회원가입"
+      title={t('signup.title')}
       onBack={handleBack}
       bottomContent={
         <Btn_1Col
           disabled={!isRequiredComplete}
           onClick={() => navigate("/signup/password")}
         >
-          다음
+          {t('signup.next')}
         </Btn_1Col>
       }
     >
@@ -43,8 +45,8 @@ export function Terms() {
           definition={signupConsentDefinition}
           preserveState={preserveState}
           basePath="/signup"
-          title="약관 동의"
-          description="서비스 이용을 위해 아래 약관을 읽고 동의해주세요."
+          title={t('signup.termsTitle')}
+          description={t('signup.termsDescription')}
           onRequiredCompleteChange={setIsRequiredComplete}
         />
       </div>

@@ -1,138 +1,136 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { MobileLayout } from "../../components/layout/MobileLayout";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
-import { AppButton } from "../../components/design-system/AppButton";
-import {
-  emailVerificationApi,
-  getEmailVerificationApiErrorMessage,
-} from "../../../api";
-import { useSignupPageStore } from "../../stores/pageStores";
-import { SignupContent } from "./components/SignupContent";
-import { SignupInputGroup } from "./components/SignupInputGroup";
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { MobileLayout } from '../../components/layout/MobileLayout'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { AppButton } from '../../components/design-system/AppButton'
+import { emailVerificationApi, getEmailVerificationApiErrorMessage } from '../../../api'
+import { useTranslation } from '../../i18n'
+import { useSignupPageStore } from '../../stores/pageStores'
+import { SignupContent } from './components/SignupContent'
+import { SignupInputGroup } from './components/SignupInputGroup'
 
-const verificationExpiresSeconds = 5 * 60;
+const verificationExpiresSeconds = 5 * 60
 
 function formatTimer(seconds: number) {
-  const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
-  const remainingSeconds = (seconds % 60).toString().padStart(2, "0");
+  const minutes = Math.floor(seconds / 60).toString().padStart(2, '0')
+  const remainingSeconds = (seconds % 60).toString().padStart(2, '0')
 
-  return `${minutes}:${remainingSeconds}`;
+  return `${minutes}:${remainingSeconds}`
 }
 
 export function EmailVerification() {
-  const navigate = useNavigate();
-  const email = useSignupPageStore((state) => state.email);
-  const verificationCode = useSignupPageStore((state) => state.verificationCode);
-  const setEmail = useSignupPageStore((state) => state.setEmail);
-  const setVerificationCode = useSignupPageStore((state) => state.setVerificationCode);
-  const resetSignup = useSignupPageStore((state) => state.resetSignup);
-  const [isCodeSent, setCodeSent] = useState(false);
-  const [isSendingCode, setSendingCode] = useState(false);
-  const [isVerifying, setVerifying] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
-  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate()
+  const { t } = useTranslation()
+  const email = useSignupPageStore((state) => state.email)
+  const verificationCode = useSignupPageStore((state) => state.verificationCode)
+  const setEmail = useSignupPageStore((state) => state.setEmail)
+  const setVerificationCode = useSignupPageStore((state) => state.setVerificationCode)
+  const resetSignup = useSignupPageStore((state) => state.resetSignup)
+  const [isCodeSent, setCodeSent] = useState(false)
+  const [isSendingCode, setSendingCode] = useState(false)
+  const [isVerifying, setVerifying] = useState(false)
+  const [remainingSeconds, setRemainingSeconds] = useState(0)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const isEmailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email]);
-  const canSendCode = isEmailValid && !isSendingCode && !isVerifying;
+  const isEmailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email])
+  const canSendCode = isEmailValid && !isSendingCode && !isVerifying
   const canContinue =
     isCodeSent &&
     remainingSeconds > 0 &&
     verificationCode.length === 6 &&
     !isSendingCode &&
-    !isVerifying;
+    !isVerifying
 
   useEffect(() => {
     if (!isCodeSent || remainingSeconds === 0) {
-      return;
+      return
     }
 
     const timerId = window.setInterval(() => {
-      setRemainingSeconds((seconds) => Math.max(seconds - 1, 0));
-    }, 1000);
+      setRemainingSeconds((seconds) => Math.max(seconds - 1, 0))
+    }, 1000)
 
-    return () => window.clearInterval(timerId);
-  }, [isCodeSent, remainingSeconds]);
+    return () => window.clearInterval(timerId)
+  }, [isCodeSent, remainingSeconds])
 
   const handleEmailChange = (value: string) => {
-    setEmail(value);
-    setVerificationCode("");
-    setCodeSent(false);
-    setRemainingSeconds(0);
-    setErrorMessage("");
-  };
+    setEmail(value)
+    setVerificationCode('')
+    setCodeSent(false)
+    setRemainingSeconds(0)
+    setErrorMessage('')
+  }
 
   const handleVerificationCodeChange = (value: string) => {
-    setVerificationCode(value.replace(/\D/g, "").slice(0, 6));
-    setErrorMessage("");
-  };
+    setVerificationCode(value.replace(/\D/g, '').slice(0, 6))
+    setErrorMessage('')
+  }
 
   const handleSendVerification = async () => {
     if (!canSendCode) {
-      return;
+      return
     }
 
-    setSendingCode(true);
-    setErrorMessage("");
+    setSendingCode(true)
+    setErrorMessage('')
 
     try {
-      await emailVerificationApi.send(email);
-      setVerificationCode("");
-      setCodeSent(true);
-      setRemainingSeconds(verificationExpiresSeconds);
+      await emailVerificationApi.send(email)
+      setVerificationCode('')
+      setCodeSent(true)
+      setRemainingSeconds(verificationExpiresSeconds)
     } catch (error) {
-      setErrorMessage(getEmailVerificationApiErrorMessage(error));
+      setErrorMessage(getEmailVerificationApiErrorMessage(error))
     } finally {
-      setSendingCode(false);
+      setSendingCode(false)
     }
-  };
+  }
 
   const handleConfirmVerification = async () => {
     if (!canContinue) {
-      return;
+      return
     }
 
-    setVerifying(true);
-    setErrorMessage("");
+    setVerifying(true)
+    setErrorMessage('')
 
     try {
-      await emailVerificationApi.confirm(email, verificationCode);
-      navigate("/signup/personal-info");
+      await emailVerificationApi.confirm(email, verificationCode)
+      navigate('/signup/personal-info')
     } catch (error) {
-      setErrorMessage(getEmailVerificationApiErrorMessage(error));
+      setErrorMessage(getEmailVerificationApiErrorMessage(error))
     } finally {
-      setVerifying(false);
+      setVerifying(false)
     }
-  };
+  }
 
   const handleBack = () => {
-    resetSignup();
-    navigate("/login", { state: { fromLanguage: true } });
-  };
+    resetSignup()
+    navigate('/login', { state: { fromLanguage: true } })
+  }
 
   return (
     <MobileLayout
       title="회원가입"
+      titleKey="signup.title"
       onBack={handleBack}
       bottomContent={
         <Btn_1Col onClick={handleConfirmVerification} disabled={!canContinue}>
-          {isVerifying ? "확인 중" : "다음"}
+          {isVerifying ? t('signup.verifying') : t('signup.next')}
         </Btn_1Col>
       }
     >
       <SignupContent className="space-y-10">
         <section className="space-y-3">
-          <h2 className="text-2xl font-semibold leading-tight">
-            반가워요!
-            <br />
-            이메일 인증을 시작할게요
+          <h2 className="whitespace-pre-line text-2xl font-semibold leading-tight">
+            {t('signup.emailHeading')}
           </h2>
         </section>
 
         <section className="space-y-6">
           <div className="space-y-2">
             <SignupInputGroup
-              label="이메일"
+              label={t('signup.email')}
               type="email"
               placeholder="example@email.com"
               value={email}
@@ -147,22 +145,22 @@ export function EmailVerification() {
                   disabled={!canSendCode}
                   className="text-sm font-semibold text-primary disabled:cursor-not-allowed disabled:text-muted-foreground"
                 >
-                  {isSendingCode ? "발송 중" : isCodeSent ? "재발송" : "인증번호 받기"}
+                  {isSendingCode ? t('signup.sending') : isCodeSent ? t('signup.resend') : t('signup.getCode')}
                 </AppButton>
               }
             />
             {email && !isEmailValid && (
-              <p className="text-sm text-red-500">올바른 이메일 형식을 입력해주세요.</p>
+              <p className="text-sm text-red-500">{t('signup.invalidEmail')}</p>
             )}
             {isCodeSent && (
-              <p className="text-sm text-muted-foreground">인증번호가 발송되었습니다.</p>
+              <p className="text-sm text-muted-foreground">{t('signup.codeSent')}</p>
             )}
           </div>
 
           <div className="space-y-2">
             <SignupInputGroup
-              label="인증번호"
-              placeholder="인증번호 6자리를 입력해주세요"
+              label={t('signup.code')}
+              placeholder={t('signup.codePlaceholder')}
               value={verificationCode}
               onChange={handleVerificationCodeChange}
               disabled={!isCodeSent || isSendingCode || isVerifying}
@@ -172,18 +170,16 @@ export function EmailVerification() {
             />
             {isCodeSent && remainingSeconds > 0 && (
               <p className="text-sm font-medium text-red-500">
-                남은 시간 {formatTimer(remainingSeconds)}
+                {t('signup.remainingTime')} {formatTimer(remainingSeconds)}
               </p>
             )}
             {isCodeSent && remainingSeconds === 0 && (
-              <p className="text-sm text-red-500">
-                인증 시간이 만료되었습니다. 인증번호를 다시 받아주세요.
-              </p>
+              <p className="text-sm text-red-500">{t('signup.expired')}</p>
             )}
             {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
           </div>
         </section>
       </SignupContent>
     </MobileLayout>
-  );
+  )
 }

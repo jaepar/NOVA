@@ -11,6 +11,7 @@ import {
   setCategoryCursor,
   setOpenCategoryIds,
 } from '../../domains/storage'
+import { useTranslation } from '../../i18n'
 
 interface ConsentOverviewAccordionProps {
   definition: ConsentDefinition
@@ -21,6 +22,7 @@ interface ConsentOverviewAccordionProps {
   title?: string
   description?: string
   showSelectionControls?: boolean
+  translationNamespace?: string
   onRequiredCompleteChange?: (complete: boolean) => void
 }
 
@@ -33,9 +35,12 @@ export function ConsentOverviewAccordion({
   title = '서비스를 가입을 위해\n약관에 동의해 주세요',
   description = '약관 동의 샘플 페이지',
   showSelectionControls = true,
+  translationNamespace,
   onRequiredCompleteChange,
 }: ConsentOverviewAccordionProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
+  const namespace = translationNamespace ?? `consent.${definition.domain}`
   const [openCategoryIds, setOpenCategoryIdsState] = useState<string[]>(() => {
     const saved = getOpenCategoryIds()
     if (saved.length > 0) return saved
@@ -151,7 +156,9 @@ export function ConsentOverviewAccordion({
                     onClick={() => toggleCategory(category.id)}
                     className="flex-1 text-left py-1"
                   >
-                    <span className="font-medium">{category.title}</span>
+                    <span className="font-medium">
+                      {t(`${namespace}.categories.${category.id}.title`, category.title)}
+                    </span>
                   </AppButton>
                 </div>
                 <AppButton
@@ -189,8 +196,12 @@ export function ConsentOverviewAccordion({
                         }
                         className="min-w-0 flex-1 text-left"
                       >
-                        <p className="text-sm">{term.title}</p>
-                        <p className="text-xs text-muted-foreground">{term.summary}</p>
+                        <p className="text-sm">
+                          {t(`${namespace}.terms.${term.id}.title`, term.title)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t(`${namespace}.terms.${term.id}.summary`, term.summary)}
+                        </p>
                       </AppButton>
                       <AppButton
                         variant="unstyled"

@@ -1,13 +1,16 @@
-﻿import type { ExchangeRateItem } from './types'
+import { useTranslation } from '../../i18n'
+import type { ExchangeRateItem } from './types'
 
 interface MainExchangeRateGridProps {
   exchangeRates: ExchangeRateItem[]
 }
 
 export function MainExchangeRateGrid({ exchangeRates }: MainExchangeRateGridProps) {
+  const { t } = useTranslation()
+
   return (
     <section className="space-y-4">
-      <h3>환율 정보</h3>
+      <h3>{t('main.exchangeRates')}</h3>
       <div className="grid grid-cols-3 max-[389px]:grid-cols-1 gap-3">
         {exchangeRates.map((rate) => (
           <div key={rate.currency} className="bg-secondary p-4 rounded-2xl space-y-2">

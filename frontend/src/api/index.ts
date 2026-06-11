@@ -25,7 +25,7 @@ export {
   emailVerificationApi,
   getEmailVerificationApiErrorMessage,
 } from './endpoints/emailVerification';
-export { userApi } from './endpoints/user';
+export { getUserApiError, userApi } from './endpoints/user';
 export type {
   AuthMessageResponse,
   EmailVerificationConfirmRequest,
@@ -55,6 +55,7 @@ export type {
   NotificationType,
   UpdateUserProfilePayload,
   UpdateUserRequestPayload,
+  UserApiErrorBody,
   UserProfilePortfolioResponse,
   UserProfileResponse,
 } from './endpoints/user';

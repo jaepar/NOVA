@@ -1,13 +1,15 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { ConsentOverviewAccordion } from '../../components/consent/ConsentOverviewAccordion'
 import { certificateConsentDefinition } from '../../domains/certificate-consent/definition.certificate'
+import { useTranslation } from '../../i18n'
 
 export function CertificateIssuanceConsentAgreement() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
   const [isRequiredComplete, setIsRequiredComplete] = useState(false)
   const preserveState = Boolean(
     (location.state as { preserveConsentState?: boolean } | null)?.preserveConsentState
@@ -15,11 +17,11 @@ export function CertificateIssuanceConsentAgreement() {
 
   return (
     <MobileLayout
-      title="시작하기"
+      title={t('certificate.step01Title')}
       backPath="/main"
       bottomContent={
         <Btn_1Col onClick={() => navigate('/certificate/step-02')} disabled={!isRequiredComplete}>
-          동의하고 계속하기
+          {t('certificate.agreeAndContinue')}
         </Btn_1Col>
       }
     >
@@ -29,11 +31,11 @@ export function CertificateIssuanceConsentAgreement() {
         basePath="/certificate/step-01"
         preserveStateKey="preserveConsentState"
         resetCarouselCursorKey="resetCategoryCursor"
-        title={'인증서 발급을 위해\n약관에 동의해 주세요'}
+        translationNamespace="consent.certificateIssuance"
+        title={t('certificate.step01Heading')}
         description=""
         onRequiredCompleteChange={setIsRequiredComplete}
       />
     </MobileLayout>
   )
 }
-

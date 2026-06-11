@@ -1,4 +1,5 @@
-﻿import { AppButton } from '../../components/design-system/AppButton'
+import { AppButton } from '../../components/design-system/AppButton'
+import { useTranslation } from '../../i18n'
 import type { ServiceItem } from './types'
 
 interface MainServiceGridProps {
@@ -7,9 +8,11 @@ interface MainServiceGridProps {
 }
 
 export function MainServiceGrid({ services, onServiceClick }: MainServiceGridProps) {
+  const { t } = useTranslation()
+
   return (
     <section className="space-y-4">
-      <h3>생활</h3>
+      <h3>{t('main.life')}</h3>
       <div className="grid grid-cols-3 gap-4 max-[359px]:grid-cols-1">
         {services.map((service) => (
           <AppButton

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { AppButton, Btn_1Col, novaToast } from '../../components/design-system'
 import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { translateError } from '../../i18n'
 import { bankingApi, getBankingApiError } from '../../../api'
 import { detectAccountNumber } from '../../data/accountNumberDetector'
 import {
@@ -67,12 +68,12 @@ export function TransferAccountSelect() {
       navigate('/transfer/amount')
     } catch (error) {
       const apiError = getBankingApiError(error)
-      if (apiError?.code === 'BANK-006') {
-        novaToast.error(apiError.message || '수취인 계좌 정보를 찾을 수 없습니다.')
-        return
-      }
+      const fallback =
+        apiError?.code === 'BANK-006'
+          ? '수취인 계좌 정보를 찾을 수 없습니다.'
+          : '이체 정보를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.'
 
-      novaToast.error(apiError?.message || '이체 정보를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.')
+      novaToast.error(translateError(apiError?.code, apiError?.message || fallback))
     } finally {
       setIsPreviewLoading(false)
     }
@@ -82,14 +83,12 @@ export function TransferAccountSelect() {
     <>
       <MobileLayout
         title="이체"
+        titleKey="transfer.title"
         headerType="back"
         onBack={() => navigate('/main')}
         headerTextColor="#020A2F"
         bottomContent={
-          <Btn_1Col
-            disabled={!isNextEnabled || isPreviewLoading}
-            onClick={handleNext}
-          >
+          <Btn_1Col disabled={!isNextEnabled || isPreviewLoading} onClick={handleNext}>
             {isPreviewLoading ? '확인 중' : '다음'}
           </Btn_1Col>
         }

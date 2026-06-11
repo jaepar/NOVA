@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import { AppButton } from '../../components/design-system/AppButton'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { useTranslation } from '../../i18n'
 import { TransactionMemoSheet } from './components/TransactionMemoSheet'
 import { useTransactionHistoryStore } from './store'
 import { formatWon } from './utils'
@@ -24,6 +25,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 export function TransactionHistoryDetailPage() {
   const navigate = useNavigate()
   const { transactionId } = useParams()
+  const { t } = useTranslation()
   const account = useTransactionHistoryStore((state) => state.account)
   const errorMessage = useTransactionHistoryStore((state) => state.errorMessage)
   const isLoading = useTransactionHistoryStore((state) => state.isLoading)
@@ -46,12 +48,17 @@ export function TransactionHistoryDetailPage() {
     return (
       <MobileLayout
         title="거래내역 상세"
+        titleKey="transactionHistory.detailTitle"
         headerType="close"
         closePath="/transaction-history"
-        bottomContent={<Btn_1Col onClick={() => navigate('/transaction-history')}>확인</Btn_1Col>}
+        bottomContent={
+          <Btn_1Col onClick={() => navigate('/transaction-history')}>
+            {t('transactionHistory.confirm')}
+          </Btn_1Col>
+        }
       >
         <div className="flex h-full items-center justify-center text-[15px] font-medium text-muted-foreground">
-          {isLoading ? '거래내역을 불러오는 중입니다.' : '거래내역을 찾을 수 없습니다.'}
+          {isLoading ? t('transactionHistory.loading') : t('transactionHistory.notFound')}
         </div>
       </MobileLayout>
     )
@@ -64,9 +71,14 @@ export function TransactionHistoryDetailPage() {
     <>
       <MobileLayout
         title="거래내역 상세"
+        titleKey="transactionHistory.detailTitle"
         headerType="close"
         closePath="/transaction-history"
-        bottomContent={<Btn_1Col onClick={() => navigate('/transaction-history')}>확인</Btn_1Col>}
+        bottomContent={
+          <Btn_1Col onClick={() => navigate('/transaction-history')}>
+            {t('transactionHistory.confirm')}
+          </Btn_1Col>
+        }
       >
         <div className="flex min-h-full flex-col pb-4">
           <section className="pb-8 pt-2">
@@ -81,7 +93,7 @@ export function TransactionHistoryDetailPage() {
                 {signedAmount}
               </p>
               <p className="mt-1 text-[14px] font-semibold leading-5 text-muted-foreground">
-                거래후 잔액 {formatWon(transaction.balanceAfter)}
+                {t('transactionHistory.afterBalance')} {formatWon(transaction.balanceAfter)}
               </p>
             </div>
           </section>
@@ -93,7 +105,7 @@ export function TransactionHistoryDetailPage() {
               className="flex w-full items-center justify-between gap-4 border-b border-border py-4 text-left"
             >
               <dt className="shrink-0 text-[15px] font-semibold leading-6 text-muted-foreground">
-                메모
+                {t('transactionHistory.memoLabel')}
               </dt>
               <div className="flex min-w-0 items-center gap-1">
                 <span
@@ -101,16 +113,16 @@ export function TransactionHistoryDetailPage() {
                     transaction.memo ? 'text-[#014ede]' : 'text-muted-foreground'
                   }`}
                 >
-                  {transaction.memo || '메모를 입력해보세요'}
+                  {transaction.memo || t('transactionHistory.memoPlaceholder')}
                 </span>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
               </div>
             </AppButton>
 
             <dl>
-              <DetailRow label="거래일시" value={transaction.dateTime} />
-              <DetailRow label="출금계좌" value={account?.number ?? '-'} />
-              <DetailRow label="거래유형" value={transaction.type} />
+              <DetailRow label={t('transactionHistory.detailTitle')} value={transaction.dateTime} />
+              <DetailRow label={t('transactionHistory.withdrawAccount')} value={account?.number ?? '-'} />
+              <DetailRow label={t('transactionHistory.transactionTypeLabel')} value={t(`transactionHistory.transactionTypes.${transaction.rawType}` as Parameters<typeof t>[0], transaction.type)} />
             </dl>
           </section>
 

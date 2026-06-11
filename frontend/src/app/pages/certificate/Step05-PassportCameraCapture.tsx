@@ -16,71 +16,66 @@ import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { Btn_2Col } from "../../components/design-system/Btn_2Col";
 import { InlineBanner } from "../../components/design-system/InlineBanner";
 import { MobileLayout } from "../../components/layout/MobileLayout";
+import { useTranslation } from "../../i18n";
 import { useStep5PassportCaptureStore } from "../../stores/pageStores";
 import { CameraCapturePage } from "../../components/camera/CameraCapturePage";
 import { certificateApi, type PassportResponse } from "../../../api";
 
-const ocrResultRows = [
-  { label: "종류", value: "", icon: IdCard },
-  { label: "국가 코드", value: "", icon: Globe },
-  { label: "여권번호", value: "", icon: IdCard },
-  { label: "성", value: "", icon: User },
-  { label: "이름", value: "", icon: WholeWord },
-  { label: "생년월일", value: "", icon: Calendar },
-  { label: "성별", value: "", icon: User },
-  { label: "국적", value: "", icon: Flag },
-  { label: "발행 관청", value: "", icon: Landmark },
-  { label: "발급일", value: "", icon: CalendarDays },
-  { label: "기간만료일", value: "", icon: CalendarClock },
-];
-
 // TEMP_DUMMY: 여권 실물 테스트 전까지 사용하는 임시 표시 값. 이후 제거 대상.
 const TEMP_DUMMY_OCR_VALUES: Record<string, string> = {
-  종류: "PM",
-  "국가 코드": "KOR",
-  여권번호: "M592W1577",
-  성: "PARK",
-  이름: "JAEHA",
-  생년월일: "2001.02.05",
-  성별: "M",
-  국적: "REPUBLIC OF KOREA",
-  "발행 관청": "MINISTRY OF FOREIGN AFFAIRS",
-  발급일: "2023.08.14",
-  기간만료일: "2033.08.14",
+  type: "PM",
+  countryCode: "KOR",
+  passportNum: "M592W1577",
+  surName: "PARK",
+  givenName: "JAEHA",
+  birthDate: "2001.02.05",
+  sex: "M",
+  nationality: "REPUBLIC OF KOREA",
+  authority: "MINISTRY OF FOREIGN AFFAIRS",
+  issueDate: "2023.08.14",
+  expireDate: "2033.08.14",
 };
 
-const mapPassportResponseToEditableValues = (passport: PassportResponse) => {
-  return {
-    종류: passport.type ?? "",
-    "국가 코드": passport.issueCountry ?? "",
-    여권번호: passport.num ?? "",
-    성: passport.surName ?? "",
-    이름: passport.givenName ?? "",
-    생년월일: passport.birthDate ?? "",
-    성별: passport.sex ?? "",
-    국적: passport.nationality ?? "",
-    "발행 관청": passport.authority ?? "",
-    발급일: passport.issueDate ?? "",
-    기간만료일: passport.expireDate ?? "",
-  };
-};
+const mapPassportResponseToEditableValues = (passport: PassportResponse) => ({
+  type: passport.type ?? "",
+  countryCode: passport.issueCountry ?? "",
+  passportNum: passport.num ?? "",
+  surName: passport.surName ?? "",
+  givenName: passport.givenName ?? "",
+  birthDate: passport.birthDate ?? "",
+  sex: passport.sex ?? "",
+  nationality: passport.nationality ?? "",
+  authority: passport.authority ?? "",
+  issueDate: passport.issueDate ?? "",
+  expireDate: passport.expireDate ?? "",
+});
 
 export function PassportCameraCapture() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const tRef = useRef(t);
+  tRef.current = t;
+
+  const ocrResultRows = [
+    { id: "type", label: t("certificate.passportLabelType"), icon: IdCard },
+    { id: "countryCode", label: t("certificate.passportLabelCountryCode"), icon: Globe },
+    { id: "passportNum", label: t("certificate.passportLabelNumber"), icon: IdCard },
+    { id: "surName", label: t("certificate.passportLabelSurname"), icon: User },
+    { id: "givenName", label: t("certificate.passportLabelGivenName"), icon: WholeWord },
+    { id: "birthDate", label: t("certificate.passportLabelBirthDate"), icon: Calendar },
+    { id: "sex", label: t("certificate.passportLabelGender"), icon: User },
+    { id: "nationality", label: t("certificate.passportLabelNationality"), icon: Flag },
+    { id: "authority", label: t("certificate.passportLabelAuthority"), icon: Landmark },
+    { id: "issueDate", label: t("certificate.passportLabelIssueDate"), icon: CalendarDays },
+    { id: "expireDate", label: t("certificate.passportLabelExpiryDate"), icon: CalendarClock },
+  ];
+
   const mode = useStep5PassportCaptureStore((state) => state.mode);
-  const cameraError = useStep5PassportCaptureStore(
-    (state) => state.cameraError
-  );
+  const cameraError = useStep5PassportCaptureStore((state) => state.cameraError);
   const setMode = useStep5PassportCaptureStore((state) => state.setMode);
-  const setCapturedImage = useStep5PassportCaptureStore(
-    (state) => state.setCapturedImage
-  );
-  const setCameraError = useStep5PassportCaptureStore(
-    (state) => state.setCameraError
-  );
-  const setParsedPassportData = useStep5PassportCaptureStore(
-    (state) => state.setParsedPassportData
-  );
+  const setCapturedImage = useStep5PassportCaptureStore((state) => state.setCapturedImage);
+  const setCameraError = useStep5PassportCaptureStore((state) => state.setCameraError);
+  const setParsedPassportData = useStep5PassportCaptureStore((state) => state.setParsedPassportData);
   const reset = useStep5PassportCaptureStore((state) => state.reset);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -88,10 +83,8 @@ export function PassportCameraCapture() {
   const streamRef = useRef<MediaStream | null>(null);
   const [isOcrProcessing, setIsOcrProcessing] = useState(false);
   const [ocrError, setOcrError] = useState<string | null>(null);
-  const [editableOcrValues, setEditableOcrValues] = useState<
-    Record<string, string>
-  >(() =>
-    Object.fromEntries(ocrResultRows.map((row) => [row.label, row.value]))
+  const [editableOcrValues, setEditableOcrValues] = useState<Record<string, string>>(
+    () => Object.fromEntries(ocrResultRows.map((row) => [row.id, ""]))
   );
 
   const stopCamera = () => {
@@ -121,7 +114,7 @@ export function PassportCameraCapture() {
           await videoRef.current.play();
         }
       } catch {
-        setCameraError("카메라를 사용할 수 없습니다. 권한을 확인해 주세요.");
+        setCameraError(tRef.current("certificate.cameraError"));
       }
     };
 
@@ -138,7 +131,6 @@ export function PassportCameraCapture() {
 
     try {
       const ocrResult = await certificateApi.recognizePassport(imageFile);
-
       setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult));
       setCapturedImage(imageDataUrl);
       setMode("review");
@@ -148,20 +140,19 @@ export function PassportCameraCapture() {
         error !== null &&
         "response" in error &&
         typeof (error as { response?: unknown }).response === "object"
-          ? (error as { response?: { data?: { code?: string } } }).response
-              ?.data?.code ?? ""
+          ? (error as { response?: { data?: { code?: string } } }).response?.data?.code ?? ""
           : "";
 
       const message =
         errorCode === "USER-014"
-          ? "사진이 올바르지 않습니다. 다시 촬영해 주세요."
+          ? t("certificate.passportOcrError014")
           : errorCode === "USER-009"
-          ? "여권 이미지를 다시 촬영해 주세요."
+          ? t("certificate.passportOcrError009")
           : errorCode === "USER-013"
-          ? "인식에 실패했습니다. 여권 위치와 조명을 확인해 주세요."
+          ? t("certificate.passportOcrError013")
           : error instanceof Error
           ? error.message
-          : "OCR 처리 중 오류가 발생했습니다. 다시 촬영해 주세요.";
+          : t("certificate.passportOcrErrorDefault");
       setOcrError(message);
       setMode("live");
     } finally {
@@ -180,32 +171,27 @@ export function PassportCameraCapture() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageDataUrl = canvas.toDataURL("image/jpeg", 0.92);
     const blob = await (await fetch(imageDataUrl)).blob();
-    const imageFile = new File([blob], "passport-capture.jpg", {
-      type: "image/jpeg",
-    });
+    const imageFile = new File([blob], "passport-capture.jpg", { type: "image/jpeg" });
     await processImageForOcr(imageFile, imageDataUrl);
   };
 
-  const handleOcrValueChange = (label: string, value: string) => {
-    setEditableOcrValues((prev) => ({
-      ...prev,
-      [label]: value,
-    }));
+  const handleOcrValueChange = (id: string, value: string) => {
+    setEditableOcrValues((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleMoveToStep06 = () => {
     setParsedPassportData({
-      type: editableOcrValues["종류"] ?? "",
-      issueCountry: editableOcrValues["국가 코드"] ?? "",
-      num: editableOcrValues["여권번호"] ?? "",
-      surName: editableOcrValues["성"] ?? "",
-      givenName: editableOcrValues["이름"] ?? "",
-      nationlity: editableOcrValues["국적"] ?? "",
-      birthDate: editableOcrValues["생년월일"] ?? "",
-      sex: editableOcrValues["성별"] ?? "",
-      authority: editableOcrValues["발행 관청"] ?? "",
-      issueDate: editableOcrValues["발급일"] ?? "",
-      expireDate: editableOcrValues["기간만료일"] ?? "",
+      type: editableOcrValues["type"] ?? "",
+      issueCountry: editableOcrValues["countryCode"] ?? "",
+      num: editableOcrValues["passportNum"] ?? "",
+      surName: editableOcrValues["surName"] ?? "",
+      givenName: editableOcrValues["givenName"] ?? "",
+      nationlity: editableOcrValues["nationality"] ?? "",
+      birthDate: editableOcrValues["birthDate"] ?? "",
+      sex: editableOcrValues["sex"] ?? "",
+      authority: editableOcrValues["authority"] ?? "",
+      issueDate: editableOcrValues["issueDate"] ?? "",
+      expireDate: editableOcrValues["expireDate"] ?? "",
     });
     navigate("/certificate/step-06");
   };
@@ -219,12 +205,12 @@ export function PassportCameraCapture() {
   if (mode === "review") {
     return (
       <MobileLayout
-        title="비대면 실명확인"
+        title={t("certificate.title")}
         backPath="/certificate/step-04"
         bottomContent={
           <Btn_2Col
-            leftLabel="재촬영"
-            rightLabel="다음"
+            leftLabel={t("certificate.retake")}
+            rightLabel={t("common.next")}
             leftVariant="outline"
             rightVariant="primary"
             onLeftClick={() => {
@@ -238,10 +224,10 @@ export function PassportCameraCapture() {
         <div className="space-y-4 pb-2">
           <section className="space-y-2">
             <h2 className="text-2xl font-semibold leading-tight">
-              여권 정보를 수정해 주세요
+              {t("certificate.passportReviewHeading")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              여권에서 인식한 정보입니다
+              {t("certificate.passportReviewSubheading")}
             </p>
           </section>
 
@@ -250,7 +236,7 @@ export function PassportCameraCapture() {
               const Icon = row.icon;
               return (
                 <div
-                  key={row.label}
+                  key={row.id}
                   className="grid grid-cols-[140px_1fr] border-b border-border last:border-b-0"
                 >
                   <div className="px-4 py-4 flex items-center gap-3 bg-secondary/20">
@@ -262,10 +248,8 @@ export function PassportCameraCapture() {
                   <div className="px-4 py-4 flex items-center">
                     <input
                       type="text"
-                      value={editableOcrValues[row.label] ?? ""}
-                      onChange={(event) =>
-                        handleOcrValueChange(row.label, event.target.value)
-                      }
+                      value={editableOcrValues[row.id] ?? ""}
+                      onChange={(event) => handleOcrValueChange(row.id, event.target.value)}
                       autoComplete="off"
                       spellCheck={false}
                       className="w-full rounded-md bg-background px-2 py-1 text-base text-foreground outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary"
@@ -282,7 +266,7 @@ export function PassportCameraCapture() {
 
   return (
     <CameraCapturePage
-      title="비대면 실명확인"
+      title={t("certificate.title")}
       onClose={() => navigate("/certificate/step-04")}
       headerBackgroundColor="#ffffff"
       headerTextColor="#000000"
@@ -293,10 +277,10 @@ export function PassportCameraCapture() {
         <div className="space-y-4">
           <div className="flex items-center justify-center gap-2 text-xs text-black">
             <ShieldCheck className="w-4 h-4" />
-            <p>여권이 일그러지거나 빛 반사가 없도록 주의해 주세요</p>
+            <p>{t("certificate.passportNoReflect")}</p>
           </div>
           <Btn_1Col onClick={handleCapture} disabled={isOcrProcessing}>
-            촬영하기
+            {t("certificate.captureButton")}
           </Btn_1Col>
           {/* TEMP: 제거 대상. OCR 테스트 중 임시 우회 버튼 */}
           <Btn_1Col
@@ -311,12 +295,7 @@ export function PassportCameraCapture() {
     >
       <div className="space-y-5">
         <div className="h-[58vh] border-2 border-dashed border-border rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            muted
-            playsInline
-          />
+          <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
         </div>
       </div>
 
@@ -330,7 +309,7 @@ export function PassportCameraCapture() {
       )}
       {isOcrProcessing && (
         <div className="mt-4 rounded-xl bg-secondary border border-border p-3 text-sm text-center text-black">
-          OCR 분석 중입니다. 잠시만 기다려 주세요.
+          {t("certificate.ocrProcessing")}
         </div>
       )}
     </CameraCapturePage>

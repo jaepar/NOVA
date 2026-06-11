@@ -1,26 +1,13 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { resetConsentStorage } from "../../domains/storage";
+import { useTranslation } from "../../i18n";
 import { useSignupPageStore } from "../../stores/pageStores";
 import { PasswordInputGroup } from "./components/PasswordInputGroup";
 import { SignupContent } from "./components/SignupContent";
 import { authApi } from "../../../api";
-
-function getApiErrorMessage(error: unknown, fallbackMessage: string) {
-  if (typeof error === "object" && error !== null && "response" in error) {
-    const response = (error as { response?: { data?: { message?: unknown } } })
-      .response;
-    const message = response?.data?.message;
-
-    if (typeof message === "string" && message.length > 0) {
-      return message;
-    }
-  }
-
-  return fallbackMessage;
-}
 
 function toSignupGender(gender: "male" | "female" | "") {
   if (gender === "male") {
@@ -40,6 +27,7 @@ function toSignupBirth(birthDate: string) {
 
 export function PasswordSetup() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const email = useSignupPageStore((state) => state.email);
   const name = useSignupPageStore((state) => state.name);
   const birthDate = useSignupPageStore((state) => state.birthDate);
@@ -72,7 +60,7 @@ export function PasswordSetup() {
     const signupGender = toSignupGender(gender);
 
     if (!signupGender) {
-      setErrorMessage("성별을 다시 선택해주세요.");
+      setErrorMessage(t('signup.genderRequired'));
       return;
     }
 
@@ -91,12 +79,9 @@ export function PasswordSetup() {
 
       navigate("/signup/complete");
     } catch (error) {
-      setErrorMessage(
-        getApiErrorMessage(
-          error,
-          "회원가입을 완료할 수 없습니다. 다시 시도해주세요."
-        )
-      );
+      const apiError = error as { response?: { data?: { message?: string } } };
+      const message = apiError?.response?.data?.message;
+      setErrorMessage(message || t('signup.signupFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -110,40 +95,40 @@ export function PasswordSetup() {
 
   return (
     <MobileLayout
-      title="회원가입"
+      title={t('signup.title')}
       onBack={handleBack}
       bottomContent={
         <Btn_1Col onClick={handleSignup} disabled={!canContinue}>
-          {isSubmitting ? "처리 중" : "다음"}
+          {isSubmitting ? t('login.submitting') : t('signup.next')}
         </Btn_1Col>
       }
     >
       <SignupContent className="space-y-10">
         <section>
           <h2 className="text-2xl font-semibold leading-tight">
-            비밀번호를 입력해주세요
+            {t('signup.passwordHeading')}
           </h2>
         </section>
 
         <section className="space-y-6">
           <div className="space-y-2">
             <PasswordInputGroup
-              label="비밀번호"
-              placeholder="비밀번호 입력"
+              label={t('login.password')}
+              placeholder={t('login.passwordPlaceholder')}
               value={password}
               onChange={setPassword}
               visible={isPasswordVisible}
               onToggleVisible={() => setPasswordVisible((value) => !value)}
             />
             <p className="text-sm text-muted-foreground">
-              영문, 숫자, 특수문자 조합 8~16자리
+              {t('signup.passwordFormatHint')}
             </p>
           </div>
 
           <div className="space-y-2">
             <PasswordInputGroup
-              label="비밀번호 확인"
-              placeholder="비밀번호 확인"
+              label={t('signup.passwordConfirmLabel')}
+              placeholder={t('signup.passwordConfirmPlaceholder')}
               value={passwordConfirm}
               onChange={setPasswordConfirm}
               visible={isConfirmVisible}
@@ -151,7 +136,7 @@ export function PasswordSetup() {
             />
             {hasMismatch && (
               <p className="text-sm text-red-500">
-                비밀번호가 일치하지 않습니다.
+                {t('signup.passwordMismatch')}
               </p>
             )}
             {errorMessage && (

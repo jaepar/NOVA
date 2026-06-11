@@ -1,18 +1,19 @@
-import type { KeyboardEvent, MouseEvent } from "react";
-import { MoreVertical } from "lucide-react";
-import { AppButton } from "../../components/design-system/AppButton";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
-import { novaToast } from "../../components/design-system/toast";
-import type { AccountHomeResponse } from "../../../api";
+import type { KeyboardEvent, MouseEvent } from 'react'
+import { MoreVertical } from 'lucide-react'
+import { AppButton } from '../../components/design-system/AppButton'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { novaToast } from '../../components/design-system/toast'
+import { useTranslation } from '../../i18n'
+import type { AccountHomeResponse } from '../../../api'
 
 interface MainAccountPanelProps {
-  isLoggedIn: boolean;
-  accountHome: AccountHomeResponse | null;
-  isLoading: boolean;
-  onLoginClick: () => void;
-  onOpenCertificateSheet: () => void;
-  onOpenAccount: () => void;
-  onAccountPanelClick: () => void;
+  isLoggedIn: boolean
+  accountHome: AccountHomeResponse | null
+  isLoading: boolean
+  onLoginClick: () => void
+  onOpenCertificateSheet: () => void
+  onOpenAccount: () => void
+  onAccountPanelClick: () => void
 }
 
 export function MainAccountPanel({
@@ -24,6 +25,8 @@ export function MainAccountPanel({
   onOpenAccount,
   onAccountPanelClick,
 }: MainAccountPanelProps) {
+  const { t } = useTranslation()
+
   if (isLoggedIn && isLoading) {
     return (
       <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
@@ -33,7 +36,7 @@ export function MainAccountPanel({
         </div>
         <div className="h-14 w-full rounded-xl bg-muted animate-pulse" />
       </div>
-    );
+    )
   }
 
   if (!isLoggedIn) {
@@ -41,92 +44,80 @@ export function MainAccountPanel({
       <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
         <div className="space-y-3">
           <div className="space-y-1">
-            <h3 className="font-semibold text-base">안전한 금융 생활을 시작하세요</h3>
-            <p className="text-sm leading-5 text-muted-foreground">로그인 후 금융 서비스를 이용할 수 있어요.</p>
+            <h3 className="font-semibold text-base">{t('main.loginPanelTitle')}</h3>
+            <p className="text-sm leading-5 text-muted-foreground">{t('main.loginPanelDescription')}</p>
           </div>
         </div>
         <div className="mt-5">
-          <Btn_1Col onClick={onLoginClick}>로그인</Btn_1Col>
+          <Btn_1Col onClick={onLoginClick}>{t('login.login')}</Btn_1Col>
         </div>
       </div>
-    );
+    )
   }
 
-  if (!accountHome || accountHome.uiState === "NEED_CERTIFICATE") {
+  if (!accountHome || accountHome.uiState === 'NEED_CERTIFICATE') {
     return (
       <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
         <div className="space-y-2">
-          <h3 className="font-semibold text-base">
-            계좌 개설로 더 다양한 서비스를 이용하세요
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            인증서 발급 후 계좌 개설을 이어갈 수 있어요.
-          </p>
+          <h3 className="font-semibold text-base">{t('main.certificateRequiredTitle')}</h3>
+          <p className="text-sm text-muted-foreground">{t('main.certificateRequiredDescription')}</p>
         </div>
-        <Btn_1Col onClick={onOpenCertificateSheet}>인증서 발급하기</Btn_1Col>
+        <Btn_1Col onClick={onOpenCertificateSheet}>{t('main.issueCertificate')}</Btn_1Col>
       </div>
-    );
+    )
   }
 
-  if (accountHome.uiState === "CERTIFICATE_ISSUING") {
+  if (accountHome.uiState === 'CERTIFICATE_ISSUING') {
     return (
       <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-center">
         <div className="space-y-4">
           <div className="space-y-2">
-            <h3 className="font-semibold text-base">
-              인증서 발급이 진행중이에요
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              발급이 완료되면 계좌 개설을 진행할 수 있어요.
-            </p>
+            <h3 className="font-semibold text-base">{t('main.certificateIssuingTitle')}</h3>
+            <p className="text-sm text-muted-foreground">{t('main.certificateIssuingDescription')}</p>
           </div>
           <p className="rounded-lg bg-background/60 px-3 py-2.5 text-center text-sm font-medium text-foreground">
-            제출한 서류를 심사 중입니다.
+            {t('main.reviewingDocuments')}
           </p>
         </div>
       </div>
-    );
+    )
   }
 
-  if (accountHome.uiState === "READY_TO_OPEN_ACCOUNT") {
+  if (accountHome.uiState === 'READY_TO_OPEN_ACCOUNT') {
     return (
       <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
         <div className="space-y-2">
-          <h3 className="font-semibold text-base">
-            아직 계좌가 개설되지 않았어요.
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            계좌를 개설해 새로운 일상을 시작해보세요.
-          </p>
+          <h3 className="font-semibold text-base">{t('main.readyToOpenTitle')}</h3>
+          <p className="text-sm text-muted-foreground">{t('main.readyToOpenDescription')}</p>
         </div>
-        <Btn_1Col onClick={onOpenAccount}>계좌 개설하기</Btn_1Col>
+        <Btn_1Col onClick={onOpenAccount}>{t('main.openAccount')}</Btn_1Col>
       </div>
-    );
+    )
   }
 
-  const account = accountHome.account;
+  const account = accountHome.account
 
   if (!account) {
-    return null;
+    return null
   }
 
   const handleCopyAccountNumber = async (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
+    event.stopPropagation()
 
     try {
-      await navigator.clipboard.writeText(account.accountNumber);
-      novaToast.success("계좌번호가 복사되었습니다.");
+      await navigator.clipboard.writeText(account.accountNumber)
+      novaToast.success(t('main.accountNumberCopied'))
     } catch {
-      novaToast.error("계좌번호 복사에 실패했습니다.");
+      novaToast.error(t('main.accountNumberCopyFailed'))
     }
-  };
+  }
 
   const handlePanelKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      onAccountPanelClick();
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onAccountPanelClick()
     }
-  };
+  }
 
   return (
     <div
@@ -146,7 +137,7 @@ export function MainAccountPanel({
               <span className="font-medium">{account.accountName}</span>
               {account.hasLimit && (
                 <span className="rounded-full bg-white/20 px-2 py-1 text-[10px] font-medium">
-                  한도제한
+                  {t('main.limitedAccount')}
                 </span>
               )}
             </div>
@@ -169,11 +160,9 @@ export function MainAccountPanel({
       </div>
 
       <div>
-        <p className="text-sm text-white/80 mb-1">잔액</p>
-        <p className="text-2xl font-semibold">
-          {account.balance.toLocaleString("ko-KR")} 원
-        </p>
+        <p className="text-sm text-white/80 mb-1">{t('main.balance')}</p>
+        <p className="text-2xl font-semibold">{account.balance.toLocaleString('ko-KR')} 원</p>
       </div>
     </div>
-  );
+  )
 }

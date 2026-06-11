@@ -1,27 +1,41 @@
-﻿import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Camera, Lightbulb, ScanFace } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { useTranslation } from "../../i18n";
+
+const guideItems = [
+  { key: "account.livenessGuide.item1", icon: ScanFace },
+  { key: "account.livenessGuide.item2", icon: Lightbulb },
+  { key: "account.livenessGuide.item3", icon: Camera },
+] as const;
 
 export function LivenessGuide() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <MobileLayout
-      title="비대면 실명확인"
+      title={t("account.identityTitle", "비대면 실명확인")}
+      titleKey="account.identityTitle"
       backPath="/account/step-05"
       bottomContent={
         <Btn_1Col onClick={() => navigate("/account/step-07")}>
-          동의하고 촬영하기
+          {t("account.livenessGuide.agreeAndCapture", "동의하고 촬영하기")}
         </Btn_1Col>
       }
     >
       <div className="space-y-5 pb-2">
         <section className="space-y-1">
           <h2 className="text-2xl font-semibold leading-tight">
-            본인 확인을 위해
-            <br />
-            얼굴을 촬영해 주세요
+            {t("account.livenessGuide.heading", "본인 확인을 위해\n얼굴을 촬영해 주세요")
+              .split("\n")
+              .map((line, index, lines) => (
+                <span key={`${line}-${index}`}>
+                  {line}
+                  {index < lines.length - 1 && <br />}
+                </span>
+              ))}
           </h2>
         </section>
 
@@ -32,36 +46,23 @@ export function LivenessGuide() {
               <ScanFace className="h-16 w-16 text-blue-400" />
             </div>
             <p className="text-sm text-muted-foreground">
-              얼굴 촬영 가이드 영역
+              {t("account.livenessGuide.guideArea", "얼굴 촬영 가이드 영역")}
             </p>
           </div>
         </section>
 
         <section className="space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
-              <ScanFace className="h-4 w-4" />
-            </div>
-            <p className="text-sm leading-relaxed">
-              얼굴을 안내 영역에 맞추고 정면을 바라봐 주세요.
-            </p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
-              <Lightbulb className="h-4 w-4" />
-            </div>
-            <p className="text-sm leading-relaxed">
-              너무 밝거나 어둡지 않은 곳에서 진행해 주세요.
-            </p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
-              <Camera className="h-4 w-4" />
-            </div>
-            <p className="text-sm leading-relaxed">
-              모바일 화면 카메라를 켠 상태에서 얼굴 가까이로 이동해 주세요.
-            </p>
-          </div>
+          {guideItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.key} className="flex items-start gap-3">
+                <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <p className="text-sm leading-relaxed">{t(item.key)}</p>
+              </div>
+            );
+          })}
         </section>
       </div>
     </MobileLayout>

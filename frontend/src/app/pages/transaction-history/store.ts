@@ -41,9 +41,9 @@ interface TransactionHistoryStore {
 }
 
 export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, get) => ({
-  selectedPeriod: '1개월',
-  selectedType: '전체',
-  selectedSort: '최신순',
+  selectedPeriod: 'ONE_MONTH',
+  selectedType: 'ALL',
+  selectedSort: 'DESC',
   searchKeyword: '',
   showBalance: true,
   customDateFrom: '',
@@ -82,7 +82,7 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
       set({ account })
       await get().fetchTransactions(0)
     } catch {
-      set({ errorMessage: '거래내역을 불러오지 못했습니다.', isLoading: false })
+      set({ errorMessage: 'transactionHistory.loadError', isLoading: false })
     }
   },
   fetchTransactions: async (nextPage = 0) => {
@@ -103,7 +103,7 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
         page: 0,
         hasNext: false,
         isLoading: false,
-        errorMessage: '조회 기간을 확인해주세요.',
+        errorMessage: 'transactionHistory.dateRangeError',
       })
       return
     }
@@ -144,7 +144,7 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
         }
       })
     } catch {
-      set({ errorMessage: '거래내역을 불러오지 못했습니다.', isLoading: false })
+      set({ errorMessage: 'transactionHistory.loadError', isLoading: false })
     }
   },
   fetchTransactionForDetail: async (transactionId) => {
@@ -171,7 +171,7 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
         state.customDateFrom,
         state.customDateTo
       )
-      const selectedPeriod = useCurrentDateRange ? state.selectedPeriod : '1개월'
+      const selectedPeriod = useCurrentDateRange ? state.selectedPeriod : 'ONE_MONTH'
       const customDateFrom = useCurrentDateRange ? state.customDateFrom : ''
       const customDateTo = useCurrentDateRange ? state.customDateTo : ''
       let nextPage = 0
@@ -182,7 +182,7 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
           account.accountId,
           createTransactionQuery({
             selectedPeriod,
-            selectedType: '전체',
+            selectedType: 'ALL',
             selectedSort: state.selectedSort,
             searchKeyword: '',
             customDateFrom,
@@ -209,7 +209,7 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
 
       set({ isLoading: false })
     } catch {
-      set({ errorMessage: '거래내역을 불러오지 못했습니다.', isLoading: false })
+      set({ errorMessage: 'transactionHistory.loadError', isLoading: false })
     }
   },
   updateTransactionMemo: async (transactionId, memo) => {
@@ -232,7 +232,7 @@ export const useTransactionHistoryStore = create<TransactionHistoryStore>((set, 
         isUpdatingMemo: false,
       }))
     } catch {
-      set({ errorMessage: '메모를 저장하지 못했습니다.', isUpdatingMemo: false })
+      set({ errorMessage: 'transactionHistory.memoSaveError', isUpdatingMemo: false })
       throw new Error('Failed to update transaction memo')
     }
   },

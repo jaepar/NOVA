@@ -7,36 +7,38 @@ import { PinInputBottomSheet } from "../../components/design-system/PinInputBott
 import { novaToast } from "../../components/design-system/toast";
 import { bankingApi } from "../../../api";
 import { useAccountCreateFlowStore } from "../../stores/pageStores";
+import { useTranslation } from "../../i18n";
 
 const ACCOUNT_TYPE = "DEMAND_DEPOSIT";
 const ACCOUNT_NAME = "우리 SUPER주거래 통장";
 
-const JOB_CODE_MAP: Record<string, string> = {
-  기업소득자: "EMPLOYED",
-  자영업자: "SELF_EMPLOYED",
-  전업투자자: "FULL_TIME_INVESTOR",
-  연금소득자: "PENSIONER",
-  주부: "HOMEMAKER",
-  학생: "STUDENT",
-  "무직 등": "UNEMPLOYED",
-};
+const JOB_CODES = new Set([
+  "EMPLOYED",
+  "SELF_EMPLOYED",
+  "FULL_TIME_INVESTOR",
+  "PENSIONER",
+  "HOMEMAKER",
+  "STUDENT",
+  "UNEMPLOYED",
+]);
 
-const PURPOSE_CODE_MAP: Record<string, string> = {
-  "저축 및 투자": "SAVING_AND_INVESTMENT",
-  "급여 및 생활비": "SALARY_AND_LIVING_EXPENSES",
-  "사업상 거래": "BUSINESS_TRANSACTION",
-  "상속·증여성 거래 등": "INHERITANCE_OR_GIFT",
-};
+const PURPOSE_CODES = new Set([
+  "SAVING_AND_INVESTMENT",
+  "SALARY_AND_LIVING_EXPENSES",
+  "BUSINESS_TRANSACTION",
+  "INHERITANCE_OR_GIFT",
+]);
 
-const SOURCE_CODE_MAP: Record<string, string> = {
-  "근로 및 연금소득": "EARNED_AND_PENSION_INCOME",
-  사업소득: "BUSINESS_INCOME",
-  금융소득: "FINANCIAL_INCOME",
-  기타: "OTHER",
-};
+const SOURCE_CODES = new Set([
+  "EARNED_AND_PENSION_INCOME",
+  "BUSINESS_INCOME",
+  "FINANCIAL_INCOME",
+  "OTHER",
+]);
 
 export function Step14AccountPasswordSetup() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isPinSheetOpen, setIsPinSheetOpen] = useState(false);
   const [pinSetupStep, setPinSetupStep] = useState<"first" | "confirm">(
     "first"
@@ -70,7 +72,7 @@ export function Step14AccountPasswordSetup() {
     }
 
     setIsPinVerified(false);
-    novaToast.error("비밀번호가 일치하지 않습니다. 다시 입력해 주세요.");
+    novaToast.error(t("account.passwordSetup.mismatch", "비밀번호가 일치하지 않습니다. 다시 입력해 주세요."));
     setPinSetupStep("confirm");
     setPinSheetKey((prev) => prev + 1);
   };
@@ -104,12 +106,15 @@ export function Step14AccountPasswordSetup() {
   };
 
   const submitAccountCreate = async () => {
-    const jobCode = JOB_CODE_MAP[job];
-    const purposeCode = PURPOSE_CODE_MAP[transactionPurpose];
-    const sourceCode = SOURCE_CODE_MAP[fundSource];
-
-    if (!address || !addressDetail || !jobCode || !purposeCode || !sourceCode || !firstPin) {
-      novaToast.error("계좌 개설 정보가 올바르지 않습니다. 이전 단계부터 다시 확인해 주세요.");
+    if (
+      !address ||
+      !addressDetail ||
+      !JOB_CODES.has(job) ||
+      !PURPOSE_CODES.has(transactionPurpose) ||
+      !SOURCE_CODES.has(fundSource) ||
+      !firstPin
+    ) {
+      novaToast.error(t("account.passwordSetup.invalidInfo", "계좌 개설 정보가 올바르지 않습니다. 이전 단계부터 다시 확인해 주세요."));
       return;
     }
 
@@ -123,10 +128,10 @@ export function Step14AccountPasswordSetup() {
           address,
           addressDetail,
         },
-        job: jobCode,
+        job,
         transactionInfo: {
-          purpose: purposeCode,
-          source: sourceCode,
+          purpose: transactionPurpose,
+          source: fundSource,
         },
         hasForeignTax,
         accountPassword: firstPin,
@@ -138,7 +143,7 @@ export function Step14AccountPasswordSetup() {
     } catch {
       resetPinState();
       setIsPinSheetOpen(true);
-      novaToast.error("계좌 개설 요청에 실패했습니다. 비밀번호를 다시 입력해 주세요.");
+      novaToast.error(t("account.passwordSetup.createFailed", "계좌 개설 요청에 실패했습니다. 비밀번호를 다시 입력해 주세요."));
     } finally {
       setIsSubmitting(false);
     }
@@ -147,20 +152,30 @@ export function Step14AccountPasswordSetup() {
   return (
     <>
       <MobileLayout
-        title="입출금계좌 개설"
+        title={t("account.openingHeader", "입출금계좌 개설")}
+        titleKey="account.openingHeader"
         backPath="/account/step-13"
         bottomContent={
           <Btn_1Col onClick={handlePrimaryAction} disabled={isSubmitting}>
-            {isSubmitting ? "처리 중" : isPinVerified ? "다음" : "비밀번호 등록하기"}
+            {isSubmitting
+              ? t("account.passwordSetup.submitting", "처리 중")
+              : isPinVerified
+                ? t("account.next", "다음")
+                : t("account.passwordSetup.registerPassword", "비밀번호 등록하기")}
           </Btn_1Col>
         }
       >
         <div className="space-y-8 pb-2">
           <section className="space-y-2 text-center pt-6">
             <h2 className="text-2xl leading-tight font-semibold text-foreground">
-              계좌 비밀번호를
-              <br />
-              등록해 주세요
+              {t("account.passwordSetup.heading", "계좌 비밀번호를\n등록해 주세요")
+                .split("\n")
+                .map((line, index, lines) => (
+                  <span key={`${line}-${index}`}>
+                    {line}
+                    {index < lines.length - 1 && <br />}
+                  </span>
+                ))}
             </h2>
           </section>
 
@@ -176,17 +191,27 @@ export function Step14AccountPasswordSetup() {
             <div className="flex items-start gap-3 rounded-xl border border-border bg-background px-4 py-3">
               <Shield className="w-5 h-5 text-primary mt-0.5" />
               <p className="text-sm text-foreground">
-                금융사기 피해예방을 위해
-                <br />
-                한도제한계좌로 개설됩니다
+                {t("account.passwordSetup.limitNotice", "금융사기 피해예방을 위해\n한도제한계좌로 개설합니다.")
+                  .split("\n")
+                  .map((line, index, lines) => (
+                    <span key={`${line}-${index}`}>
+                      {line}
+                      {index < lines.length - 1 && <br />}
+                    </span>
+                  ))}
               </p>
             </div>
             <div className="flex items-start gap-3 rounded-xl border border-border bg-background px-4 py-3">
               <Wallet className="w-5 h-5 text-primary mt-0.5" />
               <p className="text-sm text-foreground">
-                1일 이체한도 30만원으로
-                <br />
-                자동 설정됩니다
+                {t("account.passwordSetup.transferLimitNotice", "1일 이체한도 30만원으로\n자동 설정됩니다.")
+                  .split("\n")
+                  .map((line, index, lines) => (
+                    <span key={`${line}-${index}`}>
+                      {line}
+                      {index < lines.length - 1 && <br />}
+                    </span>
+                  ))}
               </p>
             </div>
           </section>
@@ -199,8 +224,8 @@ export function Step14AccountPasswordSetup() {
         onClose={handlePinSheetClose}
         title={
           pinSetupStep === "first"
-            ? "사용하실 비밀번호를 입력해 주세요"
-            : "비밀번호를 한 번 더 입력해 주세요"
+            ? t("account.passwordSetup.pinFirstTitle", "사용하실 비밀번호를 입력해 주세요")
+            : t("account.passwordSetup.pinConfirmTitle", "비밀번호를 한 번 더 입력해 주세요")
         }
         pinLength={4}
         onComplete={handlePinComplete}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BottomSheet } from '../../../components/layout/BottomSheet'
 import { Btn_1Col } from '../../../components/design-system/Btn_1Col'
 import { CommonInputGroup } from '../../../components/design-system/CommonInputGroup'
+import { useTranslation } from '../../../i18n'
 
 interface TransactionMemoSheetProps {
   isOpen: boolean
@@ -20,6 +21,7 @@ export function TransactionMemoSheet({
   onClose,
   onSave,
 }: TransactionMemoSheetProps) {
+  const { t } = useTranslation()
   const [memo, setMemo] = useState(initialMemo)
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export function TransactionMemoSheet({
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title="메모"
+      title={t('transactionHistory.memoLabel')}
       height="280px"
       bottomAction={
         <Btn_1Col
@@ -41,13 +43,13 @@ export function TransactionMemoSheet({
           }}
           disabled={isSaving}
         >
-          {isSaving ? '저장 중' : '저장'}
+          {isSaving ? t('transactionHistory.memoSaving') : t('transactionHistory.memoSave')}
         </Btn_1Col>
       }
       bottomActionClassName="px-0"
     >
       <CommonInputGroup
-        placeholder="메모 입력 (최대 20자)"
+        placeholder={t('transactionHistory.memoMaxLengthPlaceholder')}
         value={memo}
         onChange={setMemo}
         maxLength={memoMaxLength}

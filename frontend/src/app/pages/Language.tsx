@@ -1,27 +1,27 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import { AppButton } from '../components/design-system/AppButton'
 import { Btn_1Col } from '../components/design-system/Btn_1Col'
 import { CommonInputGroup } from '../components/design-system/CommonInputGroup'
 import { languages } from '../data/languages'
+import { useTranslation } from '../i18n'
 import { getOnboardingLanguage, saveOnboardingLanguage } from '../utils/onboardingStorage'
-import { Check } from 'lucide-react'
 
 export function Language() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [selectedLanguage, setSelectedLanguage] = useState<string>(
     () => getOnboardingLanguage() ?? languages[0].id
   )
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   const handleConfirm = () => {
-    // 선택된 언어를 저장하고 로그인/회원가입 진입 페이지로 이동
     saveOnboardingLanguage(selectedLanguage)
-    navigate('/login', { state: { fromLanguage: true } })
+    navigate('/main')
   }
 
-  // 검색어로 언어 목록 필터링
   const filteredLanguages = useMemo(() => {
     if (!searchQuery.trim()) {
       return languages
@@ -37,23 +37,22 @@ export function Language() {
   return (
     <MobileLayout
       title="Language"
+      titleKey="language.title"
       backPath="/landing"
-      bottomContent={<Btn_1Col onClick={handleConfirm}>확인</Btn_1Col>}
+      bottomContent={<Btn_1Col onClick={handleConfirm}>{t('common.confirm')}</Btn_1Col>}
     >
       <div className="space-y-4">
-        {/* Search Bar */}
         <CommonInputGroup
-          label="언어 검색"
-          placeholder="언어 이름을 입력하세요"
+          label={t('language.searchLabel')}
+          placeholder={t('language.searchPlaceholder')}
           value={searchQuery}
           onChange={setSearchQuery}
           showSearchIcon={true}
         />
 
-        {/* Language List */}
         <div className="space-y-2">
           {filteredLanguages.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">검색 결과가 없습니다</div>
+            <div className="text-center py-8 text-muted-foreground">{t('language.empty')}</div>
           ) : (
             filteredLanguages.map((language) => (
               <AppButton

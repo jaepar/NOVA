@@ -1,7 +1,7 @@
 import { FileText } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { userApi } from '../../../api'
+import { getUserApiError, userApi } from '../../../api'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '../../components/ui/dialog'
 import { languages } from '../../data/languages'
+import { translateError, useTranslation } from '../../i18n'
 import { useMainPageStore } from '../../stores/pageStores'
 import { PortfolioItem, useProfileStore } from '../../stores/profileStore'
 
@@ -34,6 +35,7 @@ function isImagePreviewUrl(value?: string) {
 
 export function Profile() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const isLoggedIn = useMainPageStore((state) => state.isLoggedIn)
   const profile = useProfileStore((state) => state.profile)
   const portfolioItems = useProfileStore((state) => state.portfolios)
@@ -50,28 +52,41 @@ export function Profile() {
 
     try {
       const response = await userApi.getProfile()
-      setProfileFromResponse(response, profile?.languageId)
+      setProfileFromResponse(response)
     } catch (error) {
-      setErrorMessage('프로필 정보를 불러오지 못했습니다.')
+      const apiError = getUserApiError(error)
+      setErrorMessage(translateError(apiError?.code, apiError?.message || t('profile.loadFailedFallback')))
     } finally {
       setIsLoading(false)
     }
-  }, [isLoggedIn, profile?.languageId, setProfileFromResponse])
+  }, [isLoggedIn, setProfileFromResponse, t])
 
   useEffect(() => {
-    void fetchProfile()
-  }, [fetchProfile])
+    if (isLoggedIn && !profile) {
+      void fetchProfile()
+    }
+  }, [isLoggedIn, profile, fetchProfile])
+
+  const genderDisplay: Record<string, string> = {
+    male: t('profile.genderMale'),
+    female: t('profile.genderFemale'),
+  }
+  const statusDisplay: Record<string, string> = {
+    owned: t('profile.statusOwned'),
+    notOwned: t('profile.statusNotOwned'),
+    pending: t('profile.statusPending'),
+  }
 
   const selectedLanguage = profile
     ? languages.find((language) => language.id === profile.languageId)?.name ?? profile.languageId
     : '-'
   const profileRows = profile
     ? [
-        { label: '생년월일', value: profile.birthDate },
-        { label: '성별', value: profile.gender },
-        { label: '언어 설정', value: selectedLanguage },
-        { label: '인증서 보유 여부', value: profile.hasCertificate },
-        { label: '외국인 등록증 보유 여부', value: profile.hasForeignerCard },
+        { label: t('profile.birthDate'), value: profile.birthDate },
+        { label: t('profile.genderLabel'), value: genderDisplay[profile.gender] ?? profile.gender },
+        { label: t('profile.languageSetting'), value: selectedLanguage },
+        { label: t('profile.hasCertificate'), value: statusDisplay[profile.hasCertificate] ?? profile.hasCertificate },
+        { label: t('profile.hasForeignerCard'), value: statusDisplay[profile.hasForeignerCard] ?? profile.hasForeignerCard },
       ]
     : []
   const selectedPortfolioStyle = selectedPortfolio
@@ -80,29 +95,29 @@ export function Profile() {
   const isSelectedPortfolioImage = isImagePreviewUrl(selectedPortfolio?.url)
 
   const bottomContent = !isLoggedIn ? (
-    <Btn_1Col onClick={() => navigate('/login/form')}>로그인하기</Btn_1Col>
+    <Btn_1Col onClick={() => navigate('/login/form')}>{t('profile.login')}</Btn_1Col>
   ) : undefined
 
   return (
     <MobileLayout
-      title="프로필"
+      title={t('profile.title')}
       headerType="back"
       backPath="/main"
       bottomContent={bottomContent}
     >
       {!isLoggedIn ? (
         <CenteredTaskContent
-          task="로그인이 필요합니다"
-          description="프로필 정보를 확인하려면 먼저 로그인해주세요."
+          task={t('profile.loginRequiredTask')}
+          description={t('profile.loginRequiredDescription')}
         />
       ) : isLoading ? (
         <CenteredTaskContent
-          task="프로필 정보를 불러오고 있습니다"
-          description="잠시만 기다려주세요."
+          task={t('profile.loadingTask')}
+          description={t('profile.loadingDescription')}
         />
       ) : errorMessage ? (
-        <CenteredTaskContent task={errorMessage} description="잠시 후 다시 시도해주세요.">
-          <Btn_1Col onClick={fetchProfile}>다시 시도</Btn_1Col>
+        <CenteredTaskContent task={errorMessage} description={t('profile.retryDescription')}>
+          <Btn_1Col onClick={fetchProfile}>{t('profile.retry')}</Btn_1Col>
         </CenteredTaskContent>
       ) : profile ? (
         <div className="-mb-28 flex min-h-full flex-col gap-4 pb-5 pt-3">
@@ -131,10 +146,10 @@ export function Profile() {
           </section>
 
           <section className="flex min-h-[320px] shrink-0 flex-col gap-3 rounded-lg border border-border p-4">
-            <h3 className="text-sm font-semibold text-foreground">포트폴리오 목록</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('profile.portfolioList')}</h3>
             {portfolioItems.length === 0 ? (
               <div className="flex flex-1 items-center justify-center">
-                <p className="text-xs text-muted-foreground">등록된 포트폴리오가 없어요</p>
+                <p className="text-xs text-muted-foreground">{t('profile.portfolioEmpty')}</p>
               </div>
             ) : (
               <div className="overflow-hidden rounded-lg border border-border">
@@ -168,15 +183,15 @@ export function Profile() {
           </section>
 
           <section className="pt-2">
-            <Btn_1Col onClick={() => navigate('/mypage/edit')}>회원정보 수정</Btn_1Col>
+            <Btn_1Col onClick={() => navigate('/mypage/edit')}>{t('profile.edit')}</Btn_1Col>
           </section>
         </div>
       ) : (
         <CenteredTaskContent
-          task="프로필 정보가 없습니다"
-          description="프로필 정보를 다시 불러와주세요."
+          task={t('profile.emptyTask')}
+          description={t('profile.emptyDescription')}
         >
-          <Btn_1Col onClick={fetchProfile}>다시 시도</Btn_1Col>
+          <Btn_1Col onClick={fetchProfile}>{t('profile.retry')}</Btn_1Col>
         </CenteredTaskContent>
       )}
 
@@ -189,10 +204,10 @@ export function Profile() {
         <DialogContent className="flex h-[620px] max-w-[342px] flex-col rounded-lg p-5">
           <DialogHeader>
             <DialogTitle className="truncate text-base">
-              {selectedPortfolio?.name ?? '선택한 파일을 확인합니다.'}
+              {selectedPortfolio?.name ?? t('profile.dialogDefaultTitle')}
             </DialogTitle>
             <DialogDescription className="sr-only">
-              선택한 포트폴리오 파일의 미리보기입니다.
+              {t('profile.dialogDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -202,20 +217,20 @@ export function Profile() {
                 <div className="flex h-full w-full items-center justify-center bg-[#f8fafc]">
                   <img
                     src={selectedPortfolio.url}
-                    alt={`${selectedPortfolio.name} 미리보기`}
+                    alt={`${selectedPortfolio.name} ${t('profile.portfolioList')}`}
                     className="h-full w-full object-contain"
                   />
                 </div>
               ) : selectedPortfolio.url ? (
                 <iframe
-                  title={`${selectedPortfolio.name} 미리보기`}
+                  title={`${selectedPortfolio.name} ${t('profile.portfolioList')}`}
                   src={selectedPortfolio.url}
                   className="h-full w-full border-0"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center px-5 text-center">
                   <p className="text-sm text-muted-foreground">
-                    저장 전 파일은 저장 후 다시 확인할 수 있습니다.
+                    {t('profile.previewUnavailable')}
                   </p>
                 </div>
               )}

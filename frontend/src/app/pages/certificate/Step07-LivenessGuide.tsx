@@ -2,26 +2,28 @@ import { useNavigate } from "react-router-dom";
 import { Camera, Lightbulb, ScanFace } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { useTranslation } from "../../i18n";
 
 export function LivenessGuide() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <MobileLayout
-      title="비대면 실명확인"
+      title={t("certificate.title")}
       backPath="/certificate/step-06"
       bottomContent={
         <Btn_1Col onClick={() => navigate("/certificate/step-08")}>
-          동의하고 촬영하기
+          {t("certificate.agreeAndCapture")}
         </Btn_1Col>
       }
     >
       <div className="space-y-5 pb-2">
         <section className="space-y-1">
           <h2 className="text-2xl font-semibold leading-tight">
-            본인 확인을 위해
+            {t("certificate.step07HeadingLine1")}
             <br />
-            얼굴을 촬영해 주세요
+            {t("certificate.step07HeadingLine2")}
           </h2>
         </section>
 
@@ -32,7 +34,7 @@ export function LivenessGuide() {
               <ScanFace className="h-16 w-16 text-blue-400" />
             </div>
             <p className="text-sm text-muted-foreground">
-              얼굴 촬영 가이드 영역
+              {t("certificate.step07GuideArea")}
             </p>
           </div>
         </section>
@@ -43,7 +45,7 @@ export function LivenessGuide() {
               <ScanFace className="h-4 w-4" />
             </div>
             <p className="text-sm leading-relaxed">
-              얼굴을 안내 영역에 맞추고 정면을 바라봐 주세요.
+              {t("certificate.step07Guide1")}
             </p>
           </div>
           <div className="flex items-start gap-3">
@@ -51,7 +53,7 @@ export function LivenessGuide() {
               <Lightbulb className="h-4 w-4" />
             </div>
             <p className="text-sm leading-relaxed">
-              너무 밝거나 어둡지 않은 곳에서 진행해 주세요.
+              {t("certificate.step07Guide2")}
             </p>
           </div>
           <div className="flex items-start gap-3">
@@ -59,7 +61,7 @@ export function LivenessGuide() {
               <Camera className="h-4 w-4" />
             </div>
             <p className="text-sm leading-relaxed">
-              모바일 화면 카메라를 켠 상태에서 얼굴 가까이로 이동해 주세요.
+              {t("certificate.step07Guide3")}
             </p>
           </div>
         </section>
