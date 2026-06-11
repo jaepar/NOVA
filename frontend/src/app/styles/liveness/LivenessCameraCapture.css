@@ -246,26 +246,6 @@
   display: none !important;
 }
 
-.nova-liveness-surface .amplify-liveness-video-anchor::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 137px;
-  height: 226px;
-  transform: translate(-50%, -50%);
-  border: 3px solid rgba(255, 255, 255, 0.95);
-  border-radius: 9999px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
-  pointer-events: none;
-  opacity: 0;
-}
-
-.nova-liveness-surface.nova-liveness-active
-  .amplify-liveness-video-anchor::after {
-  opacity: 1;
-}
-
 /* 실패/오류 후 재촬영 대기용 빈 카메라 프레임 */
 .nova-liveness-placeholder {
   position: relative;

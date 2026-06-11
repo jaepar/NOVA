@@ -420,9 +420,7 @@ export function LivenessCameraCapture() {
       }
     >
       <div
-        className={`space-y-4 nova-liveness-surface ${
-          hasStartedLiveness ? "nova-liveness-active" : ""
-        }`}
+        className="space-y-4 nova-liveness-surface"
         ref={detectorContainerRef}
       >
         {isDetectorVisible && sessionId && credentialProvider && (
