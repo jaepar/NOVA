@@ -15,6 +15,7 @@ import {
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { Btn_2Col } from "../../components/design-system/Btn_2Col";
 import { InlineBanner } from "../../components/design-system/InlineBanner";
+import { novaToast } from "../../components/design-system/toast";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { useStep5PassportCaptureStore } from "../../stores/pageStores";
 import { CameraCapturePage } from "../../components/camera/CameraCapturePage";
@@ -139,7 +140,13 @@ export function PassportCameraCapture() {
     try {
       const ocrResult = await certificateApi.recognizePassport(imageFile);
 
-      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult));
+      if (ocrResult.nameMatchWithUser === false) {
+        novaToast.error("여권 이름이 회원 정보와 일치하지 않습니다.");
+        setMode("live");
+        return;
+      }
+
+      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult.result));
       setCapturedImage(imageDataUrl);
       setMode("review");
     } catch (error) {
