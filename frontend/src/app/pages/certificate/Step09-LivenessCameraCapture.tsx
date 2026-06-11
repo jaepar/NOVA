@@ -71,6 +71,17 @@ export function LivenessCameraCapture() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [hasStartedLiveness, setHasStartedLiveness] = useState(false);
 
+  const triggerSdkStart = () => {
+    const root = detectorContainerRef.current;
+    if (!root) return;
+
+    const startButton = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("button")
+    ).find((button) => button.textContent?.trim() === "얼굴 인증 시작");
+
+    startButton?.click();
+  };
+
   const navigateToStep08 = () => {
     navigate(STEP08_PATH, {
       replace: true,
@@ -274,9 +285,9 @@ export function LivenessCameraCapture() {
     if (!root) return;
 
     const attachStartButtonHandler = () => {
-      const startButton = Array.from(root.querySelectorAll<HTMLButtonElement>("button")).find(
-        (button) => button.textContent?.trim() === "얼굴 인증 시작"
-      );
+      const startButton = Array.from(
+        root.querySelectorAll<HTMLButtonElement>("button")
+      ).find((button) => button.textContent?.trim() === "얼굴 인증 시작");
       if (!startButton) return () => {};
 
       const onStart = () => setHasStartedLiveness(true);
@@ -416,11 +427,17 @@ export function LivenessCameraCapture() {
           <Btn_1Col onClick={handleRetry} disabled={isRetrying}>
             {isRetrying ? "재촬영 준비 중..." : "재촬영"}
           </Btn_1Col>
+        ) : isDetectorVisible && isCameraActive && !hasStartedLiveness ? (
+          <Btn_1Col onClick={triggerSdkStart}>얼굴 인증 시작</Btn_1Col>
         ) : undefined
       }
     >
       <div
-        className="space-y-4 nova-liveness-surface"
+        className={`space-y-4 nova-liveness-surface ${
+          isDetectorVisible && isCameraActive && !hasStartedLiveness
+            ? "nova-liveness-prestart"
+            : ""
+        }`}
         ref={detectorContainerRef}
       >
         {isDetectorVisible && sessionId && credentialProvider && (
