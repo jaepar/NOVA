@@ -297,7 +297,7 @@ export function PassportCameraCapture() {
       contentBackgroundColor="#ffffff"
       contentTextColor="#000000"
       bottomContent={
-        <div className="space-y-4">
+        <div className="space-y-2">
           <div className="flex items-center justify-center gap-2 text-xs text-black">
             <ShieldCheck className="w-4 h-4" />
             <p>여권이 일그러지거나 빛 반사가 없도록 주의해 주세요</p>
