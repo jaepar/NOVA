@@ -27,4 +27,9 @@ export const userApi = {
 
     return response.data.data;
   },
+  deleteNotification: async (notificationId: number): Promise<void> => {
+    await apiClient.post<UserApiResponse<null>>(
+      `/users/notifications/${notificationId}/delete`
+    );
+  },
 };

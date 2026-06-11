@@ -13,6 +13,7 @@ interface MainHeaderActionsProps {
   notificationsError: boolean
   onNotificationsClick: () => void
   onNotificationsClose: () => void
+  onNotificationClick: (notification: NotificationResponse) => void
   onMenuClick: () => void
 }
 
@@ -25,6 +26,7 @@ export function MainHeaderActions({
   notificationsError,
   onNotificationsClick,
   onNotificationsClose,
+  onNotificationClick,
   onMenuClick,
 }: MainHeaderActionsProps) {
   const notificationRef = useRef<HTMLDivElement>(null)
@@ -80,6 +82,7 @@ export function MainHeaderActions({
           notifications={notifications}
           isLoading={isNotificationsLoading}
           hasError={notificationsError}
+          onNotificationClick={onNotificationClick}
         />
       )}
     </div>

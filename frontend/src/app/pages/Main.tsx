@@ -14,15 +14,16 @@ import {
   userApi,
   type AccountHomeResponse,
   type NotificationResponse,
-} from "../../api";
-import { MainHeaderBrand } from "./main/MainHeaderBrand";
-import { MainHeaderActions } from "./main/MainHeaderActions";
-import { MainAccountPanel } from "./main/MainAccountPanel";
-import { MainJobBanner } from "./main/MainJobBanner";
-import { MainServiceGrid } from "./main/MainServiceGrid";
-import { MainExchangeRateGrid } from "./main/MainExchangeRateGrid";
-import { MainCertificateSheetContent } from "./main/MainCertificateSheetContent";
-import type { ExchangeRateItem, ServiceItem } from "./main/types";
+} from '../../api'
+import { MainHeaderBrand } from './main/MainHeaderBrand'
+import { MainHeaderActions } from './main/MainHeaderActions'
+import { MainAccountPanel } from './main/MainAccountPanel'
+import { MainJobBanner } from './main/MainJobBanner'
+import { MainServiceGrid } from './main/MainServiceGrid'
+import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
+import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
+import { CertificateIssuedModal } from './main/CertificateIssuedModal'
+import type { ExchangeRateItem, ServiceItem } from './main/types'
 
 export function Main() {
   const navigate = useNavigate();
@@ -52,6 +53,7 @@ export function Main() {
   );
   const [isNotificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState(false);
+  const [isCertificateIssuedModalOpen, setCertificateIssuedModalOpen] = useState(false);
   const [isHospitalChatStarting, setHospitalChatStarting] = useState(false);
 
   const services: ServiceItem[] = [
@@ -185,12 +187,42 @@ export function Main() {
     }
   };
 
+  const dismissNotification = (notificationId: number) => {
+    const nextNotifications = notifications.filter(
+      (notification) => notification.notificationId !== notificationId
+    );
+
+    setNotifications(nextNotifications);
+    setHasUnreadNotifications(nextNotifications.length > 0);
+
+    userApi.deleteNotification(notificationId).catch(() => undefined);
+  };
+
+  const handleNotificationClick = (notification: NotificationResponse) => {
+    setNotificationOpen(false);
+
+    if (notification.type === "SUPPLEMENT_DOCUMENT") {
+      navigate("/certificate/corrections");
+      return;
+    }
+
+    if (notification.type === "CERTIFICATE_ISSUED") {
+      dismissNotification(notification.notificationId);
+      setCertificateIssuedModalOpen(true);
+    }
+  };
+
   const handleIssueCertificate = () => {
     setCertificateSheetOpen(false);
     navigate("/certificate/step-01");
   };
 
   const handleOpenAccount = () => {
+    navigate("/account/step-01");
+  };
+
+  const handleOpenAccountFromIssuedModal = () => {
+    setCertificateIssuedModalOpen(false);
     navigate("/account/step-01");
   };
 
@@ -223,6 +255,7 @@ export function Main() {
             notificationsError={notificationsError}
             onNotificationsClick={handleNotificationsClick}
             onNotificationsClose={() => setNotificationOpen(false)}
+            onNotificationClick={handleNotificationClick}
             onMenuClick={() => {
               setNotificationOpen(false);
               setMenuOpen(true);
@@ -285,6 +318,12 @@ export function Main() {
           onIssueClick={handleIssueCertificate}
         />
       </BottomSheet>
+
+      <CertificateIssuedModal
+        isOpen={isCertificateIssuedModalOpen}
+        onClose={() => setCertificateIssuedModalOpen(false)}
+        onOpenAccount={handleOpenAccountFromIssuedModal}
+      />
     </div>
   );
 }

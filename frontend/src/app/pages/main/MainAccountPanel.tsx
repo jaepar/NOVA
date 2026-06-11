@@ -70,20 +70,20 @@ export function MainAccountPanel({
 
   if (accountHome.uiState === "CERTIFICATE_ISSUING") {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
-        <div className="space-y-3">
+      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-center">
+        <div className="space-y-4">
           <div className="space-y-2">
             <h3 className="font-semibold text-base">
-              인증서 발급이 진행 중이에요
+              인증서 발급이 진행중이에요
             </h3>
             <p className="text-sm text-muted-foreground">
-              발급이 완료되면 바로 계좌 개설을 진행할 수 있어요.
+              발급이 완료되면 계좌 개설을 진행할 수 있어요.
             </p>
           </div>
+          <p className="rounded-lg bg-background/60 px-3 py-2.5 text-center text-sm font-medium text-foreground">
+            제출한 서류를 심사 중입니다.
+          </p>
         </div>
-        <Btn_1Col variant="secondary" disabled>
-          발급 중
-        </Btn_1Col>
       </div>
     );
   }
