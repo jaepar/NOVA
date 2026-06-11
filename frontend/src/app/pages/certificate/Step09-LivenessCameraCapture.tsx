@@ -18,9 +18,6 @@ const registeredImageBucket =
   (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_BUCKET as
     | string
     | undefined) ?? "nova-object-bucket";
-const registeredImageKey =
-  (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_KEY as string | undefined) ??
-  "goverment/KOR-M592W1577/profile.jpg";
 const STEP08_PATH = "/certificate/step-08";
 
 const livenessDisplayText = {
@@ -51,6 +48,12 @@ export function LivenessCameraCapture() {
   const navigate = useNavigate();
   const sessionId = useLivenessFlowStore((state) => state.sessionId);
   const expiresAt = useLivenessFlowStore((state) => state.expiresAt);
+  const registeredPassportIssueCountry = useLivenessFlowStore(
+    (state) => state.registeredPassportIssueCountry
+  );
+  const registeredPassportNumber = useLivenessFlowStore(
+    (state) => state.registeredPassportNumber
+  );
   const setSession = useLivenessFlowStore((state) => state.setSession);
   const resetSession = useLivenessFlowStore((state) => state.resetSession);
 
@@ -303,6 +306,18 @@ export function LivenessCameraCapture() {
       identityPoolId: identityPoolId!,
     });
   }, [hasAwsConfig]);
+
+  const registeredImageKey = useMemo(() => {
+    if (registeredPassportIssueCountry && registeredPassportNumber) {
+      return `goverment/${registeredPassportIssueCountry}-${registeredPassportNumber}/profile.jpg`;
+    }
+
+    return (
+      (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_KEY as
+        | string
+        | undefined) ?? "goverment/KOR-M592W1577/profile.jpg"
+    );
+  }, [registeredPassportIssueCountry, registeredPassportNumber]);
 
   const handleAnalysisComplete = async () => {
     if (!sessionId) return;
