@@ -1,5 +1,6 @@
 const ONBOARDING_COMPLETED_KEY = "nova:onboardingCompleted";
-const LANGUAGE_KEY = "nova:language";
+const LANGUAGE_COOKIE_NAME = "NOVA_LANGUAGE";
+const LANGUAGE_COOKIE_MAX_AGE_SECONDS = 31_536_000;
 
 function getLocalStorage() {
   if (typeof window === "undefined") {
@@ -18,9 +19,26 @@ export function completeOnboarding() {
 }
 
 export function saveOnboardingLanguage(languageId: string) {
-  getLocalStorage()?.setItem(LANGUAGE_KEY, languageId);
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.cookie = [
+    `${LANGUAGE_COOKIE_NAME}=${encodeURIComponent(languageId)}`,
+    "Path=/",
+    `Max-Age=${LANGUAGE_COOKIE_MAX_AGE_SECONDS}`,
+    "SameSite=Lax",
+  ].join("; ");
 }
 
 export function getOnboardingLanguage() {
-  return getLocalStorage()?.getItem(LANGUAGE_KEY) ?? null;
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const languageCookie = document.cookie
+    .split("; ")
+    .find((cookie) => cookie.startsWith(`${LANGUAGE_COOKIE_NAME}=`));
+
+  return languageCookie ? decodeURIComponent(languageCookie.split("=")[1]) : null;
 }

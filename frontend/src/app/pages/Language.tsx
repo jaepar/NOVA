@@ -5,12 +5,14 @@ import { AppButton } from '../components/design-system/AppButton'
 import { Btn_1Col } from '../components/design-system/Btn_1Col'
 import { CommonInputGroup } from '../components/design-system/CommonInputGroup'
 import { languages } from '../data/languages'
-import { saveOnboardingLanguage } from '../utils/onboardingStorage'
+import { getOnboardingLanguage, saveOnboardingLanguage } from '../utils/onboardingStorage'
 import { Check } from 'lucide-react'
 
 export function Language() {
   const navigate = useNavigate()
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(languages[0].id)
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(
+    () => getOnboardingLanguage() ?? languages[0].id
+  )
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   const handleConfirm = () => {
