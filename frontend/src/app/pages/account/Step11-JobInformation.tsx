@@ -5,6 +5,7 @@ import { MobileLayout } from "../../components/layout/MobileLayout";
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
+import { useAccountCreateFlowStore } from "../../stores/pageStores";
 
 const jobOptions = [
   "기업소득자",
@@ -18,12 +19,13 @@ const jobOptions = [
 
 export function Step11JobInformation() {
   const navigate = useNavigate();
-  const [selectedJob, setSelectedJob] = useState("");
+  const selectedJob = useAccountCreateFlowStore((state) => state.job);
+  const setJob = useAccountCreateFlowStore((state) => state.setJob);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const canSubmit = useMemo(() => selectedJob.length > 0, [selectedJob]);
 
   const handleSelectJob = (job: string) => {
-    setSelectedJob(job);
+    setJob(job);
     setIsSheetOpen(false);
   };
 

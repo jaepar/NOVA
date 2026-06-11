@@ -5,7 +5,13 @@ import { BottomNav } from '../components/layout/BottomNav'
 import { SideMenu } from '../components/layout/SideMenu'
 import { BottomSheet } from '../components/layout/BottomSheet'
 import { useMainPageStore } from '../stores/pageStores'
-import { authApi, bankingApi, type AccountHomeResponse } from '../../api'
+import {
+  authApi,
+  bankingApi,
+  userApi,
+  type AccountHomeResponse,
+  type NotificationResponse,
+} from '../../api'
 import { MainHeaderBrand } from './main/MainHeaderBrand'
 import { MainHeaderActions } from './main/MainHeaderActions'
 import { MainAccountPanel } from './main/MainAccountPanel'
@@ -29,12 +35,19 @@ export function Main() {
     (state) => state.isCertificateSheetOpen
   );
   const setMenuOpen = useMainPageStore((state) => state.setMenuOpen);
+  const setHasUnreadNotifications = useMainPageStore(
+    (state) => state.setHasUnreadNotifications
+  );
   const setCertificateSheetOpen = useMainPageStore(
     (state) => state.setCertificateSheetOpen
   );
   const logout = useMainPageStore((state) => state.logout);
   const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(null);
   const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
+  const [isNotificationOpen, setNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
+  const [isNotificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState(false);
 
   const services: ServiceItem[] = [
     {
@@ -71,6 +84,7 @@ export function Main() {
       if (!isLoggedIn) {
         if (isMounted) {
           setAccountHome(null);
+          setHasUnreadNotifications(false);
           setAccountHomeLoading(false);
         }
         return;
@@ -85,10 +99,12 @@ export function Main() {
 
         if (isMounted) {
           setAccountHome(nextAccountHome);
+          setHasUnreadNotifications(nextAccountHome.hasNotification);
         }
       } catch {
         if (isMounted) {
           setAccountHome(null);
+          setHasUnreadNotifications(false);
         }
       } finally {
         if (isMounted) {
@@ -104,6 +120,37 @@ export function Main() {
     };
   }, [isLoggedIn]);
 
+  const loadNotifications = async () => {
+    if (!isLoggedIn) {
+      setNotifications([]);
+      setNotificationsError(false);
+      return;
+    }
+
+    setNotificationsLoading(true);
+    setNotificationsError(false);
+
+    try {
+      const nextNotifications = await userApi.getNotifications();
+      setNotifications(nextNotifications);
+      setHasUnreadNotifications(nextNotifications.length > 0);
+    } catch {
+      setNotifications([]);
+      setNotificationsError(true);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  const handleNotificationsClick = () => {
+    const willOpen = !isNotificationOpen;
+    setNotificationOpen(willOpen);
+
+    if (willOpen) {
+      loadNotifications();
+    }
+  };
+
   const handleIssueCertificate = () => {
     setCertificateSheetOpen(false);
     navigate("/certificate/step-01");
@@ -118,6 +165,8 @@ export function Main() {
       await authApi.logout();
       logout();
       setAccountHome(null);
+      setNotifications([]);
+      setNotificationOpen(false);
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -133,8 +182,17 @@ export function Main() {
         headerRightContent={
           <MainHeaderActions
             hasUnreadNotifications={hasUnreadNotifications}
-            onNotificationsClick={() => navigate("/notifications")}
-            onMenuClick={() => setMenuOpen(true)}
+            isLoggedIn={isLoggedIn}
+            isNotificationOpen={isNotificationOpen}
+            notifications={notifications}
+            isNotificationsLoading={isNotificationsLoading}
+            notificationsError={notificationsError}
+            onNotificationsClick={handleNotificationsClick}
+            onNotificationsClose={() => setNotificationOpen(false)}
+            onMenuClick={() => {
+              setNotificationOpen(false);
+              setMenuOpen(true);
+            }}
           />
         }
       >
@@ -148,6 +206,7 @@ export function Main() {
               onSignupClick={() => navigate("/signup")}
               onOpenCertificateSheet={() => setCertificateSheetOpen(true)}
               onOpenAccount={handleOpenAccount}
+              onAccountPanelClick={() => navigate("/transaction-history")}
             />
           </section>
 

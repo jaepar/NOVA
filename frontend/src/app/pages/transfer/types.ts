@@ -2,6 +2,7 @@ import {
   type TransferBankOption,
   TRANSFER_BANK_OPTIONS,
 } from '../../data/accountNumberDetector'
+import type { TransferPreviewResponse } from '../../../api'
 
 export type BankOption = TransferBankOption
 export type MemoType = 'recipient' | 'sender'
@@ -26,6 +27,23 @@ export const BANK_LOGO_SRC: Record<string, string> = {
   kbank: new URL('./assets/kbank.png', import.meta.url).href,
   suhyup: new URL('./assets/suhyup.png', import.meta.url).href,
 }
+
+export const BANK_CODE_BY_ID: Record<string, string> = {
+  woori: 'WOORI',
+  kb: 'KOOKMIN',
+  shinhan: 'SHINHAN',
+  nonghyup: 'NH',
+  hana: 'HANA',
+  ibk: 'IBK',
+  sc: 'SC',
+  busan: 'BUSAN',
+  kakao: 'KAKAO',
+  toss: 'TOSS',
+  kbank: 'KBANK',
+  suhyup: 'SUHYUP',
+}
+
+export type TransferPreview = TransferPreviewResponse
 
 export function normalizeAccountNumber(value: string) {
   return value.replace(/\D/g, '').slice(0, 14)

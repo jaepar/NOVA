@@ -1,99 +1,219 @@
 import apiClient from "../client";
+import { extractApiErrorBody } from "../utils";
 
 type BankingApiResponse<T> = {
-  success: boolean;
-  code: string;
-  message: string;
-  data: T;
+    success: boolean;
+    code: string;
+    message: string;
+    data: T;
 };
 
-export type CertificateStatus = "NOT_ISSUED" | "PENDING" | "ISSUED";
-
 export type AccountHomeUiState =
-  | "NEED_CERTIFICATE"
-  | "CERTIFICATE_ISSUING"
-  | "READY_TO_OPEN_ACCOUNT"
-  | "HAS_ACCOUNT";
+    | "NEED_CERTIFICATE"
+    | "CERTIFICATE_ISSUING"
+    | "READY_TO_OPEN_ACCOUNT"
+    | "HAS_ACCOUNT";
 
 export type AccountSummary = {
-  accountName: string;
-  accountNumber: string;
-  bankName: string;
-  balance: number;
-  hasLimit: boolean;
+    accountId: number;
+    accountName: string;
+    accountNumber: string;
+    bankName: string;
+    balance: number;
+    hasLimit: boolean;
 };
 
 export type AccountHomeResponse = {
-  hasAccount: boolean;
-  certificateStatus: CertificateStatus;
   uiState: AccountHomeUiState;
   account: AccountSummary | null;
+  hasNotification: boolean;
 };
 
-const DEV_ACCOUNT_HOME_MOCKS = {
-  needCertificate: {
-    hasAccount: false,
-    certificateStatus: "NOT_ISSUED",
-    uiState: "NEED_CERTIFICATE",
-    account: null,
-  } satisfies AccountHomeResponse,
-  certificateIssuing: {
-    hasAccount: false,
-    certificateStatus: "PENDING",
-    uiState: "CERTIFICATE_ISSUING",
-    account: null,
-  } satisfies AccountHomeResponse,
-  readyToOpenAccount: {
-    hasAccount: false,
-    certificateStatus: "ISSUED",
-    uiState: "READY_TO_OPEN_ACCOUNT",
-    account: null,
-  } satisfies AccountHomeResponse,
-  hasLimitedAccount: {
-    hasAccount: true,
-    certificateStatus: "ISSUED",
-    uiState: "HAS_ACCOUNT",
-    account: {
-      accountName: "NOVA 입출금통장",
-      accountNumber: "1080-312-345678",
-      bankName: "우리은행",
-      balance: 150000,
-      hasLimit: true,
-    },
-  } satisfies AccountHomeResponse,
-  hasGeneralAccount: {
-    hasAccount: true,
-    certificateStatus: "ISSUED",
-    uiState: "HAS_ACCOUNT",
-    account: {
-      accountName: "NOVA 생활통장",
-      accountNumber: "1080-999-123456",
-      bankName: "우리은행",
-      balance: 2840000,
-      hasLimit: false,
-    },
-  } satisfies AccountHomeResponse,
-} as const;
+export type AccountCreateRequest = {
+  accountType: string;
+  accountName: string;
+  customerInfo: {
+    address: string;
+    addressDetail: string;
+  };
+  job: string;
+  transactionInfo: {
+    purpose: string;
+    source: string;
+  };
+  hasForeignTax: boolean;
+  accountPassword: string;
+};
 
-// 여기의 preset만 바꿔서 메인 화면 렌더링을 테스트하면 됩니다.
-// 예: DEV_ACCOUNT_HOME_MOCKS.certificateIssuing
-const DEV_MOCK_ACCOUNT_HOME_RESPONSE: AccountHomeResponse =
-  DEV_ACCOUNT_HOME_MOCKS.hasGeneralAccount;
+export type AccountCreateResponse = {
+  accountId: number;
+  bankCode: string;
+  accountNumber: string;
+};
 
-function getDevAccountHome(): AccountHomeResponse {
-  return DEV_MOCK_ACCOUNT_HOME_RESPONSE;
+export type TransferPreviewRequest = {
+  recipientBankCode: string;
+  recipientAccountNumber: string;
+};
+
+export type TransferRequest = {
+  withdrawAccountId: string;
+  depositAccountId: string;
+  transferAmount: number;
+  accountPassword: string;
+};
+
+export type TransferPreviewResponse = {
+  myAccount: {
+    accountName: string;
+    accountNumber: string;
+    balance: number;
+    transferLimit: number;
+    userName: string;
+  };
+  recipient: {
+    recipientName: string;
+  };
+};
+
+export type BankingApiErrorBody = {
+  success: false;
+  code: string;
+  message: string;
+  data: null;
+};
+
+export type TransactionPeriod = "ONE_WEEK" | "ONE_MONTH" | "CUSTOM";
+export type TransactionFlowFilter = "ALL" | "DEPOSIT" | "WITHDRAWAL";
+export type TransactionSortDirection = "ASC" | "DESC";
+export type TransactionType =
+  | "SMART_WITHDRAWAL"
+  | "CASH_IC"
+  | "CHECK_CARD"
+  | "ACCOUNT_TRANSFER"
+  | "ATM_WITHDRAWAL"
+  | "ATM_DEPOSIT"
+  | "AUTO_DEBIT"
+  | "WALLET_CHARGE"
+  | "FEE"
+  | "GLOBAL_REMITTANCE"
+  | "GLOBAL_REMITTANCE_REFUND";
+
+export type GetTransactionsParams = {
+  period?: TransactionPeriod;
+  flow?: TransactionFlowFilter;
+  from?: string;
+  to?: string;
+  keyword?: string;
+  sortDirection?: TransactionSortDirection;
+  page?: number;
+  size?: number;
+};
+
+export type BankingTransaction = {
+  transactionId: number;
+  transactionFlow: TransactionFlowFilter;
+  transactionType: TransactionType;
+  counterParty: string;
+  amount: number;
+  balanceAfter: number;
+  memo: string | null;
+  transactionDateTime: string;
+};
+
+export type BankingTransactionsResponse = {
+  accountId: number;
+  period: TransactionPeriod;
+  flow: TransactionFlowFilter;
+  transactions: BankingTransaction[];
+  page: number;
+  size: number;
+  hasNext: boolean;
+};
+
+export type UpdateTransactionMemoRequest = {
+  memo: string | null;
+};
+
+type AccountHomeApiResponse = Omit<AccountHomeResponse, "hasNotification"> & {
+    has_notification: boolean;
+};
+
+function normalizeAccountHome(response: AccountHomeApiResponse): AccountHomeResponse {
+  return {
+    uiState: response.uiState,
+    account: response.account,
+    hasNotification: response.has_notification,
+  };
 }
 
 export const bankingApi = {
   getHome: async (): Promise<AccountHomeResponse> => {
-    if (import.meta.env.DEV) {
-      return getDevAccountHome();
-    }
-
     const response = await apiClient.get<
-      BankingApiResponse<AccountHomeResponse>
+      BankingApiResponse<AccountHomeApiResponse>
     >("/banking/home");
+
+    return normalizeAccountHome(response.data.data);
+  },
+  createAccount: async (
+    payload: AccountCreateRequest
+  ): Promise<AccountCreateResponse> => {
+    const response = await apiClient.post<
+      BankingApiResponse<AccountCreateResponse>
+    >("/banking", payload);
 
     return response.data.data;
   },
+  previewTransfer: async (
+    request: TransferPreviewRequest
+  ): Promise<TransferPreviewResponse> => {
+    const response = await apiClient.post<
+      BankingApiResponse<TransferPreviewResponse>
+    >("/banking/transfers/preview", request);
+
+    return response.data.data;
+  },
+  transfer: async (
+    request: TransferRequest,
+    idempotencyKey: string
+  ): Promise<void> => {
+    const response = await apiClient.post<BankingApiResponse<null>>(
+      "/banking/transfers",
+      request,
+      {
+        headers: {
+          "Idempotency-Key": idempotencyKey,
+        },
+      }
+    );
+
+    if (!response.data.success) {
+      throw response.data;
+    }
+  },
+  getTransactions: async (
+    accountId: number,
+    params: GetTransactionsParams = {}
+  ): Promise<BankingTransactionsResponse> => {
+    const response = await apiClient.get<
+      BankingApiResponse<BankingTransactionsResponse>
+    >(`/banking/${accountId}/transactions`, {
+      params,
+    });
+
+    return response.data.data;
+  },
+  updateTransactionMemo: async (
+    transactionId: number,
+    request: UpdateTransactionMemoRequest
+  ): Promise<void> => {
+    await apiClient.patch<BankingApiResponse<null>>(
+      `/banking/transactions/${transactionId}/memo`,
+      request
+    );
+  },
 };
+
+export function getBankingApiError(error: unknown): BankingApiErrorBody | null {
+    return extractApiErrorBody<BankingApiErrorBody>(error);
+}

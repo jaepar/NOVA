@@ -30,7 +30,7 @@ export const useMainPageStore = create<MainPageState>((set) => ({
   isAuthChecked: false,
   userId: null,
   hasAccount: false,
-  hasUnreadNotifications: true,
+  hasUnreadNotifications: false,
   isCertificateSheetOpen: false,
   setMenuOpen: (open) => set({ isMenuOpen: open }),
   setLoggedIn: (loggedIn) =>
@@ -40,13 +40,25 @@ export const useMainPageStore = create<MainPageState>((set) => ({
       userId: loggedIn ? state.userId : null,
     })),
   setAuthenticated: (userId) => set({ isLoggedIn: true, isAuthChecked: true, userId }),
-  clearAuth: () => set({ isLoggedIn: false, isAuthChecked: true, userId: null }),
+  clearAuth: () =>
+    set({
+      isLoggedIn: false,
+      isAuthChecked: true,
+      userId: null,
+      hasUnreadNotifications: false,
+    }),
   setHasAccount: (hasAccount) => set({ hasAccount }),
   setHasUnreadNotifications: (hasUnreadNotifications) => set({ hasUnreadNotifications }),
   setCertificateSheetOpen: (isCertificateSheetOpen) => set({ isCertificateSheetOpen }),
   logout: () => {
     clearSessionStorage()
-    set({ isLoggedIn: false, isAuthChecked: true, userId: null, hasAccount: false })
+    set({
+      isLoggedIn: false,
+      isAuthChecked: true,
+      userId: null,
+      hasAccount: false,
+      hasUnreadNotifications: false,
+    })
   },
 }))
 
@@ -460,4 +472,39 @@ export const useConsentCarouselTemplateStore = create<ConsentCarouselTemplateSta
           : Math.max(0, currentIndex),
     })),
   reset: () => set({ currentIndex: 0 }),
+}))
+
+interface AccountCreateFlowState {
+  address: string
+  addressDetail: string
+  job: string
+  isOwner: boolean
+  transactionPurpose: string
+  fundSource: string
+  hasForeignTax: boolean
+  setCustomerInfo: (address: string, addressDetail: string) => void
+  setJob: (job: string) => void
+  setTransactionInfo: (isOwner: boolean, transactionPurpose: string, fundSource: string) => void
+  setHasForeignTax: (hasForeignTax: boolean) => void
+  reset: () => void
+}
+
+const initialAccountCreateFlowState = {
+  address: '',
+  addressDetail: '',
+  job: '',
+  isOwner: false,
+  transactionPurpose: '',
+  fundSource: '',
+  hasForeignTax: false,
+}
+
+export const useAccountCreateFlowStore = create<AccountCreateFlowState>((set) => ({
+  ...initialAccountCreateFlowState,
+  setCustomerInfo: (address, addressDetail) => set({ address, addressDetail }),
+  setJob: (job) => set({ job }),
+  setTransactionInfo: (isOwner, transactionPurpose, fundSource) =>
+    set({ isOwner, transactionPurpose, fundSource }),
+  setHasForeignTax: (hasForeignTax) => set({ hasForeignTax }),
+  reset: () => set(initialAccountCreateFlowState),
 }))

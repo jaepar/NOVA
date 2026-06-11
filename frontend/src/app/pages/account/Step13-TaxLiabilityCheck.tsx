@@ -5,6 +5,7 @@ import { MobileLayout } from "../../components/layout/MobileLayout";
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
+import { useAccountCreateFlowStore } from "../../stores/pageStores";
 
 type YesNo = "yes" | "no" | "";
 
@@ -17,7 +18,11 @@ const taxQuestions = [
 
 export function Step13TaxLiabilityCheck() {
   const navigate = useNavigate();
-  const [taxLiability, setTaxLiability] = useState<"none" | "exists">("none");
+  const hasForeignTax = useAccountCreateFlowStore((state) => state.hasForeignTax);
+  const setHasForeignTax = useAccountCreateFlowStore((state) => state.setHasForeignTax);
+  const [taxLiability, setTaxLiability] = useState<"none" | "exists">(
+    hasForeignTax ? "exists" : "none"
+  );
   const [answers, setAnswers] = useState<YesNo[]>(["", "", "", ""]);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
@@ -41,7 +46,10 @@ export function Step13TaxLiabilityCheck() {
         bottomContent={
           <Btn_1Col
             disabled={!canProceed}
-            onClick={() => navigate("/account/step-14")}
+            onClick={() => {
+              setHasForeignTax(taxLiability === "exists");
+              navigate("/account/step-14");
+            }}
           >
             다음
           </Btn_1Col>
@@ -66,7 +74,10 @@ export function Step13TaxLiabilityCheck() {
               <AppButton
                 type="button"
                 variant="unstyled"
-                onClick={() => setTaxLiability("none")}
+                onClick={() => {
+                  setTaxLiability("none");
+                  setHasForeignTax(false);
+                }}
                 className={`rounded-xl border py-3 transition-colors ${
                   taxLiability === "none"
                     ? "border-primary bg-primary text-primary-foreground"
@@ -78,7 +89,10 @@ export function Step13TaxLiabilityCheck() {
               <AppButton
                 type="button"
                 variant="unstyled"
-                onClick={() => setTaxLiability("exists")}
+                onClick={() => {
+                  setTaxLiability("exists");
+                  setHasForeignTax(true);
+                }}
                 className={`rounded-xl border py-3 transition-colors ${
                   taxLiability === "exists"
                     ? "border-primary bg-primary text-primary-foreground"

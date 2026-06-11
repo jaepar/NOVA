@@ -38,7 +38,7 @@ flowchart LR
 ## Do
 
 - 계약 우선: `backend <-> coreBanking` API 스펙을 먼저 고정하고 구현한다.
-- 상태 전이 명시: `REQUESTED -> REVIEWING -> APPROVED/REJECTED -> COMPLETED/FAILED` 같은 거래 상태 흐름을 명확히 둔다.
+- 상태 전이 명시: 해외송금은 `PENDING -> SUCCESS/FAILED` 상태 흐름을 명확히 두고, `FAILED`는 `failure_reason`으로 실패 원인을 구분한다.
 - 감사 추적: 계좌개설/비밀번호검증/이체/해외송금은 요청-검증-처리-결과 이벤트 로그를 남긴다.
 - 장애 격리: FDS/대외 연동/DB 장애를 구분해 재시도 정책과 타임아웃을 분리한다.
 - 정합성 우선: 응답 속도보다 이중차감/중복이체 방지를 우선한다.

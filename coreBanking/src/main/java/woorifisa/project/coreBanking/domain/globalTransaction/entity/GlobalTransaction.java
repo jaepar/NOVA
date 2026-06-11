@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 import woorifisa.project.coreBanking.domain.account.entity.Account;
 import woorifisa.project.coreBanking.domain.customer.entity.Customer;
 import woorifisa.project.coreBanking.domain.globalTransaction.entity.enums.CurrencyCode;
+import woorifisa.project.coreBanking.domain.globalTransaction.entity.enums.GlobalTransactionFailureReason;
 import woorifisa.project.coreBanking.domain.globalTransaction.entity.enums.GlobalTransactionStatus;
 import woorifisa.project.coreBanking.domain.globalTransaction.entity.enums.MediaryFeePayer;
 import woorifisa.project.coreBanking.global.entity.BaseEntity;
@@ -97,6 +98,12 @@ public class GlobalTransaction extends BaseEntity {
     @Column(name = "receiver_district", length = 100)
     private String receiverDistrict;
 
+    @Column(name = "receiver_city", length = 100)
+    private String receiverCity;
+
+    @Column(name = "receiver_zip_code", length = 50)
+    private String receiverZipCode;
+
     @Column(name = "receiver_phone", length = 100)
     private String receiverPhone;
 
@@ -115,7 +122,24 @@ public class GlobalTransaction extends BaseEntity {
     @Column(name = "remit_reason", nullable = false)
     private String remitReason;
 
+    @Column(name = "external_request_id", length = 100, nullable = false, unique = true)
+    private String externalRequestId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private GlobalTransactionStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "failure_reason", length = 100)
+    private GlobalTransactionFailureReason failureReason;
+
+    public void markSuccess() {
+        this.status = GlobalTransactionStatus.SUCCESS;
+        this.failureReason = null;
+    }
+
+    public void markFailed(GlobalTransactionFailureReason failureReason) {
+        this.status = GlobalTransactionStatus.FAILED;
+        this.failureReason = failureReason;
+    }
 }

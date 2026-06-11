@@ -12,6 +12,7 @@ interface SuccessProps {
   visualImageSrc?: string
   visualImageAlt?: string
   buttonText?: string
+  buttonDisabled?: boolean
   onButtonClick?: () => void
   redirectPath?: string
   headerType?: 'back' | 'none'
@@ -24,6 +25,7 @@ export function Success({
   visualImageSrc,
   visualImageAlt = '성공 이미지',
   buttonText = '확인',
+  buttonDisabled = false,
   onButtonClick,
   redirectPath = '/main',
   headerType = 'back',
@@ -44,7 +46,7 @@ export function Success({
       headerType={headerType}
       bottomBackgroundColor="transparent"
       bottomContent={
-        <Btn_1Col variant="primary" onClick={handleConfirm}>
+        <Btn_1Col variant="primary" onClick={handleConfirm} disabled={buttonDisabled}>
           {buttonText}
         </Btn_1Col>
       }

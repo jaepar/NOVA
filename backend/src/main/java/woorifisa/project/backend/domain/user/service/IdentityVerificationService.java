@@ -1,7 +1,6 @@
 package woorifisa.project.backend.domain.user.service;
 
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.IDENTITY_OCR_INVALID_DOCUMENT_TYPE;
-import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.USER_NOT_FOUND;
+import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,9 +8,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import woorifisa.project.backend.domain.user.dto.request.OcrDocumentType;
-import woorifisa.project.backend.domain.user.dto.response.ocr.IdCardOcrResponse;
 import woorifisa.project.backend.domain.user.dto.response.IdentityVerificationResponse;
-import woorifisa.project.backend.domain.user.dto.response.ocr.PassportResponse;
+import woorifisa.project.backend.domain.user.dto.response.ocr.IdCardOcrResponse;
+import woorifisa.project.backend.domain.user.dto.response.ocr.PassportOcrResponse;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.domain.user.service.ocr.IdCardOcrService;
@@ -39,22 +38,33 @@ public class IdentityVerificationService {
 		}
 
 		return switch (ocrDocumentType) {
-			case PASSPORT -> verifyPassport(file);
+			case PASSPORT -> verifyPassport(userId, file);
 			case ID_CARD -> verifyIdCard(userId, file);
 		};
 	}
 
 	// 여권 인증
-	private IdentityVerificationResponse verifyPassport(MultipartFile file) {
-		PassportResponse passportResponse = passportOcrService.recognizePassport(file);
+	private IdentityVerificationResponse verifyPassport(Long userId, MultipartFile file) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+
+		PassportOcrResponse passportOcrResponse = passportOcrService.recognizePassport(file);
+		if(!passportOcrResponse.fullNameKor().equals(user.getName())) {
+			return IdentityVerificationResponse.builder()
+				.ocrDocumentType(OcrDocumentType.PASSPORT)
+				.result(passportOcrResponse)
+				.nameMatchWithUser(false)
+				.identityMatchWithGovDb(false)
+				.verificationStatus("FAILED")
+				.failureReasonCode("IDENTITY_NAME_MISMATCH_WITH_USER")
+				.build();
+		}
+
 		return IdentityVerificationResponse.builder()
 			.ocrDocumentType(OcrDocumentType.PASSPORT)
-			.passport(passportResponse)
-			.idCard(null)
-			.nameMatchWithUser(null)
-			.identityMatchWithGovDb(null)
+			.result(passportOcrResponse)
+			.nameMatchWithUser(true)
 			.verificationStatus("OCR_EXTRACTED")
-			.failureReasonCode(null)
 			.build();
 	}
 
@@ -69,7 +79,7 @@ public class IdentityVerificationService {
 		if (!nameMatchWithUser) {
 			return IdentityVerificationResponse.builder()
 				.ocrDocumentType(OcrDocumentType.ID_CARD)
-				.idCard(idCard)
+				.result(idCard)
 				.nameMatchWithUser(false)
 				.identityMatchWithGovDb(false)
 				.verificationStatus("FAILED")
@@ -85,7 +95,7 @@ public class IdentityVerificationService {
 		if (!identityMatchWithGovDb) {
 			return IdentityVerificationResponse.builder()
 				.ocrDocumentType(OcrDocumentType.ID_CARD)
-				.idCard(idCard)
+				.result(idCard)
 				.nameMatchWithUser(true)
 				.identityMatchWithGovDb(false)
 				.verificationStatus("FAILED")
@@ -98,7 +108,7 @@ public class IdentityVerificationService {
 
 		return IdentityVerificationResponse.builder()
 			.ocrDocumentType(OcrDocumentType.ID_CARD)
-			.idCard(idCard)
+			.result(idCard)
 			.nameMatchWithUser(true)
 			.identityMatchWithGovDb(true)
 			.verificationStatus("VERIFIED")

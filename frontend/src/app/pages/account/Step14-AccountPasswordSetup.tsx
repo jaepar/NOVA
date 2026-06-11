@@ -5,6 +5,35 @@ import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { PinInputBottomSheet } from "../../components/design-system/PinInputBottomSheet";
 import { novaToast } from "../../components/design-system/toast";
+import { bankingApi } from "../../../api";
+import { useAccountCreateFlowStore } from "../../stores/pageStores";
+
+const ACCOUNT_TYPE = "DEMAND_DEPOSIT";
+const ACCOUNT_NAME = "우리 SUPER주거래 통장";
+
+const JOB_CODE_MAP: Record<string, string> = {
+  기업소득자: "EMPLOYED",
+  자영업자: "SELF_EMPLOYED",
+  전업투자자: "FULL_TIME_INVESTOR",
+  연금소득자: "PENSIONER",
+  주부: "HOMEMAKER",
+  학생: "STUDENT",
+  "무직 등": "UNEMPLOYED",
+};
+
+const PURPOSE_CODE_MAP: Record<string, string> = {
+  "저축 및 투자": "SAVING_AND_INVESTMENT",
+  "급여 및 생활비": "SALARY_AND_LIVING_EXPENSES",
+  "사업상 거래": "BUSINESS_TRANSACTION",
+  "상속·증여성 거래 등": "INHERITANCE_OR_GIFT",
+};
+
+const SOURCE_CODE_MAP: Record<string, string> = {
+  "근로 및 연금소득": "EARNED_AND_PENSION_INCOME",
+  사업소득: "BUSINESS_INCOME",
+  금융소득: "FINANCIAL_INCOME",
+  기타: "OTHER",
+};
 
 export function Step14AccountPasswordSetup() {
   const navigate = useNavigate();
@@ -15,6 +44,16 @@ export function Step14AccountPasswordSetup() {
   const [firstPin, setFirstPin] = useState("");
   const [isPinVerified, setIsPinVerified] = useState(false);
   const [pinSheetKey, setPinSheetKey] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const address = useAccountCreateFlowStore((state) => state.address);
+  const addressDetail = useAccountCreateFlowStore((state) => state.addressDetail);
+  const job = useAccountCreateFlowStore((state) => state.job);
+  const transactionPurpose = useAccountCreateFlowStore(
+    (state) => state.transactionPurpose
+  );
+  const fundSource = useAccountCreateFlowStore((state) => state.fundSource);
+  const hasForeignTax = useAccountCreateFlowStore((state) => state.hasForeignTax);
+  const resetAccountCreateFlow = useAccountCreateFlowStore((state) => state.reset);
 
   const handlePinComplete = (pin: string) => {
     if (pinSetupStep === "first") {
@@ -45,7 +84,7 @@ export function Step14AccountPasswordSetup() {
       return;
     }
 
-    navigate("/account/step-15");
+    void submitAccountCreate();
   };
 
   const handlePinSheetClose = () => {
@@ -57,14 +96,62 @@ export function Step14AccountPasswordSetup() {
     }
   };
 
+  const resetPinState = () => {
+    setFirstPin("");
+    setIsPinVerified(false);
+    setPinSetupStep("first");
+    setPinSheetKey((prev) => prev + 1);
+  };
+
+  const submitAccountCreate = async () => {
+    const jobCode = JOB_CODE_MAP[job];
+    const purposeCode = PURPOSE_CODE_MAP[transactionPurpose];
+    const sourceCode = SOURCE_CODE_MAP[fundSource];
+
+    if (!address || !addressDetail || !jobCode || !purposeCode || !sourceCode || !firstPin) {
+      novaToast.error("계좌 개설 정보가 올바르지 않습니다. 이전 단계부터 다시 확인해 주세요.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await bankingApi.createAccount({
+        accountType: ACCOUNT_TYPE,
+        accountName: ACCOUNT_NAME,
+        customerInfo: {
+          address,
+          addressDetail,
+        },
+        job: jobCode,
+        transactionInfo: {
+          purpose: purposeCode,
+          source: sourceCode,
+        },
+        hasForeignTax,
+        accountPassword: firstPin,
+      });
+
+      resetPinState();
+      resetAccountCreateFlow();
+      navigate("/account/step-15");
+    } catch {
+      resetPinState();
+      setIsPinSheetOpen(true);
+      novaToast.error("계좌 개설 요청에 실패했습니다. 비밀번호를 다시 입력해 주세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <>
       <MobileLayout
         title="입출금계좌 개설"
         backPath="/account/step-13"
         bottomContent={
-          <Btn_1Col onClick={handlePrimaryAction}>
-            {isPinVerified ? "다음" : "비밀번호 등록하기"}
+          <Btn_1Col onClick={handlePrimaryAction} disabled={isSubmitting}>
+            {isSubmitting ? "처리 중" : isPinVerified ? "다음" : "비밀번호 등록하기"}
           </Btn_1Col>
         }
       >
@@ -103,7 +190,6 @@ export function Step14AccountPasswordSetup() {
               </p>
             </div>
           </section>
-
         </div>
       </MobileLayout>
 

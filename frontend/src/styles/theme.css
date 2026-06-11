@@ -325,6 +325,76 @@
     animation: cloud-move linear infinite;
   }
 
+  .wallet-secure-keypad .kp {
+    width: 100% !important;
+    max-width: 100% !important;
+    background: transparent !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+
+  .wallet-secure-keypad .kp__grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) 60px !important;
+    grid-auto-rows: 48px !important;
+    gap: 0 !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn {
+    appearance: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    font: inherit !important;
+    color: #111111 !important;
+    user-select: none !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--num {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--ok {
+    background: #111111 !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--ok:active {
+    background: #2a2a2a !important;
+    border-color: #111111 !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--del,
+  .wallet-secure-keypad button.kp__btn--clear {
+    color: #111111 !important;
+    font-size: 14px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--num:active,
+  .wallet-secure-keypad button.kp__btn--num.mixed,
+  .wallet-secure-keypad button.kp__btn--del:active,
+  .wallet-secure-keypad button.kp__btn--clear:active {
+    background: #f3f4f6 !important;
+    border-color: #111111 !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--dummy {
+    pointer-events: none !important;
+    cursor: default !important;
+    background: #ffffff !important;
+  }
+
   @keyframes transfer-bank-dot {
     0%,
     70%,

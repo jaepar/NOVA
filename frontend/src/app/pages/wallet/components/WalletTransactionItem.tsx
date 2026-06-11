@@ -1,4 +1,4 @@
-import type { WalletTransaction } from '../data/walletMockData'
+import type { WalletTransaction } from "../data/walletTransactionTypes";
 
 interface WalletTransactionItemProps {
   transaction: WalletTransaction
@@ -11,7 +11,7 @@ export function WalletTransactionItem({
   showMonth,
   isLast,
 }: WalletTransactionItemProps) {
-  const isDeposit = transaction.amount > 0
+  const isDeposit = transaction.transactionFlow === 'DEPOSIT'
   const formattedAmount = `${isDeposit ? '+' : '-'}${Math.abs(transaction.amount).toLocaleString(
     'ko-KR'
   )}원`
