@@ -95,7 +95,7 @@ export function WalletSplash() {
 
   const handleStartWallet = () => {
     if (isLoginRequired) {
-      navigate("/login");
+      navigate("/login/form");
       return;
     }
 

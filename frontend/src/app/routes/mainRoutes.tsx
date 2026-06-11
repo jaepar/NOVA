@@ -1,4 +1,5 @@
 import type { RouteObject } from "react-router-dom";
+import { EntryRedirect } from "../pages/EntryRedirect";
 import { Home } from "../pages/Home";
 import { Language } from "../pages/Language";
 import { Landing } from "../pages/Landing";
@@ -9,7 +10,7 @@ import { Notifications } from "../pages/Notifications";
 import { DesignSystem } from "../pages/DesignSystem";
 
 export const mainRoutes: RouteObject[] = [
-  { path: "/", Component: Home },
+  { path: "/", Component: EntryRedirect },
   { path: "/home", Component: Home },
   { path: "/language", Component: Language },
   { path: "/landing", Component: Landing },
