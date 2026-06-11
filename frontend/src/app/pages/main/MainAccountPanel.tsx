@@ -13,6 +13,7 @@ interface MainAccountPanelProps {
   onOpenCertificateSheet: () => void;
   onOpenAccount: () => void;
   onAccountPanelClick: () => void;
+  onTransferClick: () => void;
 }
 
 export function MainAccountPanel({
@@ -23,6 +24,7 @@ export function MainAccountPanel({
   onOpenCertificateSheet,
   onOpenAccount,
   onAccountPanelClick,
+  onTransferClick,
 }: MainAccountPanelProps) {
   if (isLoggedIn && isLoading) {
     return (
@@ -123,9 +125,9 @@ export function MainAccountPanel({
 
     try {
       await navigator.clipboard.writeText(account.accountNumber);
-      novaToast.success("계좌번호가 복사되었습니다.");
+      novaToast.success("계좌번호를 복사했어요.");
     } catch {
-      novaToast.error("계좌번호 복사에 실패했습니다.");
+      novaToast.error("계좌번호 복사에 실패했어요.");
     }
   };
 
@@ -134,6 +136,11 @@ export function MainAccountPanel({
       event.preventDefault();
       onAccountPanelClick();
     }
+  };
+
+  const handleTransferClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onTransferClick();
   };
 
   return (
@@ -179,11 +186,20 @@ export function MainAccountPanel({
         </AppButton>
       </div>
 
-      <div>
-        <p className="text-sm text-white/80 mb-1">잔액</p>
-        <p className="text-2xl font-semibold">
-          {account.balance.toLocaleString("ko-KR")} 원
-        </p>
+      <div className="space-y-1">
+        <p className="text-sm text-white/80">잔액</p>
+        <div className="flex items-end justify-between gap-3">
+          <p className="text-2xl font-semibold">
+            {account.balance.toLocaleString("ko-KR")} 원
+          </p>
+          <AppButton
+            variant="unstyled"
+            onClick={handleTransferClick}
+            className="inline-flex h-7 shrink-0 items-center justify-center rounded-full bg-white/20 px-4 text-xs font-medium text-white transition-colors hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          >
+            이체
+          </AppButton>
+        </div>
       </div>
     </div>
   );

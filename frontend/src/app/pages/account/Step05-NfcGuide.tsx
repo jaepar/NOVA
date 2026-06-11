@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { InlineBanner } from '../../components/design-system/InlineBanner'
-import { useStep5PassportCaptureStore } from '../../stores/pageStores'
+import { useLivenessFlowStore, useStep5PassportCaptureStore } from '../../stores/pageStores'
 
 type ParsedNfcRecord = {
   recordType: string
@@ -82,6 +82,9 @@ export function NfcGuide() {
   const navigate = useNavigate()
   const parsedPassportData = useStep5PassportCaptureStore((state) => state.parsedPassportData)
   const setParsedPassportData = useStep5PassportCaptureStore((state) => state.setParsedPassportData)
+  const setRegisteredPassportIdentity = useLivenessFlowStore(
+    (state) => state.setRegisteredPassportIdentity
+  )
   const [isScanning, setIsScanning] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [isMismatchFailure, setIsMismatchFailure] = useState(false)
@@ -186,6 +189,10 @@ export function NfcGuide() {
         return
       }
 
+      setRegisteredPassportIdentity(
+        parsedPassportData.issueCountry,
+        parsedPassportData.num
+      )
       // 인증 성공 직전에만 인증 비교용 데이터를 폐기
       setParsedPassportData(null)
       setStatusMessage('NFC 인식 및 정보 비교에 성공했어요. 다음 단계로 이동합니다.')

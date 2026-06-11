@@ -139,7 +139,7 @@ export function PassportCameraCapture() {
     try {
       const ocrResult = await certificateApi.recognizePassport(imageFile);
 
-      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult));
+      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult.result));
       setCapturedImage(imageDataUrl);
       setMode("review");
     } catch (error) {
