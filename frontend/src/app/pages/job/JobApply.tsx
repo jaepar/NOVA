@@ -29,6 +29,13 @@ type LocalPortfolioFile = {
   file: File
 }
 
+type PreviewPortfolio = {
+  name: string
+  url: string
+  description: string
+  shouldRevokeUrl?: boolean
+}
+
 function createNewPortfolioFile(file: File, index: number): LocalPortfolioFile {
   return {
     id: Date.now() + index,
@@ -65,6 +72,15 @@ function getApiErrorMessage(error: unknown, fallbackMessage: string) {
   return message && message.trim().length > 0 ? message : fallbackMessage
 }
 
+function isImagePreviewUrl(value?: string) {
+  if (!value) {
+    return false
+  }
+
+  const pathname = value.split('?')[0].toLowerCase()
+  return /\.(apng|avif|gif|jpe?g|png|svg|webp)$/.test(pathname)
+}
+
 function ReadOnlyProfileField({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-2">
@@ -83,12 +99,14 @@ function PortfolioPreviewModal({
   portfolio,
   onClose,
 }: {
-  portfolio: ApplicationFormPortfolioResponse
+  portfolio: PreviewPortfolio
   onClose: () => void
 }) {
+  const isImagePreview = isImagePreviewUrl(portfolio.url)
+
   return (
     <div className="absolute inset-0 z-[80] flex items-center justify-center overflow-hidden bg-black/65 px-7 py-8">
-      <div className="flex h-[78%] w-full flex-col rounded-xl bg-background p-4 shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+      <div className="flex h-[620px] max-h-[82%] w-full flex-col rounded-xl bg-background p-4 shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
         <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -98,7 +116,7 @@ function PortfolioPreviewModal({
               <h2 className="truncate text-[17px] font-semibold text-[#111827]">
                 {portfolio.name}
               </h2>
-              <p className="text-sm text-muted-foreground">등록된 포트폴리오</p>
+              <p className="text-sm text-muted-foreground">{portfolio.description}</p>
             </div>
           </div>
           <AppButton
@@ -113,11 +131,21 @@ function PortfolioPreviewModal({
         </div>
 
         <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-white">
-          <iframe
-            title={`${portfolio.name} 미리보기`}
-            src={portfolio.url}
-            className="h-full w-full border-0"
-          />
+          {isImagePreview ? (
+            <div className="flex h-full w-full items-center justify-center bg-[#f8fafc]">
+              <img
+                src={portfolio.url}
+                alt={`${portfolio.name} 미리보기`}
+                className="h-full w-full object-contain"
+              />
+            </div>
+          ) : (
+            <iframe
+              title={`${portfolio.name} 미리보기`}
+              src={portfolio.url}
+              className="h-full w-full border-0"
+            />
+          )}
         </div>
       </div>
     </div>
@@ -137,8 +165,7 @@ export function JobApply() {
   const [localFiles, setLocalFiles] = useState<LocalPortfolioFile[]>([])
   const [selectedPortfolioIds, setSelectedPortfolioIds] = useState<number[]>([])
   const [selectedLocalFileIds, setSelectedLocalFileIds] = useState<number[]>([])
-  const [previewPortfolio, setPreviewPortfolio] =
-    useState<ApplicationFormPortfolioResponse | null>(null)
+  const [previewPortfolio, setPreviewPortfolio] = useState<PreviewPortfolio | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -211,6 +238,38 @@ export function JobApply() {
       .filter((portfolio) => selectedPortfolioIds.includes(portfolio.portfolio_id))
       .map((portfolio) => portfolio.url)
   }, [form, selectedPortfolioIds])
+
+  const closePreviewPortfolio = () => {
+    if (previewPortfolio?.shouldRevokeUrl) {
+      URL.revokeObjectURL(previewPortfolio.url)
+    }
+    setPreviewPortfolio(null)
+  }
+
+  const openRegisteredPortfolioPreview = (portfolio: ApplicationFormPortfolioResponse) => {
+    setPreviewPortfolio({
+      name: portfolio.name,
+      url: portfolio.url,
+      description: '등록된 포트폴리오',
+    })
+  }
+
+  const openLocalFilePreview = (file: LocalPortfolioFile) => {
+    setPreviewPortfolio({
+      name: file.name,
+      url: URL.createObjectURL(file.file),
+      description: '새로 추가한 파일',
+      shouldRevokeUrl: true,
+    })
+  }
+
+  useEffect(() => {
+    return () => {
+      if (previewPortfolio?.shouldRevokeUrl) {
+        URL.revokeObjectURL(previewPortfolio.url)
+      }
+    }
+  }, [previewPortfolio])
 
   const canSubmit = Boolean(form?.name && form.email && job) && !isSubmitting
 
@@ -412,7 +471,7 @@ export function JobApply() {
                             tabIndex={0}
                             onClick={(event) => {
                               event.stopPropagation()
-                              setPreviewPortfolio(portfolio)
+                              openRegisteredPortfolioPreview(portfolio)
                             }}
                             onKeyDown={(event) => {
                               if (event.key !== 'Enter' && event.key !== ' ') {
@@ -421,7 +480,7 @@ export function JobApply() {
 
                               event.preventDefault()
                               event.stopPropagation()
-                              setPreviewPortfolio(portfolio)
+                              openRegisteredPortfolioPreview(portfolio)
                             }}
                             className="inline-flex items-center gap-1 text-sm font-semibold text-primary"
                           >
@@ -467,8 +526,31 @@ export function JobApply() {
                         <span className="block truncate text-[17px] font-semibold text-[#111827]">
                           {file.name}
                         </span>
-                        <span className="block text-sm text-muted-foreground">
-                          새 파일 · {file.createdAt}
+                        <span className="mt-2 flex items-center gap-3">
+                          <span className="text-sm text-muted-foreground">
+                            새 파일 · {file.createdAt}
+                          </span>
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              openLocalFilePreview(file)
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key !== 'Enter' && event.key !== ' ') {
+                                return
+                              }
+
+                              event.preventDefault()
+                              event.stopPropagation()
+                              openLocalFilePreview(file)
+                            }}
+                            className="inline-flex items-center gap-1 text-sm font-semibold text-primary"
+                          >
+                            <Eye className="h-4 w-4" />
+                            보기
+                          </span>
                         </span>
                       </span>
                       {isSelected ? (
@@ -505,7 +587,7 @@ export function JobApply() {
       {previewPortfolio && (
         <PortfolioPreviewModal
           portfolio={previewPortfolio}
-          onClose={() => setPreviewPortfolio(null)}
+          onClose={closePreviewPortfolio}
         />
       )}
     </div>

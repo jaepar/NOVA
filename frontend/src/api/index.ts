@@ -50,7 +50,14 @@ export type {
   TransactionType,
   UpdateTransactionMemoRequest,
 } from './endpoints/banking';
-export type { NotificationResponse, NotificationType } from './endpoints/user';
+export type {
+  NotificationResponse,
+  NotificationType,
+  UpdateUserProfilePayload,
+  UpdateUserRequestPayload,
+  UserProfilePortfolioResponse,
+  UserProfileResponse,
+} from './endpoints/user';
 export type { LivenessSessionResponse } from './endpoints/certificate';
 export type { PassportResponse } from './endpoints/certificate';
 export type {
