@@ -4,6 +4,7 @@ import woorifisa.project.backend.global.corebanking.dto.response.CoreBankingGlob
 
 public record GlobalTransactionListItemResponse(
         Long globalTransactionId,
+        String targetCountry,
         String receiverEngName,
         String remitAmount,
         String currency,
@@ -13,6 +14,7 @@ public record GlobalTransactionListItemResponse(
     public static GlobalTransactionListItemResponse from(CoreBankingGlobalTransactionListItemResponse response) {
         return new GlobalTransactionListItemResponse(
                 response.globalTransactionId(),
+                response.targetCountry(),
                 response.receiverEngName(),
                 response.remitAmount(),
                 response.currency(),

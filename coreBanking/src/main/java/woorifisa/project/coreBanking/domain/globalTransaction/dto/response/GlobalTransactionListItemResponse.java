@@ -5,6 +5,7 @@ import woorifisa.project.coreBanking.domain.globalTransaction.entity.enums.Globa
 
 public record GlobalTransactionListItemResponse(
         Long globalTransactionId,
+        String targetCountry,
         String receiverEngName,
         String remitAmount,
         String currency,
@@ -14,6 +15,7 @@ public record GlobalTransactionListItemResponse(
     public static GlobalTransactionListItemResponse from(GlobalTransaction globalTransaction) {
         return new GlobalTransactionListItemResponse(
                 globalTransaction.getGlobalTransactionId(),
+                globalTransaction.getTargetCountry(),
                 globalTransaction.getReceiverEngName(),
                 globalTransaction.getRemitAmount(),
                 globalTransaction.getCurrency().name(),
