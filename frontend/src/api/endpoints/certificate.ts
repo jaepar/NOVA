@@ -1,7 +1,8 @@
 import apiClient from '../client'
 import { extractApiErrorBody } from '../utils'
 import {
-  normalizePassportOcrResponse,
+  parsePassportOcrResponse,
+  type PassportOcrResponse,
   type PassportResponse,
 } from './certificatePassport'
 
@@ -135,7 +136,7 @@ export const certificateApi = {
     )
     return response.data.data
   },
-  recognizePassport: async (imageFile: File): Promise<PassportResponse> => {
+  recognizePassport: async (imageFile: File): Promise<PassportOcrResponse> => {
     const formData = new FormData()
     formData.append('file', imageFile)
 
@@ -143,7 +144,7 @@ export const certificateApi = {
       '/users/verifications/identity?ocrDocumentType=PASSPORT',
       formData
     )
-    return normalizePassportOcrResponse(response.data.data)
+    return parsePassportOcrResponse(response.data.data)
   },
   recognizeIdCard: async (imageFile: File): Promise<IdentityOcrResponse> => {
     const formData = new FormData()

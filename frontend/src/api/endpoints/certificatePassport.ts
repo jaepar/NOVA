@@ -12,6 +12,11 @@ export type PassportResponse = {
   authority?: string
 }
 
+export type PassportOcrResponse = {
+  result: PassportResponse
+  nameMatchWithUser: boolean | null
+}
+
 type IdCardOcrResult = {
   name?: string
   residentRegistrationNumber?: string
@@ -24,6 +29,15 @@ type PassportIdentityOcrResponse = {
   ocrDocumentType: IdentityOcrDocumentType
   result: PassportResponse | IdCardOcrResult | null
   nameMatchWithUser: boolean | null
+}
+
+export function parsePassportOcrResponse(
+  response: PassportIdentityOcrResponse
+): PassportOcrResponse {
+  return {
+    result: normalizePassportOcrResponse(response),
+    nameMatchWithUser: response.nameMatchWithUser,
+  }
 }
 
 export function normalizePassportOcrResponse(
