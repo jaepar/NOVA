@@ -65,7 +65,7 @@ jobs:
           host: ${{ secrets.ONPREM_BACKEND_HOST }}
           port: 22
           username: ${{ secrets.ONPREM_USER }}
-          key: ${{ secrets.ONPREM_BACKEND_SSH_KEY }}
+          key: ${{ secrets.ONPREM_SSH_KEY }}
           proxy_host: ${{ secrets.BASTION_TUNNEL_HOST }}
           proxy_port: ${{ secrets.BASTION_TUNNEL_PORT }}
           proxy_username: ${{ secrets.BASTION_TUNNEL_USER }}
@@ -82,7 +82,7 @@ jobs:
           host: ${{ secrets.ONPREM_BACKEND_HOST }}
           port: 22
           username: ${{ secrets.ONPREM_USER }}
-          key: ${{ secrets.ONPREM_BACKEND_SSH_KEY }}
+          key: ${{ secrets.ONPREM_SSH_KEY }}
           proxy_host: ${{ secrets.BASTION_TUNNEL_HOST }}
           proxy_port: ${{ secrets.BASTION_TUNNEL_PORT }}
           proxy_username: ${{ secrets.BASTION_TUNNEL_USER }}
