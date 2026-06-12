@@ -1,26 +1,28 @@
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { MobileLayout } from '../../components/layout/MobileLayout'
-import { Btn_1Col } from '../../components/design-system/Btn_1Col'
-import { isOnboardingCompleted } from '../../utils/onboardingStorage'
-import loginIllustration from './assets/login-illustration.png'
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { MobileLayout } from "../../components/layout/MobileLayout";
+import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { isOnboardingCompleted } from "../../utils/onboardingStorage";
+import loginIllustration from "./assets/login-illustration.png";
 
 export function LoginIntro() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const locationState = location.state as { fromLanguage?: boolean } | null
-  const backPath = locationState?.fromLanguage ? '/language' : '/main'
+  const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as { fromLanguage?: boolean } | null;
+  const backPath = locationState?.fromLanguage ? "/language" : "/main";
 
   if (!locationState?.fromLanguage && !isOnboardingCompleted()) {
-    return <Navigate to="/language" replace />
+    return <Navigate to="/language" replace />;
   }
 
   const handleLogin = () => {
-    navigate('/login/form', { state: { backPath: '/login', redirectTo: '/main' } })
-  }
+    navigate("/login/form", {
+      state: { backPath: "/login", redirectTo: "/main" },
+    });
+  };
 
   const handleSignup = () => {
-    navigate('/signup')
-  }
+    navigate("/signup");
+  };
 
   return (
     <MobileLayout
@@ -36,7 +38,7 @@ export function LoginIntro() {
         </div>
       }
     >
-      <section className="flex min-h-full flex-col pt-8">
+      <section className="flex min-h-full flex-col pt-2">
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold leading-tight">
             반가워요!
@@ -54,5 +56,5 @@ export function LoginIntro() {
         </div>
       </section>
     </MobileLayout>
-  )
+  );
 }

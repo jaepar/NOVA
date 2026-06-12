@@ -299,6 +299,7 @@ export function Main() {
               onOpenCertificateSheet={() => setCertificateSheetOpen(true)}
               onOpenAccount={handleOpenAccount}
               onAccountPanelClick={() => navigate("/transaction-history")}
+              onTransferClick={() => navigate("/transfer")}
             />
           </section>
 

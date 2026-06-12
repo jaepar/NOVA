@@ -3,7 +3,6 @@ import { BriefcaseBusiness } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { jobApi, type JobOpeningItemResponse } from '../../../api'
 import { AppButton } from '../../components/design-system/AppButton'
-import { HeaderActionButton } from '../../components/layout/HeaderActionButton'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import {
   Select,
@@ -86,9 +85,13 @@ export function JobList() {
       title="구인구직"
       backPath="/main"
       headerRightContent={
-        <HeaderActionButton onClick={() => navigate('/jobs/applications')} align="right">
+        <AppButton
+          variant="unstyled"
+          onClick={() => navigate('/jobs/applications')}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-secondary"
+        >
           <BriefcaseBusiness className="h-5 w-5" />
-        </HeaderActionButton>
+        </AppButton>
       }
     >
       <div className="sticky top-0 z-10 -mx-5 border-b border-border bg-background px-5 py-3">

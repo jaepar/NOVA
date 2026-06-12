@@ -30,17 +30,33 @@ export function Step03DocumentUpload() {
     return file.type === 'application/pdf' || lowerName.endsWith('.pdf')
   }
 
+  const handleNext = () => {
+    if (!isAllAttached) {
+      return
+    }
+
+    navigate('/certificate/step-04')
+  }
+
+  // [TEST ONLY START] 서류 업로드 여부와 무관하게 다음 단계로 이동하는 임시 버튼
+  const handleSkipDocumentUploadForTest = () => {
+    navigate('/certificate/step-04')
+  }
+  // [TEST ONLY END]
+
   return (
     <MobileLayout
       title="비대면 실명확인"
       backPath="/certificate/step-02"
       bottomContent={
-        // <Btn_1Col disabled={!isAllAttached} onClick={() => navigate('/certificate/step-04')}>
-        //   다음으로
-        // </Btn_1Col>  // 실제 배포
-        <Btn_1Col onClick={() => navigate('/certificate/step-04')}>
-          다음으로
-        </Btn_1Col>  // 테스트
+        <div className="space-y-2">
+          <Btn_1Col disabled={!isAllAttached} onClick={handleNext}>
+            다음으로
+          </Btn_1Col>
+          <Btn_1Col variant="outline" onClick={handleSkipDocumentUploadForTest}>
+            업로드 없이 다음으로 (테스트)
+          </Btn_1Col>
+        </div>
       }
     >
       <div className="space-y-5 pb-2">
