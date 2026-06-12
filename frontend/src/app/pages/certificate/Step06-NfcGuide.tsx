@@ -105,6 +105,7 @@ export function NfcGuide() {
   const handleStartNfcTagging = async () => {
     if (isScanning) return
     setIsMismatchFailure(false)
+
     if (!parsedPassportData) {
       setStatusMessage('Step05 여권 정보가 없습니다. 이전 단계에서 다시 진행해 주세요.')
       return
@@ -112,7 +113,6 @@ export function NfcGuide() {
 
     if (!('NDEFReader' in window)) {
       setStatusMessage(nfcUnsupportedMessage)
-      console.warn('[NFC] Web NFC is not supported in this browser.')
       return
     }
 
@@ -148,9 +148,6 @@ export function NfcGuide() {
 
         reader.onreadingerror = () => {
           if (settled) return
-          settled = true
-          cleanup()
-          reject(new Error('NFC_READ_ERROR'))
         }
 
         reader.scan().catch((error) => {
@@ -162,6 +159,7 @@ export function NfcGuide() {
       })
 
       const parsedRecords = parseNdefRecords(readEvent)
+
       const firstJsonRecord = parsedRecords.find((record) => {
         if (!record.data) return false
         const trimmed = record.data.trim()
@@ -205,7 +203,6 @@ export function NfcGuide() {
       } else {
         setStatusMessage('NFC 인식에 실패했어요. 다시 시도해 주세요.')
       }
-      console.error('[NFC] read failed', error)
     } finally {
       setIsScanning(false)
     }
