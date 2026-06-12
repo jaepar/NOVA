@@ -19,7 +19,7 @@ export function Language() {
 
   const handleConfirm = () => {
     saveOnboardingLanguage(selectedLanguage)
-    navigate('/main')
+    navigate('/login', { state: { fromLanguage: true } })
   }
 
   const filteredLanguages = useMemo(() => {

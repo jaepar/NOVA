@@ -240,12 +240,13 @@ export function Main() {
   const handleLogout = async () => {
     try {
       await authApi.logout()
+    } catch (error) {
+      console.error('Logout failed', error)
+    } finally {
       logout()
       setAccountHome(null)
       setNotifications([])
       setNotificationOpen(false)
-    } catch (error) {
-      console.error('Logout failed', error)
     }
   }
 
