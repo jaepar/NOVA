@@ -9,6 +9,13 @@ spring:
       max-file-size: 20MB
       max-request-size: 40MB
 
+  session:
+    store-type: redis
+    redis:
+      namespace: nova:session
+      flush-mode: on_save
+      save-mode: always
+
 server:
   tomcat:
     # multipart 각 파트의 헤더 길이 제한(기본 512 bytes) 상향

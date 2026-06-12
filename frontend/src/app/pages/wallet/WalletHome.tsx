@@ -149,7 +149,7 @@ export function WalletHome() {
               type="button"
               variant="unstyled"
               onClick={() => navigate("/wallet/charge")}
-              className="flex h-[48px] w-full items-center justify-center rounded-lg bg-[#014ede] text-[14px] font-semibold text-white transition-colors hover:bg-[#0142bd] disabled:opacity-40"
+              className="flex h-[56px] w-full items-center justify-center rounded-lg bg-[#003CA6] text-[17px] font-semibold text-white transition-colors hover:bg-[#002A73] disabled:opacity-40"
             >
               충전
             </AppButton>
@@ -196,7 +196,7 @@ export function WalletHome() {
                         }}
                         className={`block w-full rounded-lg px-4 py-3 text-left text-sm transition-colors ${
                           selectedFilter === option
-                            ? "bg-blue-50 font-semibold text-[#014ede]"
+                            ? "bg-primary-soft font-semibold text-[#003CA6]"
                             : "text-foreground hover:bg-secondary"
                         }`}
                       >
@@ -237,7 +237,7 @@ export function WalletHome() {
 
                       loadWalletTransactions(0);
                     }}
-                    className="mt-3 text-sm font-semibold text-[#014ede]"
+                    className="mt-3 text-sm font-semibold text-[#003CA6]"
                   >
                     {isLoginRequired ? "NOVA 로그인 하러가기" : "다시 시도"}
                   </AppButton>

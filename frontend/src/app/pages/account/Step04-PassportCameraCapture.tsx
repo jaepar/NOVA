@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -139,7 +139,7 @@ export function PassportCameraCapture() {
     try {
       const ocrResult = await certificateApi.recognizePassport(imageFile);
 
-      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult));
+      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult.result));
       setCapturedImage(imageDataUrl);
       setMode("review");
     } catch (error) {
@@ -254,7 +254,7 @@ export function PassportCameraCapture() {
                   className="grid grid-cols-[140px_1fr] border-b border-border last:border-b-0"
                 >
                   <div className="px-4 py-4 flex items-center gap-3 bg-secondary/20">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 text-primary flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-primary-soft text-primary flex items-center justify-center shrink-0">
                       <Icon className="w-5 h-5" />
                     </div>
                     <p className="text-base whitespace-nowrap">{row.label}</p>

@@ -13,7 +13,16 @@ interface MainAccountPanelProps {
   onOpenCertificateSheet: () => void;
   onOpenAccount: () => void;
   onAccountPanelClick: () => void;
+  onTransferClick: () => void;
 }
+
+const panelShellClassName =
+  "min-h-[180px] rounded-2xl p-6 flex flex-col justify-between";
+
+const neutralPanelClassName = `${panelShellClassName} border border-border bg-background shadow-[0_4px_16px_rgba(15,23,42,0.05)]`;
+const secondaryPanelClassName = `${panelShellClassName} bg-secondary`;
+const accountPanelClassName =
+  "bg-gradient-to-br from-[#003CA6] to-[#2563EB] text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#003CA6]";
 
 export function MainAccountPanel({
   isLoggedIn,
@@ -23,10 +32,11 @@ export function MainAccountPanel({
   onOpenCertificateSheet,
   onOpenAccount,
   onAccountPanelClick,
+  onTransferClick,
 }: MainAccountPanelProps) {
   if (isLoggedIn && isLoading) {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
+      <div className={secondaryPanelClassName}>
         <div className="space-y-3">
           <div className="h-6 w-32 rounded-lg bg-muted animate-pulse" />
           <div className="h-4 w-48 rounded-lg bg-muted animate-pulse" />
@@ -38,25 +48,27 @@ export function MainAccountPanel({
 
   if (!isLoggedIn) {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
-        <div className="space-y-3">
+      <div className={neutralPanelClassName}>
+        <div className="space-y-2">
           <div className="space-y-1">
-            <h3 className="font-semibold text-base">안전한 금융 생활을 시작하세요</h3>
-            <p className="text-sm leading-5 text-muted-foreground">로그인 후 금융 서비스를 이용할 수 있어요.</p>
+            <h3 className="font-semibold text-base">
+              안전한 금융 생활을 시작하세요
+            </h3>
+            <p className="text-sm leading-5 text-muted-foreground">
+              로그인 후 금융 서비스를 이용할 수 있어요.
+            </p>
           </div>
         </div>
-        <div className="mt-5">
-          <Btn_1Col onClick={onLoginClick}>로그인</Btn_1Col>
-        </div>
+        <Btn_1Col onClick={onLoginClick}>로그인</Btn_1Col>
       </div>
     );
   }
 
   if (!accountHome || accountHome.uiState === "NEED_CERTIFICATE") {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
+      <div className={neutralPanelClassName}>
         <div className="space-y-2">
-          <h3 className="font-semibold text-base">
+          <h3 className="text-base font-semibold text-foreground">
             계좌 개설로 더 다양한 서비스를 이용하세요
           </h3>
           <p className="text-sm text-muted-foreground">
@@ -70,7 +82,7 @@ export function MainAccountPanel({
 
   if (accountHome.uiState === "CERTIFICATE_ISSUING") {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-center">
+      <div className={secondaryPanelClassName}>
         <div className="space-y-4">
           <div className="space-y-2">
             <h3 className="font-semibold text-base">
@@ -84,13 +96,14 @@ export function MainAccountPanel({
             제출한 서류를 심사 중입니다.
           </p>
         </div>
+        <div aria-hidden="true" className="h-11" />
       </div>
     );
   }
 
   if (accountHome.uiState === "READY_TO_OPEN_ACCOUNT") {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
+      <div className={secondaryPanelClassName}>
         <div className="space-y-2">
           <h3 className="font-semibold text-base">
             아직 계좌가 개설되지 않았어요.
@@ -110,14 +123,16 @@ export function MainAccountPanel({
     return null;
   }
 
-  const handleCopyAccountNumber = async (event: MouseEvent<HTMLButtonElement>) => {
+  const handleCopyAccountNumber = async (
+    event: MouseEvent<HTMLButtonElement>
+  ) => {
     event.stopPropagation();
 
     try {
       await navigator.clipboard.writeText(account.accountNumber);
-      novaToast.success("계좌번호가 복사되었습니다.");
+      novaToast.success("계좌번호를 복사했어요.");
     } catch {
-      novaToast.error("계좌번호 복사에 실패했습니다.");
+      novaToast.error("계좌번호 복사에 실패했어요.");
     }
   };
 
@@ -128,19 +143,21 @@ export function MainAccountPanel({
     }
   };
 
+  const handleTransferClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onTransferClick();
+  };
+
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={onAccountPanelClick}
       onKeyDown={handlePanelKeyDown}
-      className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white min-h-[180px] flex flex-col justify-between cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"
+      className={`${panelShellClassName} ${accountPanelClassName}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-            <div className="w-6 h-6 rounded-full bg-white" />
-          </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-medium">{account.accountName}</span>
@@ -150,6 +167,7 @@ export function MainAccountPanel({
                 </span>
               )}
             </div>
+
             <AppButton
               variant="unstyled"
               onClick={handleCopyAccountNumber}
@@ -159,6 +177,7 @@ export function MainAccountPanel({
             </AppButton>
           </div>
         </div>
+
         <AppButton
           variant="unstyled"
           onClick={(event) => event.stopPropagation()}
@@ -168,11 +187,20 @@ export function MainAccountPanel({
         </AppButton>
       </div>
 
-      <div>
-        <p className="text-sm text-white/80 mb-1">잔액</p>
-        <p className="text-2xl font-semibold">
-          {account.balance.toLocaleString("ko-KR")} 원
-        </p>
+      <div className="space-y-1">
+        <p className="text-sm text-white/80">잔액</p>
+        <div className="flex items-end justify-between gap-3">
+          <p className="text-2xl font-semibold">
+            {account.balance.toLocaleString("ko-KR")} 원
+          </p>
+          <AppButton
+            variant="unstyled"
+            onClick={handleTransferClick}
+            className="inline-flex h-7 shrink-0 items-center justify-center rounded-full bg-white/20 px-4 text-xs font-medium text-white transition-colors hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          >
+            이체
+          </AppButton>
+        </div>
       </div>
     </div>
   );

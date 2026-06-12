@@ -1,0 +1,29 @@
+spring:
+  session:
+    store-type: none
+
+DB_URL: jdbc:mysql://localhost:3306/nova
+DB_USERNAME: root
+DB_PASSWORD: 
+REDIS_HOST: localhost
+REDIS_PORT: 6379
+REDIS_PASSWORD: 
+REDIS_SSL_ENABLED: false
+SMTP_HOST: localhost
+SMTP_PORT: 465
+SMTP_USERNAME: dummy
+SMTP_PASSWORD: dummy
+CORE_BANKING_BASE_URL: http://localhost:8001
+GOVERNMENT_DB_URL: http://localhost:8002
+REGISTRATION_NUMBER_HMAC_SECRET: dummy-secret-for-test-only-dummy-secret-for-test-only
+AWS_S3_BUCKET: dummy-bucket
+AWS_S3_BASE_URL: http://localhost:8000
+CLOVA_OCR_URL: http://localhost:8000
+CLOVA_OCR_SECRET: dummy
+AWS_LIVENESS_THRESHOLD: 80
+AWS_SIMILARITY_THRESHOLD: 80
+AWS_AUDIT_IMAGES_LIMIT: 5
+BANKING_TRANSFER_PASSWORD_VERIFIED_SLEEP_MS: 0
+ONPREM_GATEWAY_BASE_URL: http://localhost:8002
+AI_BASE_URL: http://localhost:8003
+AWS_LIVENESS_OUTPUT_PREFIX: liveness

@@ -3,7 +3,6 @@ import { BriefcaseBusiness } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { jobApi, type JobOpeningItemResponse } from '../../../api'
 import { AppButton } from '../../components/design-system/AppButton'
-import { HeaderActionButton } from '../../components/layout/HeaderActionButton'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import {
   Select,
@@ -86,9 +85,13 @@ export function JobList() {
       title="구인구직"
       backPath="/main"
       headerRightContent={
-        <HeaderActionButton onClick={() => navigate('/jobs/applications')} align="right">
+        <AppButton
+          variant="unstyled"
+          onClick={() => navigate('/jobs/applications')}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-secondary"
+        >
           <BriefcaseBusiness className="h-5 w-5" />
-        </HeaderActionButton>
+        </AppButton>
       }
     >
       <div className="sticky top-0 z-10 -mx-5 border-b border-border bg-background px-5 py-3">
@@ -144,10 +147,10 @@ export function JobList() {
               type="button"
               variant="unstyled"
               onClick={() => navigate(`/jobs/${job.job_id}`)}
-              className="block w-full border-b border-border px-5 py-6 text-left transition-colors hover:bg-blue-50"
+              className="block w-full border-b border-border px-5 py-6 text-left transition-colors hover:bg-primary-soft"
             >
               <div className="mb-4 flex items-start justify-between gap-3">
-                <span className="rounded-lg bg-blue-50 px-3 py-1 text-sm font-semibold text-[#0057ff]">
+                <span className="rounded-lg bg-primary-soft px-3 py-1 text-sm font-semibold text-[#2563EB]">
                   {job.region}
                 </span>
                 <span className="shrink-0 text-[15px] text-muted-foreground">

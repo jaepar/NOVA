@@ -124,6 +124,7 @@ flowchart TD
 - Government DB 신원 조회는 `global/government/client` 단일 클라이언트로만 수행한다.
 - 주민등록번호/외국인등록번호 원문은 `gateway`로 전송하지 않는다. OCR 값은 숫자만 남기도록 정규화한 뒤 `REGISTRATION_NUMBER_HMAC_SECRET` 기반 HMAC-SHA256 해시(`registrationNumberHash`)로 조회한다.
 - Government DB 조회 응답은 식별번호 원문을 포함하지 않는다. 조회 성공은 식별번호 해시 일치를 의미하며, backend는 이름/발급일/active 여부를 추가 검증한다.
+- 세션 관리는 Redis(`spring-session-data-redis`)를 통해 수행하며, 세션 데이터는 JSON 형식으로 직렬화하여 저장한다.
 
 ## Notification Rules (`user/notification`)
 

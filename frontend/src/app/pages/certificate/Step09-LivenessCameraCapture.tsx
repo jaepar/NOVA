@@ -18,9 +18,6 @@ const registeredImageBucket =
   (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_BUCKET as
     | string
     | undefined) ?? "nova-object-bucket";
-const registeredImageKey =
-  (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_KEY as string | undefined) ??
-  "goverment/KOR-M592W1577/profile.jpg";
 const STEP08_PATH = "/certificate/step-08";
 
 const livenessDisplayText = {
@@ -51,6 +48,12 @@ export function LivenessCameraCapture() {
   const navigate = useNavigate();
   const sessionId = useLivenessFlowStore((state) => state.sessionId);
   const expiresAt = useLivenessFlowStore((state) => state.expiresAt);
+  const registeredPassportIssueCountry = useLivenessFlowStore(
+    (state) => state.registeredPassportIssueCountry
+  );
+  const registeredPassportNumber = useLivenessFlowStore(
+    (state) => state.registeredPassportNumber
+  );
   const setSession = useLivenessFlowStore((state) => state.setSession);
   const resetSession = useLivenessFlowStore((state) => state.resetSession);
 
@@ -67,6 +70,17 @@ export function LivenessCameraCapture() {
   const [liveHintText, setLiveHintText] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [hasStartedLiveness, setHasStartedLiveness] = useState(false);
+
+  const triggerSdkStart = () => {
+    const root = detectorContainerRef.current;
+    if (!root) return;
+
+    const startButton = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("button")
+    ).find((button) => button.textContent?.trim() === "얼굴 인증 시작");
+
+    startButton?.click();
+  };
 
   const navigateToStep08 = () => {
     navigate(STEP08_PATH, {
@@ -271,9 +285,9 @@ export function LivenessCameraCapture() {
     if (!root) return;
 
     const attachStartButtonHandler = () => {
-      const startButton = Array.from(root.querySelectorAll<HTMLButtonElement>("button")).find(
-        (button) => button.textContent?.trim() === "얼굴 인증 시작"
-      );
+      const startButton = Array.from(
+        root.querySelectorAll<HTMLButtonElement>("button")
+      ).find((button) => button.textContent?.trim() === "얼굴 인증 시작");
       if (!startButton) return () => {};
 
       const onStart = () => setHasStartedLiveness(true);
@@ -303,6 +317,18 @@ export function LivenessCameraCapture() {
       identityPoolId: identityPoolId!,
     });
   }, [hasAwsConfig]);
+
+  const registeredImageKey = useMemo(() => {
+    if (registeredPassportIssueCountry && registeredPassportNumber) {
+      return `goverment/${registeredPassportIssueCountry}-${registeredPassportNumber}/profile.jpg`;
+    }
+
+    return (
+      (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_KEY as
+        | string
+        | undefined) ?? "goverment/KOR-M592W1577/profile.jpg"
+    );
+  }, [registeredPassportIssueCountry, registeredPassportNumber]);
 
   const handleAnalysisComplete = async () => {
     if (!sessionId) return;
@@ -401,12 +427,16 @@ export function LivenessCameraCapture() {
           <Btn_1Col onClick={handleRetry} disabled={isRetrying}>
             {isRetrying ? "재촬영 준비 중..." : "재촬영"}
           </Btn_1Col>
+        ) : isDetectorVisible && isCameraActive && !hasStartedLiveness ? (
+          <Btn_1Col onClick={triggerSdkStart}>얼굴 인증 시작</Btn_1Col>
         ) : undefined
       }
     >
       <div
         className={`space-y-4 nova-liveness-surface ${
-          hasStartedLiveness ? "nova-liveness-active" : ""
+          isDetectorVisible && isCameraActive && !hasStartedLiveness
+            ? "nova-liveness-prestart"
+            : ""
         }`}
         ref={detectorContainerRef}
       >

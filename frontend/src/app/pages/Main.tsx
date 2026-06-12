@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CreditCard, MessageSquare, Wallet } from "lucide-react";
 import { MobileLayout } from "../components/layout/MobileLayout";
 import { BottomNav } from "../components/layout/BottomNav";
 import { SideMenu } from "../components/layout/SideMenu";
@@ -14,16 +13,19 @@ import {
   userApi,
   type AccountHomeResponse,
   type NotificationResponse,
-} from '../../api'
-import { MainHeaderBrand } from './main/MainHeaderBrand'
-import { MainHeaderActions } from './main/MainHeaderActions'
-import { MainAccountPanel } from './main/MainAccountPanel'
-import { MainJobBanner } from './main/MainJobBanner'
-import { MainServiceGrid } from './main/MainServiceGrid'
-import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
-import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
-import { CertificateIssuedModal } from './main/CertificateIssuedModal'
-import type { ExchangeRateItem, ServiceItem } from './main/types'
+} from "../../api";
+import { MainHeaderBrand } from "./main/MainHeaderBrand";
+import { MainHeaderActions } from "./main/MainHeaderActions";
+import { MainAccountPanel } from "./main/MainAccountPanel";
+import { MainJobBanner } from "./main/MainJobBanner";
+import { MainServiceGrid } from "./main/MainServiceGrid";
+import { MainExchangeRateGrid } from "./main/MainExchangeRateGrid";
+import { MainCertificateSheetContent } from "./main/MainCertificateSheetContent";
+import { CertificateIssuedModal } from "./main/CertificateIssuedModal";
+import hospitalReservationIcon from "./main/assets/hospital-reservation-icon.png";
+import registrationCardIcon from "./main/assets/registration-card-icon.png";
+import walletIcon from "./main/assets/wallet-icon.png";
+import type { ExchangeRateItem, ServiceItem } from "./main/types";
 
 export function Main() {
   const navigate = useNavigate();
@@ -43,9 +45,9 @@ export function Main() {
     (state) => state.setCertificateSheetOpen
   );
   const logout = useMainPageStore((state) => state.logout);
-  const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(
-    null
-  );
+
+  const [accountHome, setAccountHome] =
+    useState<AccountHomeResponse | null>(null);
   const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
   const [isNotificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationResponse[]>(
@@ -53,25 +55,44 @@ export function Main() {
   );
   const [isNotificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState(false);
-  const [isCertificateIssuedModalOpen, setCertificateIssuedModalOpen] = useState(false);
+  const [isCertificateIssuedModalOpen, setCertificateIssuedModalOpen] =
+    useState(false);
   const [isHospitalChatStarting, setHospitalChatStarting] = useState(false);
 
   const services: ServiceItem[] = [
     {
       id: "hospital-chat",
-      icon: <MessageSquare className="w-8 h-8" />,
+      icon: (
+        <img
+          src={hospitalReservationIcon}
+          alt=""
+          className="h-9 w-9 object-contain"
+        />
+      ),
       label: isHospitalChatStarting ? "연결 중..." : "병원예약",
       disabled: isHospitalChatStarting,
     },
     {
       id: "foreigner-card",
-      icon: <CreditCard className="w-8 h-8" />,
+      icon: (
+        <img
+          src={registrationCardIcon}
+          alt=""
+          className="h-9 w-9 object-contain"
+        />
+      ),
       label: "외국인등록증",
       path: "/foreigner-card/step-01",
     },
     {
       id: "wallet",
-      icon: <Wallet className="w-8 h-8" />,
+      icon: (
+        <img
+          src={walletIcon}
+          alt=""
+          className="h-9 w-9 rounded-lg object-cover"
+        />
+      ),
       label: "월렛",
       path: "/wallet",
     },
@@ -154,7 +175,7 @@ export function Main() {
     return () => {
       isMounted = false;
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, setHasUnreadNotifications]);
 
   const loadNotifications = async () => {
     if (!isLoggedIn) {
@@ -263,7 +284,7 @@ export function Main() {
           />
         }
       >
-        <div className="space-y-4">
+        <div className="space-y-4 pt-3">
           <section>
             <MainAccountPanel
               isLoggedIn={isLoggedIn}
@@ -274,9 +295,11 @@ export function Main() {
                   state: { backPath: "/main", redirectTo: "/main" },
                 })
               }
+              onSignupClick={() => navigate("/signup")}
               onOpenCertificateSheet={() => setCertificateSheetOpen(true)}
               onOpenAccount={handleOpenAccount}
               onAccountPanelClick={() => navigate("/transaction-history")}
+              onTransferClick={() => navigate("/transfer")}
             />
           </section>
 
@@ -305,7 +328,7 @@ export function Main() {
             state: { backPath: "/main", redirectTo: "/main" },
           })
         }
-        onProfile={() => navigate('/mypage')}
+        onProfile={() => navigate("/mypage")}
       />
 
       <BottomSheet

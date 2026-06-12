@@ -1,87 +1,105 @@
-import { FileText } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { userApi } from '../../../api'
-import { AppButton } from '../../components/design-system/AppButton'
-import { Btn_1Col } from '../../components/design-system/Btn_1Col'
-import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
-import { MobileLayout } from '../../components/layout/MobileLayout'
+import { FileText } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { userApi } from "../../../api";
+import { AppButton } from "../../components/design-system/AppButton";
+import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { CenteredTaskContent } from "../../components/design-system/CenteredTaskContent";
+import { MobileLayout } from "../../components/layout/MobileLayout";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '../../components/ui/dialog'
-import { languages } from '../../data/languages'
-import { useMainPageStore } from '../../stores/pageStores'
-import { PortfolioItem, useProfileStore } from '../../stores/profileStore'
+} from "../../components/ui/dialog";
+import { languages } from "../../data/languages";
+import { useMainPageStore } from "../../stores/pageStores";
+import { PortfolioItem, useProfileStore } from "../../stores/profileStore";
 
 const fileStyleByType = {
-  pdf: { icon: FileText, color: 'text-red-500', bg: 'bg-red-50', label: 'PDF' },
-  docx: { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50', label: 'DOCX' },
-  file: { icon: FileText, color: 'text-slate-500', bg: 'bg-slate-50', label: 'FILE' },
-}
+  pdf: { icon: FileText, color: "text-red-500", bg: "bg-red-50", label: "PDF" },
+  docx: {
+    icon: FileText,
+    color: "text-primary-light",
+    bg: "bg-primary-soft",
+    label: "DOCX",
+  },
+  file: {
+    icon: FileText,
+    color: "text-slate-500",
+    bg: "bg-slate-50",
+    label: "FILE",
+  },
+};
 
 function isImagePreviewUrl(value?: string) {
   if (!value) {
-    return false
+    return false;
   }
 
-  const pathname = value.split('?')[0].toLowerCase()
-  return /\.(apng|avif|gif|jpe?g|png|svg|webp)$/.test(pathname)
+  const pathname = value.split("?")[0].toLowerCase();
+  return /\.(apng|avif|gif|jpe?g|png|svg|webp)$/.test(pathname);
 }
 
 export function Profile() {
-  const navigate = useNavigate()
-  const isLoggedIn = useMainPageStore((state) => state.isLoggedIn)
-  const profile = useProfileStore((state) => state.profile)
-  const portfolioItems = useProfileStore((state) => state.portfolios)
-  const setProfileFromResponse = useProfileStore((state) => state.setProfileFromResponse)
-  const [selectedPortfolio, setSelectedPortfolio] = useState<PortfolioItem | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const isLoggedIn = useMainPageStore((state) => state.isLoggedIn);
+  const profile = useProfileStore((state) => state.profile);
+  const portfolioItems = useProfileStore((state) => state.portfolios);
+  const setProfileFromResponse = useProfileStore(
+    (state) => state.setProfileFromResponse
+  );
+
+  const [selectedPortfolio, setSelectedPortfolio] =
+    useState<PortfolioItem | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async () => {
-    if (!isLoggedIn) return
+    if (!isLoggedIn) return;
 
-    setIsLoading(true)
-    setErrorMessage(null)
+    setIsLoading(true);
+    setErrorMessage(null);
 
     try {
-      const response = await userApi.getProfile()
-      setProfileFromResponse(response, profile?.languageId)
-    } catch (error) {
-      setErrorMessage('프로필 정보를 불러오지 못했습니다.')
+      const response = await userApi.getProfile();
+      setProfileFromResponse(response, profile?.languageId);
+    } catch {
+      setErrorMessage("프로필 정보를 불러오지 못했습니다.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [isLoggedIn, profile?.languageId, setProfileFromResponse])
+  }, [isLoggedIn, profile?.languageId, setProfileFromResponse]);
 
   useEffect(() => {
-    void fetchProfile()
-  }, [fetchProfile])
+    void fetchProfile();
+  }, [fetchProfile]);
 
   const selectedLanguage = profile
-    ? languages.find((language) => language.id === profile.languageId)?.name ?? profile.languageId
-    : '-'
+    ? languages.find((language) => language.id === profile.languageId)?.name ??
+      profile.languageId
+    : "-";
+
   const profileRows = profile
     ? [
-        { label: '생년월일', value: profile.birthDate },
-        { label: '성별', value: profile.gender },
-        { label: '언어 설정', value: selectedLanguage },
-        { label: '인증서 보유 여부', value: profile.hasCertificate },
-        { label: '외국인 등록증 보유 여부', value: profile.hasForeignerCard },
+        { label: "생년월일", value: profile.birthDate },
+        { label: "성별", value: profile.gender },
+        { label: "언어 설정", value: selectedLanguage },
+        { label: "인증서 보유 여부", value: profile.hasCertificate },
+        { label: "외국인 등록증 보유 여부", value: profile.hasForeignerCard },
       ]
-    : []
+    : [];
+
   const selectedPortfolioStyle = selectedPortfolio
     ? fileStyleByType[selectedPortfolio.type]
-    : fileStyleByType.pdf
-  const isSelectedPortfolioImage = isImagePreviewUrl(selectedPortfolio?.url)
+    : fileStyleByType.pdf;
+
+  const isSelectedPortfolioImage = isImagePreviewUrl(selectedPortfolio?.url);
 
   const bottomContent = !isLoggedIn ? (
-    <Btn_1Col onClick={() => navigate('/login/form')}>로그인하기</Btn_1Col>
-  ) : undefined
+    <Btn_1Col onClick={() => navigate("/login/form")}>로그인하기</Btn_1Col>
+  ) : undefined;
 
   return (
     <MobileLayout
@@ -101,7 +119,10 @@ export function Profile() {
           description="잠시만 기다려주세요."
         />
       ) : errorMessage ? (
-        <CenteredTaskContent task={errorMessage} description="잠시 후 다시 시도해주세요.">
+        <CenteredTaskContent
+          task={errorMessage}
+          description="잠시 후 다시 시도해주세요."
+        >
           <Btn_1Col onClick={fetchProfile}>다시 시도</Btn_1Col>
         </CenteredTaskContent>
       ) : profile ? (
@@ -112,8 +133,12 @@ export function Profile() {
                 {profile.name.slice(0, 1)}
               </div>
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-foreground">{profile.name}</h2>
-                <p className="mt-1 truncate text-xs text-muted-foreground">{profile.email}</p>
+                <h2 className="text-base font-semibold text-foreground">
+                  {profile.name}
+                </h2>
+                <p className="mt-1 truncate text-xs text-muted-foreground">
+                  {profile.email}
+                </p>
               </div>
             </div>
           </section>
@@ -124,23 +149,33 @@ export function Profile() {
                 key={row.label}
                 className="flex items-center justify-between border-b border-border px-4 py-3 last:border-b-0"
               >
-                <span className="text-xs text-muted-foreground">{row.label}</span>
-                <span className="text-xs font-medium text-foreground">{row.value}</span>
+                <span className="text-xs text-muted-foreground">
+                  {row.label}
+                </span>
+                <span className="text-xs font-medium text-foreground">
+                  {row.value}
+                </span>
               </div>
             ))}
           </section>
 
           <section className="flex min-h-[320px] shrink-0 flex-col gap-3 rounded-lg border border-border p-4">
-            <h3 className="text-sm font-semibold text-foreground">포트폴리오 목록</h3>
+            <h3 className="text-sm font-semibold text-foreground">
+              포트폴리오 목록
+            </h3>
+
             {portfolioItems.length === 0 ? (
               <div className="flex flex-1 items-center justify-center">
-                <p className="text-xs text-muted-foreground">등록된 포트폴리오가 없어요</p>
+                <p className="text-xs text-muted-foreground">
+                  등록된 포트폴리오가 없어요
+                </p>
               </div>
             ) : (
               <div className="overflow-hidden rounded-lg border border-border">
                 {portfolioItems.map((portfolio, index) => {
-                  const fileStyle = fileStyleByType[portfolio.type]
-                  const FileIcon = fileStyle.icon
+                  const fileStyle =
+                    fileStyleByType[portfolio.type] ?? fileStyleByType.file;
+                  const FileIcon = fileStyle.icon;
 
                   return (
                     <AppButton
@@ -149,7 +184,9 @@ export function Profile() {
                       key={`${portfolio.portfolioId ?? portfolio.name}-${index}`}
                       onClick={() => setSelectedPortfolio(portfolio)}
                       className={`flex w-full items-center gap-3 px-3 py-3 text-left ${
-                        index !== portfolioItems.length - 1 ? 'border-b border-border' : ''
+                        index !== portfolioItems.length - 1
+                          ? "border-b border-border"
+                          : ""
                       }`}
                     >
                       <span
@@ -161,14 +198,16 @@ export function Profile() {
                         {portfolio.name}
                       </span>
                     </AppButton>
-                  )
+                  );
                 })}
               </div>
             )}
           </section>
 
           <section className="pt-2">
-            <Btn_1Col onClick={() => navigate('/mypage/edit')}>회원정보 수정</Btn_1Col>
+            <Btn_1Col onClick={() => navigate("/mypage/edit")}>
+              회원정보 수정
+            </Btn_1Col>
           </section>
         </div>
       ) : (
@@ -183,13 +222,13 @@ export function Profile() {
       <Dialog
         open={selectedPortfolio !== null}
         onOpenChange={(open) => {
-          if (!open) setSelectedPortfolio(null)
+          if (!open) setSelectedPortfolio(null);
         }}
       >
         <DialogContent className="flex h-[620px] max-w-[342px] flex-col rounded-lg p-5">
           <DialogHeader>
             <DialogTitle className="truncate text-base">
-              {selectedPortfolio?.name ?? '선택한 파일을 확인합니다.'}
+              {selectedPortfolio?.name ?? "선택한 파일을 확인합니다."}
             </DialogTitle>
             <DialogDescription className="sr-only">
               선택한 포트폴리오 파일의 미리보기입니다.
@@ -224,5 +263,5 @@ export function Profile() {
         </DialogContent>
       </Dialog>
     </MobileLayout>
-  )
+  );
 }

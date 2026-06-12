@@ -27,7 +27,8 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
         HttpSession session = request.getSession(false);
         if (session != null) {
             Object userIdAttribute = session.getAttribute("userId");
-            if (userIdAttribute instanceof Long userId) {
+            if (userIdAttribute instanceof Number userIdNumber) {
+                Long userId = userIdNumber.longValue();
                 SessionUserPrincipal principal = new SessionUserPrincipal(userId);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         principal,
