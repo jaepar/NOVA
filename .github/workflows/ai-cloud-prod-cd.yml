@@ -90,4 +90,5 @@ jobs:
             docker tag "${{ env.IMAGE_REPO }}:${IMAGE_TAG}" "${{ env.IMAGE_REPO }}:prod"
 
             docker compose --env-file .env -f docker-compose.yml up -d
-            docker image prune -f
+            docker rmi "${{ env.IMAGE_REPO }}:${IMAGE_TAG}" || true
+            docker image prune -a -f
