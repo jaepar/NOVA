@@ -52,7 +52,7 @@ jobs:
       - name: Send docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.ONPREM_HOST }}
+          host: ${{ secrets.ONPREM_AI_HOST }}
           port: 22
           username: ${{ secrets.ONPREM_USER }}
           key: ${{ secrets.ONPREM_SSH_KEY }}
@@ -69,7 +69,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
         with:
-          host: ${{ secrets.ONPREM_HOST }}
+          host: ${{ secrets.ONPREM_AI_HOST }}
           port: 22
           username: ${{ secrets.ONPREM_USER }}
           key: ${{ secrets.ONPREM_SSH_KEY }}
