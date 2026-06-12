@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { Btn_1Col } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { useTranslation } from '../../i18n'
-import { BANK_OPTIONS, formatCurrency, RECIPIENT_NAME } from './types'
+import { BANK_OPTIONS, formatCurrency, getShortTransferBankName, RECIPIENT_NAME } from './types'
 import { useTransferStore } from './transferStore'
 
 export function TransferComplete() {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
   const accountNumber = useTransferStore((state) => state.accountNumber)
   const selectedBank = useTransferStore((state) => state.selectedBank)
   const preview = useTransferStore((state) => state.preview)
@@ -17,7 +17,7 @@ export function TransferComplete() {
   const recipientBank = selectedBank ?? BANK_OPTIONS.find((bank) => bank.id === 'nonghyup') ?? BANK_OPTIONS[0]
   const recipientAccount = accountNumber || '1122261925003'
   const recipientName = preview?.recipient.recipientName ?? RECIPIENT_NAME
-  const amountText = formatCurrency(amount)
+  const amountText = formatCurrency(amount, language)
 
   const goMain = () => {
     resetTransfer()
@@ -26,7 +26,7 @@ export function TransferComplete() {
 
   return (
     <MobileLayout
-      title="이체"
+      title={t('transfer.title')}
       titleKey="transfer.title"
       headerType="none"
       bottomContent={<Btn_1Col onClick={goMain}>{t('common.confirm')}</Btn_1Col>}
@@ -42,7 +42,7 @@ export function TransferComplete() {
           <div className="flex justify-between py-2">
             <span className="text-[#7B828C]">{t('transfer.recipientAccount')}</span>
             <span className="font-bold">
-              {recipientBank.name.replace('은행', '')} {recipientAccount}
+              {getShortTransferBankName(recipientBank, language)} {recipientAccount}
             </span>
           </div>
           <div className="flex justify-between py-2">

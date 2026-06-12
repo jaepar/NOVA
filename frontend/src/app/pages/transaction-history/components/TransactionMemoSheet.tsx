@@ -30,6 +30,11 @@ export function TransactionMemoSheet({
     }
   }, [initialMemo, isOpen])
 
+  const memoPlaceholder = t('transactionHistory.memoMaxLengthPlaceholder').replace(
+    '{max}',
+    String(memoMaxLength)
+  )
+
   return (
     <BottomSheet
       isOpen={isOpen}
@@ -49,7 +54,7 @@ export function TransactionMemoSheet({
       bottomActionClassName="px-0"
     >
       <CommonInputGroup
-        placeholder={t('transactionHistory.memoMaxLengthPlaceholder')}
+        placeholder={memoPlaceholder}
         value={memo}
         onChange={setMemo}
         maxLength={memoMaxLength}

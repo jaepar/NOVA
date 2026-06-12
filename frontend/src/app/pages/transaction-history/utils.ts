@@ -10,7 +10,10 @@ import type {
 } from '../../../api/endpoints/banking'
 import type { AccountInfo } from './types'
 
-export function formatWon(amount: number) {
+export function formatWon(amount: number, language = 'ko') {
+  if (language === 'en') {
+    return `KRW ${amount.toLocaleString('en-US')}`
+  }
   return `${amount.toLocaleString('ko-KR')}원`
 }
 

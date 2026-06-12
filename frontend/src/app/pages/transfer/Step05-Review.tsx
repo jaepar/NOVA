@@ -4,15 +4,16 @@ import { bankingApi, getBankingApiError } from '../../../api'
 import { AppButton, Btn_1Col, novaToast } from '../../components/design-system'
 import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
-import { translateError } from '../../i18n'
+import { translateError, useTranslation } from '../../i18n'
 import { Loading } from '../common/Loading'
-import { BANK_OPTIONS, formatCurrency, RECIPIENT_NAME, SOURCE_BANK } from './types'
+import { BANK_OPTIONS, formatCurrency, getShortTransferBankName, RECIPIENT_NAME, SOURCE_BANK } from './types'
 import { useTransferStore } from './transferStore'
 import { BankMark } from './components/BankMark'
 import { NumericKeypad } from './components/NumericKeypad'
 
 export function TransferReview() {
   const navigate = useNavigate()
+  const { t, language } = useTranslation()
   const accountNumber = useTransferStore((state) => state.accountNumber)
   const selectedBank = useTransferStore((state) => state.selectedBank)
   const preview = useTransferStore((state) => state.preview)
@@ -22,7 +23,7 @@ export function TransferReview() {
   const recipientBank = selectedBank ?? BANK_OPTIONS.find((bank) => bank.id === 'nonghyup') ?? BANK_OPTIONS[0]
   const recipientAccount = accountNumber || '1122261925003'
   const recipientName = preview?.recipient.recipientName ?? RECIPIENT_NAME
-  const amountText = formatCurrency(amount)
+  const amountText = formatCurrency(amount, language)
   const [isPasswordSheetOpen, setIsPasswordSheetOpen] = useState(false)
   const [password, setPassword] = useState('')
   const [isTransferLoading, setIsTransferLoading] = useState(false)
@@ -39,7 +40,7 @@ export function TransferReview() {
   const submitTransfer = async (accountPassword: string) => {
     if (isTransferLoading) return
     if (!preview) {
-      novaToast.error('이체 정보를 확인하지 못했습니다. 계좌 정보를 다시 입력해주세요.')
+      novaToast.error(t('transfer.review.unknownError'))
       setPassword('')
       return
     }
@@ -64,7 +65,7 @@ export function TransferReview() {
 
       setPassword('')
       if (isPasswordError) {
-        novaToast.error(translateError(apiError?.code, '계좌 비밀번호가 일치하지 않습니다.'))
+        novaToast.error(translateError(apiError?.code, t('transfer.review.passwordError')))
         return
       }
 
@@ -73,7 +74,7 @@ export function TransferReview() {
         state: {
           message: translateError(
             apiError?.code,
-            apiError?.message || '이체 요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.'
+            apiError?.message || t('transfer.review.requestFailed')
           ),
         },
       })
@@ -97,7 +98,7 @@ export function TransferReview() {
   return (
     <>
       <MobileLayout
-        title="이체"
+        title={t('transfer.title')}
         titleKey="transfer.title"
         headerType="back"
         onBack={() => navigate('/transfer/amount-confirm')}
@@ -109,7 +110,7 @@ export function TransferReview() {
             }}
             disabled={isTransferLoading}
           >
-            {isTransferLoading ? '이체 중' : '이체'}
+            {isTransferLoading ? t('transfer.review.transferring') : t('transfer.review.transfer')}
           </Btn_1Col>
         }
       >
@@ -119,22 +120,35 @@ export function TransferReview() {
             <BankMark bank={recipientBank} size="lg" />
           </div>
 
-          <h2 className="mt-9 text-[24px] font-bold leading-snug">
-            <span className="text-[#006BFF]">{recipientName}</span> 님에게
-            <br />
-            <span className="text-[#006BFF]">{amountText}</span>을 이체하시겠어요?
-          </h2>
+          {language === 'en' ? (
+            <h2 className="mt-9 text-[24px] font-bold leading-snug">
+              <span className="break-words text-[#006BFF]">{recipientName}</span>{' '}
+              {t('transfer.review.recipientSuffix')}
+              <span className="mt-1 block text-[#006BFF]">{amountText}</span>
+              <span className="block">{t('transfer.review.confirmSuffix')}</span>
+            </h2>
+          ) : (
+            <h2 className="mt-9 text-[24px] font-bold leading-snug">
+              <span className="break-words text-[#006BFF]">{recipientName}</span>
+              {t('transfer.review.recipientSuffix')}
+              <br />
+              <span className="text-[#006BFF]">{amountText}</span>
+              {t('transfer.review.confirmSuffix')}
+            </h2>
+          )}
           <p className="mt-4 text-[14px] font-semibold text-[#8A9099]">
-            {recipientBank.name.replace('은행', '')} {recipientAccount} 계좌로 보냅니다.
+            {t('transfer.review.toAccount')
+              .replace('{bankName}', getShortTransferBankName(recipientBank, language))
+              .replace('{accountNumber}', recipientAccount)}
           </p>
 
           <div className="mt-8 rounded-2xl bg-[#F7F7F8] px-5 py-5 text-[15px]">
             <div className="flex justify-between py-2">
-              <span className="text-[#7B828C]">받는 분 통장표기</span>
+              <span className="text-[#7B828C]">{t('transfer.review.recipientMemo')}</span>
               <span className="font-bold">{recipientMemoName}</span>
             </div>
             <div className="flex justify-between py-2">
-              <span className="text-[#7B828C]">내 통장표기</span>
+              <span className="text-[#7B828C]">{t('transfer.review.senderMemo')}</span>
               <span className="font-bold">{senderMemoName}</span>
             </div>
           </div>
@@ -159,7 +173,7 @@ export function TransferReview() {
           >
             x
           </AppButton>
-          <h2 className="pt-8 text-[20px] font-bold">계좌 비밀번호</h2>
+          <h2 className="pt-8 text-[20px] font-bold">{t('transfer.review.passwordTitle')}</h2>
           <div className="mt-12 flex justify-center gap-5">
             {[0, 1, 2, 3].map((index) => (
               <span
@@ -188,11 +202,11 @@ export function TransferReview() {
       {isTransferLoading ? (
         <div className="fixed inset-0 z-[100] bg-white">
           <Loading
-            headerTitle="이체"
+            headerTitle={t('transfer.title')}
             headerTitleKey="transfer.title"
-            task="이체를 처리하고 있어요"
+            task={t('transfer.loadingTask')}
             taskKey="transfer.loadingTask"
-            description="잠시만 기다려주세요."
+            description={t('transfer.loadingDescription')}
             descriptionKey="transfer.loadingDescription"
             spinnerSize="lg"
           />

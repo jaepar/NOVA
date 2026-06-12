@@ -25,7 +25,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 export function TransactionHistoryDetailPage() {
   const navigate = useNavigate()
   const { transactionId } = useParams()
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
   const account = useTransactionHistoryStore((state) => state.account)
   const errorMessage = useTransactionHistoryStore((state) => state.errorMessage)
   const isLoading = useTransactionHistoryStore((state) => state.isLoading)
@@ -47,7 +47,7 @@ export function TransactionHistoryDetailPage() {
   if (!transaction) {
     return (
       <MobileLayout
-        title="거래내역 상세"
+        title={t('transactionHistory.detailTitle')}
         titleKey="transactionHistory.detailTitle"
         headerType="close"
         closePath="/transaction-history"
@@ -65,12 +65,12 @@ export function TransactionHistoryDetailPage() {
   }
 
   const isDeposit = transaction.amount > 0
-  const signedAmount = `${isDeposit ? '+' : '-'}${formatWon(Math.abs(transaction.amount))}`
+  const signedAmount = `${isDeposit ? '+' : '-'}${formatWon(Math.abs(transaction.amount), language)}`
 
   return (
     <>
       <MobileLayout
-        title="거래내역 상세"
+        title={t('transactionHistory.detailTitle')}
         titleKey="transactionHistory.detailTitle"
         headerType="close"
         closePath="/transaction-history"
@@ -93,7 +93,7 @@ export function TransactionHistoryDetailPage() {
                 {signedAmount}
               </p>
               <p className="mt-1 text-[14px] font-semibold leading-5 text-muted-foreground">
-                {t('transactionHistory.afterBalance')} {formatWon(transaction.balanceAfter)}
+                {t('transactionHistory.afterBalance')} {formatWon(transaction.balanceAfter, language)}
               </p>
             </div>
           </section>

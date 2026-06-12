@@ -1,6 +1,5 @@
 import { Copy } from 'lucide-react'
-import { toast } from 'sonner'
-import { AppButton } from '../../../components/design-system/AppButton'
+import { AppButton, novaToast } from '../../../components/design-system'
 import { useTranslation } from '../../../i18n'
 import type { AccountInfo } from '../types'
 import { formatWon } from '../utils'
@@ -12,14 +11,14 @@ interface AccountSummaryCardProps {
 }
 
 export function AccountSummaryCard({ account, onTransferClick }: AccountSummaryCardProps) {
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
 
   const handleCopyAccountNumber = async () => {
     try {
       await navigator.clipboard.writeText(account.number)
-      toast.success(t('transactionHistory.accountCopied'))
+      novaToast.success(t('transactionHistory.accountCopied'))
     } catch {
-      toast.error(t('transactionHistory.accountCopyFailed'))
+      novaToast.error(t('transactionHistory.accountCopyFailed'))
     }
   }
 
@@ -52,9 +51,9 @@ export function AccountSummaryCard({ account, onTransferClick }: AccountSummaryC
       </div>
 
       <div className="mt-4 flex flex-col items-end">
-        <p className="text-[26px] font-bold leading-8 text-foreground">{formatWon(account.balance)}</p>
+        <p className="text-[26px] font-bold leading-8 text-foreground">{formatWon(account.balance, language)}</p>
         <p className="mt-1 text-[12px] font-medium leading-4 text-muted-foreground">
-          {t('transactionHistory.withdrawable')} {formatWon(account.availableBalance)}
+          {t('transactionHistory.withdrawable')} {formatWon(account.availableBalance, language)}
         </p>
         <AppButton
           variant="primary"
