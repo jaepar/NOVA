@@ -46,8 +46,9 @@ export function Main() {
   );
   const logout = useMainPageStore((state) => state.logout);
 
-  const [accountHome, setAccountHome] =
-    useState<AccountHomeResponse | null>(null);
+  const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(
+    null
+  );
   const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
   const [isNotificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationResponse[]>(
@@ -284,7 +285,7 @@ export function Main() {
           />
         }
       >
-        <div className="space-y-4 pt-3">
+        <div className="space-y-4 pt-1">
           <section>
             <MainAccountPanel
               isLoggedIn={isLoggedIn}
