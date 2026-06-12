@@ -220,6 +220,7 @@ erDiagram
 | `cs.cs_type` | `PRODUCT_SUBSCRIPTION`, `ACCOUNT_MAINTENANCE` |
 | `document.document_type` | `ALIEN_REGISTRATION_SUPPORTING_DOCUMENT`, `RESIDENCE_VERIFICATION_DOCUMENT` |
 | `document.status` | `PENDING`, `APPROVED`, `REJECTED`, `MODIFIED` |
+| `document.missing` | 반려 사유 코드 콤마 구분값. 예: `RESIDENCE_ADDRESS_PAGE_MISSING,RESIDENCE_ISSUED_WITHIN_3_MONTHS_REQUIRED` |
 | `notification.type` | `SUPPLEMENT_DOCUMENT`, `RESIDENCE_CARD_PERIOD` |
 | `cs.cs_status` | `PENDING(false)`, `COMPLETED(true)` |
 
