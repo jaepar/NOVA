@@ -288,7 +288,7 @@ export function PassportCameraCapture() {
             variant="outline"
             disabled={isOcrProcessing}
           >
-            더미 파싱 결과 보기 (임시)
+            {t("certificate.passportDummyResult")}
           </Btn_1Col>
         </div>
       }

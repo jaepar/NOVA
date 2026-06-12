@@ -66,7 +66,7 @@ export function Step13TaxLiabilityCheck() {
   return (
     <>
       <MobileLayout
-        title={t("account.customerInfoTitle", "고객정보등록")}
+        title={t("account.customerInfoTitle")}
         titleKey="account.customerInfoTitle"
         backPath="/account/step-12"
         bottomContent={
@@ -77,21 +77,21 @@ export function Step13TaxLiabilityCheck() {
               navigate("/account/step-14");
             }}
           >
-            {t("account.next", "다음")}
+            {t("account.next")}
           </Btn_1Col>
         }
       >
         <div className="space-y-7 pb-2">
           <section className="space-y-2">
             <h2 className="text-2xl leading-tight font-semibold text-foreground">
-              {t("account.tax.heading", "해외 납세의무가 있나요?")}
+              {t("account.tax.heading")}
             </h2>
             <AppButton
               variant="unstyled"
               onClick={() => setIsGuideOpen(true)}
               className="p-0 text-sm text-muted-foreground underline"
             >
-              {t("account.tax.guideLink", "납세의무는 어떻게 판단하나요?")}
+              {t("account.tax.guideLink")}
             </AppButton>
           </section>
 
@@ -110,7 +110,7 @@ export function Step13TaxLiabilityCheck() {
                     : "border-border bg-background text-foreground"
                 }`}
               >
-                {t("account.tax.none", "없음")}
+                {t("account.tax.none")}
               </AppButton>
               <AppButton
                 type="button"
@@ -125,14 +125,14 @@ export function Step13TaxLiabilityCheck() {
                     : "border-border bg-background text-foreground"
                 }`}
               >
-                {t("account.tax.exists", "있음")}
+                {t("account.tax.exists")}
               </AppButton>
             </div>
 
             {taxLiability === "exists" && (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {t("account.tax.description", "해외 납세의무가 있는지 아래 항목을 확인해 주세요.")}
+                  {t("account.tax.description")}
                 </p>
                 <div className="rounded-xl border border-border bg-background divide-y divide-border">
                   {taxQuestionKeys.map((questionKey, index) => (
@@ -156,7 +156,7 @@ export function Step13TaxLiabilityCheck() {
                               : "border-border bg-background text-foreground"
                           }`}
                         >
-                          {t("account.transactionInfo.yes", "예")}
+                          {t("account.transactionInfo.yes")}
                         </AppButton>
                         <AppButton
                           type="button"
@@ -168,7 +168,7 @@ export function Step13TaxLiabilityCheck() {
                               : "border-border bg-background text-foreground"
                           }`}
                         >
-                          {t("account.transactionInfo.no", "아니요")}
+                          {t("account.transactionInfo.no")}
                         </AppButton>
                       </div>
                     </div>
@@ -188,7 +188,7 @@ export function Step13TaxLiabilityCheck() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-base font-semibold text-foreground">
-              {t("account.tax.guideTitle", "납세의무 판단 기준 안내")}
+              {t("account.tax.guideTitle")}
             </p>
             <AppButton
               variant="unstyled"
@@ -216,7 +216,7 @@ export function Step13TaxLiabilityCheck() {
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <CircleHelp className="w-4 h-4" />
-            <p>{t("account.tax.guideFootnote", "상세 기준은 금융회사 내부 심사 기준 및 관련 법령을 따릅니다.")}</p>
+            <p>{t("account.tax.guideFootnote")}</p>
           </div>
         </div>
       </BottomSheet>

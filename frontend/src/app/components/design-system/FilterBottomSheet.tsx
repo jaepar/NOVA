@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { BottomSheet } from '../layout/BottomSheet'
 import { AppButton } from './AppButton'
 import { Btn_1Col } from './Btn_1Col'
+import { useTranslation } from '../../i18n'
 
 interface FilterOption {
   value: string
@@ -31,20 +32,24 @@ interface FilterBottomSheetProps {
 export function FilterBottomSheet({
   isOpen,
   onClose,
-  title = '필터',
+  title,
   sections,
   onApply,
-  applyButtonText = '적용하기',
+  applyButtonText,
   height = '520px',
   children,
 }: FilterBottomSheetProps) {
+  const { t } = useTranslation()
+  const resolvedTitle = title ?? t('common.filter')
+  const resolvedApplyButtonText = applyButtonText ?? t('common.apply')
+
   return (
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
+      title={resolvedTitle}
       height={height}
-      bottomAction={<Btn_1Col onClick={onApply}>{applyButtonText}</Btn_1Col>}
+      bottomAction={<Btn_1Col onClick={onApply}>{resolvedApplyButtonText}</Btn_1Col>}
     >
       <div className="space-y-6 pb-4">
         {sections.map((section, index) => (

@@ -5,26 +5,22 @@ import {
   useTransferRecipientInfoPageStore,
   useTransferSenderInfoPageStore,
 } from "../../stores/pageStores";
+import { useTranslation } from "../../i18n";
 
 export function Step06TransferSubmitSuccess() {
   const navigate = useNavigate();
-  const resetTransferBasicInfo = useTransferBasicInfoPageStore(
-    (state) => state.reset
-  );
-  const resetTransferSenderInfo = useTransferSenderInfoPageStore(
-    (state) => state.reset
-  );
-  const resetTransferRecipientInfo = useTransferRecipientInfoPageStore(
-    (state) => state.reset
-  );
+  const { t } = useTranslation();
+  const resetTransferBasicInfo = useTransferBasicInfoPageStore((state) => state.reset);
+  const resetTransferSenderInfo = useTransferSenderInfoPageStore((state) => state.reset);
+  const resetTransferRecipientInfo = useTransferRecipientInfoPageStore((state) => state.reset);
 
   return (
     <Success
-      headerTitle="해외송금"
+      headerTitle={t("globalTransfer.title")}
       headerType="none"
-      task="송금 신청이 완료되었습니다."
-      description="고객님의 송금 신청이 정상적으로 처리되었습니다"
-      buttonText="확인"
+      task={t("globalTransfer.submitSuccess.task")}
+      description={t("globalTransfer.submitSuccess.description")}
+      buttonText={t("globalTransfer.submitSuccess.confirm")}
       onButtonClick={() => {
         resetTransferBasicInfo();
         resetTransferSenderInfo();

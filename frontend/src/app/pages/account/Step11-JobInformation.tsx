@@ -35,7 +35,7 @@ export function Step11JobInformation() {
   return (
     <>
       <MobileLayout
-        title={t("account.jobInfoTitle", "직장정보입력")}
+        title={t("account.jobInfoTitle")}
         titleKey="account.jobInfoTitle"
         backPath="/account/step-10"
         bottomContent={
@@ -43,14 +43,14 @@ export function Step11JobInformation() {
             disabled={!canSubmit}
             onClick={() => navigate("/account/step-12")}
           >
-            {t("account.next", "다음")}
+            {t("account.next")}
           </Btn_1Col>
         }
       >
         <div className="space-y-8 pb-2">
           <section className="space-y-2">
             <h2 className="text-2xl leading-tight font-semibold text-foreground">
-              {t("account.jobInfo.heading", "고객님의 직장 정보를\n입력해 주세요")
+              {t("account.jobInfo.heading")
                 .split("\n")
                 .map((line, index, lines) => (
                   <span key={`${line}-${index}`}>
@@ -62,7 +62,7 @@ export function Step11JobInformation() {
           </section>
 
           <section className="space-y-2">
-            <label className="block text-foreground">{t("account.jobInfo.label", "직업")}</label>
+            <label className="block text-foreground">{t("account.jobInfo.label")}</label>
             <AppButton
               variant="unstyled"
               onClick={() => setIsSheetOpen(true)}
@@ -71,7 +71,7 @@ export function Step11JobInformation() {
               <span className={selectedJob ? "text-foreground" : "text-muted-foreground"}>
                 {selectedJobLabelKey
                   ? t(selectedJobLabelKey)
-                  : t("account.jobInfo.placeholder", "선택해 주세요")}
+                  : t("account.jobInfo.placeholder")}
               </span>
               <ChevronDown className="w-5 h-5 text-muted-foreground" />
             </AppButton>
@@ -88,7 +88,7 @@ export function Step11JobInformation() {
         <div className="space-y-2">
           <div className="flex items-center justify-between pb-2">
             <p className="text-lg font-semibold text-foreground">
-              {t("account.jobInfo.sheetTitle", "직업 선택")}
+              {t("account.jobInfo.sheetTitle")}
             </p>
             <AppButton
               variant="unstyled"

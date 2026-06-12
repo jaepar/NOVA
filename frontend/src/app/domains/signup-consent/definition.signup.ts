@@ -1,7 +1,7 @@
 ﻿import type { ConsentDefinition } from "../spec";
 
 export const signupConsentDefinition: ConsentDefinition = {
-  domain: "certificate",
+  domain: "signup",
   version: "v1",
   categories: [
     {

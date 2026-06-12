@@ -31,12 +31,12 @@ export function ConsentTermDetailView({
   if (!term) {
     return (
       <CloseButtonTemplate
-        headerTitle={t('account.terms.detailTitle', '약관/동의서 상세')}
+        headerTitle={t('account.terms.detailTitle')}
         headerTitleKey="account.terms.detailTitle"
         onClose={() => navigate(basePath, { state: { [preserveStateKey]: true } })}
       >
         <div className="pt-10 text-center">
-          {t('account.terms.termNotFound', '약관을 찾을 수 없습니다.')}
+          {t('account.terms.termNotFound')}
         </div>
       </CloseButtonTemplate>
     )
@@ -44,11 +44,11 @@ export function ConsentTermDetailView({
 
   return (
     <CloseButtonTemplate
-      headerTitle={t('account.terms.detailTitle', '약관/동의서 상세')}
+      headerTitle={t('account.terms.detailTitle')}
       headerTitleKey="account.terms.detailTitle"
       onClose={() => navigate(basePath, { state: { [preserveStateKey]: true } })}
       showBottomButton={showSelectionControls}
-      buttonText={t('account.terms.agree', '동의하기')}
+      buttonText={t('account.terms.agree')}
       buttonTextKey="account.terms.agree"
       onButtonClick={() => {
         if (termId && !isAgreed) markTermAgreed(termId)

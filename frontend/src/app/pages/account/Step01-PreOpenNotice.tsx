@@ -41,11 +41,11 @@ export function Step01PreOpenNotice() {
 
   return (
     <MobileLayout
-      title={t("account.openingHeader", "입출금계좌 개설")}
+      title={t("account.openingHeader")}
       titleKey="account.openingHeader"
       bottomContent={
         <Btn_1Col onClick={() => navigate("/account/step-02")}>
-          {t("account.next", "다음")}
+          {t("account.next")}
         </Btn_1Col>
       }
     >
@@ -53,11 +53,11 @@ export function Step01PreOpenNotice() {
         <section className="space-y-2">
           <h2 className="text-2xl font-semibold leading-tight">
             <MultilineText
-              text={t("account.preOpen.heading", "계좌 개설 전에\n미리 확인해 주세요")}
+              text={t("account.preOpen.heading")}
             />
           </h2>
           <p className="text-sm text-muted-foreground">
-            {t("account.preOpen.description", "아래 내용을 확인하신 후 진행해 주세요.")}
+            {t("account.preOpen.description")}
           </p>
         </section>
 

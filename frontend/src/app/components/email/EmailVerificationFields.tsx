@@ -53,10 +53,10 @@ export function EmailVerificationFields({
   disabled = false,
 }: EmailVerificationFieldsProps) {
   const { t } = useTranslation();
-  const resolvedEmailLabel = emailLabel ?? t("signup.email", "이메일");
-  const resolvedCodeLabel = codeLabel ?? t("signup.code", "인증번호");
+  const resolvedEmailLabel = emailLabel ?? t("signup.email");
+  const resolvedCodeLabel = codeLabel ?? t("signup.code");
   const resolvedCodePlaceholder =
-    codePlaceholder ?? t("signup.codePlaceholder", "인증번호 6자리를 입력해 주세요");
+    codePlaceholder ?? t("signup.codePlaceholder");
 
   return (
     <section className={`space-y-6 ${className}`.trim()}>
@@ -78,19 +78,19 @@ export function EmailVerificationFields({
               className="text-sm font-semibold text-primary disabled:cursor-not-allowed disabled:text-muted-foreground"
             >
               {isSendingCode
-                ? t("signup.sending", "발송 중")
-                : t("signup.getCode", "인증번호 받기")}
+                ? t("signup.sending")
+                : t("signup.getCode")}
             </AppButton>
           }
         />
         {email && !isEmailValid && (
           <p className="text-sm text-red-500">
-            {t("signup.invalidEmail", "올바른 이메일 형식을 입력해 주세요.")}
+            {t("signup.invalidEmail")}
           </p>
         )}
         {isCodeSent && (
           <p className="text-sm text-muted-foreground">
-            {t("signup.codeSent", "인증번호가 발송되었습니다.")}
+            {t("signup.codeSent")}
           </p>
         )}
       </div>
@@ -116,18 +116,18 @@ export function EmailVerificationFields({
             className="text-sm font-semibold text-primary disabled:cursor-not-allowed disabled:text-muted-foreground"
           >
             {resendSeconds > 0
-              ? `${t("signup.resend", "재전송")} (${formatEmailVerificationTimer(resendSeconds)})`
-              : t("signup.resend", "재전송")}
+              ? `${t("signup.resend")} (${formatEmailVerificationTimer(resendSeconds)})`
+              : t("signup.resend")}
           </AppButton>
         )}
         {isVerifying && (
           <p className="text-sm text-muted-foreground">
-            {t("signup.verifying", "확인 중")}
+            {t("signup.verifying")}
           </p>
         )}
         {isEmailVerified && (
           <p className="text-sm text-primary">
-            {t("signup.emailVerified", "이메일 인증이 완료되었습니다.")}
+            {t("signup.emailVerified")}
           </p>
         )}
         {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}

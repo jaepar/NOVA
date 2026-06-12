@@ -54,12 +54,12 @@ export function ConsentCategoryCarouselView({
   if (!category) {
     return (
       <CloseButtonTemplate
-        headerTitle={t('account.terms.detailTitle', '약관/동의서 상세')}
+        headerTitle={t('account.terms.detailTitle')}
         headerTitleKey="account.terms.detailTitle"
         onClose={() => navigate(basePath, { state: { [preserveStateKey]: true } })}
       >
         <div className="pt-10 text-center">
-          {t('account.terms.categoryNotFound', '카테고리를 찾을 수 없습니다.')}
+          {t('account.terms.categoryNotFound')}
         </div>
       </CloseButtonTemplate>
     )
@@ -96,11 +96,11 @@ export function ConsentCategoryCarouselView({
 
   return (
     <CloseButtonTemplate
-      headerTitle={t('account.terms.detailTitle', '약관/동의서 상세')}
+      headerTitle={t('account.terms.detailTitle')}
       headerTitleKey="account.terms.detailTitle"
       onClose={() => navigate(basePath, { state: { [preserveStateKey]: true } })}
       showBottomButton={showSelectionControls}
-      buttonText={total > 1 ? t('account.terms.agreeAll', '모두 동의하기') : t('account.terms.agree', '동의하기')}
+      buttonText={total > 1 ? t('account.terms.agreeAll') : t('account.terms.agree')}
       buttonTextKey={total > 1 ? 'account.terms.agreeAll' : 'account.terms.agree'}
       onButtonClick={() => {
         markTermsAgreed(category.terms.map((term) => term.id))

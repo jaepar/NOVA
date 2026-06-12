@@ -49,25 +49,25 @@ export function LivenessCameraCapture() {
   const [hasStartedLiveness, setHasStartedLiveness] = useState(false);
   const translatedLivenessDisplayText = useMemo(
     () => ({
-      startScreenBeginCheckText: t("account.livenessCamera.start", "얼굴 인증 시작"),
-      cancelLivenessCheckText: t("account.livenessCamera.close", "닫기"),
-      hintCenterFaceText: t("account.livenessCamera.centerFace", "얼굴을 원 안 중앙에 맞춰 주세요."),
-      hintMoveFaceFrontOfCameraText: t("account.livenessCamera.faceFront", "카메라를 정면으로 바라봐 주세요."),
-      hintTooFarText: t("account.livenessCamera.tooFar", "카메라에 조금 더 가까이 와 주세요."),
-      hintTooCloseText: t("account.livenessCamera.tooClose", "카메라와 조금 거리를 두어 주세요."),
-      hintHoldFaceForFreshnessText: t("account.livenessCamera.hold", "상태를 유지해 주세요."),
-      hintConnectingText: t("account.livenessCamera.connecting", "인증 준비 중입니다."),
-      hintVerifyingText: t("account.livenessCamera.verifying", "인증 결과를 확인하고 있습니다."),
-      hintCheckCompleteText: t("account.livenessCamera.complete", "잠시만 기다려주십시오..."),
-      waitingCameraPermissionText: t("account.livenessCamera.waitingPermission", "카메라 권한 허용을 기다리고 있습니다."),
-      retryCameraPermissionsText: t("account.livenessCamera.retryPermission", "카메라 권한을 허용해 주세요."),
-      cameraNotFoundHeadingText: t("account.livenessCamera.cameraNotFoundHeading", "카메라를 찾을 수 없습니다."),
-      cameraNotFoundMessageText: t("account.livenessCamera.cameraNotFoundMessage", "카메라 연결 상태를 확인한 뒤 다시 시도해 주세요."),
-      serverHeaderText: t("account.livenessCamera.serverHeader", "서버 오류"),
-      serverMessageText: t("account.livenessCamera.serverMessage", "서버 문제로 인증을 완료하지 못했습니다."),
-      clientHeaderText: t("account.livenessCamera.clientHeader", "인증 오류"),
-      clientMessageText: t("account.livenessCamera.clientMessage", "인증 처리 중 오류가 발생했습니다."),
-      tryAgainText: t("account.livenessCamera.tryAgain", "다시 시도"),
+      startScreenBeginCheckText: t("account.livenessCamera.start"),
+      cancelLivenessCheckText: t("account.livenessCamera.close"),
+      hintCenterFaceText: t("account.livenessCamera.centerFace"),
+      hintMoveFaceFrontOfCameraText: t("account.livenessCamera.faceFront"),
+      hintTooFarText: t("account.livenessCamera.tooFar"),
+      hintTooCloseText: t("account.livenessCamera.tooClose"),
+      hintHoldFaceForFreshnessText: t("account.livenessCamera.hold"),
+      hintConnectingText: t("account.livenessCamera.connecting"),
+      hintVerifyingText: t("account.livenessCamera.verifying"),
+      hintCheckCompleteText: t("account.livenessCamera.complete"),
+      waitingCameraPermissionText: t("account.livenessCamera.waitingPermission"),
+      retryCameraPermissionsText: t("account.livenessCamera.retryPermission"),
+      cameraNotFoundHeadingText: t("account.livenessCamera.cameraNotFoundHeading"),
+      cameraNotFoundMessageText: t("account.livenessCamera.cameraNotFoundMessage"),
+      serverHeaderText: t("account.livenessCamera.serverHeader"),
+      serverMessageText: t("account.livenessCamera.serverMessage"),
+      clientHeaderText: t("account.livenessCamera.clientHeader"),
+      clientMessageText: t("account.livenessCamera.clientMessage"),
+      tryAgainText: t("account.livenessCamera.tryAgain"),
     }),
     [t]
   );
@@ -326,12 +326,12 @@ export function LivenessCameraCapture() {
       setIsDetectorVisible(false);
       setHasStartedLiveness(false);
       stopCameraTracksRepeatedly();
-      setFailureMessage(t("account.livenessCamera.failed", "실명 인증에 실패했습니다. 다시 시도해 주세요."));
+      setFailureMessage(t("account.livenessCamera.failed"));
     } catch {
       setIsDetectorVisible(false);
       setHasStartedLiveness(false);
       stopCameraTracksRepeatedly();
-      setFailureMessage(t("account.livenessCamera.resultFailed", "인증 결과 확인에 실패했습니다. 다시 시도해 주세요."));
+      setFailureMessage(t("account.livenessCamera.resultFailed"));
     }
   };
 
@@ -353,7 +353,7 @@ export function LivenessCameraCapture() {
         setIsDetectorVisible(true);
       } catch {
         setFailureMessage(
-          t("account.livenessCamera.retrySessionFailed", "재촬영 세션 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.")
+          t("account.livenessCamera.retrySessionFailed")
         );
       } finally {
         setIsRetrying(false);
@@ -382,11 +382,11 @@ export function LivenessCameraCapture() {
 
   if (!hasAwsConfig) {
     return (
-      <MobileLayout title={t("account.identityTitle", "비대면 실명확인")} titleKey="account.identityTitle" backPath={STEP08_PATH}>
+      <MobileLayout title={t("account.identityTitle")} titleKey="account.identityTitle" backPath={STEP08_PATH}>
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">{t("account.livenessCamera.configRequiredTitle", "Liveness 설정이 필요합니다")}</h2>
+          <h2 className="text-xl font-semibold">{t("account.livenessCamera.configRequiredTitle")}</h2>
           <p className="text-sm text-muted-foreground">
-            {t("account.livenessCamera.configRequiredDescription", "VITE_AWS_REGION, VITE_AWS_COGNITO_IDENTITY_POOL_ID 환경변수를 설정해 주세요.")}
+            {t("account.livenessCamera.configRequiredDescription")}
           </p>
         </div>
       </MobileLayout>
@@ -395,7 +395,7 @@ export function LivenessCameraCapture() {
 
   return (
     <MobileLayout
-      title={t("account.identityTitle", "비대면 실명확인")}
+      title={t("account.identityTitle")}
       titleKey="account.identityTitle"
       headerType="close"
       onClose={handleCancel}
@@ -403,7 +403,7 @@ export function LivenessCameraCapture() {
       bottomContent={
         failureMessage ? (
           <Btn_1Col onClick={handleRetry} disabled={isRetrying}>
-            {isRetrying ? t("account.livenessCamera.retryPreparing", "재촬영 준비 중...") : t("account.livenessCamera.retake", "재촬영")}
+            {isRetrying ? t("account.livenessCamera.retryPreparing") : t("account.livenessCamera.retake")}
           </Btn_1Col>
         ) : undefined
       }
@@ -426,7 +426,7 @@ export function LivenessCameraCapture() {
             onError={() => {
               setIsDetectorVisible(false);
               stopCameraTracksRepeatedly();
-              setFailureMessage(t("account.livenessCamera.failed", "인증에 실패했습니다. 다시 시도해 주세요."));
+              setFailureMessage(t("account.livenessCamera.failed"));
             }}
             config={{ credentialProvider }}
           />

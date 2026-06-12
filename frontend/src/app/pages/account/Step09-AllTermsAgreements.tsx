@@ -15,6 +15,7 @@ export function AccountConsentAllTermsAgreements() {
       basePath="/account/step-09"
       preserveStateKey="preserveStep09State"
       resetCarouselCursorKey="resetCategoryCursor"
+      translationNamespace="consent.account"
     />
   )
 }

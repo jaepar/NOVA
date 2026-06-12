@@ -32,8 +32,8 @@ export function ConsentOverviewAccordion({
   basePath = '/consent-template',
   preserveStateKey = 'preserveConsentState',
   resetCarouselCursorKey = 'resetCategoryCursor',
-  title = '서비스를 가입을 위해\n약관에 동의해 주세요',
-  description = '약관 동의 샘플 페이지',
+  title,
+  description,
   showSelectionControls = true,
   translationNamespace,
   onRequiredCompleteChange,
@@ -41,6 +41,8 @@ export function ConsentOverviewAccordion({
   const navigate = useNavigate()
   const { t } = useTranslation()
   const namespace = translationNamespace ?? `consent.${definition.domain}`
+  const resolvedTitle = title ?? t('account.terms.agreementHeading')
+  const resolvedDescription = description ?? ''
   const [openCategoryIds, setOpenCategoryIdsState] = useState<string[]>(() => {
     const saved = getOpenCategoryIds()
     if (saved.length > 0) return saved
@@ -50,7 +52,7 @@ export function ConsentOverviewAccordion({
   })
   const [checkedTermIds, setCheckedTermIds] = useState<Set<string>>(() => getAgreedTermIds())
 
-  const titleLines = title ? title.split('\n') : []
+  const titleLines = resolvedTitle ? resolvedTitle.split('\n') : []
   const requiredIds = useMemo(() => getRequiredTermIds(definition), [definition])
   const isRequiredComplete = requiredIds.every((id) => checkedTermIds.has(id))
 
@@ -117,9 +119,9 @@ export function ConsentOverviewAccordion({
 
   return (
     <div className="space-y-4 pb-2">
-      {(title || description) && (
+      {(resolvedTitle || resolvedDescription) && (
         <section className="space-y-2">
-          {title && (
+          {resolvedTitle && (
             <h2 className="text-2xl font-semibold leading-tight">
               {titleLines.map((line, idx) => (
                 <span key={`${line}-${idx}`}>
@@ -129,7 +131,7 @@ export function ConsentOverviewAccordion({
               ))}
             </h2>
           )}
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          {resolvedDescription && <p className="text-sm text-muted-foreground">{resolvedDescription}</p>}
         </section>
       )}
 

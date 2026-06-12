@@ -201,7 +201,7 @@ export function NfcGuide() {
             {isScanning ? t('certificate.nfcTagging') : t('certificate.nfcTagStart')}
           </Btn_1Col>
           <Btn_1Col variant="outline" onClick={handleSkipForTest} disabled={isScanning}>
-            인증 없이 다음으로 (테스트)
+            {t('certificate.nfcSkipTest')}
           </Btn_1Col>
         </div>
       }
@@ -216,11 +216,11 @@ export function NfcGuide() {
           <div className="space-y-4">
             <div className="rounded-xl border border-dashed border-border bg-background min-h-[280px] flex items-center justify-center text-center px-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                이미지 자리 영역
+                {t('certificate.nfcImageArea')}
                 <br />
-                권장 규격: 280 x 220 (px)
+                {t('certificate.nfcRecommendedSize')}
                 <br />
-                비율: 14 : 11
+                {t('certificate.nfcRatio')}
               </p>
             </div>
             <p className="text-sm text-center text-foreground/90">
@@ -237,7 +237,7 @@ export function NfcGuide() {
         </section>
 
         <section className="rounded-2xl bg-secondary p-4 space-y-3">
-          <p className="text-sm font-medium">Step05 파싱 데이터</p>
+          <p className="text-sm font-medium">{t('certificate.nfcParsedDataTitle')}</p>
           {parsedPassportData ? (
             <div className="rounded-xl border border-border bg-background overflow-hidden">
               {comparisonFields.map(({ key, label }) => (
@@ -252,7 +252,7 @@ export function NfcGuide() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Step05에서 전달된 파싱 데이터가 없습니다.
+              {t('certificate.nfcParsedDataEmpty')}
             </p>
           )}
         </section>

@@ -14,6 +14,7 @@ export function AccountConsentTermDetail() {
       termId={termId}
       basePath="/account/step-09"
       preserveStateKey="preserveStep09State"
+      translationNamespace="consent.account"
     />
   )
 }

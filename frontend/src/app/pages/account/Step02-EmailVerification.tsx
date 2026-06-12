@@ -34,25 +34,22 @@ export function Step02EmailVerification() {
 
   return (
     <MobileLayout
-      title={t("account.identityVerificationTitle", "본인확인")}
+      title={t("account.identityVerificationTitle")}
       titleKey="account.identityVerificationTitle"
       backPath="/account/step-01"
       bottomContent={
         <Btn_1Col disabled={!isEmailVerified} onClick={() => navigate("/account/step-03")}>
-          {t("account.next", "다음")}
+          {t("account.next")}
         </Btn_1Col>
       }
     >
       <SignupContent className="pt-2">
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold leading-tight">
-            {t("account.emailVerification.heading", "이메일 인증을 시작할게요")}
+            {t("account.emailVerification.heading")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {t(
-              "account.emailVerification.description",
-              "계좌 개설을 위해 이메일 인증을 진행해 주세요."
-            )}
+            {t("account.emailVerification.description")}
           </p>
         </section>
 
@@ -71,11 +68,8 @@ export function Step02EmailVerification() {
           onEmailChange={handleEmailChange}
           onVerificationCodeChange={handleVerificationCodeChange}
           onSendVerification={handleSendVerification}
-          codePlaceholder={t("signup.codePlaceholder", "인증번호 6자리를 입력해 주세요")}
-          codeHelperText={t(
-            "account.emailVerification.codeHelper",
-            "이메일로 받은 인증번호를 입력해 주세요."
-          )}
+          codePlaceholder={t("signup.codePlaceholder")}
+          codeHelperText={t("account.emailVerification.codeHelper")}
         />
       </SignupContent>
     </MobileLayout>

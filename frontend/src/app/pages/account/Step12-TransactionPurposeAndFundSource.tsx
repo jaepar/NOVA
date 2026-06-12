@@ -40,7 +40,7 @@ export function Step12TransactionPurposeAndFundSource() {
 
   return (
     <MobileLayout
-      title={t("account.transactionInfoTitle", "거래목적 및 자금출처")}
+      title={t("account.transactionInfoTitle")}
       titleKey="account.transactionInfoTitle"
       backPath="/account/step-11"
       bottomContent={
@@ -48,14 +48,14 @@ export function Step12TransactionPurposeAndFundSource() {
           disabled={!canSubmit}
           onClick={() => navigate("/account/step-13")}
         >
-          {t("account.next", "다음")}
+          {t("account.next")}
         </Btn_1Col>
       }
     >
       <div className="space-y-8 pb-2">
         <section className="space-y-2">
           <h2 className="text-2xl leading-tight font-semibold text-foreground">
-            {t("account.transactionInfo.heading", "금융거래 목적과\n자금출처를 선택해 주세요")
+            {t("account.transactionInfo.heading")
               .split("\n")
               .map((line, index, lines) => (
                 <span key={`${line}-${index}`}>
@@ -68,7 +68,7 @@ export function Step12TransactionPurposeAndFundSource() {
 
         <section className="space-y-4">
           <p className="text-foreground">
-            {t("account.transactionInfo.ownerQuestion", "거래자금은 본인 소유인가요?")}
+            {t("account.transactionInfo.ownerQuestion")}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <AppButton
@@ -81,7 +81,7 @@ export function Step12TransactionPurposeAndFundSource() {
                   : "border-border bg-background text-foreground"
               }`}
             >
-              {t("account.transactionInfo.yes", "예")}
+              {t("account.transactionInfo.yes")}
             </AppButton>
             <AppButton
               type="button"
@@ -93,7 +93,7 @@ export function Step12TransactionPurposeAndFundSource() {
                   : "border-border bg-background text-foreground"
               }`}
             >
-              {t("account.transactionInfo.no", "아니요")}
+              {t("account.transactionInfo.no")}
             </AppButton>
           </div>
         </section>
@@ -101,7 +101,7 @@ export function Step12TransactionPurposeAndFundSource() {
         <section className="space-y-4">
           <div className="space-y-2">
             <label className="block text-foreground">
-              {t("account.transactionInfo.purposeLabel", "거래목적 선택")}
+              {t("account.transactionInfo.purposeLabel")}
             </label>
             <AppButton
               variant="unstyled"
@@ -114,7 +114,7 @@ export function Step12TransactionPurposeAndFundSource() {
               <span className={purpose ? "text-foreground" : "text-muted-foreground"}>
                 {selectedPurposeLabelKey
                   ? t(selectedPurposeLabelKey)
-                  : t("account.transactionInfo.placeholder", "선택해 주세요")}
+                  : t("account.transactionInfo.placeholder")}
               </span>
               <ChevronDown className="w-5 h-5 text-muted-foreground" />
             </AppButton>
@@ -142,7 +142,7 @@ export function Step12TransactionPurposeAndFundSource() {
 
           <div className="space-y-2">
             <label className="block text-foreground">
-              {t("account.transactionInfo.fundSourceLabel", "자금출처 선택")}
+              {t("account.transactionInfo.fundSourceLabel")}
             </label>
             <AppButton
               variant="unstyled"
@@ -155,7 +155,7 @@ export function Step12TransactionPurposeAndFundSource() {
               <span className={fundSource ? "text-foreground" : "text-muted-foreground"}>
                 {selectedFundSourceLabelKey
                   ? t(selectedFundSourceLabelKey)
-                  : t("account.transactionInfo.placeholder", "선택해 주세요")}
+                  : t("account.transactionInfo.placeholder")}
               </span>
               <ChevronDown className="w-5 h-5 text-muted-foreground" />
             </AppButton>

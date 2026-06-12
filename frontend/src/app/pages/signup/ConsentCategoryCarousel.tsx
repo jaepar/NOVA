@@ -8,7 +8,7 @@ export function ConsentCategoryCarousel() {
     <ConsentCategoryCarouselView
       definition={signupConsentDefinition}
       categoryId={categoryId}
-      basePath="/signup"
+      basePath="/signup/terms"
     />
   );
 }

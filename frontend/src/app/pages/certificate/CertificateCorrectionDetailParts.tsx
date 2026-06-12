@@ -137,7 +137,7 @@ export function CorrectionDocumentCard({
   }
 
   const label = documentLabelMap[document.documentType] ?? document.documentType
-  const reasons = document.missingItems.filter(Boolean)
+  const reasons = document.rejectionReasonCodes.filter(Boolean)
 
   const formatUploadedDate = useMemo(() => {
     const locale = language === 'en' ? 'en-US' : 'ko-KR'
@@ -174,16 +174,20 @@ export function CorrectionDocumentCard({
 
       {isOpen ? (
         <div className="border-t border-border bg-secondary/20 px-4 py-4">
-          {reasons.length > 0 ? (
-            <div>
-              <p className="text-[14px] font-semibold text-foreground">{t('certificate.correctionMissingItems')}</p>
+          <div>
+            <p className="text-[14px] font-semibold text-foreground">{t('certificate.correctionMissingItems')}</p>
+            {reasons.length > 0 ? (
               <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-foreground/90">
-                {reasons.map((reason) => (
-                  <li key={reason}>{reason}</li>
+                {reasons.map((reasonCode) => (
+                  <li key={reasonCode}>{t(`certificate.rejectionReasons.${reasonCode}`, reasonCode)}</li>
                 ))}
               </ul>
-            </div>
-          ) : null}
+            ) : (
+              <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
+                {t('certificate.correctionReasonUnavailable')}
+              </p>
+            )}
+          </div>
 
           <input
             ref={inputRef}

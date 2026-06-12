@@ -89,7 +89,16 @@ export type CorrectionDocumentStatus = 'REJECTED' | 'APPROVED'
 export type CorrectionDocumentResponse = {
   documentType: CorrectionDocumentType
   status: CorrectionDocumentStatus
-  missingItems: string[]
+  rejectionReasonCodes: string[]
+}
+
+type RawCorrectionDocumentResponse = {
+  documentType: CorrectionDocumentType
+  status: CorrectionDocumentStatus
+  rejectionReasonCodes?: string[] | string | null
+  rejectionReasons?: string[] | string | null
+  missingItems?: string[] | string | null
+  missing?: string | null
 }
 
 export type CorrectionDocumentUploadRequest = {
@@ -102,10 +111,10 @@ export const certificateApi = {
     await apiClient.post<ApiEnvelope<null>>('/users/verifications')
   },
   getCorrectionDocuments: async (): Promise<CorrectionDocumentResponse[]> => {
-    const response = await apiClient.get<ApiEnvelope<CorrectionDocumentResponse[]>>(
+    const response = await apiClient.get<ApiEnvelope<RawCorrectionDocumentResponse[]>>(
       '/users/documents/corrections'
     )
-    return response.data.data
+    return response.data.data.map(normalizeCorrectionDocument)
   },
   uploadCorrectionDocuments: async ({
     residenceVerificationPdf,
@@ -174,6 +183,34 @@ export const certificateApi = {
     )
     return response.data.data
   },
+}
+
+function normalizeCorrectionDocument(document: RawCorrectionDocumentResponse): CorrectionDocumentResponse {
+  return {
+    documentType: document.documentType,
+    status: document.status,
+    rejectionReasonCodes: normalizeRejectionReasonCodes(
+      document.rejectionReasonCodes
+        ?? document.rejectionReasons
+        ?? document.missingItems
+        ?? document.missing
+    ),
+  }
+}
+
+function normalizeRejectionReasonCodes(value: RawCorrectionDocumentResponse['rejectionReasonCodes'] | string | null | undefined) {
+  if (Array.isArray(value)) {
+    return value.map((item) => item.trim()).filter(Boolean)
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+
+  return []
 }
 
 export function getCertificateApiError(error: unknown): CertificateRequestErrorBody | null {

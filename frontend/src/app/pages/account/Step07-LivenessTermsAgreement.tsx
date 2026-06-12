@@ -34,7 +34,7 @@ export function LivenessConsentAgreement() {
       const session = await certificateApi.createLivenessSession();
       if (!session?.sessionId || !session?.expiresAt) {
         setErrorMessage(
-          t("account.livenessTerms.invalidSession", "얼굴 인증 세션 생성 응답이 올바르지 않습니다. 다시 시도해 주세요.")
+          t("account.livenessTerms.invalidSession")
         );
         return;
       }
@@ -42,12 +42,12 @@ export function LivenessConsentAgreement() {
       navigate("/account/step-08");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        setErrorMessage(t("account.livenessTerms.loginExpired", "로그인이 만료되었습니다. 다시 로그인해 주세요."));
+        setErrorMessage(t("account.livenessTerms.loginExpired"));
         window.setTimeout(() => navigate("/login/form"), 600);
         return;
       }
       setErrorMessage(
-        t("account.livenessTerms.createFailed", "얼굴 인증 세션 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.")
+        t("account.livenessTerms.createFailed")
       );
     } finally {
       setIsPreparingSession(false);
@@ -64,7 +64,7 @@ export function LivenessConsentAgreement() {
 
   return (
     <MobileLayout
-      title={t("account.identityTitle", "비대면 실명확인")}
+      title={t("account.identityTitle")}
       titleKey="account.identityTitle"
       backPath="/account/step-06"
       bottomContent={
@@ -74,11 +74,11 @@ export function LivenessConsentAgreement() {
             onClick={handleProceed}
           >
             {isPreparingSession
-              ? t("account.livenessTerms.preparing", "촬영 준비 중...")
-              : t("account.livenessTerms.agreeAndCapture", "동의하고 촬영하기")}
+              ? t("account.livenessTerms.preparing")
+              : t("account.livenessTerms.agreeAndCapture")}
           </Btn_1Col>
           <Btn_1Col variant="outline" onClick={handleSkipLivenessForTest}>
-            {t("account.livenessTerms.skipTest", "인증 없이 다음으로 (테스트)")}
+            {t("account.livenessTerms.skipTest")}
           </Btn_1Col>
         </div>
       }
@@ -90,7 +90,8 @@ export function LivenessConsentAgreement() {
           basePath="/account/step-07"
           preserveStateKey="preserveStep08State"
           resetCarouselCursorKey="resetCategoryCursor"
-          title={t("account.livenessTerms.title", "서비스 가입을 위해\n약관에 동의해 주세요")}
+          translationNamespace="consent.certificate"
+          title={t("account.livenessTerms.title")}
           description=""
           onRequiredCompleteChange={setIsRequiredComplete}
         />

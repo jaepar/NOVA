@@ -26,7 +26,7 @@ export function LoginIntro() {
 
   return (
     <MobileLayout
-      title="시작하기"
+      title={t('login.title')}
       titleKey="login.title"
       headerType="back"
       backPath={backPath}

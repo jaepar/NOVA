@@ -1,6 +1,4 @@
 export const MOCK_TRANSFER_EXCHANGE_RATE = 1505.25;
-export const MOCK_TRANSFER_TRANSFER_FEE = "면제";
-export const MOCK_TRANSFER_CABLE_FEE = "면제";
 
 export function normalizeTransferAmount(amount: string) {
   return amount.replace(/,/g, "").trim();

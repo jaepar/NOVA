@@ -9,7 +9,20 @@
     saving: '저장 중',
     retry: '다시 시도',
     loading: '불러오는 중입니다',
+    preparing: '준비중입니다',
+    filter: '필터',
+    apply: '적용하기',
+    accountPassword: '계좌 비밀번호',
+    agreeAndContinue: '동의하고 계속하기',
     goHome: '홈으로 이동',
+  },
+  sideMenu: {
+    title: '메뉴',
+    profile: '프로필',
+    settings: '설정',
+    help: '고객센터',
+    logout: '로그아웃',
+    login: '로그인',
   },
   status: {
     successImageAlt: '성공 이미지',
@@ -55,6 +68,9 @@
     email: '이메일',
     invalidEmail: '올바른 이메일 형식을 입력해주세요.',
     codeSent: '인증번호가 발송되었습니다.',
+    emailVerified: '이메일 인증이 완료되었습니다.',
+    emailSendFailed: '인증번호를 발송할 수 없습니다. 다시 시도해주세요.',
+    emailConfirmFailed: '인증번호를 확인할 수 없습니다. 다시 입력해주세요.',
     sending: '발송 중',
     resend: '재발송',
     getCode: '인증번호 받기',
@@ -109,6 +125,7 @@
     accountNumberCopyFailed: '계좌번호 복사에 실패했습니다.',
     limitedAccount: '한도제한',
     balance: '잔액',
+    currencyUnit: '원',
     certificateSheetTitle: '금융 서비스 이용을 위해\n인증서 발급이 필요해요',
     certificateSheetDescription:
       '안전한 금융 거래를 위해\n신원 인증 후 인증서를 발급받아야\n계좌 개설 및 금융 서비스를\n이용하실 수 있어요.',
@@ -119,6 +136,17 @@
       title: '인증서 발급이 완료되었습니다',
       description: '이제 바로 계좌 개설을 시작할 수 있어요.',
     },
+  },
+  exchange: {
+    title: '환율',
+    heading: '환율 페이지',
+    preparing: '준비중입니다',
+  },
+  bottomNav: {
+    home: '홈',
+    transfer: '송금',
+    exchange: '환율',
+    mypage: '마이페이지',
   },
   notifications: {
     title: '알림',
@@ -199,6 +227,7 @@
     retake: '재촬영',
     captureButton: '촬영하기',
     passportNoReflect: '여권이 일그러지거나 빛 반사가 없도록 주의해 주세요',
+    passportDummyResult: '더미 파싱 결과 보기 (임시)',
     ocrProcessing: 'OCR 분석 중입니다. 잠시만 기다려 주세요.',
     cameraError: '카메라를 사용할 수 없습니다. 권한을 확인해 주세요.',
     passportOcrError014: '사진이 올바르지 않습니다. 다시 촬영해 주세요.',
@@ -234,6 +263,12 @@
     nfcPermissionDenied: 'NFC 권한이 필요합니다. 브라우저 권한을 허용해 주세요.',
     nfcReadFailed: 'NFC 인식에 실패했어요. 다시 시도해 주세요.',
     nfcTestBypass: '테스트 우회: 인증/비교 없이 다음 단계로 이동합니다.',
+    nfcSkipTest: '인증 없이 다음으로 (테스트)',
+    nfcImageArea: '이미지 자리 영역',
+    nfcRecommendedSize: '권장 규격: 280 x 220 (px)',
+    nfcRatio: '비율: 14 : 11',
+    nfcParsedDataTitle: 'Step05 파싱 데이터',
+    nfcParsedDataEmpty: 'Step05에서 전달된 파싱 데이터가 없습니다.',
     step07HeadingLine1: '본인 확인을 위해',
     step07HeadingLine2: '얼굴을 촬영해 주세요',
     step07Guide1: '얼굴을 안내 영역에 맞추고 정면을 바라봐 주세요.',
@@ -242,6 +277,7 @@
     step07GuideArea: '얼굴 촬영 가이드 영역',
     agreeAndCapture: '동의하고 촬영하기',
     step08Title: '서비스 가입을 위해\n약관에 동의해 주세요',
+    livenessSkipTest: '인증 없이 다음으로 (테스트)',
     preparingCapture: '촬영 준비 중...',
     sessionError: '얼굴 인증 세션 생성 응답이 올바르지 않습니다. 다시 시도해 주세요.',
     loginExpired: '로그인이 만료되었습니다. 다시 로그인해 주세요.',
@@ -301,6 +337,29 @@
     correctionEmptyDescription: '현재 보완이 필요한 서류가 없어요.',
     correctionNeedBadge: '보완 필요',
     correctionMissingItems: '누락 항목',
+    correctionReasonUnavailable: '보완 사유를 확인할 수 없습니다. 고객센터 또는 담당자 안내를 확인해 주세요.',
+    rejectionReasons: {
+      DOCUMENT_MISSING: '서류 누락',
+      DOCUMENT_UNREADABLE: '서류 식별 불가',
+      DOCUMENT_CROPPED: '서류 일부 잘림',
+      DOCUMENT_NOT_OFFICIAL: '공식 서류 아님',
+      DOCUMENT_ISSUE_DATE_MISSING: '발급일 확인 불가',
+      DOCUMENT_NAME_MISMATCH: '이름 불일치',
+      DOCUMENT_EXPIRED: '유효기간 만료',
+      DOCUMENT_TYPE_MISMATCH: '제출 서류 종류 불일치',
+      DOCUMENT_BOTH_SIDES_REQUIRED: '앞면과 뒷면 모두 필요',
+      RESIDENCE_ADDRESS_PAGE_MISSING: '주소확인 페이지 누락',
+      RESIDENCE_ADDRESS_MISSING: '주소 정보 누락',
+      RESIDENCE_ADDRESS_INCOMPLETE: '주소 정보 불완전',
+      RESIDENCE_ISSUED_WITHIN_3_MONTHS_REQUIRED: '최근 3개월 이내 발급 서류 필요',
+      RESIDENCE_REGISTRATION_NUMBER_MISSING: '등록번호 확인 불가',
+      ALIEN_REGISTRATION_NUMBER_MISSING: '외국인등록번호 누락',
+      ALIEN_REGISTRATION_NUMBER_UNREADABLE: '외국인등록번호 식별 불가',
+      ALIEN_REGISTRATION_APPLICATION_DATE_MISSING: '신청일 확인 불가',
+      ALIEN_REGISTRATION_AUTHORITY_MISSING: '발급기관 확인 불가',
+      ALIEN_REGISTRATION_STATUS_MISSING: '발급 상태 확인 불가',
+      ALIEN_REGISTRATION_EXPIRY_MISSING: '유효기간 확인 불가',
+    },
     correctionUploadPrompt: '파일을 업로드해 주세요',
     correctionPdfLimit: 'PDF 최대 10MB',
     correctionUploadDate: '업로드 완료',
@@ -564,7 +623,7 @@
       errorNotFound: '수취인 계좌 정보를 찾을 수 없습니다.',
       errorDefault: '이체 정보를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.',
     },
-    amount: {
+    amountInput: {
       withdrawable: '출금 가능 금액',
       heading: '얼마를 이체하시겠어요?',
       overLimit: '이체 가능 한도 금액을 초과했습니다.',
@@ -582,9 +641,21 @@
       senderMemo: '내 통장표기',
       next: '다음',
     },
+    accountSummary: {
+      fromAccount: '우리 계좌에서',
+      toAccount: '{name} 님 계좌로',
+      defaultAccountName: '우리 SUPER주거래 통장',
+    },
+    continueHint: '계좌번호를 계속 입력해 주세요',
+    keypad: {
+      clearAll: '전체삭제',
+    },
     memoEdit: {
       complete: '완료',
       label: '통장표기 이름',
+      clearAria: '통장표기 이름 지우기',
+      recipientHeading: '{name} 님 계좌로',
+      senderHeading: '우리 계좌에서',
       infoTitle: '안내',
       recipientNote: '받는 분 통장에 표시될 이름입니다.',
       senderNote: '내 통장에 표시될 이름입니다.',
@@ -593,6 +664,8 @@
       senderTransferNote: '이체 내역에서 이 이름으로 표시됩니다.',
     },
     review: {
+      recipientSuffix: '님에게',
+      confirmSuffix: '을 이체하시겠어요?',
       toAccount: '{bankName} {accountNumber} 계좌로 보냅니다.',
       recipientMemo: '받는 분 통장표기',
       senderMemo: '내 통장표기',
@@ -645,6 +718,7 @@
       krwAmount: '원화금액',
       transferFee: '송금수수료',
       cableFee: '전신료',
+      feeWaived: '면제',
       prev: '이전',
       next: '다음',
     },
@@ -702,7 +776,9 @@
     },
     swiftLookup: {
       title: 'SWIFT CODE 조회',
+      countrySelectTitle: '국가 선택',
       countryLabel: '국가명',
+      countrySearchPlaceholder: '국가명 검색',
       bankLabel: '은행명',
       cityLabel: '도시명',
       search: '조회',
@@ -810,7 +886,7 @@
     memoPlaceholder: '메모를 입력해보세요',
     memoSaving: '저장 중',
     memoSave: '저장',
-    memoMaxLengthPlaceholder: '메모 입력 (최대 20자)',
+    memoMaxLengthPlaceholder: '메모 입력 (최대 {max}자)',
     memoSaveError: '메모를 저장하지 못했습니다.',
     afterBalance: '거래 후 잔액',
     withdrawAccount: '출금계좌',
@@ -941,6 +1017,239 @@
     confirmErrorDefault: '외국인등록증 인증 중 오류가 발생했습니다. 다시 시도해 주세요.',
     completedTask: '외국인등록증 등록을 완료했어요',
   },
+  consent: {
+    signup: {
+      categories: {
+        'signup-required': {
+          title: '[필수] 회원가입 필수 약관',
+        },
+        'signup-optional': {
+          title: '[선택] 마케팅 정보 수신 동의',
+        },
+      },
+      terms: {
+        'signup-service-terms': {
+          title: '서비스 이용 약관',
+          summary: 'NOVA 서비스 이용을 위한 필수 약관입니다.',
+          content: {
+            0: '본 약관은 NOVA가 제공하는 비대면 금융 및 생활 서비스 이용과 관련하여 회사와 회원 간의 권리, 의무 및 책임사항을 정하기 위한 문서입니다.',
+            1: '회원은 서비스 가입 후 본인 확인, 계좌 개설 보조, 금융 생활 지원 등 NOVA가 제공하는 기능을 이용할 수 있습니다.',
+            2: '실제 운영 약관은 서비스 정책 확정 후 본 문구를 대체하여 적용합니다.',
+          },
+        },
+        'signup-privacy-consent': {
+          title: '개인정보 수집 및 이용 동의',
+          summary: '회원 등록과 서비스 제공을 위한 필수 개인정보 처리 동의입니다.',
+          content: {
+            0: '회사는 회원가입 및 서비스 제공을 위해 이름, 이메일, 생년월일, 성별 등 최소한의 개인정보를 수집 및 이용합니다.',
+            1: '수집된 정보는 회원 관리, 서비스 제공, 고객 지원, 보안 및 부정 이용 방지 목적으로 사용됩니다.',
+            2: '실제 개인정보 처리 문구와 보관 기간은 운영 정책 및 법무 검토 결과에 맞게 교체합니다.',
+          },
+        },
+        'signup-marketing-consent': {
+          title: '마케팅 정보 수신 동의',
+          summary: '혜택, 이벤트, 신규 서비스 안내를 받기 위한 선택 동의입니다.',
+          content: {
+            0: '회사는 이벤트, 프로모션, 맞춤 혜택 및 신규 서비스 안내를 이메일 또는 앱 알림 형식으로 제공할 수 있습니다.',
+            1: '본 동의는 선택 사항이며, 동의하지 않아도 NOVA 서비스 가입과 이용에는 제한이 없습니다.',
+          },
+        },
+      },
+    },
+    transfer: {
+      categories: {
+        'transfer-required-consent': {
+          title: '[필수] 해외송금 필수 동의',
+        },
+      },
+      terms: {
+        'transfer-usage-guide': {
+          title: '해외송금 이용안내 및 유의사항',
+          summary: '해외송금 서비스를 이용할 때 반드시 확인해야 하는 안내입니다.',
+          content: {
+            0: '해외송금은 수취 국가, 통화, 송금 목적에 따라 처리 가능 여부와 소요 시간이 달라질 수 있습니다.',
+            1: '입력한 수취인 정보가 실제 정보와 다른 경우 송금이 지연되거나 반려될 수 있습니다.',
+            2: '송금 요청 전 관련 법령, 내부 심사, 제재 목록 확인 결과에 따라 거래가 제한될 수 있습니다.',
+          },
+        },
+        'foreign-exchange-terms': {
+          title: '외환거래 기본약관',
+          summary: '외환거래 서비스 이용에 적용되는 기본 약관입니다.',
+          content: {
+            0: '해외송금 거래에는 외국환거래법, 전자금융거래법 및 회사의 외환업무 기준이 적용됩니다.',
+            1: '적용 환율, 수수료, 송금 가능 시간과 한도는 거래 시점의 정책에 따라 달라질 수 있습니다.',
+            2: '이용자는 거래 전 표시된 환율, 수수료, 예상 수취금액을 확인한 뒤 송금을 진행해야 합니다.',
+          },
+        },
+        'restricted-country-check': {
+          title: '송금제한 국가 관련 확인사항',
+          summary: '제재 국가 및 송금 제한 국가 여부를 확인하기 위한 필수 안내입니다.',
+          content: {
+            0: '국제 제재, 현지 규제, 내부 통제 기준에 따라 일부 국가 또는 지역으로의 송금은 제한될 수 있습니다.',
+            1: '수취 국가가 제한 대상에 해당하는 경우 거래가 거절되거나 추가 서류 제출이 요청될 수 있습니다.',
+            2: '이용자는 송금 목적과 수취 국가의 규제를 준수해야 하며, 허위 정보 입력 시 거래가 취소될 수 있습니다.',
+          },
+        },
+      },
+    },
+    certificateIssuance: {
+      categories: {
+        'required-service': {
+          title: '[필수] 서비스 가입 동의',
+        },
+        'optional-marketing-1': {
+          title: '[선택] 마케팅 활용 동의 1',
+        },
+        'optional-marketing-2': {
+          title: '[선택] 마케팅 활용 동의 2',
+        },
+      },
+      terms: {
+        'electronic-finance-basic': {
+          title: '전자금융거래 기본약관',
+          summary: '전자금융 서비스 이용을 위한 기본 약관입니다.',
+          content: {
+            0: '본 약관은 예시 텍스트입니다.',
+            1: '실제 운영 약관으로 교체해서 사용하세요.',
+          },
+        },
+        'privacy-required': {
+          title: '개인정보 수집·이용 동의서',
+          summary: '서비스 제공을 위한 필수 개인정보 처리 동의입니다.',
+          content: {
+            0: '본 동의서는 샘플입니다.',
+            1: '실제 서비스 정책에 맞게 문구를 교체하세요.',
+          },
+        },
+        'identity-required': {
+          title: '신원확인 및 본인인증 동의서',
+          summary: '금융 서비스 이용을 위한 본인 확인 절차 동의입니다.',
+          content: {
+            0: '본 항목은 샘플 텍스트입니다.',
+            1: '운영 정책 확정 후 실제 약관으로 대체하세요.',
+          },
+        },
+        'marketing-consent-1': {
+          title: '마케팅 정보 수신 동의',
+          summary: '혜택 및 이벤트 안내를 위한 선택 동의입니다.',
+          content: {
+            0: '본 문구는 예시입니다.',
+          },
+        },
+        'marketing-consent-2a': {
+          title: '맞춤형 상품 추천 동의',
+          summary: '고객 맞춤형 혜택 안내를 위한 선택 동의입니다.',
+          content: {
+            0: '본 문구는 예시입니다.',
+          },
+        },
+        'marketing-consent-2b': {
+          title: '제휴 서비스 안내 동의',
+          summary: '제휴 서비스/이벤트 정보를 받기 위한 선택 동의입니다.',
+          content: {
+            0: '본 문구는 예시입니다.',
+          },
+        },
+      },
+    },
+    account: {
+      categories: {
+        'required-open-account': {
+          title: '[필수] 계좌 개설 필수 동의',
+        },
+        'optional-open-account': {
+          title: '[선택] 추가 안내 및 고지',
+        },
+      },
+      terms: {
+        'account-open-agreement': {
+          title: '[필수] 입출금이자율운용 동의약관',
+          summary: '입출금 통장 개설 및 운용을 위한 기본 약관입니다.',
+          content: {
+            0: '입출금계좌 개설 및 이용에 필요한 기본 조건, 적용 이율, 거래 제한사항을 안내합니다.',
+            1: '법령 및 내부 기준 변경 시 약관이 개정될 수 있으며, 개정 내용은 사전 고지됩니다.',
+          },
+        },
+        'realname-verification-consent': {
+          title: '[필수] 비대면 계좌개설 안심차단 등록 여부 조회를 위한 개인정보 동의서',
+          summary: '비대면 실명확인 및 안심차단 여부 확인을 위한 필수 동의입니다.',
+          content: {
+            0: '관계 법령에 따라 비대면 계좌개설 시 본인확인 및 안심차단 등록 여부 조회가 수행됩니다.',
+            1: '조회 목적 외로 개인정보를 사용하지 않으며, 관련 법령이 정한 기간 동안만 보관됩니다.',
+          },
+        },
+        'major-notice': {
+          title: '[필수] 상품 주요내용 안내',
+          summary: '상품 핵심 조건 및 유의사항 확인을 위한 필수 안내입니다.',
+          content: {
+            0: '이체 한도, 이용 수수료, 거래 제한 조건 등 상품 주요 내용을 반드시 확인해 주세요.',
+            1: '중요 사항 미확인으로 발생한 불이익은 이용자에게 귀속될 수 있습니다.',
+          },
+        },
+        'product-summary': {
+          title: '상품약관_우리 SUPER주거래 통장',
+          summary: '상품별 세부 약관입니다.',
+          content: {
+            0: '우리 SUPER주거래 통장 상품의 세부 이용조건, 부가혜택, 거래 제한사항을 안내합니다.',
+          },
+        },
+        'product-description': {
+          title: '상품설명서_우리 SUPER주거래 통장',
+          summary: '상품 설명서 및 이용자 유의사항입니다.',
+          content: {
+            0: '상품 특성, 수수료 구조, 해지 절차 등 이용자 안내사항을 제공합니다.',
+          },
+        },
+        'deposit-protection': {
+          title: '예금자보호법 설명확인',
+          summary: '예금자보호 적용 범위 안내입니다.',
+          content: {
+            0: '예금자보호 대상 및 보호 한도는 예금자보호법에 따라 적용됩니다.',
+            1: '보호 제외 상품 또는 조건이 있을 수 있으니 상세 내용을 확인해 주세요.',
+          },
+        },
+        'financial-product-guide': {
+          title: '금융거래 공통 확인사항',
+          summary: '금융거래 시 공통으로 확인해야 할 항목입니다.',
+          content: {
+            0: '전자금융 이용, 사고 신고, 분쟁 처리 절차 등 공통 확인사항을 안내합니다.',
+          },
+        },
+        'illegal-account-prevention': {
+          title: '불법·탈법 자금거래 금지 설명 확인서',
+          summary: '불법 자금거래 방지 안내입니다.',
+          content: {
+            0: '금융사기, 자금세탁 등 불법·탈법 목적 거래는 금지되며 관련 법령에 따라 조치될 수 있습니다.',
+          },
+        },
+        'privacy-policy': {
+          title: '고객정보 취급방침',
+          summary: '개인정보 처리 및 보호 정책 안내입니다.',
+          content: {
+            0: '수집 정보의 이용 목적, 보관 기간, 제3자 제공 기준 등 처리방침을 안내합니다.',
+          },
+        },
+      },
+    },
+    certificate: {
+      categories: {
+        'required-service': {
+          title: '[필수] 본인확인 서비스 이용 동의',
+        },
+      },
+      terms: {
+        'face-collect': {
+          title: '안면인식 정보 수집·이용 동의',
+          summary: '안면인식 기반 본인확인을 위한 필수 동의입니다.',
+          content: {
+            0: '본 동의서는 안면인식 기반 본인확인을 위해 필요한 최소한의 정보를 수집·이용하기 위한 내용입니다.',
+            1: '수집 항목은 얼굴 이미지 및 생체인식 결과이며, 본인확인 목적 범위 내에서만 사용됩니다.',
+            2: '보유기간은 본인확인 완료 후 지체 없이 파기하며, 법령에 따른 보관 의무가 있는 경우 해당 기간 동안 보관할 수 있습니다.',
+          },
+        },
+      },
+    },
+  },
   errors: {
     '40000': '유효하지 않은 요청입니다.',
     '40400': '존재하지 않는 API입니다.',
@@ -987,6 +1296,8 @@
     'BANK-007': '계좌 비밀번호가 일치하지 않습니다.',
     'BANK-008': '인증서 발급 완료 후 계좌를 개설할 수 있습니다.',
     'BANK-009': '메모는 20자 이내로 입력해주세요.',
+    'ACCOUNT-004': '수취인 조회 요청이 올바르지 않습니다.',
+    'ACCOUNT-005': '수취 계좌를 찾을 수 없습니다.',
     'ACCOUNT-007': '계좌 비밀번호가 일치하지 않습니다.',
   },
 } as const

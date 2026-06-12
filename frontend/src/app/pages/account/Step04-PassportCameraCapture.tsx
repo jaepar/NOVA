@@ -123,7 +123,7 @@ export function PassportCameraCapture() {
           await videoRef.current.play();
         }
       } catch {
-        setCameraError(t("account.passportCapture.cameraError", "카메라를 사용할 수 없습니다. 권한을 확인해 주세요."));
+        setCameraError(t("account.passportCapture.cameraError"));
       }
     };
 
@@ -156,14 +156,14 @@ export function PassportCameraCapture() {
 
       const message =
         errorCode === "USER-014"
-          ? t("account.passportCapture.invalidPhoto", "사진이 올바르지 않습니다. 다시 촬영해 주세요.")
+          ? t("account.passportCapture.invalidPhoto")
           : errorCode === "USER-009"
-          ? t("account.passportCapture.retakePassport", "여권 이미지를 다시 촬영해 주세요.")
+          ? t("account.passportCapture.retakePassport")
           : errorCode === "USER-013"
-          ? t("account.passportCapture.recognitionFailed", "인식에 실패했습니다. 여권 위치와 조명을 확인해 주세요.")
+          ? t("account.passportCapture.recognitionFailed")
           : error instanceof Error
           ? error.message
-          : t("account.passportCapture.ocrDefaultError", "OCR 처리 중 오류가 발생했습니다. 다시 촬영해 주세요.");
+          : t("account.passportCapture.ocrDefaultError");
       setOcrError(message);
       setMode("live");
     } finally {
@@ -221,13 +221,13 @@ export function PassportCameraCapture() {
   if (mode === "review") {
     return (
       <MobileLayout
-        title={t("account.identityTitle", "비대면 실명확인")}
+        title={t("account.identityTitle")}
         titleKey="account.identityTitle"
         backPath="/account/step-03"
         bottomContent={
           <Btn_2Col
-            leftLabel={t("account.retake", "재촬영")}
-            rightLabel={t("account.next", "다음")}
+            leftLabel={t("account.retake")}
+            rightLabel={t("account.next")}
             leftVariant="outline"
             rightVariant="primary"
             onLeftClick={() => {
@@ -241,10 +241,10 @@ export function PassportCameraCapture() {
         <div className="space-y-4 pb-2">
           <section className="space-y-2">
             <h2 className="text-2xl font-semibold leading-tight">
-              {t("account.passportCapture.reviewHeading", "여권 정보를 수정해 주세요")}
+              {t("account.passportCapture.reviewHeading")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {t("account.passportCapture.reviewDescription", "여권에서 인식한 정보입니다")}
+              {t("account.passportCapture.reviewDescription")}
             </p>
           </section>
 
@@ -282,7 +282,7 @@ export function PassportCameraCapture() {
 
   return (
     <CameraCapturePage
-      title={t("account.identityTitle", "비대면 실명확인")}
+      title={t("account.identityTitle")}
       onClose={() => navigate("/account/step-03")}
       headerBackgroundColor="#ffffff"
       headerTextColor="#000000"
@@ -293,10 +293,10 @@ export function PassportCameraCapture() {
         <div className="space-y-4">
           <div className="flex items-center justify-center gap-2 text-xs text-black">
             <ShieldCheck className="w-4 h-4" />
-            <p>{t("account.passportCapture.distortionWarning", "여권이 일그러지거나 빛 반사가 없도록 주의해 주세요")}</p>
+            <p>{t("account.passportCapture.distortionWarning")}</p>
           </div>
           <Btn_1Col onClick={handleCapture} disabled={isOcrProcessing}>
-            {t("account.capture", "촬영하기")}
+            {t("account.capture")}
           </Btn_1Col>
           {/* TEMP: 제거 대상. OCR 테스트 중 임시 우회 버튼 */}
           <Btn_1Col
@@ -304,7 +304,7 @@ export function PassportCameraCapture() {
             variant="outline"
             disabled={isOcrProcessing}
           >
-            {t("account.passportCapture.dummyResult", "더미 파싱 결과 보기 (임시)")}
+            {t("account.passportCapture.dummyResult")}
           </Btn_1Col>
         </div>
       }
@@ -330,7 +330,7 @@ export function PassportCameraCapture() {
       )}
       {isOcrProcessing && (
         <div className="mt-4 rounded-xl bg-secondary border border-border p-3 text-sm text-center text-black">
-          {t("account.passportCapture.ocrProcessing", "OCR 분석 중입니다. 잠시만 기다려 주세요.")}
+          {t("account.passportCapture.ocrProcessing")}
         </div>
       )}
     </CameraCapturePage>

@@ -15,6 +15,7 @@ export function LivenessConsentAllTermsAgreements() {
       basePath="/certificate/step-08"
       preserveStateKey="preserveStep08State"
       resetCarouselCursorKey="resetCategoryCursor"
+      translationNamespace="consent.certificate"
     />
   )
 }

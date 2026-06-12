@@ -6,21 +6,11 @@ import { SegmentedOptionField } from "../../components/design-system/SegmentedOp
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { useTransferRecipientInfoPageStore } from "../../stores/pageStores";
+import { useTranslation } from "../../i18n";
 
-const paymentReasonOptions = [
-  "유학비",
-  "생활비",
-  "가족부양비",
-  "의료비",
-  "거래대금",
-  "기타",
-] as const;
+const paymentReasonOptions = ["tuition", "living", "family", "medical", "transaction", "other"] as const;
 
-const paymentDetailOptions = [
-  { label: "사유 선택", value: "reason-select" as const },
-  { label: "직접입력", value: "manual-input" as const },
-] as const;
-
+type PaymentReason = (typeof paymentReasonOptions)[number];
 type RecipientSelectionSheet = "payment-reason" | null;
 
 function ClearableInput({
@@ -69,9 +59,7 @@ function ClearableInput({
           />
         )}
         {trailing ? (
-          <div className="absolute inset-y-0 right-4 flex items-center">
-            {trailing}
-          </div>
+          <div className="absolute inset-y-0 right-4 flex items-center">{trailing}</div>
         ) : null}
       </div>
     </div>
@@ -80,91 +68,64 @@ function ClearableInput({
 
 export function Step05TransferRecipientInfo() {
   const navigate = useNavigate();
-  const recipientName = useTransferRecipientInfoPageStore(
-    (state) => state.recipientName
-  );
-  const recipientAddress = useTransferRecipientInfoPageStore(
-    (state) => state.recipientAddress
-  );
+  const { t } = useTranslation();
+  const recipientName = useTransferRecipientInfoPageStore((state) => state.recipientName);
   const recipientDetailAddress = useTransferRecipientInfoPageStore(
     (state) => state.recipientDetailAddress
   );
-  const recipientDistrict = useTransferRecipientInfoPageStore(
-    (state) => state.recipientDistrict
-  );
-  const recipientCity = useTransferRecipientInfoPageStore(
-    (state) => state.recipientCity
-  );
+  const recipientDistrict = useTransferRecipientInfoPageStore((state) => state.recipientDistrict);
+  const recipientCity = useTransferRecipientInfoPageStore((state) => state.recipientCity);
   const recipientPostalCode = useTransferRecipientInfoPageStore(
     (state) => state.recipientPostalCode
   );
   const recipientPhoneNumber = useTransferRecipientInfoPageStore(
     (state) => state.recipientPhoneNumber
   );
-  const swiftCode = useTransferRecipientInfoPageStore(
-    (state) => state.swiftCode
-  );
-  const accountNumber = useTransferRecipientInfoPageStore(
-    (state) => state.accountNumber
-  );
-  const routingNumber = useTransferRecipientInfoPageStore(
-    (state) => state.routingNumber
-  );
-  const bankBranchName = useTransferRecipientInfoPageStore(
-    (state) => state.bankBranchName
-  );
+  const swiftCode = useTransferRecipientInfoPageStore((state) => state.swiftCode);
+  const accountNumber = useTransferRecipientInfoPageStore((state) => state.accountNumber);
+  const routingNumber = useTransferRecipientInfoPageStore((state) => state.routingNumber);
+  const bankBranchName = useTransferRecipientInfoPageStore((state) => state.bankBranchName);
   const paymentDetailMode = useTransferRecipientInfoPageStore(
     (state) => state.paymentDetailMode
   );
-  const paymentReason = useTransferRecipientInfoPageStore(
-    (state) => state.paymentReason
-  );
+  const paymentReason = useTransferRecipientInfoPageStore((state) => state.paymentReason);
   const manualPaymentDetail = useTransferRecipientInfoPageStore(
     (state) => state.manualPaymentDetail
   );
-  const setRecipientName = useTransferRecipientInfoPageStore(
-    (state) => state.setRecipientName
-  );
-  const setRecipientAddress = useTransferRecipientInfoPageStore(
-    (state) => state.setRecipientAddress
-  );
+  const setRecipientName = useTransferRecipientInfoPageStore((state) => state.setRecipientName);
   const setRecipientDetailAddress = useTransferRecipientInfoPageStore(
     (state) => state.setRecipientDetailAddress
   );
   const setRecipientDistrict = useTransferRecipientInfoPageStore(
     (state) => state.setRecipientDistrict
   );
-  const setRecipientCity = useTransferRecipientInfoPageStore(
-    (state) => state.setRecipientCity
-  );
+  const setRecipientCity = useTransferRecipientInfoPageStore((state) => state.setRecipientCity);
   const setRecipientPostalCode = useTransferRecipientInfoPageStore(
     (state) => state.setRecipientPostalCode
   );
   const setRecipientPhoneNumber = useTransferRecipientInfoPageStore(
     (state) => state.setRecipientPhoneNumber
   );
-  const setSwiftCode = useTransferRecipientInfoPageStore(
-    (state) => state.setSwiftCode
-  );
-  const setAccountNumber = useTransferRecipientInfoPageStore(
-    (state) => state.setAccountNumber
-  );
-  const setRoutingNumber = useTransferRecipientInfoPageStore(
-    (state) => state.setRoutingNumber
-  );
-  const setBankBranchName = useTransferRecipientInfoPageStore(
-    (state) => state.setBankBranchName
-  );
+  const setSwiftCode = useTransferRecipientInfoPageStore((state) => state.setSwiftCode);
+  const setAccountNumber = useTransferRecipientInfoPageStore((state) => state.setAccountNumber);
+  const setRoutingNumber = useTransferRecipientInfoPageStore((state) => state.setRoutingNumber);
+  const setBankBranchName = useTransferRecipientInfoPageStore((state) => state.setBankBranchName);
   const setPaymentDetailMode = useTransferRecipientInfoPageStore(
     (state) => state.setPaymentDetailMode
   );
-  const setPaymentReason = useTransferRecipientInfoPageStore(
-    (state) => state.setPaymentReason
-  );
+  const setPaymentReason = useTransferRecipientInfoPageStore((state) => state.setPaymentReason);
   const setManualPaymentDetail = useTransferRecipientInfoPageStore(
     (state) => state.setManualPaymentDetail
   );
   const [openSheet, setOpenSheet] = useState<RecipientSelectionSheet>(null);
+
+  const paymentDetailOptions = [
+    { label: t("globalTransfer.recipientInfo.reasonSelect"), value: "reason-select" as const },
+    { label: t("globalTransfer.recipientInfo.manualInput"), value: "manual-input" as const },
+  ];
+  const selectedPaymentReason = paymentReasonOptions.includes(paymentReason as PaymentReason)
+    ? paymentReason
+    : "";
 
   const renderClearButton = (onClear: () => void) => (
     <AppButton
@@ -172,7 +133,7 @@ export function Step05TransferRecipientInfo() {
       variant="unstyled"
       onClick={onClear}
       className="rounded-full bg-muted p-1 text-muted-foreground"
-      aria-label="입력값 지우기"
+      aria-label={t("globalTransfer.recipientInfo.clearAria")}
     >
       <X className="h-4 w-4" />
     </AppButton>
@@ -188,13 +149,13 @@ export function Step05TransferRecipientInfo() {
     routingNumber.trim().length > 0 &&
     bankBranchName.trim().length > 0 &&
     (paymentDetailMode === "reason-select"
-      ? paymentReason.trim().length > 0
+      ? selectedPaymentReason.length > 0
       : manualPaymentDetail.trim().length > 0);
 
   return (
     <>
       <MobileLayout
-        title="해외송금"
+        title={t("globalTransfer.title")}
         backPath="/global-transfer/send/step-04"
         bottomContent={
           <div className="flex w-full gap-4">
@@ -203,7 +164,7 @@ export function Step05TransferRecipientInfo() {
               onClick={() => navigate("/global-transfer/send/step-04")}
               className="flex-1 rounded-xl px-6 py-4"
             >
-              이전
+              {t("globalTransfer.recipientInfo.prev")}
             </AppButton>
             <AppButton
               variant="primary"
@@ -211,7 +172,7 @@ export function Step05TransferRecipientInfo() {
               onClick={() => navigate("/global-transfer/send/step-06")}
               className="flex-1 rounded-xl px-6 py-4"
             >
-              다음
+              {t("globalTransfer.recipientInfo.next")}
             </AppButton>
           </div>
         }
@@ -219,30 +180,26 @@ export function Step05TransferRecipientInfo() {
         <div className="space-y-8 pb-4 pt-3">
           <section className="space-y-2">
             <h1 className="text-[24px] font-semibold leading-tight text-[#132347]">
-              받는분 정보입력
+              {t("globalTransfer.recipientInfo.heading")}
             </h1>
           </section>
 
           <section className="space-y-6">
             <ClearableInput
-              label="영문성명"
+              label={t("globalTransfer.recipientInfo.nameLabel")}
               value={recipientName}
               onChange={setRecipientName}
-              trailing={
-                recipientName
-                  ? renderClearButton(() => setRecipientName(""))
-                  : undefined
-              }
+              trailing={recipientName ? renderClearButton(() => setRecipientName("")) : undefined}
             />
 
             <div className="space-y-2">
               <label className="block text-base text-foreground">
-                영문주소
+                {t("globalTransfer.recipientInfo.addressLabel")}
               </label>
             </div>
 
             <ClearableInput
-              label="세부주소"
+              label={t("globalTransfer.recipientInfo.detailLabel")}
               value={recipientDetailAddress}
               onChange={setRecipientDetailAddress}
               trailing={
@@ -253,32 +210,26 @@ export function Step05TransferRecipientInfo() {
             />
 
             <ClearableInput
-              label="지역명(선택)"
+              label={t("globalTransfer.recipientInfo.districtLabel")}
               value={recipientDistrict}
-              placeholder="선택"
+              placeholder={t("globalTransfer.recipientInfo.districtPlaceholder")}
               onChange={setRecipientDistrict}
               trailing={
-                recipientDistrict
-                  ? renderClearButton(() => setRecipientDistrict(""))
-                  : undefined
+                recipientDistrict ? renderClearButton(() => setRecipientDistrict("")) : undefined
               }
             />
 
             <ClearableInput
-              label="도시명"
+              label={t("globalTransfer.recipientInfo.cityLabel")}
               value={recipientCity}
               onChange={setRecipientCity}
-              trailing={
-                recipientCity
-                  ? renderClearButton(() => setRecipientCity(""))
-                  : undefined
-              }
+              trailing={recipientCity ? renderClearButton(() => setRecipientCity("")) : undefined}
             />
 
             <ClearableInput
-              label="우편번호(선택)"
+              label={t("globalTransfer.recipientInfo.postalCodeLabel")}
               value={recipientPostalCode}
-              placeholder="선택"
+              placeholder={t("globalTransfer.recipientInfo.postalCodePlaceholder")}
               onChange={setRecipientPostalCode}
               trailing={
                 recipientPostalCode
@@ -288,7 +239,7 @@ export function Step05TransferRecipientInfo() {
             />
 
             <ClearableInput
-              label="전화번호"
+              label={t("globalTransfer.recipientInfo.phoneLabel")}
               value={recipientPhoneNumber}
               onChange={setRecipientPhoneNumber}
               inputMode="tel"
@@ -302,11 +253,11 @@ export function Step05TransferRecipientInfo() {
 
           <section className="space-y-6">
             <h2 className="text-[20px] font-semibold leading-tight text-[#132347]">
-              수취은행정보
+              {t("globalTransfer.recipientInfo.bankInfoHeading")}
             </h2>
 
             <ClearableInput
-              label="SWIFT CODE"
+              label={t("globalTransfer.recipientInfo.swiftCodeLabel")}
               value={swiftCode}
               onChange={setSwiftCode}
               labelAction={
@@ -316,38 +267,30 @@ export function Step05TransferRecipientInfo() {
                   onClick={() => navigate("/global-transfer/send/step-05/swift-code-lookup")}
                   className="flex items-center gap-1 text-base font-medium text-primary"
                 >
-                  SWIFT CODE 조회
+                  {t("globalTransfer.recipientInfo.swiftLookup")}
                   <span aria-hidden="true">›</span>
                 </AppButton>
               }
-              trailing={
-                swiftCode
-                  ? renderClearButton(() => setSwiftCode(""))
-                  : undefined
-              }
+              trailing={swiftCode ? renderClearButton(() => setSwiftCode("")) : undefined}
             />
 
             <ClearableInput
-              label="수취계좌번호"
+              label={t("globalTransfer.recipientInfo.accountLabel")}
               value={accountNumber}
               onChange={setAccountNumber}
-              trailing={
-                accountNumber
-                  ? renderClearButton(() => setAccountNumber(""))
-                  : undefined
-              }
+              trailing={accountNumber ? renderClearButton(() => setAccountNumber("")) : undefined}
             />
 
             <ClearableInput
-              label="수취은행코드(Routing No)"
+              label={t("globalTransfer.recipientInfo.routingLabel")}
               value={routingNumber}
               onChange={setRoutingNumber}
-              placeholder="9자리 숫자 입력"
+              placeholder={t("globalTransfer.recipientInfo.routingPlaceholder")}
               inputMode="numeric"
             />
 
             <ClearableInput
-              label="수취은행 영문명/지점명"
+              label={t("globalTransfer.recipientInfo.bankBranchLabel")}
               value={bankBranchName}
               onChange={setBankBranchName}
             />
@@ -356,7 +299,7 @@ export function Step05TransferRecipientInfo() {
           <section className="space-y-6">
             <div className="space-y-3">
               <label className="block text-base text-foreground">
-                추가이체정보(DETAILS OF PAYMENT)
+                {t("globalTransfer.recipientInfo.paymentDetailsLabel")}
               </label>
               <SegmentedOptionField
                 options={paymentDetailOptions}
@@ -368,7 +311,7 @@ export function Step05TransferRecipientInfo() {
             {paymentDetailMode === "reason-select" ? (
               <div className="space-y-2">
                 <label className="block text-base text-foreground">
-                  송금사유
+                  {t("globalTransfer.recipientInfo.paymentReasonLabel")}
                 </label>
                 <AppButton
                   type="button"
@@ -378,22 +321,22 @@ export function Step05TransferRecipientInfo() {
                 >
                   <span
                     className={
-                      paymentReason
-                        ? "text-foreground"
-                        : "text-muted-foreground"
+                      selectedPaymentReason ? "text-foreground" : "text-muted-foreground"
                     }
                   >
-                    {paymentReason || "선택"}
+                    {selectedPaymentReason
+                      ? t(`globalTransfer.recipientInfo.reasons.${selectedPaymentReason}`)
+                      : t("globalTransfer.recipientInfo.paymentReasonPlaceholder")}
                   </span>
                   <ChevronDown className="h-6 w-6 shrink-0 text-muted-foreground" />
                 </AppButton>
               </div>
             ) : (
               <ClearableInput
-                label="송금사유"
+                label={t("globalTransfer.recipientInfo.paymentReasonLabel")}
                 value={manualPaymentDetail}
                 onChange={setManualPaymentDetail}
-                placeholder="송금사유를 입력해 주세요"
+                placeholder={t("globalTransfer.recipientInfo.paymentReasonManualPlaceholder")}
                 multiline
               />
             )}
@@ -410,7 +353,7 @@ export function Step05TransferRecipientInfo() {
         <div className="space-y-2">
           <div className="flex items-center justify-between pb-2">
             <p className="text-lg font-semibold text-foreground">
-              송금사유 선택
+              {t("globalTransfer.recipientInfo.paymentReasonSheetTitle")}
             </p>
             <AppButton
               type="button"
@@ -433,7 +376,7 @@ export function Step05TransferRecipientInfo() {
                 }}
                 className="w-full px-4 py-4 text-left text-foreground transition-colors hover:bg-secondary"
               >
-                {option}
+                {t(`globalTransfer.recipientInfo.reasons.${option}`)}
               </AppButton>
             ))}
           </div>

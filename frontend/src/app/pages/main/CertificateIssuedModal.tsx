@@ -41,7 +41,7 @@ export function CertificateIssuedModal({
 
           <div className="mt-5 flex items-center justify-center text-primary">
             <span className="text-[13px] font-semibold">
-              {t('main.certificateIssuedModal.badge', '발급 완료')}
+              {t('main.certificateIssuedModal.badge')}
             </span>
           </div>
 
@@ -49,14 +49,11 @@ export function CertificateIssuedModal({
             id="certificate-issued-title"
             className="mt-2 text-[22px] font-bold leading-[1.35] text-foreground"
           >
-            {t('main.certificateIssuedModal.title', '인증서 발급이 완료되었습니다')}
+            {t('main.certificateIssuedModal.title')}
           </h2>
 
           <p className="mt-3 text-[15px] leading-[1.55] text-muted-foreground">
-            {t(
-              'main.certificateIssuedModal.description',
-              '이제 바로 계좌 개설을 시작할 수 있어요.'
-            )}
+            {t('main.certificateIssuedModal.description')}
           </p>
 
           <div className="mt-6 grid grid-cols-2 gap-2.5">
@@ -65,14 +62,14 @@ export function CertificateIssuedModal({
               onClick={onClose}
               className="h-[52px] w-full rounded-xl text-[15px] font-semibold text-muted-foreground"
             >
-              {t('common.confirm', '확인')}
+              {t('common.confirm')}
             </AppButton>
             <AppButton
               variant="primary"
               onClick={onOpenAccount}
               className="h-[52px] w-full rounded-xl text-[16px] font-semibold"
             >
-              {t('main.openAccount', '계좌 개설하기')}
+              {t('main.openAccount')}
             </AppButton>
           </div>
         </div>

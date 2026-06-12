@@ -71,7 +71,7 @@ export function LivenessConsentAgreement() {
             {isPreparingSession ? t("certificate.preparingCapture") : t("certificate.agreeAndCapture")}
           </Btn_1Col>
           <Btn_1Col variant="outline" onClick={handleSkipLivenessForTest}>
-            인증 없이 다음으로 (테스트)
+            {t("certificate.livenessSkipTest")}
           </Btn_1Col>
         </div>
       }
@@ -83,6 +83,7 @@ export function LivenessConsentAgreement() {
           basePath="/certificate/step-08"
           preserveStateKey="preserveStep08State"
           resetCarouselCursorKey="resetCategoryCursor"
+          translationNamespace="consent.certificate"
           title={t("certificate.step08Title")}
           description=""
           onRequiredCompleteChange={setIsRequiredComplete}

@@ -1,4 +1,3 @@
-import { translateError } from '../../app/i18n'
 import { extractApiErrorBody } from '../utils'
 import { authApi } from './auth'
 
@@ -8,7 +7,7 @@ export type EmailVerificationConfirmResponse = {
   verified: true
 }
 
-type EmailVerificationApiErrorBody = {
+export type EmailVerificationApiErrorBody = {
   code: string
   message: string
 }
@@ -23,19 +22,14 @@ export class EmailVerificationApiError extends Error {
   }
 }
 
-function toEmailVerificationApiError(
-  error: unknown,
-  fallbackMessage: string
-): EmailVerificationApiError {
+function toEmailVerificationApiError(error: unknown): EmailVerificationApiError {
   if (error instanceof EmailVerificationApiError) {
     return error
   }
 
   const errorBody = extractApiErrorBody<EmailVerificationApiErrorBody>(error)
   const code = errorBody?.code ?? null
-  const message = code
-    ? translateError(code, errorBody?.message ?? fallbackMessage)
-    : fallbackMessage
+  const message = errorBody?.message ?? (error instanceof Error ? error.message : '')
 
   return new EmailVerificationApiError(message, code)
 }
@@ -46,10 +40,7 @@ export const emailVerificationApi = {
       await authApi.sendEmailVerification({ email })
       return {}
     } catch (error) {
-      throw toEmailVerificationApiError(
-        error,
-        '인증번호를 발송할 수 없습니다. 다시 시도해주세요.'
-      )
+      throw toEmailVerificationApiError(error)
     }
   },
   confirm: async (
@@ -60,18 +51,18 @@ export const emailVerificationApi = {
       await authApi.confirmEmailVerification({ email, code })
       return { verified: true }
     } catch (error) {
-      throw toEmailVerificationApiError(
-        error,
-        '인증번호를 확인할 수 없습니다. 다시 입력해주세요.'
-      )
+      throw toEmailVerificationApiError(error)
     }
   },
 }
 
-export function getEmailVerificationApiErrorMessage(error: unknown) {
+export function getEmailVerificationApiError(error: unknown) {
   if (error instanceof EmailVerificationApiError) {
-    return translateError(error.code, error.message)
+    return {
+      code: error.code,
+      message: error.message,
+    }
   }
 
-  return error instanceof Error ? error.message : '잠시 후 다시 시도해주세요.'
+  return extractApiErrorBody<EmailVerificationApiErrorBody>(error)
 }

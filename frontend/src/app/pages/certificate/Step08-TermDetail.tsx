@@ -14,6 +14,7 @@ export function LivenessConsentTermDetail() {
       termId={termId}
       basePath="/certificate/step-08"
       preserveStateKey="preserveStep08State"
+      translationNamespace="consent.certificate"
     />
   )
 }

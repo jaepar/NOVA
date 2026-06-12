@@ -1,24 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
-import { BadgeInfo, CreditCard, Mail, ShieldCheck } from "lucide-react";
+import { BadgeInfo, CreditCard, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { EmailVerificationFields } from "../../components/email/EmailVerificationFields";
 import { useEmailVerification } from "../../components/email/useEmailVerification";
 import { useTransferSendPageStore } from "../../stores/pageStores";
+import { useTranslation } from "../../i18n";
 
 function TransferVerificationHero() {
+  const { t } = useTranslation();
+
   return (
     <section className="overflow-hidden rounded-[28px] border border-[#E6EEF9] bg-[linear-gradient(135deg,#F8FBFF_0%,#EEF5FF_100%)] p-6">
       <div className="flex items-center justify-between gap-4">
         <div className="space-y-3">
           <h2 className="text-[20px] font-semibold leading-8 text-[#132347]">
-            최초 1회 인증이 필요해요
+            {t("globalTransfer.verification.heading")}
           </h2>
-          <p className="text-sm leading-7 text-[#4E5E78]">
-            안전한 해외송금을 위해
-            <br />
-            외국인등록증 번호와 이메일 인증을 진행해주세요.
+          <p className="whitespace-pre-line text-sm leading-7 text-[#4E5E78]">
+            {t("globalTransfer.verification.description")}
           </p>
         </div>
 
@@ -37,6 +38,7 @@ function TransferVerificationHero() {
 
 export function TransferInitialVerification() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const isInitialVerificationComplete = useTransferSendPageStore(
     (state) => state.isInitialVerificationComplete
   );
@@ -52,8 +54,7 @@ export function TransferInitialVerification() {
   const [registrationStatus, setRegistrationStatus] = useState<
     "idle" | "validating" | "verified" | "failed"
   >("idle");
-  const [lastValidatedRegistrationNumber, setLastValidatedRegistrationNumber] =
-    useState("");
+  const [lastValidatedRegistrationNumber, setLastValidatedRegistrationNumber] = useState("");
 
   const registrationNumber = useMemo(
     () => `${registrationFront}${registrationBack}`,
@@ -138,12 +139,12 @@ export function TransferInitialVerification() {
 
   const registrationHelperMessage =
     registrationStatus === "validating"
-      ? "등록번호를 확인하고 있습니다."
+      ? t("globalTransfer.verification.registrationChecking")
       : registrationStatus === "verified"
-      ? "등록번호 확인이 완료되었습니다."
+      ? t("globalTransfer.verification.registrationVerified")
       : registrationStatus === "failed"
-      ? "등록번호를 다시 확인해 주세요."
-      : "숫자만 입력해 주세요.";
+      ? t("globalTransfer.verification.registrationFailed")
+      : t("globalTransfer.verification.registrationHint");
 
   const handleCompleteVerification = () => {
     completeInitialVerification();
@@ -152,19 +153,16 @@ export function TransferInitialVerification() {
 
   return (
     <MobileLayout
-      title="해외송금"
+      title={t("globalTransfer.title")}
       headerType="back"
       backPath="/global-transfer"
       bottomContent={
-        <Btn_1Col
-          disabled={!canCompleteVerification}
-          onClick={handleCompleteVerification}
-        >
-          인증 완료
+        <Btn_1Col disabled={!canCompleteVerification} onClick={handleCompleteVerification}>
+          {t("globalTransfer.verification.verifyButton")}
         </Btn_1Col>
       }
     >
-      <div className="space-y-10 pt-3 pb-4">
+      <div className="space-y-10 pb-4 pt-3">
         <TransferVerificationHero />
 
         <section className="space-y-5">
@@ -173,21 +171,21 @@ export function TransferInitialVerification() {
               1
             </div>
             <h2 className="text-[18px] font-semibold text-[#132347]">
-              외국인등록증 번호 입력
+              {t("globalTransfer.verification.registrationSection")}
             </h2>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-foreground">외국인등록증 번호</label>
+            <label className="block text-foreground">
+              {t("globalTransfer.verification.registrationLabel")}
+            </label>
             <div className="flex items-center gap-3">
               <input
                 type="text"
                 inputMode="numeric"
                 placeholder="000000"
                 value={registrationFront}
-                onChange={(event) =>
-                  handleRegistrationFrontChange(event.target.value)
-                }
+                onChange={(event) => handleRegistrationFrontChange(event.target.value)}
                 disabled={isRegistrationVerified}
                 className="h-16 min-w-0 flex-1 rounded-2xl border border-border bg-background px-5 text-lg text-[#132347] placeholder:text-[#B6C0D1] focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:bg-[#F7F9FC] disabled:text-[#8A94A6]"
                 style={{ fontSize: "16px" }}
@@ -198,19 +196,13 @@ export function TransferInitialVerification() {
                 inputMode="numeric"
                 placeholder="0000000"
                 value={registrationBack}
-                onChange={(event) =>
-                  handleRegistrationBackChange(event.target.value)
-                }
+                onChange={(event) => handleRegistrationBackChange(event.target.value)}
                 disabled={isRegistrationVerified}
                 className="h-16 min-w-0 flex-1 rounded-2xl border border-border bg-background px-5 text-lg tracking-[0.25em] text-[#132347] placeholder:tracking-normal placeholder:text-[#B6C0D1] focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:bg-[#F7F9FC] disabled:text-[#8A94A6]"
                 style={{ fontSize: "16px" }}
               />
             </div>
-            <p
-              className={`text-sm ${
-                isRegistrationVerified ? "text-primary" : "text-[#8A94A6]"
-              }`}
-            >
+            <p className={`text-sm ${isRegistrationVerified ? "text-primary" : "text-[#8A94A6]"}`}>
               {registrationHelperMessage}
             </p>
           </div>
@@ -222,7 +214,7 @@ export function TransferInitialVerification() {
               2
             </div>
             <h2 className="text-[18px] font-semibold text-[#132347]">
-              이메일 인증
+              {t("globalTransfer.verification.emailSection")}
             </h2>
           </div>
 
@@ -241,14 +233,14 @@ export function TransferInitialVerification() {
             onEmailChange={handleEmailChange}
             onVerificationCodeChange={handleVerificationCodeChange}
             onSendVerification={handleSendVerification}
-            emailLabel="이메일 주소"
-            emailPlaceholder="이메일 주소 입력"
-            codeLabel="인증번호 입력"
-            codePlaceholder="인증번호 6자리 입력"
+            emailLabel={t("globalTransfer.verification.emailLabel")}
+            emailPlaceholder={t("globalTransfer.verification.emailPlaceholder")}
+            codeLabel={t("globalTransfer.verification.codeLabel")}
+            codePlaceholder={t("globalTransfer.verification.codePlaceholder")}
             codeHelperText={
               isRegistrationVerified
                 ? undefined
-                : "등록번호 확인이 완료되면 이메일 인증을 진행할 수 있습니다."
+                : t("globalTransfer.verification.codeHelperText")
             }
             disabled={!isRegistrationVerified}
           />
@@ -260,9 +252,9 @@ export function TransferInitialVerification() {
               <BadgeInfo className="h-5 w-5" />
             </div>
             <ul className="space-y-3 text-sm leading-6 text-[#5A6780]">
-              <li>최초 1회만 인증하면 됩니다.</li>
-              <li>인증 완료 후 해외송금을 이용할 수 있습니다.</li>
-              <li>입력한 정보는 안전하게 암호화되어 처리됩니다.</li>
+              <li>{t("globalTransfer.verification.guide1")}</li>
+              <li>{t("globalTransfer.verification.guide2")}</li>
+              <li>{t("globalTransfer.verification.guide3")}</li>
             </ul>
           </div>
         </section>

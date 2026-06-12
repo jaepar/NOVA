@@ -72,7 +72,7 @@ export function LoginForm() {
 
   return (
     <MobileLayout
-      title="로그인"
+      title={t('login.formTitle')}
       titleKey="login.formTitle"
       headerType="back"
       onBack={handleBack}

@@ -25,7 +25,8 @@ export function MainAccountPanel({
   onOpenAccount,
   onAccountPanelClick,
 }: MainAccountPanelProps) {
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
+  const locale = language === 'ko' ? 'ko-KR' : 'en-US'
 
   if (isLoggedIn && isLoading) {
     return (
@@ -170,9 +171,7 @@ export function MainAccountPanel({
 
       <div>
         <p className="text-sm text-white/80 mb-1">{t('main.balance')}</p>
-        <p className="text-2xl font-semibold">
-          {account.balance.toLocaleString('ko-KR')} {t('main.currencyUnit')}
-        </p>
+        <p className="text-2xl font-semibold">{account.balance.toLocaleString(locale)} {t('main.currencyUnit')}</p>
       </div>
     </div>
   )

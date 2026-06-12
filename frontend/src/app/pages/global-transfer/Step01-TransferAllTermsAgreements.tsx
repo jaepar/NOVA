@@ -12,6 +12,7 @@ export function TransferAllTermsAgreements() {
       basePath="/global-transfer/send/step-01"
       preserveStateKey="preserveConsentState"
       resetCarouselCursorKey="resetCategoryCursor"
+      translationNamespace="consent.transfer"
     />
   );
 }

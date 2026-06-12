@@ -153,7 +153,7 @@ interface TransferBasicInfoPageState {
 }
 
 const transferBasicInfoInitialState = {
-  purpose: '거주자(외국인 제외)의 무증빙 해외송금',
+  purpose: 'resident',
   countryId: 'us',
   currencyCode: 'USD',
   amount: '',

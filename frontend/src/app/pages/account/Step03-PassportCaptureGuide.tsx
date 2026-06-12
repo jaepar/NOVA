@@ -17,19 +17,19 @@ export function PassportCaptureGuide() {
 
   return (
     <MobileLayout
-      title={t('account.identityTitle', '비대면 실명확인')}
+      title={t('account.identityTitle')}
       titleKey="account.identityTitle"
       backPath="/account/step-02"
       bottomContent={
         <Btn_1Col onClick={() => navigate('/account/step-04')}>
-          {t('account.passportGuide.start', '여권 촬영 시작하기')}
+          {t('account.passportGuide.start')}
         </Btn_1Col>
       }
     >
       <div className="space-y-5 pb-2">
         <section className="space-y-2">
           <h2 className="text-2xl font-semibold leading-tight">
-            {t('account.passportGuide.heading', '여권 촬영 전\n아래 내용을 확인해 주세요')
+            {t('account.passportGuide.heading')
               .split('\n')
               .map((line, index, lines) => (
                 <span key={`${line}-${index}`}>
@@ -39,7 +39,7 @@ export function PassportCaptureGuide() {
               ))}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {t('account.passportGuide.description', '정확한 인증을 위해 촬영 가이드를 먼저 확인해 주세요.')}
+            {t('account.passportGuide.description')}
           </p>
         </section>
 
@@ -60,10 +60,10 @@ export function PassportCaptureGuide() {
         <section className="rounded-2xl bg-secondary p-4 space-y-2">
           <div className="flex items-center gap-2 text-primary">
             <CircleAlert className="w-5 h-5" />
-            <p className="font-medium">{t('account.passportGuide.warningTitle', '주의사항')}</p>
+            <p className="font-medium">{t('account.passportGuide.warningTitle')}</p>
           </div>
           <p className="text-sm text-foreground/90 leading-relaxed">
-            {t('account.passportGuide.warningDescription', '반사광, 접힘, 손가락 가림이 있는 경우 인증이 실패할 수 있습니다. 실패 시 안내에 따라 다시 촬영해 주세요.')}
+            {t('account.passportGuide.warningDescription')}
           </p>
         </section>
       </div>

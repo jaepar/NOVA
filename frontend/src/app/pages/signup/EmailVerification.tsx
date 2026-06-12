@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { AppButton } from '../../components/design-system/AppButton'
-import { emailVerificationApi, getEmailVerificationApiErrorMessage } from '../../../api'
-import { useTranslation } from '../../i18n'
+import { emailVerificationApi, getEmailVerificationApiError } from '../../../api'
+import { translateError, useTranslation } from '../../i18n'
 import { useSignupPageStore } from '../../stores/pageStores'
 import { SignupContent } from './components/SignupContent'
 import { SignupInputGroup } from './components/SignupInputGroup'
@@ -40,6 +40,10 @@ export function EmailVerification() {
     verificationCode.length === 6 &&
     !isSendingCode &&
     !isVerifying
+  const getTranslatedErrorMessage = (error: unknown, fallbackKey: string) => {
+    const apiError = getEmailVerificationApiError(error)
+    return translateError(apiError?.code, t(fallbackKey))
+  }
 
   useEffect(() => {
     if (!isCodeSent || remainingSeconds === 0) {
@@ -80,7 +84,7 @@ export function EmailVerification() {
       setCodeSent(true)
       setRemainingSeconds(verificationExpiresSeconds)
     } catch (error) {
-      setErrorMessage(getEmailVerificationApiErrorMessage(error))
+      setErrorMessage(getTranslatedErrorMessage(error, 'signup.emailSendFailed'))
     } finally {
       setSendingCode(false)
     }
@@ -98,7 +102,7 @@ export function EmailVerification() {
       await emailVerificationApi.confirm(email, verificationCode)
       navigate('/signup/personal-info')
     } catch (error) {
-      setErrorMessage(getEmailVerificationApiErrorMessage(error))
+      setErrorMessage(getTranslatedErrorMessage(error, 'signup.emailConfirmFailed'))
     } finally {
       setVerifying(false)
     }
@@ -111,7 +115,7 @@ export function EmailVerification() {
 
   return (
     <MobileLayout
-      title="회원가입"
+      title={t('signup.title')}
       titleKey="signup.title"
       onBack={handleBack}
       bottomContent={

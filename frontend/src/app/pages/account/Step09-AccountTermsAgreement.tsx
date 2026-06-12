@@ -17,7 +17,7 @@ export function AccountTermsAgreement() {
 
   return (
     <MobileLayout
-      title={t("account.openingHeader", "입출금계좌 개설")}
+      title={t("account.openingHeader")}
       titleKey="account.openingHeader"
       backPath="/account/step-07"
       bottomContent={
@@ -25,7 +25,7 @@ export function AccountTermsAgreement() {
           onClick={() => navigate("/account/step-10")}
           disabled={!isRequiredComplete}
         >
-          {t("account.next", "다음")}
+          {t("account.next")}
         </Btn_1Col>
       }
     >
@@ -35,10 +35,8 @@ export function AccountTermsAgreement() {
         basePath="/account/step-09"
         preserveStateKey="preserveStep09State"
         resetCarouselCursorKey="resetCategoryCursor"
-        title={t(
-          "account.terms.agreementHeading",
-          "계좌를 개설하기 위해\n약관을 확인해 주세요"
-        )}
+        translationNamespace="consent.account"
+        title={t("account.terms.agreementHeading")}
         description=""
         onRequiredCompleteChange={setIsRequiredComplete}
       />
