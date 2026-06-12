@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/auth/login",
                                 "/auth/signup",
+                                "/auth/logout",
                                 "/auth/email-verifications/**"
                         ).permitAll()
                         .requestMatchers(
@@ -46,7 +47,6 @@ public class SecurityConfig {
                                 "/users/**",
                                 "/banking/**",
                                 "/hospital/**",
-                                "/auth/logout",
                                 "/auth/me",
                                 "/jobs/applications/**",
                                 "/jobs/*/applications",
