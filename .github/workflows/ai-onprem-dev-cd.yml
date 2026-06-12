@@ -1,19 +1,19 @@
-name: Backend CD with Gradle and Docker (On-Prem Dev)
+name: AI CD with Docker (On-Prem Dev)
 
 on:
   push:
     branches:
       - 'develop'
     paths:
-      - 'backend/**'
-      - '.github/workflows/backend-onprem-dev-cd.yml'
+      - 'ai/**'
+      - '.github/workflows/ai-onprem-dev-cd.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 env:
-  IMAGE_REPO: jaypark0205/nova-backend
+  IMAGE_REPO: jaypark0205/nova-ai
 
 jobs:
   build_and_deploy:
@@ -22,30 +22,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'gradle'
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: ai/requirements.txt
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        working-directory: ai
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-        working-directory: backend
-
-      - name: Build with Gradle (without test)
-        run: ./gradlew clean build -x test --stacktrace
-        working-directory: backend
+      - name: Run tests
+        run: pytest -q
+        working-directory: ai
 
       - name: Set image tag
         id: meta
@@ -54,35 +44,35 @@ jobs:
       - name: Docker build & push
         run: |
           docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}"
-          docker build -f backend/Dockerfile -t "${{ env.IMAGE_REPO }}:${{ steps.meta.outputs.image_tag }}" backend
+          docker build -f ai/Dockerfile -t "${{ env.IMAGE_REPO }}:${{ steps.meta.outputs.image_tag }}" ai
           docker tag "${{ env.IMAGE_REPO }}:${{ steps.meta.outputs.image_tag }}" "${{ env.IMAGE_REPO }}:dev"
           docker push "${{ env.IMAGE_REPO }}:${{ steps.meta.outputs.image_tag }}"
           docker push "${{ env.IMAGE_REPO }}:dev"
 
-      - name: Send docker-compose.dev.yml
+      - name: Send docker-compose.yml
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.ONPREM_BACKEND_HOST }}
+          host: ${{ secrets.ONPREM_AI_HOST }}
           port: 22
           username: ${{ secrets.ONPREM_USER }}
-          key: ${{ secrets.ONPREM_BACKEND_SSH_KEY }}
+          key: ${{ secrets.ONPREM_AI_SSH_KEY }}
           proxy_host: ${{ secrets.BASTION_TUNNEL_HOST }}
           proxy_port: ${{ secrets.BASTION_TUNNEL_PORT }}
           proxy_username: ${{ secrets.BASTION_TUNNEL_USER }}
           proxy_key: ${{ secrets.BASTION_TUNNEL_SSH_KEY }}
-          source: "backend/docker-compose.dev.yml"
+          source: "ai/docker-compose.yml"
           target: "/home/ubuntu/app"
           strip_components: 1
 
-      - name: Deploy to on-prem backend server
+      - name: Deploy to on-prem AI server
         uses: appleboy/ssh-action@v1.2.0
         env:
           IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
         with:
-          host: ${{ secrets.ONPREM_BACKEND_HOST }}
+          host: ${{ secrets.ONPREM_AI_HOST }}
           port: 22
           username: ${{ secrets.ONPREM_USER }}
-          key: ${{ secrets.ONPREM_BACKEND_SSH_KEY }}
+          key: ${{ secrets.ONPREM_AI_SSH_KEY }}
           proxy_host: ${{ secrets.BASTION_TUNNEL_HOST }}
           proxy_port: ${{ secrets.BASTION_TUNNEL_PORT }}
           proxy_username: ${{ secrets.BASTION_TUNNEL_USER }}
@@ -99,5 +89,7 @@ jobs:
             docker pull "${{ env.IMAGE_REPO }}:${IMAGE_TAG}"
             docker tag "${{ env.IMAGE_REPO }}:${IMAGE_TAG}" "${{ env.IMAGE_REPO }}:dev"
 
-            docker compose --env-file .env -f docker-compose.dev.yml up -d
+            export AI_IMAGE_TAG=dev
+            export AI_CONTAINER_NAME=nova-ai-dev
+            docker compose --env-file .env -f docker-compose.yml up -d
             docker image prune -f
