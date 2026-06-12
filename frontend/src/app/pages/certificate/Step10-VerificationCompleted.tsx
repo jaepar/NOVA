@@ -1,36 +1,36 @@
-import { useNavigate } from "react-router-dom";
-import { Check } from "lucide-react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
-import { useTranslation } from "../../i18n";
+import { useNavigate } from 'react-router-dom'
+import { Check } from 'lucide-react'
+import { MobileLayout } from '../../components/layout/MobileLayout'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { useTranslation } from '../../i18n'
 
 export function VerificationCompleted() {
-  const navigate = useNavigate();
-  const { t } = useTranslation();
+  const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const completedItems = [
-    t("certificate.completedItem1"),
-    t("certificate.completedItem2"),
-    t("certificate.completedItem3"),
-    t("certificate.completedItem4"),
-  ];
+    t('certificate.completedItem1'),
+    t('certificate.completedItem2'),
+    t('certificate.completedItem3'),
+    t('certificate.completedItem4'),
+  ]
 
   return (
     <MobileLayout
-      title={t("certificate.title")}
+      title={t('certificate.title')}
       backPath="/certificate/step-08"
       bottomContent={
-        <Btn_1Col onClick={() => navigate("/certificate/step-11")}>
-          {t("certificate.finalSubmit")}
+        <Btn_1Col onClick={() => navigate('/certificate/step-11')}>
+          {t('certificate.finalSubmit')}
         </Btn_1Col>
       }
     >
       <div className="space-y-8 pb-2">
         <section className="pt-8">
           <h2 className="text-2xl leading-tight font-semibold text-center">
-            {t("certificate.step10HeadingLine1")}
+            {t('certificate.step10HeadingLine1')}
             <br />
-            {t("certificate.step10HeadingLine2")}
+            {t('certificate.step10HeadingLine2')}
           </h2>
         </section>
 
@@ -47,8 +47,8 @@ export function VerificationCompleted() {
                   </div>
                   <p>{item}</p>
                 </div>
-                <div className="px-4 py-1.5 rounded-full bg-blue-50 text-primary text-sm font-medium">
-                  {t("certificate.completedBadge")}
+                <div className="px-4 py-1.5 rounded-full bg-primary-soft text-primary text-sm font-medium">
+                  {t('certificate.completedBadge')}
                 </div>
               </div>
             ))}
@@ -56,5 +56,5 @@ export function VerificationCompleted() {
         </section>
       </div>
     </MobileLayout>
-  );
+  )
 }

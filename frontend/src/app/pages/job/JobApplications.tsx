@@ -102,7 +102,7 @@ function PortfolioPreviewModal({
     <div className="absolute inset-0 z-[80] flex items-center justify-center overflow-hidden bg-black/65 px-5 py-8">
       <div className="flex h-[78%] w-full flex-col rounded-xl bg-background p-4 shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
         <div className="mb-4 flex shrink-0 items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-primary">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
             <FileText className="h-5 w-5" />
           </span>
           <div className="min-w-0 flex-1">
@@ -359,7 +359,7 @@ export function JobApplications() {
                       type="button"
                       variant="unstyled"
                       onClick={() => handleSelectApplication(application)}
-                      className="flex w-full items-center gap-4 rounded-xl border border-border bg-background px-5 py-5 text-left shadow-[0_2px_10px_rgba(15,23,42,0.04)] transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                      className="flex w-full items-center gap-4 rounded-xl border border-border bg-background px-5 py-5 text-left shadow-[0_2px_10px_rgba(15,23,42,0.04)] transition-colors hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                     >
                       <span className="min-w-0 flex-1">
                         <span className="block break-words text-[18px] font-semibold leading-7 text-[#111827]">

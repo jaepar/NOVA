@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CreditCard, MessageSquare, Wallet } from 'lucide-react'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import { BottomNav } from '../components/layout/BottomNav'
 import { SideMenu } from '../components/layout/SideMenu'
@@ -24,6 +23,9 @@ import { MainServiceGrid } from './main/MainServiceGrid'
 import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
 import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
 import { CertificateIssuedModal } from './main/CertificateIssuedModal'
+import hospitalReservationIcon from './main/assets/hospital-reservation-icon.png'
+import registrationCardIcon from './main/assets/registration-card-icon.png'
+import walletIcon from './main/assets/wallet-icon.png'
 import type { ExchangeRateItem, ServiceItem } from './main/types'
 
 export function Main() {
@@ -37,6 +39,7 @@ export function Main() {
   const setHasUnreadNotifications = useMainPageStore((state) => state.setHasUnreadNotifications)
   const setCertificateSheetOpen = useMainPageStore((state) => state.setCertificateSheetOpen)
   const logout = useMainPageStore((state) => state.logout)
+
   const [accountHome, setAccountHome] = useState<AccountHomeResponse | null>(null)
   const [isAccountHomeLoading, setAccountHomeLoading] = useState(false)
   const [isNotificationOpen, setNotificationOpen] = useState(false)
@@ -49,19 +52,37 @@ export function Main() {
   const services: ServiceItem[] = [
     {
       id: 'hospital-chat',
-      icon: <MessageSquare className="w-8 h-8" />,
+      icon: (
+        <img
+          src={hospitalReservationIcon}
+          alt=""
+          className="h-9 w-9 object-contain"
+        />
+      ),
       label: isHospitalChatStarting ? t('main.connecting') : t('main.hospitalReservation'),
       disabled: isHospitalChatStarting,
     },
     {
       id: 'foreigner-card',
-      icon: <CreditCard className="w-8 h-8" />,
+      icon: (
+        <img
+          src={registrationCardIcon}
+          alt=""
+          className="h-9 w-9 object-contain"
+        />
+      ),
       label: t('main.residenceCard'),
       path: '/foreigner-card/step-01',
     },
     {
       id: 'wallet',
-      icon: <Wallet className="w-8 h-8" />,
+      icon: (
+        <img
+          src={walletIcon}
+          alt=""
+          className="h-9 w-9 rounded-lg object-cover"
+        />
+      ),
       label: t('main.wallet'),
       path: '/wallet',
     },
@@ -253,7 +274,7 @@ export function Main() {
           />
         }
       >
-        <div className="space-y-4">
+        <div className="space-y-4 pt-3">
           <section>
             <MainAccountPanel
               isLoggedIn={isLoggedIn}

@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
@@ -17,19 +17,19 @@ export function VerificationCompleted() {
 
   return (
     <MobileLayout
-      title={t('account.identityTitle', '비대면 실명확인')}
+      title={t('account.identityTitle')}
       titleKey="account.identityTitle"
       backPath="/account/step-07"
       bottomContent={
         <Btn_1Col onClick={() => navigate('/account/step-10')}>
-          {t('account.verificationCompleted.submit', '최종 제출하기')}
+          {t('account.verificationCompleted.submit')}
         </Btn_1Col>
       }
     >
       <div className="space-y-8 pb-2">
         <section className="pt-8">
           <h2 className="text-2xl leading-tight font-semibold text-center">
-            {t('account.verificationCompleted.heading', '모든 인증 절차가\n완료되었어요')
+            {t('account.verificationCompleted.heading')
               .split('\n')
               .map((line, index, lines) => (
                 <span key={`${line}-${index}`}>
@@ -53,8 +53,8 @@ export function VerificationCompleted() {
                   </div>
                   <p>{t(itemKey)}</p>
                 </div>
-                <div className="px-4 py-1.5 rounded-full bg-blue-50 text-primary text-sm font-medium">
-                  {t('account.verificationCompleted.completed', '완료')}
+                <div className="px-4 py-1.5 rounded-full bg-primary-soft text-primary text-sm font-medium">
+                  {t('account.verificationCompleted.completed')}
                 </div>
               </div>
             ))}
@@ -64,6 +64,3 @@ export function VerificationCompleted() {
     </MobileLayout>
   )
 }
-
-
-

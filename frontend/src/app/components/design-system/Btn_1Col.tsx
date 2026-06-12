@@ -15,11 +15,11 @@ export function Btn_1Col({
 }: Btn1ColProps) {
   const variants = {
     primary:
-      'bg-primary text-primary-foreground hover:bg-blue-700 border-2 border-primary disabled:bg-secondary disabled:text-muted-foreground disabled:border-border disabled:hover:bg-secondary',
+      'bg-primary text-primary-foreground hover:bg-primary-dark border-2 border-primary disabled:bg-secondary disabled:text-muted-foreground disabled:border-border disabled:hover:bg-secondary',
     secondary:
       'bg-secondary text-secondary-foreground hover:bg-accent border-2 border-secondary disabled:bg-secondary disabled:text-muted-foreground disabled:border-border disabled:hover:bg-secondary',
     outline:
-      'bg-background border-2 border-primary text-primary hover:bg-blue-50 disabled:bg-secondary disabled:text-muted-foreground disabled:border-border disabled:hover:bg-secondary',
+      'bg-background border-2 border-primary text-primary hover:bg-primary-soft disabled:bg-secondary disabled:text-muted-foreground disabled:border-border disabled:hover:bg-secondary',
   }
 
   return (

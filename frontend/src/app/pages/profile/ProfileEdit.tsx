@@ -23,8 +23,8 @@ const fileStyleByType = {
   },
   docx: {
     icon: FileText,
-    color: 'text-blue-500',
-    bg: 'bg-blue-50',
+    color: 'text-primary-light',
+    bg: 'bg-primary-soft',
     label: 'DOCX',
   },
   file: {
@@ -435,7 +435,7 @@ export function ProfileEdit() {
               type="button"
               variant="unstyled"
               onClick={openPortfolioFilePicker}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border px-4 py-4 text-sm font-medium text-primary transition-colors hover:bg-blue-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border px-4 py-4 text-sm font-medium text-primary transition-colors hover:bg-primary-soft"
             >
               <Plus className="h-5 w-5" />
               {t('profile.portfolioAdd')}

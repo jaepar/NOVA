@@ -11,20 +11,22 @@ export function MainServiceGrid({ services, onServiceClick }: MainServiceGridPro
   const { t } = useTranslation()
 
   return (
-    <section className="space-y-4">
+    <section className="main-responsive-grid-container space-y-4">
       <h3>{t('main.life')}</h3>
-      <div className="grid grid-cols-3 gap-4 max-[359px]:grid-cols-1">
+      <div className="main-responsive-grid">
         {services.map((service) => (
           <AppButton
             variant="unstyled"
-            key={service.id}
+            key={service.id ?? service.label}
             type="button"
             disabled={service.disabled}
             onClick={() => onServiceClick(service)}
-            className="flex flex-col items-center gap-2 rounded-xl transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50 max-[359px]:bg-secondary max-[359px]:p-4"
+            className="main-service-button flex min-w-0 flex-col items-center gap-2 rounded-xl transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <div className="text-blue-500">{service.icon}</div>
-            <span className="text-center w-full text-xs">{service.label}</span>
+            <div className="text-primary-light">{service.icon}</div>
+            <span className="text-center w-full text-xs">
+              {service.label}
+            </span>
           </AppButton>
         ))}
       </div>

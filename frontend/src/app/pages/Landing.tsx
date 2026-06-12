@@ -3,6 +3,7 @@ import { Btn_1Col } from '../components/design-system/Btn_1Col'
 import { AppButton } from '../components/design-system/AppButton'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import { useTranslation } from '../i18n'
+import landingIllustrationSrc from './assets/landing-illustration.png'
 
 export function Landing() {
   const navigate = useNavigate()
@@ -25,16 +26,17 @@ export function Landing() {
         headerType="none"
         bottomContent={<Btn_1Col onClick={() => navigate('/language')}>{t('landing.start')}</Btn_1Col>}
       >
-        <div className="flex flex-col items-center justify-center min-h-full">
-          <div className="w-24 h-24 mb-6 rounded-full bg-gradient-to-b from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
-            <div className="w-20 h-10 bg-white/30 rounded-full"></div>
+        <div className="flex min-h-full flex-col items-center justify-center">
+          <div className="flex flex-col items-center">
+            <img
+              src={landingIllustrationSrc}
+              alt="NOVA"
+              className="h-auto w-[250px] object-contain"
+            />
+            <h2 className="-mt-2 text-center text-sm text-muted-foreground">
+              {t('landing.subtitle')}
+            </h2>
           </div>
-
-          <h1 className="text-2xl mb-2">
-            <span className="text-blue-600">NOVA</span>
-          </h1>
-
-          <p className="text-muted-foreground text-center">{t('landing.subtitle')}</p>
         </div>
       </MobileLayout>
     </div>

@@ -7,6 +7,7 @@ interface CenteredTaskContentProps {
   description?: string
   descriptionKey?: string
   children?: ReactNode
+  contentGapClassName?: string
 }
 
 export function CenteredTaskContent({
@@ -15,6 +16,7 @@ export function CenteredTaskContent({
   description,
   descriptionKey,
   children,
+  contentGapClassName = 'gap-6',
 }: CenteredTaskContentProps) {
   const { t } = useTranslation()
   const resolvedTask = taskKey ? t(taskKey, task) : task
@@ -23,7 +25,7 @@ export function CenteredTaskContent({
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
-      <div className="flex flex-col items-center gap-6">
+      <div className={`flex flex-col items-center ${contentGapClassName}`}>
         {children}
 
         <div className="space-y-2 text-center">

@@ -65,9 +65,9 @@ export function Notifications() {
       case 'alert':
         return <AlertCircle className="w-6 h-6 text-red-600" />
       case 'event':
-        return <Gift className="w-6 h-6 text-blue-600" />
+        return <Gift className="w-6 h-6 text-primary-light" />
       default:
-        return <Info className="w-6 h-6 text-blue-600" />
+        return <Info className="w-6 h-6 text-primary-light" />
     }
   }
 
@@ -82,11 +82,11 @@ export function Notifications() {
   const unreadCount = notifications.filter((notification) => !notification.isRead).length
 
   return (
-    <MobileLayout title="알림" titleKey="notifications.title" headerType="close" closePath="/main">
+    <MobileLayout title={t('notifications.title')} titleKey="notifications.title" headerType="close" closePath="/main">
       <div className="space-y-4 pb-8">
         {unreadCount > 0 && (
-          <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl">
-            <p className="text-sm text-blue-800">
+          <div className="bg-primary-soft border border-primary-light/30 p-4 rounded-xl">
+            <p className="text-sm text-primary">
               {t('notifications.unreadCount').replace('{count}', String(unreadCount))}
             </p>
           </div>
@@ -110,7 +110,7 @@ export function Notifications() {
                 className={`w-full text-left p-4 rounded-xl transition-colors ${
                   notification.isRead
                     ? 'bg-secondary hover:bg-accent'
-                    : 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                    : 'bg-primary-soft hover:bg-primary-soft border border-primary-light/30'
                 }`}
               >
                 <div className="flex gap-3">
@@ -121,7 +121,7 @@ export function Notifications() {
                         {t(notification.titleKey)}
                       </h4>
                       {!notification.isRead && (
-                        <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></span>
+                        <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2"></span>
                       )}
                     </div>
                     <p

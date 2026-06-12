@@ -20,8 +20,18 @@ import { PortfolioItem, useProfileStore } from '../../stores/profileStore'
 
 const fileStyleByType = {
   pdf: { icon: FileText, color: 'text-red-500', bg: 'bg-red-50', label: 'PDF' },
-  docx: { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50', label: 'DOCX' },
-  file: { icon: FileText, color: 'text-slate-500', bg: 'bg-slate-50', label: 'FILE' },
+  docx: {
+    icon: FileText,
+    color: 'text-primary-light',
+    bg: 'bg-primary-soft',
+    label: 'DOCX',
+  },
+  file: {
+    icon: FileText,
+    color: 'text-slate-500',
+    bg: 'bg-slate-50',
+    label: 'FILE',
+  },
 }
 
 function isImagePreviewUrl(value?: string) {
@@ -40,6 +50,7 @@ export function Profile() {
   const profile = useProfileStore((state) => state.profile)
   const portfolioItems = useProfileStore((state) => state.portfolios)
   const setProfileFromResponse = useProfileStore((state) => state.setProfileFromResponse)
+
   const [selectedPortfolio, setSelectedPortfolio] = useState<PortfolioItem | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -52,14 +63,14 @@ export function Profile() {
 
     try {
       const response = await userApi.getProfile()
-      setProfileFromResponse(response)
+      setProfileFromResponse(response, profile?.languageId)
     } catch (error) {
       const apiError = getUserApiError(error)
       setErrorMessage(translateError(apiError?.code, apiError?.message || t('profile.loadFailedFallback')))
     } finally {
       setIsLoading(false)
     }
-  }, [isLoggedIn, setProfileFromResponse, t])
+  }, [isLoggedIn, profile?.languageId, setProfileFromResponse, t])
 
   useEffect(() => {
     if (isLoggedIn && !profile) {
@@ -71,6 +82,7 @@ export function Profile() {
     male: t('profile.genderMale'),
     female: t('profile.genderFemale'),
   }
+
   const statusDisplay: Record<string, string> = {
     owned: t('profile.statusOwned'),
     notOwned: t('profile.statusNotOwned'),
@@ -80,18 +92,20 @@ export function Profile() {
   const selectedLanguage = profile
     ? languages.find((language) => language.id === profile.languageId)?.name ?? profile.languageId
     : '-'
+
   const profileRows = profile
     ? [
         { label: t('profile.birthDate'), value: profile.birthDate },
         { label: t('profile.genderLabel'), value: genderDisplay[profile.gender] ?? profile.gender },
         { label: t('profile.languageSetting'), value: selectedLanguage },
         { label: t('profile.hasCertificate'), value: statusDisplay[profile.hasCertificate] ?? profile.hasCertificate },
-        { label: t('profile.hasForeignerCard'), value: statusDisplay[profile.hasForeignerCard] ?? profile.hasForeignerCard },
+        {
+          label: t('profile.hasForeignerCard'),
+          value: statusDisplay[profile.hasForeignerCard] ?? profile.hasForeignerCard,
+        },
       ]
     : []
-  const selectedPortfolioStyle = selectedPortfolio
-    ? fileStyleByType[selectedPortfolio.type]
-    : fileStyleByType.pdf
+
   const isSelectedPortfolioImage = isImagePreviewUrl(selectedPortfolio?.url)
 
   const bottomContent = !isLoggedIn ? (
@@ -127,8 +141,12 @@ export function Profile() {
                 {profile.name.slice(0, 1)}
               </div>
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-foreground">{profile.name}</h2>
-                <p className="mt-1 truncate text-xs text-muted-foreground">{profile.email}</p>
+                <h2 className="text-base font-semibold text-foreground">
+                  {profile.name}
+                </h2>
+                <p className="mt-1 truncate text-xs text-muted-foreground">
+                  {profile.email}
+                </p>
               </div>
             </div>
           </section>
@@ -139,14 +157,19 @@ export function Profile() {
                 key={row.label}
                 className="flex items-center justify-between border-b border-border px-4 py-3 last:border-b-0"
               >
-                <span className="text-xs text-muted-foreground">{row.label}</span>
-                <span className="text-xs font-medium text-foreground">{row.value}</span>
+                <span className="text-xs text-muted-foreground">
+                  {row.label}
+                </span>
+                <span className="text-xs font-medium text-foreground">
+                  {row.value}
+                </span>
               </div>
             ))}
           </section>
 
           <section className="flex min-h-[320px] shrink-0 flex-col gap-3 rounded-lg border border-border p-4">
             <h3 className="text-sm font-semibold text-foreground">{t('profile.portfolioList')}</h3>
+
             {portfolioItems.length === 0 ? (
               <div className="flex flex-1 items-center justify-center">
                 <p className="text-xs text-muted-foreground">{t('profile.portfolioEmpty')}</p>
@@ -154,7 +177,7 @@ export function Profile() {
             ) : (
               <div className="overflow-hidden rounded-lg border border-border">
                 {portfolioItems.map((portfolio, index) => {
-                  const fileStyle = fileStyleByType[portfolio.type]
+                  const fileStyle = fileStyleByType[portfolio.type] ?? fileStyleByType.file
                   const FileIcon = fileStyle.icon
 
                   return (

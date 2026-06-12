@@ -1,5 +1,6 @@
 import { AppButton } from '../../components/design-system/AppButton'
 import { useTranslation } from '../../i18n'
+import jobBannerImg from './assets/job-banner.png'
 
 interface MainJobBannerProps {
   onClick?: () => void
@@ -15,16 +16,19 @@ export function MainJobBanner({ onClick }: MainJobBannerProps) {
       onClick={onClick}
       className="block w-full overflow-hidden rounded-2xl text-left"
     >
-      <div className="bg-blue-600 p-6 h-40 flex flex-col justify-between relative">
-        <div>
-          <h3 className="text-white text-lg font-medium mb-2">{t('main.jobTitle')}</h3>
-          <p className="text-white/90 text-sm">{t('main.jobDescription')}</p>
+      <div className="relative h-40 overflow-hidden rounded-2xl border border-primary-light/20 bg-primary-soft p-6 shadow-[0_3px_12px_rgba(15,23,42,0.045)] max-[350px]:h-[220px]">
+        <div className="relative z-10 max-w-[180px] max-[350px]:max-w-none">
+          <h3 className="mb-8 text-lg font-semibold text-primary max-[350px]:mb-4">{t('main.jobTitle')}</h3>
+          <p className="whitespace-pre-line text-sm font-medium leading-5 text-foreground">
+            {t('main.jobDescription')}
+          </p>
         </div>
-        <div className="absolute right-6 bottom-6 flex gap-2">
-          <div className="w-12 h-12 rounded-full bg-white/20" />
-          <div className="w-12 h-12 rounded-full bg-white/20" />
-          <div className="w-12 h-12 rounded-full bg-white/20" />
-        </div>
+
+        <img
+          src={jobBannerImg}
+          alt={t('main.jobTitle')}
+          className="absolute bottom-2 right-0 h-[125px] object-contain pointer-events-none max-[350px]:bottom-3 max-[350px]:right-3 max-[350px]:h-[105px]"
+        />
       </div>
     </AppButton>
   )

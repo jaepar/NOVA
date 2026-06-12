@@ -15,7 +15,10 @@
 - 브레이크포인트 기준: `768px`
 - 데스크탑(`>768px`)은 중앙 `390x844` 프레임, 모바일/앱 브라우저(`<=768px`)는 기기 뷰포트 기준 렌더링
 - 좌우 기본 패딩: `px-5` (20px)
-- Primary: `#6366F1`
+- Primary: `#003CA6`
+- Primary Dark: `#002A73`
+- Primary Light: `#2563EB`
+- Primary Soft: `#EAF3FF`
 - 본문 텍스트: `#1F2937`
 - 보조 텍스트: `#6B7280`
 - Border: `#E5E7EB`
@@ -139,7 +142,7 @@
 - 상태별 색상 규격:
   - 성공: `border-emerald-400/60`, `bg-emerald-500/10`, `text-emerald-900`
   - 오류: `border-red-400/50`, `bg-red-500/10`, `text-black`
-  - 정보: `border-blue-400/60`, `bg-blue-500/10`, `text-blue-900`
+  - 정보: `border-primary-light/60`, `bg-primary-soft`, `text-primary`
   - 경고: `border-amber-400/60`, `bg-amber-500/15`, `text-amber-900`
 - 접근성 규격:
   - `role="alert"`
