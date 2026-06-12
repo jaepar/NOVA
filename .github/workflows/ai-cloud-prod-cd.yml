@@ -59,7 +59,7 @@ jobs:
           proxy_host: ${{ secrets.BASTION_TUNNEL_HOST }}
           proxy_port: ${{ secrets.BASTION_TUNNEL_PORT }}
           proxy_username: ${{ secrets.BASTION_TUNNEL_USER }}
-          proxy_key: ${{ secrets.BASTION_TUNNEL_SSH_KEY }}
+          proxy_key: ${{ secrets.BASTION_HOST_SSH_KEY }}
           source: "ai/docker-compose.yml"
           target: "/home/ubuntu/app"
           strip_components: 1
@@ -76,7 +76,7 @@ jobs:
           proxy_host: ${{ secrets.BASTION_TUNNEL_HOST }}
           proxy_port: ${{ secrets.BASTION_TUNNEL_PORT }}
           proxy_username: ${{ secrets.BASTION_TUNNEL_USER }}
-          proxy_key: ${{ secrets.BASTION_TUNNEL_SSH_KEY }}
+          proxy_key: ${{ secrets.BASTION_HOST_SSH_KEY }}
           envs: IMAGE_TAG
           script_stop: true
           script: |
