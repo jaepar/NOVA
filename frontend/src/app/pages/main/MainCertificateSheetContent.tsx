@@ -1,8 +1,8 @@
-﻿import { Btn_2Col } from '../../components/design-system/Btn_2Col'
+﻿import { Btn_2Col } from "../../components/design-system/Btn_2Col";
 
 interface MainCertificateSheetContentProps {
-  onLaterClick: () => void
-  onIssueClick: () => void
+  onLaterClick: () => void;
+  onIssueClick: () => void;
 }
 
 export function MainCertificateSheetContent({
@@ -30,10 +30,10 @@ export function MainCertificateSheetContent({
 
       <Btn_2Col
         leftLabel="나중에 하기"
-        rightLabel="인증서 발급하기"
+        rightLabel="발급하기"
         onLeftClick={onLaterClick}
         onRightClick={onIssueClick}
       />
     </div>
-  )
+  );
 }

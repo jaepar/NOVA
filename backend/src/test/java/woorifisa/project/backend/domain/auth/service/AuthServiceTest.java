@@ -23,6 +23,7 @@ import woorifisa.project.backend.global.auth.dto.request.LoginRequest;
 import woorifisa.project.backend.global.auth.dto.request.SignupRequest;
 import woorifisa.project.backend.global.auth.dto.response.LoginResponse;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.Gender;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.auth.service.AuthService;
@@ -108,7 +109,7 @@ class AuthServiceTest {
         assertThat(savedUser.getPassword()).isNotEqualTo(request.password());
         assertThat(passwordEncoder.matches(request.password(), savedUser.getPassword())).isTrue();
         assertThat(savedUser.getHasResidenceCard()).isFalse();
-        assertThat(savedUser.getHasCertificate()).isFalse();
+        assertThat(savedUser.getCertificateStatus()).isEqualTo(CertificateStatus.NOT_ISSUED);
         assertThat(savedUser.getHasDelete()).isFalse();
         assertThat(savedUser.getIssuedTime()).isNull();
     }
@@ -381,7 +382,7 @@ class AuthServiceTest {
                 .email("login@test.com")
                 .password(password)
                 .hasResidenceCard(false)
-                .hasCertificate(false)
+                .certificateStatus(CertificateStatus.NOT_ISSUED)
                 .hasDelete(hasDelete)
                 .issuedTime(null)
                 .build();

@@ -10,6 +10,7 @@ interface BottomSheetProps {
   bottomAction?: React.ReactNode
   height?: string
   disableScroll?: boolean
+  dimBackground?: boolean
 }
 
 export function BottomSheet({
@@ -20,6 +21,7 @@ export function BottomSheet({
   bottomAction,
   height,
   disableScroll = false,
+  dimBackground = true,
 }: BottomSheetProps) {
   const visibilityStore = useMemo(
     () =>
@@ -56,7 +58,9 @@ export function BottomSheet({
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[60] transition-opacity duration-300 ${
+          dimBackground ? 'bg-black/50' : 'bg-transparent'
+        } ${
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}

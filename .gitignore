@@ -18,6 +18,7 @@ Desktop.ini
 *.iws
 *.ipr
 .vscode/
+.worktrees/
 
 # ------------------------------
 # Secrets / Local config

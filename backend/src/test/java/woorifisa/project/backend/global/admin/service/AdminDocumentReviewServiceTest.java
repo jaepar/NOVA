@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import woorifisa.project.backend.domain.user.entity.Document;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
@@ -54,7 +55,7 @@ class AdminDocumentReviewServiceTest {
 	@DisplayName("관리자 심사 시 PENDING 문서를 APPROVED로 변경하고 S3 상태를 변경한다")
 	void reviewPendingDocumentToApproved() {
 		Long userId = 1L;
-		User user = User.builder().userId(userId).hasCertificate(false).build();
+		User user = User.builder().userId(userId).certificateStatus(CertificateStatus.PENDING).build();
 		Document latestResidence = Document.builder()
 			.user(user)
 			.documentType(DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)
@@ -84,11 +85,13 @@ class AdminDocumentReviewServiceTest {
 
 		assertThat(latestResidence.getStatus()).isEqualTo(DocumentStatus.APPROVED);
 		assertThat(latestResidence.getMissing()).isNull();
-		assertThat(user.getHasCertificate()).isTrue();
+		assertThat(user.getCertificateStatus()).isEqualTo(CertificateStatus.ISSUED);
 		assertThat(user.getIssuedTime()).isNotNull();
 		verify(documentRepository).save(latestResidence);
-			verify(coreBankingClient).createCustomer(org.mockito.ArgumentMatchers.any());
-			verify(notificationService).createOrReplaceSupplementDocumentNotification(user, "제출한 서류가 모두 승인되었습니다.");
+		verify(coreBankingClient).createCustomer(org.mockito.ArgumentMatchers.any());
+		verify(notificationService).createOrReplaceSupplementDocumentNotification(user, "제출한 서류가 모두 승인되었습니다.");
+		verify(notificationService).createOrReplaceCertificateIssuedNotification(user, "인증서 발급이 완료되었습니다.");
+		verify(notificationService).deleteSupplementDocumentNotification(user);
 	}
 
 	@Test
@@ -184,7 +187,7 @@ class AdminDocumentReviewServiceTest {
 	@DisplayName("이미 인증서가 발급된 사용자는 재승인 시 coreBanking 고객 생성을 재호출하지 않는다")
 	void doesNotCreateCoreBankingCustomerWhenAlreadyIssued() {
 		Long userId = 1L;
-		User user = User.builder().userId(userId).hasCertificate(true).build();
+		User user = User.builder().userId(userId).certificateStatus(CertificateStatus.ISSUED).build();
 		Document latestResidence = Document.builder()
 			.user(user)
 			.documentType(DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)
@@ -220,7 +223,7 @@ class AdminDocumentReviewServiceTest {
 	@DisplayName("코어뱅킹 고객 생성 실패 시 S3 상태를 원복한다")
 	void rollbackS3WhenCoreBankingCreateCustomerFails() {
 		Long userId = 1L;
-		User user = User.builder().userId(userId).hasCertificate(false).build();
+		User user = User.builder().userId(userId).certificateStatus(CertificateStatus.NOT_ISSUED).build();
 		Document latestResidence = Document.builder()
 			.user(user)
 			.documentType(DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)

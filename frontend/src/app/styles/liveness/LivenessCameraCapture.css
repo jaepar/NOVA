@@ -82,6 +82,12 @@
   color: #111111;
 }
 
+/* 시작 전에는 공통 하단 CTA를 사용하고 SDK 기본 시작 버튼은 숨김 */
+.nova-liveness-prestart .amplify-button--primary,
+.nova-liveness-prestart .amplify-button[data-variation="primary"] {
+  display: none !important;
+}
+
 /* 토스트 스타일 (레퍼런스 디자인) */
 .nova-liveness-surface .amplify-liveness-toast {
   border-radius: 12px;
@@ -244,26 +250,6 @@
 .nova-liveness-surface .amplify-liveness-freshness-canvas,
 .nova-liveness-surface .amplify-liveness-overlay-opaque {
   display: none !important;
-}
-
-.nova-liveness-surface .amplify-liveness-video-anchor::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 137px;
-  height: 226px;
-  transform: translate(-50%, -50%);
-  border: 3px solid rgba(255, 255, 255, 0.95);
-  border-radius: 9999px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
-  pointer-events: none;
-  opacity: 0;
-}
-
-.nova-liveness-surface.nova-liveness-active
-  .amplify-liveness-video-anchor::after {
-  opacity: 1;
 }
 
 /* 실패/오류 후 재촬영 대기용 빈 카메라 프레임 */

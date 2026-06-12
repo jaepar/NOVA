@@ -19,3 +19,15 @@ server:
   tomcat:
     # multipart 각 파트의 헤더 길이 제한(기본 512 bytes) 상향
     max-part-header-size: 8KB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+  health:
+    redis:
+      enabled: false

@@ -23,6 +23,15 @@ export type LoginRequest = {
   password: string;
 };
 
+export type EmailVerificationSendRequest = {
+  email: string;
+};
+
+export type EmailVerificationConfirmRequest = {
+  email: string;
+  code: string;
+};
+
 export type LoginResponse = {
   userId: number;
 };
@@ -33,7 +42,10 @@ export type SessionCheckResponse = {
 
 export const authApi = {
   signup: async (payload: SignupRequest): Promise<AuthMessageResponse> => {
-    const response = await apiClient.post<AuthMessageResponse>("/auth/signup", payload);
+    const response = await apiClient.post<AuthMessageResponse>(
+      "/auth/signup",
+      payload
+    );
 
     return response.data;
   },
@@ -43,13 +55,37 @@ export const authApi = {
     return response.data;
   },
   login: async (payload: LoginRequest): Promise<LoginResponse> => {
-    const response = await apiClient.post<AuthApiResponse<LoginResponse>>("/auth/login", payload);
-
+    const response = await apiClient.post<AuthApiResponse<LoginResponse>>(
+      "/auth/login",
+      payload
+    );
     return response.data.data;
   },
   me: async (): Promise<SessionCheckResponse> => {
-    const response = await apiClient.get<AuthApiResponse<SessionCheckResponse>>("/auth/me");
+    const response = await apiClient.get<AuthApiResponse<SessionCheckResponse>>(
+      "/auth/me"
+    );
 
     return response.data.data;
+  },
+  sendEmailVerification: async (
+    payload: EmailVerificationSendRequest
+  ): Promise<AuthMessageResponse> => {
+    const response = await apiClient.post<AuthMessageResponse>(
+      "/auth/email-verifications",
+      payload
+    );
+
+    return response.data;
+  },
+  confirmEmailVerification: async (
+    payload: EmailVerificationConfirmRequest
+  ): Promise<AuthMessageResponse> => {
+    const response = await apiClient.post<AuthMessageResponse>(
+      "/auth/email-verifications/confirm",
+      payload
+    );
+
+    return response.data;
   },
 };

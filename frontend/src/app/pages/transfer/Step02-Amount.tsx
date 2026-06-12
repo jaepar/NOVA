@@ -1,0 +1,118 @@
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { AppButton, Btn_1Col } from '../../components/design-system'
+import { BottomSheet } from '../../components/layout/BottomSheet'
+import { MobileLayout } from '../../components/layout/MobileLayout'
+import { formatCurrency } from './types'
+import { useTransferStore } from './transferStore'
+import { NumericKeypad } from './components/NumericKeypad'
+import { TransferAccountSummary } from './components/TransferAccountSummary'
+
+export function TransferAmount() {
+  const navigate = useNavigate()
+  const amount = useTransferStore((state) => state.amount)
+  const preview = useTransferStore((state) => state.preview)
+  const setAmount = useTransferStore((state) => state.setAmount)
+  const appendAmount = useTransferStore((state) => state.appendAmount)
+  const backspaceAmount = useTransferStore((state) => state.backspaceAmount)
+  const [isAmountKeypadOpen, setIsAmountKeypadOpen] = useState(false)
+  const amountText = formatCurrency(amount)
+  const balance = preview?.myAccount.balance ?? 0
+  const transferLimit = preview?.myAccount.transferLimit ?? 0
+  const availableLimit = Math.min(balance, transferLimit)
+  const numericAmount = Number(amount || '0')
+  const isOverAvailableAmount = numericAmount > availableLimit
+  const overAvailableMessage = isOverAvailableAmount
+    ? balance > transferLimit
+      ? '이체 가능 한도 금액을 초과했습니다.'
+      : '잔액이 부족합니다.'
+    : ''
+  const hasTransferAmount = numericAmount > 0 && !isOverAvailableAmount
+  const balanceText = formatCurrency(String(balance))
+
+  useEffect(() => {
+    setAmount('')
+    setIsAmountKeypadOpen(true)
+  }, [setAmount])
+
+  return (
+    <>
+      <MobileLayout title="이체" headerType="back" onBack={() => navigate('/transfer')}>
+        <section className="pt-2 text-[#202633]">
+          <TransferAccountSummary />
+
+          <AppButton
+            type="button"
+            variant="unstyled"
+            onClick={() => setIsAmountKeypadOpen(true)}
+            className="mt-8 block w-full text-center"
+          >
+            {amount ? (
+              <>
+                <h2 className="text-[36px] font-bold leading-tight text-[#050B2D]">
+                  {amountText}
+                </h2>
+                <p className="mt-2 text-[16px] font-semibold text-[#30343B]">
+                  출금 가능 금액 {balanceText}
+                </p>
+                {isOverAvailableAmount ? (
+                  <p className="mt-2 text-[13px] font-semibold text-[#EF4444]">
+                    {overAvailableMessage}
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <h2 className="text-[28px] font-bold text-[#8C929B]">
+                  얼마를 이체하시겠어요?
+                </h2>
+                <p className="mt-3 text-[16px] font-semibold text-[#8C929B]">
+                  출금 가능 금액 {balanceText}
+                </p>
+              </>
+            )}
+          </AppButton>
+        </section>
+      </MobileLayout>
+
+      <BottomSheet
+        isOpen={isAmountKeypadOpen}
+        onClose={() => setIsAmountKeypadOpen(false)}
+        title=""
+        height="390px"
+        disableScroll
+        dimBackground={false}
+      >
+        <div className="flex h-full flex-col">
+          <div className="grid grid-cols-5 gap-2">
+            {['+1만', '+5만', '+10만', '+100만', '전액'].map((chip) => (
+              <AppButton
+                key={chip}
+                type="button"
+                variant="unstyled"
+                onClick={() => setAmount(chip === '전액' ? String(balance) : chip.replace(/\D/g, '0000'))}
+                className="h-9 rounded-md bg-[#F1F3F5] text-[13px] font-bold text-[#454B52]"
+              >
+                {chip}
+              </AppButton>
+            ))}
+          </div>
+          <div className="mt-7">
+            <NumericKeypad onPress={appendAmount} onBackspace={backspaceAmount} />
+          </div>
+          <div className="mt-auto">
+            <Btn_1Col
+              disabled={!hasTransferAmount}
+              onClick={() => {
+                setIsAmountKeypadOpen(false)
+                navigate('/transfer/amount-confirm')
+              }}
+            >
+              확인
+            </Btn_1Col>
+          </div>
+        </div>
+      </BottomSheet>
+    </>
+  )
+}

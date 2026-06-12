@@ -45,7 +45,7 @@ export function VerificationCompleted() {
                   </div>
                   <p>{item}</p>
                 </div>
-                <div className="px-4 py-1.5 rounded-full bg-blue-50 text-primary text-sm font-medium">
+                <div className="px-4 py-1.5 rounded-full bg-primary-soft text-primary text-sm font-medium">
                   완료
                 </div>
               </div>

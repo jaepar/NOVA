@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import woorifisa.project.backend.domain.user.entity.Notification;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.NotificationType;
 import woorifisa.project.backend.domain.user.repository.NotificationRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
@@ -39,11 +40,11 @@ class NotificationServiceTest {
 	void createResidenceCardPeriodNotificationsBySchedule() {
 		User user = User.builder()
 			.userId(1L)
-			.hasCertificate(true)
+			.certificateStatus(CertificateStatus.NOT_ISSUED)
 			.hasResidenceCard(false)
 			.issuedTime(LocalDateTime.of(2026, 3, 1, 10, 0))
 			.build();
-		when(userRepository.findAllByHasCertificateTrueAndHasResidenceCardFalseAndIssuedTimeIsNotNull())
+		when(userRepository.findAllByCertificateStatusAndHasResidenceCardFalseAndIssuedTimeIsNotNull(CertificateStatus.NOT_ISSUED))
 			.thenReturn(List.of(user));
 
 		int oneMonth = notificationService.createResidenceCardPeriodNotifications(LocalDate.of(2026, 4, 1));
@@ -57,6 +58,28 @@ class NotificationServiceTest {
 		org.assertj.core.api.Assertions.assertThat(twoMonth).isEqualTo(1);
 		org.assertj.core.api.Assertions.assertThat(daily).isEqualTo(1);
 		org.assertj.core.api.Assertions.assertThat(outOfRange).isEqualTo(0);
+	}
+
+	@Test
+	@DisplayName("외국인등록증 등록 완료 시 기간 알림을 삭제한다")
+	void deleteResidenceCardPeriodNotification() {
+		User user = User.builder().userId(1L).build();
+
+		notificationService.deleteResidenceCardPeriodNotification(user);
+
+		verify(notificationRepository).deleteByUserAndType(user, NotificationType.RESIDENCE_CARD_PERIOD);
+	}
+
+	@Test
+	@DisplayName("인증서 발급 완료 시 알림을 생성한다")
+	void createOrReplaceCertificateIssuedNotification() {
+		User user = User.builder().userId(1L).build();
+		String content = "인증서 발급이 완료되었습니다.";
+
+		notificationService.createOrReplaceCertificateIssuedNotification(user, content);
+
+		verify(notificationRepository).deleteByUserAndType(user, NotificationType.CERTIFICATE_ISSUED);
+		verify(notificationRepository).save(any(Notification.class));
 	}
 
 	@Test

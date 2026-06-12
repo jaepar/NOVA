@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { MobileLayout } from "../components/layout/MobileLayout";
 import { BottomSheet } from "../components/layout/BottomSheet";
 import { CommonInputGroup } from "../components/design-system/CommonInputGroup";
 import { Btn_1Col } from "../components/design-system/Btn_1Col";
 import { Btn_2Col } from "../components/design-system/Btn_2Col";
+import { SegmentedOptionField } from "../components/design-system/SegmentedOptionField";
 import { FilterBottomSheet } from "../components/design-system/FilterBottomSheet";
 import { InlineBanner } from "../components/design-system/InlineBanner";
 import { PinInputBottomSheet } from "../components/design-system/PinInputBottomSheet";
@@ -19,6 +21,9 @@ import {
 import { useDesignSystemPageStore } from "../stores/pageStores";
 
 export function DesignSystem() {
+  const [selectedFeeBurden, setSelectedFeeBurden] = useState<
+    "sender" | "receiver"
+  >("sender");
   const inputValue = useDesignSystemPageStore((state) => state.inputValue);
   const isBottomSheetOpen = useDesignSystemPageStore(
     (state) => state.isBottomSheetOpen
@@ -117,45 +122,53 @@ export function DesignSystem() {
               <Btn_1Col variant="secondary">Secondary</Btn_1Col>
               <Btn_1Col variant="outline">Outline</Btn_1Col>
               <Btn_2Col leftLabel="Cancel" rightLabel="Confirm" />
+              <SegmentedOptionField
+                options={[
+                  { label: "Select A", value: "A" },
+                  { label: "Select B", value: "B" },
+                ]}
+                value={selectedFeeBurden}
+                onChange={setSelectedFeeBurden}
+              />
             </div>
           </section>
 
           <section className="space-y-4">
-            <h2>토스트 메시지</h2>
+            <h2>Toast Message</h2>
             <div className="space-y-3">
               <Btn_1Col
                 onClick={() =>
                   novaToast.success("요청이 정상적으로 처리되었습니다.")
                 }
               >
-                성공 토스트
+                Success
               </Btn_1Col>
               <Btn_1Col
                 onClick={() =>
                   novaToast.error("오류가 발생했습니다. 다시 시도해 주세요.")
                 }
               >
-                오류 토스트
+                Error
               </Btn_1Col>
               <Btn_1Col
                 onClick={() =>
                   novaToast.info("잠시 후 다음 단계로 이동합니다.")
                 }
               >
-                정보 토스트
+                Info
               </Btn_1Col>
               <Btn_1Col
                 onClick={() =>
                   novaToast.warning("입력값을 다시 확인해 주세요.")
                 }
               >
-                경고 토스트
+                Warning
               </Btn_1Col>
             </div>
           </section>
 
           <section className="space-y-4">
-            <h2>인라인 배너</h2>
+            <h2>In-line Banner</h2>
             <div className="space-y-3">
               <InlineBanner
                 message="요청이 정상적으로 처리되었습니다."

@@ -14,7 +14,7 @@ erDiagram
     VARCHAR_100 email "UNIQUE"
     VARCHAR_255 password
     BOOLEAN has_residence_card
-    BOOLEAN has_certificate
+    ENUM certificate_status "NOT_ISSUED | PENDING | ISSUED"
     BOOLEAN has_delete
     TIMESTAMP issued_time
     TIMESTAMP created_at
@@ -63,6 +63,7 @@ erDiagram
     VARCHAR_100 account_number
     INT balance
     BOOLEAN has_limit
+    INT transfer_limit
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
@@ -118,10 +119,17 @@ erDiagram
     TIMESTAMP updated_at
   }
 
+  APPLICATION_RESUME {
+    BIGINT application_resume_id PK
+    BIGINT application_id FK
+    BIGINT resume_id FK
+    TIMESTAMP created_at
+    TIMESTAMP updated_at
+  }
+
   RESUME {
     BIGINT resume_id PK
     BIGINT user_id FK
-    BIGINT application_id FK
     VARCHAR_100 name
     VARCHAR_255 url
     TIMESTAMP created_at
@@ -146,7 +154,17 @@ erDiagram
     BIGINT reservation_id PK
     BIGINT user_id FK
     BIGINT hospital_id FK
-    VARCHAR_100 rsv_date
+    DATETIME reserved_at
+    ENUM status "RESERVED | CANCELED"
+    TIMESTAMP created_at
+    TIMESTAMP updated_at
+  }
+
+  HOSPITAL_AVAILABLE_SLOT {
+    BIGINT slot_id PK
+    BIGINT hospital_id FK
+    DATETIME available_at
+    BOOLEAN is_available
     TIMESTAMP created_at
     TIMESTAMP updated_at
   }
@@ -174,15 +192,18 @@ erDiagram
   WALLET ||--o{ WALLET_TRANSACTION : records
 
   JOB ||--o{ APPLICATION : receives
-  APPLICATION ||--o{ RESUME : has
+  APPLICATION ||--o{ APPLICATION_RESUME : attaches
+  RESUME ||--o{ APPLICATION_RESUME : used_by
   HOSPITAL ||--o{ RESERVATION : receives
+  HOSPITAL ||--o{ HOSPITAL_AVAILABLE_SLOT : opens
 ```
 
 ## Modeling Rules
 
 - 모든 엔티티는 `BaseEntity`를 상속하며 `created_at`, `updated_at`을 가진다.
 - `wallet.user_account_id`는 `account_ref.account_ref_id`를 참조한다.
-- `resume.application_id`는 `application.application_id`를 참조한다.
+- `application_resume`은 `application`과 `resume`의 N:M 관계를 해소하는 중간 테이블이며, 지원서에 반영된 기존 S3 포트폴리오와 신규 첨부파일을 모두 연결한다.
+- 기존 `application.resume_id` 단건 연결 데이터는 `db/seed/application-resume-backfill.sql`로 `application_resume`에 이관한다.
 - `application.status`, `document.document_type`, `document.status`, `notification.type`은 문자열 enum으로 저장한다.
 - `cs.cs_status`는 코드상 `boolean`이며 의미상 `PENDING(false)`, `COMPLETED(true)`로 사용한다.
 
@@ -191,9 +212,11 @@ erDiagram
 | Field | Values |
 |---|---|
 | `user.gender` | `MALE`, `FEMALE` |
+| `user.certificate_status` | `NOT_ISSUED`, `PENDING`, `ISSUED` |
 | `wallet_transaction.transaction_flow` | `DEPOSIT`, `WITHDRAWAL` |
 | `application.status` | `PASSED`, `FAILED`, `READ`, `UNREAD` |
 | `hospital.type` | `INTERNAL_MEDICINE`, `ORTHOPEDICS`, `DENTAL`, `OTHER` |
+| `reservation.status` | `RESERVED`, `CANCELED` |
 | `cs.cs_type` | `PRODUCT_SUBSCRIPTION`, `ACCOUNT_MAINTENANCE` |
 | `document.document_type` | `ALIEN_REGISTRATION_SUPPORTING_DOCUMENT`, `RESIDENCE_VERIFICATION_DOCUMENT` |
 | `document.status` | `PENDING`, `APPROVED`, `REJECTED`, `MODIFIED` |
@@ -202,6 +225,9 @@ erDiagram
 
 ## Notes
 
-- Hospital 도메인(`hospital`, `reservation`)의 `reservation.rsv_date`, `hospital.open_time`, `hospital.close_time`, `hospital.break_time`, `hospital.day_off`는 현재 문자열 기반으로 저장한다.
+- Hospital 도메인에서 `hospital.open_time`, `hospital.close_time`, `hospital.break_time`, `hospital.day_off`는 현재 문자열 기반으로 저장한다.
+- `reservation.reserved_at`은 `DATETIME` 기반으로 저장한다.
+- `hospital_available_slot.available_at`은 병원 예약 가능 30분 슬롯을 의미하며, 예약 생성 시 `hospital_id + available_at` 슬롯을 조회한 뒤 `is_available=true`인지 검증한다.
 - Residence Card 관련 필드(`registration_num`, `issue_date`, `expiration_date`)도 현재 문자열 기반으로 저장한다.
 - `job.gender`는 현재 enum이 아닌 문자열 컬럼이다.
+- `user.certificate_status` 상태 전이는 `NOT_ISSUED -> PENDING -> ISSUED` 순서만 허용한다.

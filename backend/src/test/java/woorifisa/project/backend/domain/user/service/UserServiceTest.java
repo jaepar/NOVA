@@ -16,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import software.amazon.awssdk.services.rekognition.RekognitionClient;
 import software.amazon.awssdk.services.rekognition.model.AuditImage;
@@ -29,14 +30,18 @@ import software.amazon.awssdk.services.rekognition.model.GetFaceLivenessSessionR
 import software.amazon.awssdk.services.rekognition.model.LivenessSessionStatus;
 import software.amazon.awssdk.services.rekognition.model.S3Object;
 import woorifisa.project.backend.domain.user.dto.request.FaceMatchRequest;
+import woorifisa.project.backend.domain.user.dto.request.UpdateUserRequest;
 import woorifisa.project.backend.domain.user.dto.response.LivenessFinalizeResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessSessionResponse;
 import woorifisa.project.backend.domain.user.dto.response.LivenessVerificationResponse;
 import woorifisa.project.backend.domain.user.entity.Document;
+import woorifisa.project.backend.domain.user.entity.Resume;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
+import woorifisa.project.backend.domain.user.repository.ResumeRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.global.config.KycRekognitionProperties;
 import woorifisa.project.backend.global.exception.CustomException;
@@ -51,7 +56,16 @@ class UserServiceTest {
 	private DocumentRepository documentRepository;
 
 	@Mock
+	private ResumeRepository resumeRepository;
+
+	@Mock
 	private UserDocumentS3Uploader userDocumentS3Uploader;
+
+	@Mock
+	private PortfolioFileS3Uploader portfolioFileS3Uploader;
+
+	@Mock
+	private PasswordEncoder passwordEncoder;
 
 	@Mock
 	private NotificationService notificationService;
@@ -77,11 +91,222 @@ class UserServiceTest {
 		userService = new UserService(
 			userRepository,
 			documentRepository,
+			resumeRepository,
 			userDocumentS3Uploader,
+			portfolioFileS3Uploader,
+			passwordEncoder,
 			notificationService,
 			rekognitionClient,
 			properties
 		);
+	}
+
+	@Test
+	@DisplayName("회원 정보 수정 요청에 수정 항목이 없으면 예외가 발생한다")
+	void updateUserRejectsEmptyTarget() {
+		UpdateUserRequest request = new UpdateUserRequest(null, null, null, null, null);
+
+		assertThatThrownBy(() -> userService.updateUser(1L, request, List.of()))
+			.isInstanceOf(CustomException.class)
+			.extracting("exceptionStatus")
+			.isEqualTo(USER_UPDATE_TARGET_REQUIRED);
+	}
+
+	@Test
+	@DisplayName("비밀번호 변경 필드가 일부만 있으면 예외가 발생한다")
+	void updateUserRejectsPartialPasswordFields() {
+		UpdateUserRequest request = new UpdateUserRequest(null, "Password123!", "NewPassword123!", null, null);
+
+		assertThatThrownBy(() -> userService.updateUser(1L, request, List.of()))
+			.isInstanceOf(CustomException.class)
+			.extracting("exceptionStatus")
+			.isEqualTo(USER_PASSWORD_CHANGE_FIELDS_REQUIRED);
+	}
+
+	@Test
+	@DisplayName("언어 변경은 사용자 원장 정보를 조회하거나 변경하지 않는다")
+	void updateUserLanguageDoesNotTouchUserLedger() {
+		UpdateUserRequest request = new UpdateUserRequest("ko", null, null, null, null);
+
+		userService.updateUser(1L, request, List.of());
+
+		verifyNoInteractions(userRepository);
+		verifyNoInteractions(resumeRepository);
+		verifyNoInteractions(portfolioFileS3Uploader);
+	}
+
+	@Test
+	@DisplayName("지원하지 않는 언어 코드는 예외가 발생한다")
+	void updateUserRejectsInvalidLanguage() {
+		UpdateUserRequest request = new UpdateUserRequest("es", null, null, null, null);
+
+		assertThatThrownBy(() -> userService.updateUser(1L, request, List.of()))
+			.isInstanceOf(CustomException.class)
+			.extracting("exceptionStatus")
+			.isEqualTo(INVALID_LANGUAGE_CODE);
+	}
+
+	@Test
+	@DisplayName("현재 비밀번호가 맞으면 새 비밀번호를 인코딩해서 저장한다")
+	void updateUserChangesPassword() {
+		User user = User.builder()
+			.userId(1L)
+			.password("encoded-current")
+			.build();
+		UpdateUserRequest request = new UpdateUserRequest(
+			null,
+			"Password123!",
+			"NewPassword123!",
+			"NewPassword123!",
+			null
+		);
+
+		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+		when(passwordEncoder.matches("Password123!", "encoded-current")).thenReturn(true);
+		when(passwordEncoder.encode("NewPassword123!")).thenReturn("encoded-new");
+
+		userService.updateUser(1L, request, List.of());
+
+		assertThat(user.getPassword()).isEqualTo("encoded-new");
+	}
+
+	@Test
+	@DisplayName("현재 비밀번호가 틀리면 예외가 발생한다")
+	void updateUserRejectsWrongCurrentPassword() {
+		User user = User.builder()
+			.userId(1L)
+			.password("encoded-current")
+			.build();
+		UpdateUserRequest request = new UpdateUserRequest(
+			null,
+			"WrongPassword123!",
+			"NewPassword123!",
+			"NewPassword123!",
+			null
+		);
+
+		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+		when(passwordEncoder.matches("WrongPassword123!", "encoded-current")).thenReturn(false);
+
+		assertThatThrownBy(() -> userService.updateUser(1L, request, List.of()))
+			.isInstanceOf(CustomException.class)
+			.extracting("exceptionStatus")
+			.isEqualTo(PASSWORD_NOT_MATCHED);
+	}
+
+	@Test
+	@DisplayName("포트폴리오 여러 개 등록 시 S3 업로드 결과 URL로 Resume을 각각 저장한다")
+	void updateUserUploadsPortfolios() {
+		User user = User.builder().userId(1L).build();
+		UpdateUserRequest request = new UpdateUserRequest(null, null, null, null, null);
+		MockMultipartFile firstPortfolio = new MockMultipartFile(
+			"portfolioFiles",
+			"portfolio.pdf",
+			"application/pdf",
+			"portfolio".getBytes()
+		);
+		MockMultipartFile secondPortfolio = new MockMultipartFile(
+			"portfolioFiles",
+			"cover.docx",
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			"cover".getBytes()
+		);
+
+		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+		when(portfolioFileS3Uploader.uploadProfile(1L, firstPortfolio))
+			.thenReturn("https://s3.test/portfolios/user-1/profile/file.pdf");
+		when(portfolioFileS3Uploader.uploadProfile(1L, secondPortfolio))
+			.thenReturn("https://s3.test/portfolios/user-1/profile/cover.docx");
+
+		userService.updateUser(1L, request, List.of(firstPortfolio, secondPortfolio));
+
+		ArgumentCaptor<Resume> captor = ArgumentCaptor.forClass(Resume.class);
+		verify(resumeRepository, times(2)).save(captor.capture());
+		assertThat(captor.getAllValues())
+			.extracting(Resume::getName)
+			.containsExactly("portfolio.pdf", "cover.docx");
+		assertThat(captor.getAllValues())
+			.extracting(Resume::getUrl)
+			.containsExactly(
+				"https://s3.test/portfolios/user-1/profile/file.pdf",
+				"https://s3.test/portfolios/user-1/profile/cover.docx"
+			);
+		assertThat(captor.getAllValues())
+			.extracting(Resume::getUser)
+			.containsExactly(user, user);
+	}
+
+	@Test
+	@DisplayName("본인 소유 포트폴리오만 삭제할 수 있다")
+	void updateUserDeletesOwnedPortfolio() {
+		User user = User.builder().userId(1L).build();
+		Resume resume = Resume.builder()
+			.resumeId(3L)
+			.user(user)
+			.name("portfolio.pdf")
+			.url("https://s3.test/portfolios/user-1/profile/file.pdf")
+			.build();
+		UpdateUserRequest request = new UpdateUserRequest(null, null, null, null, 3L);
+
+		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+		when(resumeRepository.findById(3L)).thenReturn(Optional.of(resume));
+
+		userService.updateUser(1L, request, List.of());
+
+		assertThat(resume.isDeletedFromMyPage()).isTrue();
+		verifyNoInteractions(portfolioFileS3Uploader);
+		verify(resumeRepository, never()).delete(any());
+	}
+
+	@Test
+	@DisplayName("다른 사용자의 포트폴리오는 삭제할 수 없다")
+	void updateUserRejectsUnownedPortfolio() {
+		User user = User.builder().userId(1L).build();
+		User other = User.builder().userId(2L).build();
+		Resume resume = Resume.builder()
+			.resumeId(3L)
+			.user(other)
+			.name("portfolio.pdf")
+			.url("https://s3.test/portfolios/user-2/profile/file.pdf")
+			.build();
+		UpdateUserRequest request = new UpdateUserRequest(null, null, null, null, 3L);
+
+		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+		when(resumeRepository.findById(3L)).thenReturn(Optional.of(resume));
+
+		assertThatThrownBy(() -> userService.updateUser(1L, request, List.of()))
+			.isInstanceOf(CustomException.class)
+			.extracting("exceptionStatus")
+			.isEqualTo(PORTFOLIO_NOT_FOUND);
+	}
+
+	@Test
+	@DisplayName("인증서 발급 요청 시 사용자 상태를 PENDING으로 변경한다")
+	void requestCertificateIssuanceChangesStatusToPending() {
+		Long userId = 1L;
+		User user = User.builder()
+			.userId(userId)
+			.certificateStatus(CertificateStatus.NOT_ISSUED)
+			.build();
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+		userService.requestCertificateIssuance(userId);
+
+		assertThat(user.getCertificateStatus()).isEqualTo(CertificateStatus.PENDING);
+	}
+
+	@Test
+	@DisplayName("인증서 발급 요청 시 사용자가 없으면 예외가 발생한다")
+	void requestCertificateIssuanceThrowsWhenUserNotFound() {
+		Long userId = 1L;
+
+		when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> userService.requestCertificateIssuance(userId))
+			.isInstanceOf(CustomException.class)
+			.extracting("exceptionStatus")
+			.isEqualTo(USER_NOT_FOUND);
 	}
 
 	@Test
@@ -312,9 +537,9 @@ class UserServiceTest {
 			verify(notificationService).deleteSupplementDocumentNotification(user);
 		}
 
-		@Test
-		@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
-		void userNotFound() {
+	@Test
+	@DisplayName("사용자를 찾을 수 없으면 예외가 발생한다")
+	void userNotFound() {
 		Long userId = 1L;
 		MockMultipartFile residencePdf = new MockMultipartFile(
 			"residenceVerificationPdf",
@@ -335,6 +560,45 @@ class UserServiceTest {
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
 			.isEqualTo(USER_NOT_FOUND);
+	}
+
+	@Test
+	@DisplayName("보완 서류 조회 시 REJECTED/APPROVED 상태 문서만 반환하고 missing을 콤마 기준으로 파싱한다")
+	void getCorrectionDocumentsParsesMissingItems() {
+		Long userId = 1L;
+		User user = User.builder().userId(userId).build();
+		Document residenceRejected = Document.builder()
+			.user(user)
+			.documentType(DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)
+			.status(DocumentStatus.REJECTED)
+			.missing("주소 항목 누락, 직업 / 직업명")
+			.fileUrl("url1")
+			.build();
+		Document alienApproved = Document.builder()
+			.user(user)
+			.documentType(DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT)
+			.status(DocumentStatus.APPROVED)
+			.missing(null)
+			.fileUrl("url2")
+			.build();
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(
+			user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT
+		)).thenReturn(Optional.of(residenceRejected));
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(
+			user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT
+		)).thenReturn(Optional.of(alienApproved));
+
+		var result = userService.getCorrectionDocuments(userId);
+
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0).documentType()).isEqualTo("RESIDENCE_VERIFICATION_DOCUMENT");
+		assertThat(result.get(0).status()).isEqualTo("REJECTED");
+		assertThat(result.get(0).missingItems()).containsExactly("주소 항목 누락", "직업 / 직업명");
+		assertThat(result.get(1).documentType()).isEqualTo("ALIEN_REGISTRATION_SUPPORTING_DOCUMENT");
+		assertThat(result.get(1).status()).isEqualTo("APPROVED");
+		assertThat(result.get(1).missingItems()).isEmpty();
 	}
 
 	@Test
@@ -439,7 +703,10 @@ class UserServiceTest {
 			UserService service = new UserService(
 				userRepository,
 				documentRepository,
+				resumeRepository,
 				userDocumentS3Uploader,
+				portfolioFileS3Uploader,
+				passwordEncoder,
 				notificationService,
 				rekognitionClient,
 				new KycRekognitionProperties(rekognition)

@@ -12,7 +12,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import woorifisa.project.backend.domain.job.entity.Application;
 import woorifisa.project.backend.global.entity.BaseEntity;
 
 @Getter
@@ -32,13 +31,17 @@ public class Resume extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "application_id", nullable = false)
-    private Application application;
-
     @Column(name = "name", length = 100, nullable = false)
     private String name;
 
     @Column(name = "url", length = 255, nullable = false)
     private String url;
+
+    // 파일 자체 삭제가 아니라 마이페이지 포트폴리오 목록에서 제외되었는지를 나타낸다.
+    @Column(name = "deleted_from_mypage", nullable = false)
+    private boolean deletedFromMyPage;
+
+    public void deleteFromMyPage() {
+        this.deletedFromMyPage = true;
+    }
 }

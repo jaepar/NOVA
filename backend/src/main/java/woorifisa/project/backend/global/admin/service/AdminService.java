@@ -9,15 +9,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.user.entity.Document;
 import woorifisa.project.backend.domain.user.entity.User;
+import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
 import woorifisa.project.backend.domain.user.repository.UserRepository;
 import woorifisa.project.backend.domain.user.service.NotificationService;
 import woorifisa.project.backend.domain.user.service.UserDocumentS3Uploader;
-import woorifisa.project.backend.domain.banking.dto.corebanking.request.CoreBankingCreateCustomerRequest;
-import woorifisa.project.backend.global.exception.CustomException;
 import woorifisa.project.backend.global.corebanking.client.CoreBankingClient;
+import woorifisa.project.backend.global.corebanking.dto.request.CoreBankingCreateCustomerRequest;
+import woorifisa.project.backend.global.exception.CustomException;
 
 @Service
 @Slf4j
@@ -61,7 +62,7 @@ public class AdminService {
 				log.info("[admin_review:status_updated] userId={}, documentType={}, from={}, to={}",
 					userId, documentType, previousStatus, targetStatus);
 
-				// 심사 결과에 맞춰 보완 필요/승인 완료 알림을 최신 1건으로 갱신한다.
+				// 심사 결과에 맞춰 보완 보완/승인 완료 알림을 최신 1건으로 갱신한다.
 				createDocumentReviewNotification(user, targetStatus);
 
 				// 해당 유저의 서류 2개가 모두 APPROVED 상태라면, 인증서 발급
@@ -109,10 +110,10 @@ public class AdminService {
 	private void updateCertificateIfAllDocumentsApproved(User user) {
 		boolean alienApproved = isLatestApproved(user, DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT);
 		boolean residenceApproved = isLatestApproved(user, DocumentType.RESIDENCE_VERIFICATION_DOCUMENT);
-		log.info("[certificate:eligibility_checked] userId={}, alienApproved={}, residenceApproved={}, hasCertificate={}",
-			user.getUserId(), alienApproved, residenceApproved, user.getHasCertificate());
+		log.info("[certificate:eligibility_checked] userId={}, alienApproved={}, residenceApproved={}, certificateStatus={}",
+			user.getUserId(), alienApproved, residenceApproved, user.getCertificateStatus());
 
-		if (alienApproved && residenceApproved && !Boolean.TRUE.equals(user.getHasCertificate())) {
+		if (alienApproved && residenceApproved && user.getCertificateStatus() == CertificateStatus.PENDING) {
 			user.issueCertificate();
 			log.info("[certificate:issued] userId={}, issuedTime={}", user.getUserId(), user.getIssuedTime());
 			log.info("[certificate:core_banking_customer_create_requested] userId={}, name={}, email={}",
@@ -134,7 +135,8 @@ public class AdminService {
 		}
 
 		if (targetStatus == DocumentStatus.APPROVED && isAllDocumentsApproved(user)) {
-			notificationService.createOrReplaceSupplementDocumentNotification(user, "제출한 서류가 모두 승인되었습니다.");
+			notificationService.createOrReplaceCertificateIssuedNotification(user, "인증서 발급이 완료되었습니다.");
+			notificationService.deleteSupplementDocumentNotification(user);
 		}
 	}
 

@@ -22,7 +22,10 @@
   --card-foreground: #1f2937;
   --popover: #ffffff;
   --popover-foreground: #1f2937;
-  --primary: #6366f1;
+  --primary: #003ca6;
+  --primary-dark: #002a73;
+  --primary-light: #2563eb;
+  --primary-soft: #eaf3ff;
   --primary-foreground: #ffffff;
   --secondary: #f3f4f6;
   --secondary-foreground: #1f2937;
@@ -38,7 +41,7 @@
   --switch-background: #e5e7eb;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #6366f1;
+  --ring: #003ca6;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -47,12 +50,57 @@
   --radius: 0.75rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #1f2937;
-  --sidebar-primary: #6366f1;
+  --sidebar-primary: #003ca6;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f9fafb;
   --sidebar-accent-foreground: #1f2937;
   --sidebar-border: #e5e7eb;
-  --sidebar-ring: #6366f1;
+  --sidebar-ring: #003ca6;
+}
+
+.main-responsive-grid-container {
+  container-type: inline-size;
+}
+
+.main-responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@container (max-width: 311px) {
+  .main-responsive-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main-service-button {
+    flex-direction: row;
+    justify-content: flex-start;
+    background-color: var(--secondary);
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+    min-height: 4rem;
+  }
+
+  .main-service-button span {
+    width: auto;
+    text-align: left;
+  }
+
+  .main-exchange-rate-card {
+    position: relative;
+    padding-right: 5rem;
+  }
+
+  .main-exchange-rate-flag {
+    position: absolute;
+    top: 50%;
+    right: 1.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-left: 0;
+    transform: translateY(-50%);
+  }
 }
 
 .dark {
@@ -100,6 +148,9 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-primary-soft: var(--primary-soft);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -147,7 +198,8 @@
     @apply text-foreground;
     font-family: var(--font-family);
     width: 100%;
-    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
     margin: 0;
     overflow: hidden;
     display: flex;
@@ -162,6 +214,7 @@
   #root {
     width: var(--app-width);
     height: var(--app-height);
+    flex-shrink: 0;
     overflow: hidden;
     position: relative;
     transform: scale(var(--app-scale));
@@ -186,6 +239,25 @@
   * {
     -ms-overflow-style: none; /* IE, Edge */
     scrollbar-width: none; /* Firefox */
+  }
+
+  @media (max-width: 343px) {
+    html,
+    body {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: auto;
+    }
+
+    body {
+      justify-content: flex-start;
+    }
+
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      display: block;
+      height: 12px;
+    }
   }
 
   /**
@@ -251,5 +323,93 @@
 
   .animate-cloud-move {
     animation: cloud-move linear infinite;
+  }
+
+  .wallet-secure-keypad .kp {
+    width: 100% !important;
+    max-width: 100% !important;
+    background: transparent !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+
+  .wallet-secure-keypad .kp__grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) 60px !important;
+    grid-auto-rows: 48px !important;
+    gap: 0 !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn {
+    appearance: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    font: inherit !important;
+    color: #111111 !important;
+    user-select: none !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--num {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--ok {
+    background: #111111 !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--ok:active {
+    background: #2a2a2a !important;
+    border-color: #111111 !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--del,
+  .wallet-secure-keypad button.kp__btn--clear {
+    color: #111111 !important;
+    font-size: 14px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--num:active,
+  .wallet-secure-keypad button.kp__btn--num.mixed,
+  .wallet-secure-keypad button.kp__btn--del:active,
+  .wallet-secure-keypad button.kp__btn--clear:active {
+    background: #f3f4f6 !important;
+    border-color: #111111 !important;
+  }
+
+  .wallet-secure-keypad button.kp__btn--dummy {
+    pointer-events: none !important;
+    cursor: default !important;
+    background: #ffffff !important;
+  }
+
+  @keyframes transfer-bank-dot {
+    0%,
+    70%,
+    100% {
+      opacity: 0.45;
+      transform: scale(0.72);
+    }
+    35% {
+      opacity: 1;
+      transform: scale(1.28);
+    }
+  }
+
+  .animate-transfer-bank-dot {
+    animation: transfer-bank-dot 1.15s ease-in-out infinite;
+    transform-origin: center;
   }
 }

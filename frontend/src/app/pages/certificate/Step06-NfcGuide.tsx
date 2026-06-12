@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { InlineBanner } from '../../components/design-system/InlineBanner'
-import { useStep5PassportCaptureStore } from '../../stores/pageStores'
+import { useLivenessFlowStore, useStep5PassportCaptureStore } from '../../stores/pageStores'
 
 type ParsedNfcRecord = {
   recordType: string
@@ -15,54 +15,36 @@ type ParsedNfcRecord = {
 }
 
 type PassportLikeData = {
-  docType: string
-  nationalityCode: string
-  passportNumber: string
-  surname: string
-  givenNames: string
+  type: string
+  issueCountry: string
+  num: string
+  surName: string
+  givenName: string
+  nationlity: string
   birthDate: string
   sex: string
-  country: string
-  issuingCountryCode: string
   authority: string
   issueDate: string
-  expiryDate: string
+  expireDate: string
 }
 
 const comparisonFields: Array<{ key: keyof PassportLikeData; label: string }> = [
-  { key: 'docType', label: '종류' },
-  { key: 'nationalityCode', label: '국가 코드' },
-  { key: 'passportNumber', label: '여권번호' },
-  { key: 'surname', label: '성' },
-  { key: 'givenNames', label: '이름' },
+  { key: 'type', label: '종류' },
+  { key: 'issueCountry', label: '국가 코드' },
+  { key: 'num', label: '여권번호' },
+  { key: 'surName', label: '성' },
+  { key: 'givenName', label: '이름' },
+  { key: 'nationlity', label: '국적' },
   { key: 'birthDate', label: '생년월일' },
   { key: 'sex', label: '성별' },
-  { key: 'country', label: '국적' },
-  { key: 'issuingCountryCode', label: '발행국 코드' },
   { key: 'authority', label: '발행 관청' },
   { key: 'issueDate', label: '발급일' },
-  { key: 'expiryDate', label: '기간만료일' },
+  { key: 'expireDate', label: '기간만료일' },
 ]
-
-function normalizeValue(value: string): string {
-  return value.trim().replace(/\s+/g, ' ').toUpperCase()
-}
-
-function normalizeDate(value: string): string {
-  return normalizeValue(value).replace(/[-/]/g, '.')
-}
 
 function comparePassportData(step05Data: PassportLikeData, nfcData: PassportLikeData) {
   const mismatches = comparisonFields.filter(({ key }) => {
-    const left =
-      key === 'birthDate' || key === 'issueDate' || key === 'expiryDate'
-        ? normalizeDate(step05Data[key])
-        : normalizeValue(step05Data[key])
-    const right =
-      key === 'birthDate' || key === 'issueDate' || key === 'expiryDate'
-        ? normalizeDate(nfcData[key])
-        : normalizeValue(nfcData[key])
-    return left !== right
+    return step05Data[key] !== nfcData[key]
   })
 
   return {
@@ -100,6 +82,9 @@ export function NfcGuide() {
   const navigate = useNavigate()
   const parsedPassportData = useStep5PassportCaptureStore((state) => state.parsedPassportData)
   const setParsedPassportData = useStep5PassportCaptureStore((state) => state.setParsedPassportData)
+  const setRegisteredPassportIdentity = useLivenessFlowStore(
+    (state) => state.setRegisteredPassportIdentity
+  )
   const [isScanning, setIsScanning] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [isMismatchFailure, setIsMismatchFailure] = useState(false)
@@ -204,6 +189,10 @@ export function NfcGuide() {
         return
       }
 
+      setRegisteredPassportIdentity(
+        parsedPassportData.issueCountry,
+        parsedPassportData.num
+      )
       // 인증 성공 직전에만 인증 비교용 데이터를 폐기
       setParsedPassportData(null)
       setStatusMessage('NFC 인식 및 정보 비교에 성공했어요. 다음 단계로 이동합니다.')
@@ -273,27 +262,6 @@ export function NfcGuide() {
             <li>NFC 기능이 켜져 있는지 확인해 주세요.</li>
             <li>여권을 움직이지 않고 가만히 대주세요.</li>
           </ul>
-        </section>
-
-        <section className="rounded-2xl bg-secondary p-4 space-y-3">
-          <p className="text-sm font-medium">Step05 파싱 데이터</p>
-          {parsedPassportData ? (
-            <div className="rounded-xl border border-border bg-background overflow-hidden">
-              {comparisonFields.map(({ key, label }) => (
-                <div
-                  key={key}
-                  className="grid grid-cols-[120px_1fr] border-b border-border last:border-b-0"
-                >
-                  <p className="px-3 py-2 text-sm bg-secondary/30">{label}</p>
-                  <p className="px-3 py-2 text-sm break-all">{parsedPassportData[key] || '-'}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Step05에서 전달된 파싱 데이터가 없습니다.
-            </p>
-          )}
         </section>
 
         {statusMessage ? <InlineBanner message={statusMessage} variant={statusVariant} /> : null}

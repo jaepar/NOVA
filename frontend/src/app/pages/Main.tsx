@@ -1,25 +1,36 @@
-import { useNavigate } from 'react-router-dom'
-import { CreditCard, Headphones, MessageSquare, Wallet } from 'lucide-react'
-import { MobileLayout } from '../components/layout/MobileLayout'
-import { BottomNav } from '../components/layout/BottomNav'
-import { SideMenu } from '../components/layout/SideMenu'
-import { BottomSheet } from '../components/layout/BottomSheet'
-import { useMainPageStore } from '../stores/pageStores'
-import { authApi } from '../../api'
-import { MainHeaderBrand } from './main/MainHeaderBrand'
-import { MainHeaderActions } from './main/MainHeaderActions'
-import { MainAccountPanel } from './main/MainAccountPanel'
-import { MainJobBanner } from './main/MainJobBanner'
-import { MainServiceGrid } from './main/MainServiceGrid'
-import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
-import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
-import type { ExchangeRateItem, ServiceItem } from './main/types'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { MobileLayout } from "../components/layout/MobileLayout";
+import { BottomNav } from "../components/layout/BottomNav";
+import { SideMenu } from "../components/layout/SideMenu";
+import { BottomSheet } from "../components/layout/BottomSheet";
+import { novaToast } from "../components/design-system/toast";
+import { useMainPageStore } from "../stores/pageStores";
+import {
+  authApi,
+  bankingApi,
+  hospitalChatApi,
+  userApi,
+  type AccountHomeResponse,
+  type NotificationResponse,
+} from "../../api";
+import { MainHeaderBrand } from "./main/MainHeaderBrand";
+import { MainHeaderActions } from "./main/MainHeaderActions";
+import { MainAccountPanel } from "./main/MainAccountPanel";
+import { MainJobBanner } from "./main/MainJobBanner";
+import { MainServiceGrid } from "./main/MainServiceGrid";
+import { MainExchangeRateGrid } from "./main/MainExchangeRateGrid";
+import { MainCertificateSheetContent } from "./main/MainCertificateSheetContent";
+import { CertificateIssuedModal } from "./main/CertificateIssuedModal";
+import hospitalReservationIcon from "./main/assets/hospital-reservation-icon.png";
+import registrationCardIcon from "./main/assets/registration-card-icon.png";
+import walletIcon from "./main/assets/wallet-icon.png";
+import type { ExchangeRateItem, ServiceItem } from "./main/types";
 
 export function Main() {
   const navigate = useNavigate();
   const isMenuOpen = useMainPageStore((state) => state.isMenuOpen);
   const isLoggedIn = useMainPageStore((state) => state.isLoggedIn);
-  const hasAccount = useMainPageStore((state) => state.hasAccount);
   const hasUnreadNotifications = useMainPageStore(
     (state) => state.hasUnreadNotifications
   );
@@ -27,22 +38,64 @@ export function Main() {
     (state) => state.isCertificateSheetOpen
   );
   const setMenuOpen = useMainPageStore((state) => state.setMenuOpen);
+  const setHasUnreadNotifications = useMainPageStore(
+    (state) => state.setHasUnreadNotifications
+  );
   const setCertificateSheetOpen = useMainPageStore(
     (state) => state.setCertificateSheetOpen
   );
   const logout = useMainPageStore((state) => state.logout);
 
+  const [accountHome, setAccountHome] =
+    useState<AccountHomeResponse | null>(null);
+  const [isAccountHomeLoading, setAccountHomeLoading] = useState(false);
+  const [isNotificationOpen, setNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationResponse[]>(
+    []
+  );
+  const [isNotificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState(false);
+  const [isCertificateIssuedModalOpen, setCertificateIssuedModalOpen] =
+    useState(false);
+  const [isHospitalChatStarting, setHospitalChatStarting] = useState(false);
+
   const services: ServiceItem[] = [
-    // 임시 연결: 계좌 개설 플로우 검증을 위해 화상상담 버튼을 account step-01로 라우팅
-    // TODO: 계좌 개설 진입 동선 확정 후 아래 path 제거
     {
-      icon: <Headphones className="w-8 h-8" />,
-      label: "계좌개설",
-      path: "/account/step-01",
+      id: "hospital-chat",
+      icon: (
+        <img
+          src={hospitalReservationIcon}
+          alt=""
+          className="h-9 w-9 object-contain"
+        />
+      ),
+      label: isHospitalChatStarting ? "연결 중..." : "병원예약",
+      disabled: isHospitalChatStarting,
     },
-    { icon: <MessageSquare className="w-8 h-8" />, label: "병원예약" },
-    { icon: <CreditCard className="w-8 h-8" />, label: "외국인등록증" },
-    { icon: <Wallet className="w-8 h-8" />, label: "월렛", path: "/wallet" },
+    {
+      id: "foreigner-card",
+      icon: (
+        <img
+          src={registrationCardIcon}
+          alt=""
+          className="h-9 w-9 object-contain"
+        />
+      ),
+      label: "외국인등록증",
+      path: "/foreigner-card/step-01",
+    },
+    {
+      id: "wallet",
+      icon: (
+        <img
+          src={walletIcon}
+          alt=""
+          className="h-9 w-9 rounded-lg object-cover"
+        />
+      ),
+      label: "월렛",
+      path: "/wallet",
+    },
   ];
 
   const exchangeRates: ExchangeRateItem[] = [
@@ -51,9 +104,132 @@ export function Main() {
     { currency: "EUR", rate: "1,456.20", change: "+1.8%", isPositive: true },
   ];
 
-  const handleServiceClick = (path?: string) => {
-    if (path) {
-      navigate(path);
+  const handleServiceClick = async (service: ServiceItem) => {
+    if (service.disabled) {
+      return;
+    }
+
+    if (service.id === "hospital-chat") {
+      setHospitalChatStarting(true);
+
+      try {
+        const session = await hospitalChatApi.startSession();
+        navigate("/hospital-chat", {
+          state: {
+            conversationId: session.conversation_id,
+            initialMessage: session.message,
+          },
+        });
+      } catch {
+        novaToast.error("잠시 후 다시 시도해 주세요.");
+      } finally {
+        setHospitalChatStarting(false);
+      }
+
+      return;
+    }
+
+    if (service.path) {
+      navigate(service.path);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadAccountHome() {
+      if (!isLoggedIn) {
+        if (isMounted) {
+          setAccountHome(null);
+          setHasUnreadNotifications(false);
+          setAccountHomeLoading(false);
+        }
+        return;
+      }
+
+      if (isMounted) {
+        setAccountHomeLoading(true);
+      }
+
+      try {
+        const nextAccountHome = await bankingApi.getHome();
+
+        if (isMounted) {
+          setAccountHome(nextAccountHome);
+          setHasUnreadNotifications(nextAccountHome.hasNotification);
+        }
+      } catch {
+        if (isMounted) {
+          setAccountHome(null);
+          setHasUnreadNotifications(false);
+        }
+      } finally {
+        if (isMounted) {
+          setAccountHomeLoading(false);
+        }
+      }
+    }
+
+    loadAccountHome();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn, setHasUnreadNotifications]);
+
+  const loadNotifications = async () => {
+    if (!isLoggedIn) {
+      setNotifications([]);
+      setNotificationsError(false);
+      return;
+    }
+
+    setNotificationsLoading(true);
+    setNotificationsError(false);
+
+    try {
+      const nextNotifications = await userApi.getNotifications();
+      setNotifications(nextNotifications);
+      setHasUnreadNotifications(nextNotifications.length > 0);
+    } catch {
+      setNotifications([]);
+      setNotificationsError(true);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  const handleNotificationsClick = () => {
+    const willOpen = !isNotificationOpen;
+    setNotificationOpen(willOpen);
+
+    if (willOpen) {
+      loadNotifications();
+    }
+  };
+
+  const dismissNotification = (notificationId: number) => {
+    const nextNotifications = notifications.filter(
+      (notification) => notification.notificationId !== notificationId
+    );
+
+    setNotifications(nextNotifications);
+    setHasUnreadNotifications(nextNotifications.length > 0);
+
+    userApi.deleteNotification(notificationId).catch(() => undefined);
+  };
+
+  const handleNotificationClick = (notification: NotificationResponse) => {
+    setNotificationOpen(false);
+
+    if (notification.type === "SUPPLEMENT_DOCUMENT") {
+      navigate("/certificate/corrections");
+      return;
+    }
+
+    if (notification.type === "CERTIFICATE_ISSUED") {
+      dismissNotification(notification.notificationId);
+      setCertificateIssuedModalOpen(true);
     }
   };
 
@@ -62,10 +238,22 @@ export function Main() {
     navigate("/certificate/step-01");
   };
 
+  const handleOpenAccount = () => {
+    navigate("/account/step-01");
+  };
+
+  const handleOpenAccountFromIssuedModal = () => {
+    setCertificateIssuedModalOpen(false);
+    navigate("/account/step-01");
+  };
+
   const handleLogout = async () => {
     try {
       await authApi.logout();
       logout();
+      setAccountHome(null);
+      setNotifications([]);
+      setNotificationOpen(false);
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -81,24 +269,42 @@ export function Main() {
         headerRightContent={
           <MainHeaderActions
             hasUnreadNotifications={hasUnreadNotifications}
-            onNotificationsClick={() => navigate("/notifications")}
-            onMenuClick={() => setMenuOpen(true)}
+            isLoggedIn={isLoggedIn}
+            isNotificationOpen={isNotificationOpen}
+            notifications={notifications}
+            isNotificationsLoading={isNotificationsLoading}
+            notificationsError={notificationsError}
+            onNotificationsClick={handleNotificationsClick}
+            onNotificationsClose={() => setNotificationOpen(false)}
+            onNotificationClick={handleNotificationClick}
+            onMenuClick={() => {
+              setNotificationOpen(false);
+              setMenuOpen(true);
+            }}
           />
         }
       >
-        <div className="space-y-4">
+        <div className="space-y-4 pt-3">
           <section>
             <MainAccountPanel
               isLoggedIn={isLoggedIn}
-              hasAccount={hasAccount}
-              onLoginClick={() => navigate("/login")}
+              accountHome={accountHome}
+              isLoading={isAccountHomeLoading}
+              onLoginClick={() =>
+                navigate("/login/form", {
+                  state: { backPath: "/main", redirectTo: "/main" },
+                })
+              }
               onSignupClick={() => navigate("/signup")}
               onOpenCertificateSheet={() => setCertificateSheetOpen(true)}
+              onOpenAccount={handleOpenAccount}
+              onAccountPanelClick={() => navigate("/transaction-history")}
+              onTransferClick={() => navigate("/transfer")}
             />
           </section>
 
           <section>
-            <MainJobBanner onClick={() => navigate('/jobs')} />
+            <MainJobBanner onClick={() => navigate("/jobs")} />
           </section>
 
           <MainServiceGrid
@@ -117,8 +323,12 @@ export function Main() {
         onClose={() => setMenuOpen(false)}
         isLoggedIn={isLoggedIn}
         onLogout={handleLogout}
-        onLogin={() => navigate("/login")}
-        onProfile={() => navigate('/mypage')}
+        onLogin={() =>
+          navigate("/login/form", {
+            state: { backPath: "/main", redirectTo: "/main" },
+          })
+        }
+        onProfile={() => navigate("/mypage")}
       />
 
       <BottomSheet
@@ -131,6 +341,12 @@ export function Main() {
           onIssueClick={handleIssueCertificate}
         />
       </BottomSheet>
+
+      <CertificateIssuedModal
+        isOpen={isCertificateIssuedModalOpen}
+        onClose={() => setCertificateIssuedModalOpen(false)}
+        onOpenAccount={handleOpenAccountFromIssuedModal}
+      />
     </div>
   );
 }

@@ -26,10 +26,10 @@ export function LivenessGuide() {
         </section>
 
         <section className="rounded-2xl bg-secondary p-5">
-          <div className="min-h-[300px] rounded-2xl border-2 border-dashed border-blue-200 px-6 flex flex-col items-center justify-center gap-4">
-            <div className="h-1 w-24 rounded-full bg-blue-300/70" />
-            <div className="h-40 w-40 rounded-full border-2 border-blue-300 flex items-center justify-center">
-              <ScanFace className="h-16 w-16 text-blue-400" />
+          <div className="min-h-[300px] rounded-2xl border-2 border-dashed border-primary-light/30 px-6 flex flex-col items-center justify-center gap-4">
+            <div className="h-1 w-24 rounded-full bg-primary-light/70" />
+            <div className="h-40 w-40 rounded-full border-2 border-primary-light/60 flex items-center justify-center">
+              <ScanFace className="h-16 w-16 text-primary-light" />
             </div>
             <p className="text-sm text-muted-foreground">
               얼굴 촬영 가이드 영역
@@ -39,7 +39,7 @@ export function LivenessGuide() {
 
         <section className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
+            <div className="h-8 w-8 shrink-0 rounded-full bg-primary-soft text-primary flex items-center justify-center">
               <ScanFace className="h-4 w-4" />
             </div>
             <p className="text-sm leading-relaxed">
@@ -47,7 +47,7 @@ export function LivenessGuide() {
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
+            <div className="h-8 w-8 shrink-0 rounded-full bg-primary-soft text-primary flex items-center justify-center">
               <Lightbulb className="h-4 w-4" />
             </div>
             <p className="text-sm leading-relaxed">
@@ -55,7 +55,7 @@ export function LivenessGuide() {
             </p>
           </div>
           <div className="flex items-start gap-3">
-            <div className="h-8 w-8 shrink-0 rounded-full bg-blue-50 text-primary flex items-center justify-center">
+            <div className="h-8 w-8 shrink-0 rounded-full bg-primary-soft text-primary flex items-center justify-center">
               <Camera className="h-4 w-4" />
             </div>
             <p className="text-sm leading-relaxed">

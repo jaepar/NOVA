@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -139,7 +139,7 @@ export function PassportCameraCapture() {
     try {
       const ocrResult = await certificateApi.recognizePassport(imageFile);
 
-      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult));
+      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult.result));
       setCapturedImage(imageDataUrl);
       setMode("review");
     } catch (error) {
@@ -195,18 +195,17 @@ export function PassportCameraCapture() {
 
   const handleMoveToStep06 = () => {
     setParsedPassportData({
-      docType: editableOcrValues["종류"] ?? "",
-      nationalityCode: editableOcrValues["국가 코드"] ?? "",
-      passportNumber: editableOcrValues["여권번호"] ?? "",
-      surname: editableOcrValues["성"] ?? "",
-      givenNames: editableOcrValues["이름"] ?? "",
+      type: editableOcrValues["종류"] ?? "",
+      issueCountry: editableOcrValues["국가 코드"] ?? "",
+      num: editableOcrValues["여권번호"] ?? "",
+      surName: editableOcrValues["성"] ?? "",
+      givenName: editableOcrValues["이름"] ?? "",
+      nationlity: editableOcrValues["국적"] ?? "",
       birthDate: editableOcrValues["생년월일"] ?? "",
       sex: editableOcrValues["성별"] ?? "",
-      country: editableOcrValues["국적"] ?? "",
-      issuingCountryCode: editableOcrValues["국가 코드"] ?? "",
       authority: editableOcrValues["발행 관청"] ?? "",
       issueDate: editableOcrValues["발급일"] ?? "",
-      expiryDate: editableOcrValues["기간만료일"] ?? "",
+      expireDate: editableOcrValues["기간만료일"] ?? "",
     });
     navigate("/account/step-05");
   };
@@ -255,7 +254,7 @@ export function PassportCameraCapture() {
                   className="grid grid-cols-[140px_1fr] border-b border-border last:border-b-0"
                 >
                   <div className="px-4 py-4 flex items-center gap-3 bg-secondary/20">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 text-primary flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-primary-soft text-primary flex items-center justify-center shrink-0">
                       <Icon className="w-5 h-5" />
                     </div>
                     <p className="text-base whitespace-nowrap">{row.label}</p>

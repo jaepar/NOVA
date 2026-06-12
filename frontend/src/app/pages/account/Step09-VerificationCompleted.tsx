@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
@@ -36,7 +36,7 @@ export function VerificationCompleted() {
                   </div>
                   <p>{item}</p>
                 </div>
-                <div className="px-4 py-1.5 rounded-full bg-blue-50 text-primary text-sm font-medium">
+                <div className="px-4 py-1.5 rounded-full bg-primary-soft text-primary text-sm font-medium">
                   완료
                 </div>
               </div>

@@ -1,28 +1,49 @@
-import { useNavigate } from 'react-router-dom'
-import { MobileLayout } from '../../components/layout/MobileLayout'
-import { Btn_1Col } from '../../components/design-system/Btn_1Col'
-import loginIllustration from './assets/login-illustration.png'
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { MobileLayout } from "../../components/layout/MobileLayout";
+import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { isOnboardingCompleted } from "../../utils/onboardingStorage";
+import loginIllustration from "./assets/login-illustration.png";
 
 export function LoginIntro() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as { fromLanguage?: boolean } | null;
+  const backPath = locationState?.fromLanguage ? "/language" : "/main";
+
+  if (!locationState?.fromLanguage && !isOnboardingCompleted()) {
+    return <Navigate to="/language" replace />;
+  }
 
   const handleLogin = () => {
-    navigate('/login/form')
-  }
+    navigate("/login/form", {
+      state: { backPath: "/login", redirectTo: "/main" },
+    });
+  };
+
+  const handleSignup = () => {
+    navigate("/signup");
+  };
 
   return (
     <MobileLayout
-      title="로그인"
+      title="시작하기"
       headerType="back"
-      backPath="/main"
-      bottomContent={<Btn_1Col onClick={handleLogin}>일반 로그인</Btn_1Col>}
+      backPath={backPath}
+      bottomContent={
+        <div className="space-y-3">
+          <Btn_1Col onClick={handleSignup}>회원가입</Btn_1Col>
+          <Btn_1Col variant="outline" onClick={handleLogin}>
+            로그인하기
+          </Btn_1Col>
+        </div>
+      }
     >
-      <section className="flex min-h-full flex-col pt-8">
+      <section className="flex min-h-full flex-col pt-2">
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold leading-tight">
             반가워요!
             <br />
-            로그인을 진행해주세요
+            회원가입/로그인을 진행해주세요
           </h2>
         </section>
 
@@ -35,5 +56,5 @@ export function LoginIntro() {
         </div>
       </section>
     </MobileLayout>
-  )
+  );
 }
