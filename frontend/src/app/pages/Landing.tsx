@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Btn_1Col } from '../components/design-system/Btn_1Col'
 import { AppButton } from '../components/design-system/AppButton'
 import { MobileLayout } from '../components/layout/MobileLayout'
-import landingIllustrationSrc from './assets/landing-illustration.png'
+import landingIllustrationSrc from './main/assets/header-brand-wordmark.png'
 
 export function Landing() {
   const navigate = useNavigate()
@@ -31,7 +31,7 @@ export function Landing() {
               alt="NOVA"
               className="h-auto w-[250px] object-contain"
             />
-            <h2 className="-mt-2 text-center text-sm text-muted-foreground">
+            <h2 className="mt-3 text-center text-sm text-muted-foreground">
               한국에서의 첫 금융 생활
             </h2>
           </div>
