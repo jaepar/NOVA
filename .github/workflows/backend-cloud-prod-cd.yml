@@ -78,69 +78,285 @@ jobs:
 
       - name: Decide deployment target
         id: deploy_target
+        env:
+          ALB_LISTENER_ARN: ${{ secrets.ALB_LISTENER_ARN }}
+          BLUE_TG_ARN: ${{ secrets.BLUE_TG_ARN }}
+          GREEN_TG_ARN: ${{ secrets.GREEN_TG_ARN }}
         run: |
-          CURRENT_TG_ARN=$(aws elbv2 describe-listeners \
-            --listener-arns "${{ secrets.ALB_LISTENER_ARN }}" \
-            --query "Listeners[0].DefaultActions[0].TargetGroupArn" \
-            --output text)
+          set -e
 
-          echo "Current target group: $CURRENT_TG_ARN"
+          aws elbv2 describe-listeners \
+            --listener-arns "$ALB_LISTENER_ARN" \
+            --output json > listener.json
 
-          if [ "$CURRENT_TG_ARN" = "${{ secrets.GREEN_TG_ARN }}" ]; then
+          ACTIVE_TG_ARN=$(python3 - <<'PY'
+          import json
+
+          with open("listener.json") as f:
+              data = json.load(f)
+
+          action = data["Listeners"][0]["DefaultActions"][0]
+
+          # Case 1: 단일 Target Group forward
+          if "TargetGroupArn" in action:
+              print(action["TargetGroupArn"])
+              raise SystemExit
+
+          # Case 2: Weighted ForwardConfig
+          target_groups = action.get("ForwardConfig", {}).get("TargetGroups", [])
+          if not target_groups:
+              raise SystemExit("No target group found in listener default action")
+
+          # Weight가 가장 높은 TG를 현재 active로 판단
+          active = max(target_groups, key=lambda tg: tg.get("Weight", 0))
+          print(active["TargetGroupArn"])
+          PY
+          )
+
+          echo "Current active target group: $ACTIVE_TG_ARN"
+
+          if [ "$ACTIVE_TG_ARN" = "$GREEN_TG_ARN" ]; then
             echo "Current active color: green"
             echo "Deploy target color: blue"
 
+            echo "deploy_color=blue" >> "$GITHUB_OUTPUT"
+            echo "old_color=green" >> "$GITHUB_OUTPUT"
+
             echo "deploy_asg=${{ env.BLUE_ASG_NAME }}" >> "$GITHUB_OUTPUT"
-            echo "deploy_tg=${{ secrets.BLUE_TG_ARN }}" >> "$GITHUB_OUTPUT"
+            echo "deploy_tg=$BLUE_TG_ARN" >> "$GITHUB_OUTPUT"
+
             echo "old_asg=${{ env.GREEN_ASG_NAME }}" >> "$GITHUB_OUTPUT"
-            echo "old_tg=${{ secrets.GREEN_TG_ARN }}" >> "$GITHUB_OUTPUT"
+            echo "old_tg=$GREEN_TG_ARN" >> "$GITHUB_OUTPUT"
           else
             echo "Current active color: blue"
             echo "Deploy target color: green"
 
+            echo "deploy_color=green" >> "$GITHUB_OUTPUT"
+            echo "old_color=blue" >> "$GITHUB_OUTPUT"
+
             echo "deploy_asg=${{ env.GREEN_ASG_NAME }}" >> "$GITHUB_OUTPUT"
-            echo "deploy_tg=${{ secrets.GREEN_TG_ARN }}" >> "$GITHUB_OUTPUT"
+            echo "deploy_tg=$GREEN_TG_ARN" >> "$GITHUB_OUTPUT"
+
             echo "old_asg=${{ env.BLUE_ASG_NAME }}" >> "$GITHUB_OUTPUT"
-            echo "old_tg=${{ secrets.BLUE_TG_ARN }}" >> "$GITHUB_OUTPUT"
+            echo "old_tg=$BLUE_TG_ARN" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Scale down deploy target ASG
+      - name: Scale down deploy target ASG if needed
         run: |
+          set -e
+
+          DEPLOY_ASG="${{ steps.deploy_target.outputs.deploy_asg }}"
+
+          INSTANCE_COUNT=$(aws autoscaling describe-auto-scaling-groups \
+            --auto-scaling-group-names "$DEPLOY_ASG" \
+            --query "AutoScalingGroups[0].Instances | length(@)" \
+            --output text)
+
+          echo "Current instance count in $DEPLOY_ASG: $INSTANCE_COUNT"
+
+          if [ "$INSTANCE_COUNT" = "0" ]; then
+            echo "$DEPLOY_ASG already has no instances. Skip scale down."
+            exit 0
+          fi
+
+          echo "Scale down $DEPLOY_ASG to 0..."
+
           aws autoscaling update-auto-scaling-group \
-            --auto-scaling-group-name "${{ steps.deploy_target.outputs.deploy_asg }}" \
+            --auto-scaling-group-name "$DEPLOY_ASG" \
             --min-size 0 \
             --desired-capacity 0
 
-          echo "Waiting for previous deploy target instances to terminate..."
-          sleep 60
+          echo "Waiting until $DEPLOY_ASG has no instances..."
+
+          for i in {1..40}; do
+            INSTANCE_COUNT=$(aws autoscaling describe-auto-scaling-groups \
+              --auto-scaling-group-names "$DEPLOY_ASG" \
+              --query "AutoScalingGroups[0].Instances | length(@)" \
+              --output text)
+
+            echo "Current instance count in $DEPLOY_ASG: $INSTANCE_COUNT"
+
+            if [ "$INSTANCE_COUNT" = "0" ]; then
+              echo "$DEPLOY_ASG is empty."
+              exit 0
+            fi
+
+            sleep 15
+          done
+
+          echo "Timed out waiting for $DEPLOY_ASG to scale down."
+          exit 1
 
       - name: Scale up deploy target ASG
         run: |
+          set -e
+
+          DEPLOY_ASG="${{ steps.deploy_target.outputs.deploy_asg }}"
+
+          echo "Scale up $DEPLOY_ASG to 1..."
+
           aws autoscaling update-auto-scaling-group \
-            --auto-scaling-group-name "${{ steps.deploy_target.outputs.deploy_asg }}" \
+            --auto-scaling-group-name "$DEPLOY_ASG" \
             --min-size 1 \
             --desired-capacity 1 \
             --max-size 2
 
-      - name: Wait until new target group is healthy
-        run: |
-          echo "Waiting for target group to become healthy..."
-          aws elbv2 wait target-in-service \
-            --target-group-arn "${{ steps.deploy_target.outputs.deploy_tg }}"
+          echo "Waiting for new instance to appear in $DEPLOY_ASG..."
 
-          echo "Target group is healthy."
+          for i in {1..40}; do
+            INSTANCE_ID=$(aws autoscaling describe-auto-scaling-groups \
+              --auto-scaling-group-names "$DEPLOY_ASG" \
+              --query "AutoScalingGroups[0].Instances[0].InstanceId" \
+              --output text)
 
-      - name: Switch ALB listener to new target group
+            if [ "$INSTANCE_ID" != "None" ] && [ "$INSTANCE_ID" != "null" ] && [ -n "$INSTANCE_ID" ]; then
+              echo "New instance id: $INSTANCE_ID"
+              echo "INSTANCE_ID=$INSTANCE_ID" >> "$GITHUB_ENV"
+              exit 0
+            fi
+
+            sleep 15
+          done
+
+          echo "Timed out waiting for new instance."
+          exit 1
+
+      - name: Wait until new EC2 instance is running
         run: |
+          set -e
+
+          echo "Waiting for EC2 instance to be running: $INSTANCE_ID"
+
+          aws ec2 wait instance-running \
+            --instance-ids "$INSTANCE_ID"
+
+          echo "EC2 instance is running."
+
+      - name: Attach deploy target group with 0 percent traffic
+        env:
+          ALB_LISTENER_ARN: ${{ secrets.ALB_LISTENER_ARN }}
+        run: |
+          set -e
+
+          OLD_TG="${{ steps.deploy_target.outputs.old_tg }}"
+          DEPLOY_TG="${{ steps.deploy_target.outputs.deploy_tg }}"
+
+          echo "Attach deploy target group to ALB with weight 0..."
+          echo "Old target group: $OLD_TG weight 100"
+          echo "Deploy target group: $DEPLOY_TG weight 0"
+
+          cat > alb-actions.json <<EOF
+          [
+            {
+              "Type": "forward",
+              "ForwardConfig": {
+                "TargetGroups": [
+                  {
+                    "TargetGroupArn": "$OLD_TG",
+                    "Weight": 100
+                  },
+                  {
+                    "TargetGroupArn": "$DEPLOY_TG",
+                    "Weight": 0
+                  }
+                ]
+              }
+            }
+          ]
+          EOF
+
           aws elbv2 modify-listener \
-            --listener-arn "${{ secrets.ALB_LISTENER_ARN }}" \
-            --default-actions Type=forward,TargetGroupArn="${{ steps.deploy_target.outputs.deploy_tg }}"
+            --listener-arn "$ALB_LISTENER_ARN" \
+            --default-actions file://alb-actions.json
 
-          echo "ALB listener switched to new target group."
+          echo "Deploy target group is attached with 0 percent traffic."
+
+      - name: Wait until new target is healthy
+        run: |
+          set -e
+
+          DEPLOY_TG="${{ steps.deploy_target.outputs.deploy_tg }}"
+
+          echo "Waiting for target $INSTANCE_ID to become healthy in target group..."
+          echo "Target group: $DEPLOY_TG"
+
+          for i in {1..80}; do
+            STATE=$(aws elbv2 describe-target-health \
+              --target-group-arn "$DEPLOY_TG" \
+              --targets Id="$INSTANCE_ID" \
+              --query "TargetHealthDescriptions[0].TargetHealth.State" \
+              --output text 2>/dev/null || echo "not-registered")
+
+            REASON=$(aws elbv2 describe-target-health \
+              --target-group-arn "$DEPLOY_TG" \
+              --targets Id="$INSTANCE_ID" \
+              --query "TargetHealthDescriptions[0].TargetHealth.Reason" \
+              --output text 2>/dev/null || echo "-")
+
+            DESCRIPTION=$(aws elbv2 describe-target-health \
+              --target-group-arn "$DEPLOY_TG" \
+              --targets Id="$INSTANCE_ID" \
+              --query "TargetHealthDescriptions[0].TargetHealth.Description" \
+              --output text 2>/dev/null || echo "-")
+
+            echo "Attempt $i - Target state: $STATE / reason: $REASON / description: $DESCRIPTION"
+
+            if [ "$STATE" = "healthy" ]; then
+              echo "Target is healthy."
+              exit 0
+            fi
+
+            sleep 15
+          done
+
+          echo "Target did not become healthy in time."
+          exit 1
+
+      - name: Switch ALB listener to deploy target group
+        env:
+          ALB_LISTENER_ARN: ${{ secrets.ALB_LISTENER_ARN }}
+        run: |
+          set -e
+
+          OLD_TG="${{ steps.deploy_target.outputs.old_tg }}"
+          DEPLOY_TG="${{ steps.deploy_target.outputs.deploy_tg }}"
+
+          echo "Switching ALB listener..."
+          echo "Deploy target group: $DEPLOY_TG weight 100"
+          echo "Old target group: $OLD_TG weight 0"
+
+          cat > alb-actions.json <<EOF
+          [
+            {
+              "Type": "forward",
+              "ForwardConfig": {
+                "TargetGroups": [
+                  {
+                    "TargetGroupArn": "$DEPLOY_TG",
+                    "Weight": 100
+                  },
+                  {
+                    "TargetGroupArn": "$OLD_TG",
+                    "Weight": 0
+                  }
+                ]
+              }
+            }
+          ]
+          EOF
+
+          aws elbv2 modify-listener \
+            --listener-arn "$ALB_LISTENER_ARN" \
+            --default-actions file://alb-actions.json
+
+          echo "ALB listener switched."
+          echo "Active color is now ${{ steps.deploy_target.outputs.deploy_color }}."
 
       - name: Keep old ASG for rollback
         run: |
           echo "Blue-Green deployment completed."
+          echo "New active color: ${{ steps.deploy_target.outputs.deploy_color }}"
           echo "New active ASG: ${{ steps.deploy_target.outputs.deploy_asg }}"
+          echo "Old rollback color: ${{ steps.deploy_target.outputs.old_color }}"
           echo "Old rollback ASG: ${{ steps.deploy_target.outputs.old_asg }}"
           echo "Old ASG is intentionally kept running for rollback."
