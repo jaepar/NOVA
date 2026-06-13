@@ -352,11 +352,27 @@ jobs:
           echo "ALB listener switched."
           echo "Active color is now ${{ steps.deploy_target.outputs.deploy_color }}."
 
-      - name: Keep old ASG for rollback
+      - name: Scale down old ASG after rollback window
         run: |
+          set -e
+
+          OLD_ASG="${{ steps.deploy_target.outputs.old_asg }}"
+
           echo "Blue-Green deployment completed."
           echo "New active color: ${{ steps.deploy_target.outputs.deploy_color }}"
           echo "New active ASG: ${{ steps.deploy_target.outputs.deploy_asg }}"
           echo "Old rollback color: ${{ steps.deploy_target.outputs.old_color }}"
-          echo "Old rollback ASG: ${{ steps.deploy_target.outputs.old_asg }}"
-          echo "Old ASG is intentionally kept running for rollback."
+          echo "Old rollback ASG: $OLD_ASG"
+
+          echo "Waiting 10 minutes before scaling down old ASG for rollback window..."
+          sleep 600
+
+          echo "Scale down old ASG: $OLD_ASG"
+
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name "$OLD_ASG" \
+            --min-size 0 \
+            --desired-capacity 0 \
+            --max-size 2
+
+          echo "Old ASG scaled down."
