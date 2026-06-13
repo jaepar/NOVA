@@ -1,4 +1,4 @@
-name: Backend CD with Gradle and Docker (AWS Prod)
+name: Backend CD with Gradle and Docker (AWS Prod Blue-Green)
 
 on:
   push:
@@ -15,7 +15,10 @@ permissions:
 env:
   IMAGE_REPO: jaypark0205/nova-backend
   AWS_REGION: ap-northeast-2
-  ASG_NAME: NOVA-BACKEND-ASG
+
+  # 기존 운영 ASG/TG를 Blue로 간주
+  BLUE_ASG_NAME: NOVA-BACKEND-ASG
+  GREEN_ASG_NAME: NOVA-BACKEND-GREEN-ASG
 
 jobs:
   build_and_deploy:
@@ -73,8 +76,71 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Start ASG instance refresh
+      - name: Decide deployment target
+        id: deploy_target
         run: |
-          aws autoscaling start-instance-refresh \
-            --auto-scaling-group-name "${{ env.ASG_NAME }}" \
-            --preferences '{"MinHealthyPercentage": 50, "InstanceWarmup": 300}'
+          CURRENT_TG_ARN=$(aws elbv2 describe-listeners \
+            --listener-arns "${{ secrets.ALB_LISTENER_ARN }}" \
+            --query "Listeners[0].DefaultActions[0].TargetGroupArn" \
+            --output text)
+
+          echo "Current target group: $CURRENT_TG_ARN"
+
+          if [ "$CURRENT_TG_ARN" = "${{ secrets.GREEN_TG_ARN }}" ]; then
+            echo "Current active color: green"
+            echo "Deploy target color: blue"
+
+            echo "deploy_asg=${{ env.BLUE_ASG_NAME }}" >> "$GITHUB_OUTPUT"
+            echo "deploy_tg=${{ secrets.BLUE_TG_ARN }}" >> "$GITHUB_OUTPUT"
+            echo "old_asg=${{ env.GREEN_ASG_NAME }}" >> "$GITHUB_OUTPUT"
+            echo "old_tg=${{ secrets.GREEN_TG_ARN }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Current active color: blue"
+            echo "Deploy target color: green"
+
+            echo "deploy_asg=${{ env.GREEN_ASG_NAME }}" >> "$GITHUB_OUTPUT"
+            echo "deploy_tg=${{ secrets.GREEN_TG_ARN }}" >> "$GITHUB_OUTPUT"
+            echo "old_asg=${{ env.BLUE_ASG_NAME }}" >> "$GITHUB_OUTPUT"
+            echo "old_tg=${{ secrets.BLUE_TG_ARN }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Scale down deploy target ASG
+        run: |
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name "${{ steps.deploy_target.outputs.deploy_asg }}" \
+            --min-size 0 \
+            --desired-capacity 0
+
+          echo "Waiting for previous deploy target instances to terminate..."
+          sleep 60
+
+      - name: Scale up deploy target ASG
+        run: |
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name "${{ steps.deploy_target.outputs.deploy_asg }}" \
+            --min-size 1 \
+            --desired-capacity 1 \
+            --max-size 2
+
+      - name: Wait until new target group is healthy
+        run: |
+          echo "Waiting for target group to become healthy..."
+          aws elbv2 wait target-in-service \
+            --target-group-arn "${{ steps.deploy_target.outputs.deploy_tg }}"
+
+          echo "Target group is healthy."
+
+      - name: Switch ALB listener to new target group
+        run: |
+          aws elbv2 modify-listener \
+            --listener-arn "${{ secrets.ALB_LISTENER_ARN }}" \
+            --default-actions Type=forward,TargetGroupArn="${{ steps.deploy_target.outputs.deploy_tg }}"
+
+          echo "ALB listener switched to new target group."
+
+      - name: Keep old ASG for rollback
+        run: |
+          echo "Blue-Green deployment completed."
+          echo "New active ASG: ${{ steps.deploy_target.outputs.deploy_asg }}"
+          echo "Old rollback ASG: ${{ steps.deploy_target.outputs.old_asg }}"
+          echo "Old ASG is intentionally kept running for rollback."
