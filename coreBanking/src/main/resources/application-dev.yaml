@@ -31,3 +31,13 @@ logging:
 app:
   fds:
     base-url: ${FDS_BASE_URL}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
