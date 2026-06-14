@@ -15,6 +15,10 @@ import {
 } from "../../stores/pageStores";
 import { useTranslation } from "../../i18n";
 
+const selectableTransferCurrencies = transferCurrencies.filter(
+  (currency) => currency.code !== "KRW"
+);
+
 export function Step03TransferRateSummary() {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -23,7 +27,9 @@ export function Step03TransferRateSummary() {
   const resetTransferSenderInfo = useTransferSenderInfoPageStore((state) => state.reset);
   const resetTransferRecipientInfo = useTransferRecipientInfoPageStore((state) => state.reset);
   const selectedCurrency = useMemo(
-    () => transferCurrencies.find((item) => item.code === currencyCode) ?? transferCurrencies[0],
+    () =>
+      selectableTransferCurrencies.find((item) => item.code === currencyCode) ??
+      selectableTransferCurrencies[0],
     [currencyCode]
   );
 

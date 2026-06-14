@@ -114,7 +114,9 @@ export function Step05TransferSwiftCodeLookup() {
               {t("globalTransfer.swiftLookup.countryLabel")}
             </label>
             <div className="flex items-center gap-4 rounded-2xl bg-background px-5 py-5">
-              <span className="text-4xl">{selectedCountry.flag}</span>
+              <span className="inline-flex items-center justify-center text-4xl leading-none">
+                {selectedCountry.flag}
+              </span>
               <span className="text-[18px] font-medium text-foreground">
                 {formatTransferCountryName(selectedCountry, language)}
               </span>

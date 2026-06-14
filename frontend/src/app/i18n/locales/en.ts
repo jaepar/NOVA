@@ -108,6 +108,11 @@ export const en = {
     retryLater: 'Please try again later.',
     life: 'Life',
     exchangeRates: 'Exchange Rates',
+    adBannerSectionTitle: 'Recommended',
+    adBannerBadge: 'Ad',
+    adBannerTitle: 'Find daily-life offers\nfor your move abroad',
+    adBannerDescription:
+      'Explore insurance, mobile plans, and housing support\nin one place for foreign residents.',
     jobTitle: 'Jobs',
     jobDescription: 'Find work opportunities built for global talent.',
     loginPanelTitle: 'Start safe financial services',
@@ -125,6 +130,7 @@ export const en = {
     accountNumberCopyFailed: 'Failed to copy account number.',
     limitedAccount: 'Limited',
     balance: 'Balance',
+    transfer: 'transfer',
     currencyUnit: 'KRW',
     certificateSheetTitle: 'Certificate required\nfor financial services',
     certificateSheetDescription:

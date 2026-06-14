@@ -276,7 +276,9 @@ export function ProfileEdit() {
                 aria-label={t('profile.languageSetting')}
               >
                 <span className="flex min-w-0 items-center gap-3">
-                  <span className="text-xl">{selectedLanguage.flag}</span>
+                  <span className="inline-flex items-center justify-center text-xl leading-none">
+                    {selectedLanguage.flag}
+                  </span>
                   <span className="truncate">{selectedLanguage.name}</span>
                 </span>
                 <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground" />
@@ -495,7 +497,9 @@ export function ProfileEdit() {
                   }`}
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <span className="text-2xl">{item.flag}</span>
+                    <span className="inline-flex items-center justify-center text-2xl leading-none">
+                      {item.flag}
+                    </span>
                     <span className="truncate font-normal">{item.name}</span>
                   </span>
                   {isSelected && <Check className="h-5 w-5 shrink-0 text-primary" />}

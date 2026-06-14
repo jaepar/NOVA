@@ -93,7 +93,9 @@ export function CountrySelectBottomSheet({
                   className="flex w-full items-center justify-between px-4 py-4 text-left text-foreground transition-colors hover:bg-secondary"
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <span className="text-2xl">{country.flag}</span>
+                    <span className="inline-flex items-center justify-center text-2xl leading-none">
+                      {country.flag}
+                    </span>
                     <span className="truncate">
                       {formatTransferCountryName(country, language)}
                     </span>

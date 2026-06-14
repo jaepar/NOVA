@@ -23,9 +23,11 @@ export function BottomNav() {
   const { t } = useTranslation()
 
   return (
-    <div className="fixed bottom-5 left-0 right-0 z-40 w-full px-5">
+    <>
+      <div className="fixed bottom-0 left-0 right-0 z-30 h-[112px] bg-white" aria-hidden="true" />
+      <div className="fixed bottom-5 left-0 right-0 z-40 w-full px-5">
       <div
-        className="bg-background/95 backdrop-blur-[20px] px-2 py-3 rounded-2xl shadow-lg border border-border/50 w-full"
+        className="relative bg-background/95 backdrop-blur-[20px] px-2 py-3 rounded-2xl shadow-lg border border-border/50 w-full"
         style={{
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
@@ -53,6 +55,7 @@ export function BottomNav() {
           })}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
