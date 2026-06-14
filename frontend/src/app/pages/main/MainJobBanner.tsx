@@ -1,6 +1,7 @@
 import { AppButton } from "../../components/design-system/AppButton";
 import { useTranslation } from "../../i18n";
 import jobBannerImg from "./assets/job-banner.png";
+import jobBannerImgWebp from "./assets/job-banner.webp";
 
 interface MainJobBannerProps {
   onClick?: () => void;
@@ -28,11 +29,14 @@ export function MainJobBanner({ onClick }: MainJobBannerProps) {
           </div>
 
           <div className="flex w-[148px] shrink-0 items-end justify-end self-stretch">
-            <img
-              src={jobBannerImg}
-              alt={t("main.jobTitle")}
-              className="pointer-events-none h-[100px] w-full object-contain object-right-bottom"
-            />
+            <picture>
+              <source srcSet={jobBannerImgWebp} type="image/webp" />
+              <img
+                src={jobBannerImg}
+                alt={t("main.jobTitle")}
+                className="pointer-events-none h-[100px] w-full object-contain object-right-bottom"
+              />
+            </picture>
           </div>
         </div>
       </div>

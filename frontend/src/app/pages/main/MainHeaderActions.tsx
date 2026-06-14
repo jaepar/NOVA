@@ -1,9 +1,14 @@
-﻿import { useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Bell, Menu } from 'lucide-react'
 import { AppButton } from '../../components/design-system/AppButton'
 import { useTranslation } from '../../i18n'
-import { MainNotificationPopover } from './MainNotificationPopover'
-import type { NotificationResponse } from '../../../api'
+import type { NotificationResponse } from '../../../api/endpoints/user'
+
+const LazyMainNotificationPopover = lazy(async () => {
+  const module = await import('./MainNotificationPopover')
+
+  return { default: module.MainNotificationPopover }
+})
 
 interface MainHeaderActionsProps {
   hasUnreadNotifications: boolean
@@ -79,13 +84,15 @@ export function MainHeaderActions({
         <Menu className="w-6 h-6" />
       </AppButton>
       {isNotificationOpen && (
-        <MainNotificationPopover
-          isLoggedIn={isLoggedIn}
-          notifications={notifications}
-          isLoading={isNotificationsLoading}
-          hasError={notificationsError}
-          onNotificationClick={onNotificationClick}
-        />
+        <Suspense fallback={null}>
+          <LazyMainNotificationPopover
+            isLoggedIn={isLoggedIn}
+            notifications={notifications}
+            isLoading={isNotificationsLoading}
+            hasError={notificationsError}
+            onNotificationClick={onNotificationClick}
+          />
+        </Suspense>
       )}
     </div>
   )

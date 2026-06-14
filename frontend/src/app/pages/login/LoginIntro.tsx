@@ -4,6 +4,7 @@ import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { useTranslation } from '../../i18n'
 import { isOnboardingCompleted } from '../../utils/onboardingStorage'
 import loginIllustration from './assets/login-illustration.png'
+import loginIllustrationWebp from './assets/login-illustration.webp'
 
 export function LoginIntro() {
   const navigate = useNavigate()
@@ -49,11 +50,14 @@ export function LoginIntro() {
         </section>
 
         <div className="mt-14 flex flex-1 items-center justify-center overflow-hidden">
-          <img
-            src={loginIllustration}
-            alt={t('login.illustrationAlt')}
-            className="h-[360px] w-[calc(100%+48px)] max-w-none object-contain"
-          />
+          <picture>
+            <source srcSet={loginIllustrationWebp} type="image/webp" />
+            <img
+              src={loginIllustration}
+              alt={t('login.illustrationAlt')}
+              className="h-[360px] w-[calc(100%+48px)] max-w-none object-contain"
+            />
+          </picture>
         </div>
       </section>
     </MobileLayout>
