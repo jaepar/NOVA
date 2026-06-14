@@ -1,20 +1,20 @@
-import type { KeyboardEvent, MouseEvent } from 'react'
-import { MoreVertical } from 'lucide-react'
-import { AppButton } from '../../components/design-system/AppButton'
-import { Btn_1Col } from '../../components/design-system/Btn_1Col'
-import { novaToast } from '../../components/design-system/toast'
-import { useTranslation } from '../../i18n'
-import type { AccountHomeResponse } from '../../../api'
+import type { KeyboardEvent, MouseEvent } from "react";
+import { MoreVertical } from "lucide-react";
+import { AppButton } from "../../components/design-system/AppButton";
+import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { novaToast } from "../../components/design-system/toast";
+import { useTranslation } from "../../i18n";
+import type { AccountHomeResponse } from "../../../api";
 
 interface MainAccountPanelProps {
-  isLoggedIn: boolean
-  accountHome: AccountHomeResponse | null
-  isLoading: boolean
-  onLoginClick: () => void
-  onOpenCertificateSheet: () => void
-  onOpenAccount: () => void
-  onAccountPanelClick: () => void
-  onTransferClick: () => void
+  isLoggedIn: boolean;
+  accountHome: AccountHomeResponse | null;
+  isLoading: boolean;
+  onLoginClick: () => void;
+  onOpenCertificateSheet: () => void;
+  onOpenAccount: () => void;
+  onAccountPanelClick: () => void;
+  onTransferClick: () => void;
 }
 
 const panelShellClassName =
@@ -35,8 +35,8 @@ export function MainAccountPanel({
   onAccountPanelClick,
   onTransferClick,
 }: MainAccountPanelProps) {
-  const { t, language } = useTranslation()
-  const locale = language === 'ko' ? 'ko-KR' : 'en-US'
+  const { t, language } = useTranslation();
+  const locale = language === "ko" ? "ko-KR" : "en-US";
 
   if (isLoggedIn && isLoading) {
     return (
@@ -47,7 +47,7 @@ export function MainAccountPanel({
         </div>
         <div className="h-14 w-full rounded-xl bg-muted animate-pulse" />
       </div>
-    )
+    );
   }
 
   if (!isLoggedIn) {
@@ -55,87 +55,101 @@ export function MainAccountPanel({
       <div className={neutralPanelClassName}>
         <div className="space-y-2">
           <div className="space-y-1">
-            <h3 className="font-semibold text-base">{t('main.loginPanelTitle')}</h3>
-            <p className="text-sm leading-5 text-muted-foreground">{t('main.loginPanelDescription')}</p>
+            <h3 className="font-semibold text-base">
+              {t("main.loginPanelTitle")}
+            </h3>
+            <p className="text-sm leading-5 text-muted-foreground">
+              {t("main.loginPanelDescription")}
+            </p>
           </div>
         </div>
         <div className="mt-5">
-          <Btn_1Col onClick={onLoginClick}>{t('login.login')}</Btn_1Col>
+          <Btn_1Col onClick={onLoginClick}>{t("login.login")}</Btn_1Col>
         </div>
       </div>
-    )
+    );
   }
 
-  if (!accountHome || accountHome.uiState === 'NEED_CERTIFICATE') {
+  if (!accountHome || accountHome.uiState === "NEED_CERTIFICATE") {
     return (
       <div className={neutralPanelClassName}>
         <div className="space-y-2">
           <h3 className="text-base font-semibold text-foreground">
-            {t('main.certificateRequiredTitle')}
+            {t("main.certificateRequiredTitle")}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {t('main.certificateRequiredDescription')}
+            {t("main.certificateRequiredDescription")}
           </p>
         </div>
         <Btn_1Col onClick={onOpenCertificateSheet}>
-          {t('main.issueCertificate')}
+          {t("main.issueCertificate")}
         </Btn_1Col>
       </div>
-    )
+    );
   }
 
-  if (accountHome.uiState === 'CERTIFICATE_ISSUING') {
+  if (accountHome.uiState === "CERTIFICATE_ISSUING") {
     return (
       <div className={secondaryPanelClassName}>
         <div className="space-y-4">
           <div className="space-y-2">
-            <h3 className="font-semibold text-base">{t('main.certificateIssuingTitle')}</h3>
-            <p className="text-sm text-muted-foreground">{t('main.certificateIssuingDescription')}</p>
+            <h3 className="font-semibold text-base">
+              {t("main.certificateIssuingTitle")}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {t("main.certificateIssuingDescription")}
+            </p>
           </div>
           <p className="rounded-lg bg-background/60 px-3 py-2.5 text-center text-sm font-medium text-foreground">
-            {t('main.reviewingDocuments')}
+            {t("main.reviewingDocuments")}
           </p>
         </div>
         <div aria-hidden="true" className="h-11" />
       </div>
-    )
+    );
   }
 
-  if (accountHome.uiState === 'READY_TO_OPEN_ACCOUNT') {
+  if (accountHome.uiState === "READY_TO_OPEN_ACCOUNT") {
     return (
       <div className={secondaryPanelClassName}>
         <div className="space-y-2">
-          <h3 className="font-semibold text-base">{t('main.readyToOpenTitle')}</h3>
-          <p className="text-sm text-muted-foreground">{t('main.readyToOpenDescription')}</p>
+          <h3 className="font-semibold text-base">
+            {t("main.readyToOpenTitle")}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {t("main.readyToOpenDescription")}
+          </p>
         </div>
-        <Btn_1Col onClick={onOpenAccount}>{t('main.openAccount')}</Btn_1Col>
+        <Btn_1Col onClick={onOpenAccount}>{t("main.openAccount")}</Btn_1Col>
       </div>
-    )
+    );
   }
 
-  const account = accountHome.account
+  const account = accountHome.account;
 
   if (!account) {
-    return null
+    return null;
   }
 
-  const handleCopyAccountNumber = async (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation()
+  const handleCopyAccountNumber = async (
+    event: MouseEvent<HTMLButtonElement>
+  ) => {
+    event.stopPropagation();
 
     try {
-      await navigator.clipboard.writeText(account.accountNumber)
-      novaToast.success(t('main.accountNumberCopied'))
+      await navigator.clipboard.writeText(account.accountNumber);
+      novaToast.success(t("main.accountNumberCopied"));
     } catch {
-      novaToast.error(t('main.accountNumberCopyFailed'))
+      novaToast.error(t("main.accountNumberCopyFailed"));
     }
-  }
+  };
 
   const handlePanelKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      onAccountPanelClick()
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onAccountPanelClick();
     }
-  }
+  };
 
   const handleTransferClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -157,7 +171,7 @@ export function MainAccountPanel({
               <span className="font-medium">{account.accountName}</span>
               {account.hasLimit && (
                 <span className="rounded-full bg-white/20 px-2 py-1 text-[10px] font-medium">
-                  {t('main.limitedAccount')}
+                  {t("main.limitedAccount")}
                 </span>
               )}
             </div>
@@ -182,20 +196,20 @@ export function MainAccountPanel({
       </div>
 
       <div className="space-y-1">
-        <p className="text-sm text-white/80">{t('main.balance')}</p>
+        <p className="text-sm text-white/80">{t("main.balance")}</p>
         <div className="flex items-end justify-between gap-3">
           <p className="text-2xl font-semibold">
-            {account.balance.toLocaleString(locale)} {t('main.currencyUnit')}
+            {account.balance.toLocaleString(locale)} {t("main.currencyUnit")}
           </p>
           <AppButton
             variant="unstyled"
             onClick={handleTransferClick}
             className="inline-flex h-7 shrink-0 items-center justify-center rounded-full bg-white/20 px-4 text-xs font-medium text-white transition-colors hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           >
-            {t('main.transfer')}
+            {t("main.transfer")}
           </AppButton>
         </div>
       </div>
     </div>
-  )
+  );
 }

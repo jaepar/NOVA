@@ -21,6 +21,7 @@ import { MainAccountPanel } from './main/MainAccountPanel'
 import { MainJobBanner } from './main/MainJobBanner'
 import { MainServiceGrid } from './main/MainServiceGrid'
 import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
+import { MainAdBanner } from './main/MainAdBanner'
 import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
 import { CertificateIssuedModal } from './main/CertificateIssuedModal'
 import hospitalReservationIcon from './main/assets/hospital-reservation-icon.png'
@@ -300,6 +301,8 @@ export function Main() {
           <MainServiceGrid services={services} onServiceClick={handleServiceClick} />
 
           <MainExchangeRateGrid exchangeRates={exchangeRates} />
+
+          <MainAdBanner />
         </div>
       </MobileLayout>
 

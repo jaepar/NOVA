@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, ChevronDown, Check, CircleHelp, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/design-system/AppButton";
@@ -28,6 +28,10 @@ const transferPurposeOptions = [
 
 type TransferPurpose = (typeof transferPurposeOptions)[number];
 type SelectionSheet = "purpose" | "country" | "currency" | null;
+
+const selectableTransferCurrencies = transferCurrencies.filter(
+  (currency) => currency.code !== "KRW"
+);
 
 function formatTransferAmount(value: string) {
   const digits = value.replace(/\D/g, "");
@@ -68,7 +72,9 @@ export function Step02TransferBasicInfo() {
     [countryId]
   );
   const selectedCurrency = useMemo(
-    () => transferCurrencies.find((item) => item.code === currencyCode) ?? transferCurrencies[0],
+    () =>
+      selectableTransferCurrencies.find((item) => item.code === currencyCode) ??
+      selectableTransferCurrencies[0],
     [currencyCode]
   );
   const selectedPurpose = transferPurposeOptions.includes(purpose as TransferPurpose)
@@ -84,6 +90,12 @@ export function Step02TransferBasicInfo() {
     setCurrencyCode(nextCurrencyCode);
     setOpenSheet(null);
   };
+
+  useEffect(() => {
+    if (!selectableTransferCurrencies.some((currency) => currency.code === currencyCode)) {
+      setCurrencyCode(selectableTransferCurrencies[0].code);
+    }
+  }, [currencyCode, setCurrencyCode]);
 
   return (
     <>
@@ -167,7 +179,9 @@ export function Step02TransferBasicInfo() {
                 className="mt-[6px] flex w-full items-center justify-between rounded-2xl border border-border bg-background px-5 py-5 text-left text-lg text-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <span className="flex min-w-0 items-center gap-3 truncate">
-                  <span className="text-2xl">{selectedCurrency.flag}</span>
+                  <span className="inline-flex items-center justify-center text-2xl leading-none">
+                    {selectedCurrency.flag}
+                  </span>
                   <span className="truncate">{getTransferCurrencyName(selectedCurrency, language)}</span>
                 </span>
                 <ChevronDown className="h-6 w-6 shrink-0 text-muted-foreground" />
@@ -298,7 +312,7 @@ export function Step02TransferBasicInfo() {
             </AppButton>
           </div>
           <div className="divide-y divide-border rounded-2xl border border-border bg-background">
-            {transferCurrencies.map((currency) => {
+            {selectableTransferCurrencies.map((currency) => {
               const isSelected = selectedCurrency.code === currency.code;
 
               return (
@@ -310,7 +324,9 @@ export function Step02TransferBasicInfo() {
                   className="flex w-full items-center justify-between px-4 py-4 text-left text-foreground transition-colors hover:bg-secondary"
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <span className="text-2xl">{currency.flag}</span>
+                    <span className="inline-flex items-center justify-center text-2xl leading-none">
+                      {currency.flag}
+                    </span>
                     <span className="truncate">
                       {getTransferCurrencyName(currency, language)} ({currency.code})
                     </span>

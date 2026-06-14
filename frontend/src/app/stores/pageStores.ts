@@ -1,9 +1,28 @@
 import { create } from 'zustand'
 
+const TRANSFER_INITIAL_VERIFICATION_STORAGE_KEY = 'nova-transfer-initial-verified'
+
 function clearSessionStorage() {
   if (typeof window === 'undefined' || typeof window.sessionStorage === 'undefined') return
 
   window.sessionStorage.clear()
+}
+
+function getStoredTransferInitialVerification() {
+  if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return false
+
+  return window.localStorage.getItem(TRANSFER_INITIAL_VERIFICATION_STORAGE_KEY) === 'true'
+}
+
+function setStoredTransferInitialVerification(isVerified: boolean) {
+  if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return
+
+  if (isVerified) {
+    window.localStorage.setItem(TRANSFER_INITIAL_VERIFICATION_STORAGE_KEY, 'true')
+    return
+  }
+
+  window.localStorage.removeItem(TRANSFER_INITIAL_VERIFICATION_STORAGE_KEY)
 }
 
 interface MainPageState {
@@ -131,9 +150,15 @@ interface TransferSendPageState {
 }
 
 export const useTransferSendPageStore = create<TransferSendPageState>((set) => ({
-  isInitialVerificationComplete: false,
-  completeInitialVerification: () => set({ isInitialVerificationComplete: true }),
-  resetInitialVerification: () => set({ isInitialVerificationComplete: false }),
+  isInitialVerificationComplete: getStoredTransferInitialVerification(),
+  completeInitialVerification: () => {
+    setStoredTransferInitialVerification(true)
+    set({ isInitialVerificationComplete: true })
+  },
+  resetInitialVerification: () => {
+    setStoredTransferInitialVerification(false)
+    set({ isInitialVerificationComplete: false })
+  },
 }))
 
 type TransferFeeBurden = 'sender' | 'receiver'
