@@ -1,22 +1,57 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
+import { userApi } from "../../../api";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import {
   useAccountCreateFlowStore,
+  useMainPageStore,
   useSignupPageStore,
 } from "../../stores/pageStores";
+import { useProfileStore } from "../../stores/profileStore";
 import { useTranslation } from "../../i18n";
 
 export function Step10CustomerInfoRegistration() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const name = useSignupPageStore((state) => state.name);
-  const email = useSignupPageStore((state) => state.email);
+  const signupName = useSignupPageStore((state) => state.name);
+  const signupEmail = useSignupPageStore((state) => state.email);
+  const isLoggedIn = useMainPageStore((state) => state.isLoggedIn);
+  const profile = useProfileStore((state) => state.profile);
+  const setProfileFromResponse = useProfileStore((state) => state.setProfileFromResponse);
   const address = useAccountCreateFlowStore((state) => state.address);
   const addressDetail = useAccountCreateFlowStore((state) => state.addressDetail);
   const setCustomerInfo = useAccountCreateFlowStore((state) => state.setCustomerInfo);
+
+  useEffect(() => {
+    if (!isLoggedIn || profile) {
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadProfile() {
+      try {
+        const response = await userApi.getProfile();
+
+        if (isMounted) {
+          setProfileFromResponse(response);
+        }
+      } catch {
+        // Fall back to existing signup-store values when profile loading is unavailable.
+      }
+    }
+
+    void loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn, profile, setProfileFromResponse]);
+
+  const name = profile?.name ?? signupName;
+  const email = profile?.email ?? signupEmail;
 
   const canSubmit = useMemo(
     () => address.trim().length > 0 && addressDetail.trim().length > 0,
