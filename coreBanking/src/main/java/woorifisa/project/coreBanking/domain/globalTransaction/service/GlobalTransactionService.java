@@ -106,6 +106,7 @@ public class GlobalTransactionService {
                 .transactionType(TransactionType.GLOBAL_REMITTANCE)
                 .counterParty(GLOBAL_REMITTANCE_COUNTERPARTY)
                 .amount(krwAmount)
+                .balanceAfter(account.getBalance())
                 .externalRequestId(request.externalRequestId())
                 .build());
 

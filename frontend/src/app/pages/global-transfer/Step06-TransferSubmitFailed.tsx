@@ -4,7 +4,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Btn_2Col } from "../../components/design-system/Btn_2Col";
 import { CenteredTaskContent } from "../../components/design-system/CenteredTaskContent";
 import { MobileLayout } from "../../components/layout/MobileLayout";
-import { getTransferApiError, transferApi, type SubmitRemittanceRequest } from "../../../api";
+import {
+  bankingApi,
+  getBankingApiError,
+  type CreateGlobalTransactionRequest,
+} from "../../../api";
 import {
   useTransferBasicInfoPageStore,
   useTransferRecipientInfoPageStore,
@@ -13,12 +17,13 @@ import {
 import { translateError, useTranslation } from "../../i18n";
 
 type TransferSubmitFailedLocationState = {
-  payload?: SubmitRemittanceRequest;
+  payload?: CreateGlobalTransactionRequest;
+  idempotencyKey?: string;
   translatedMessage?: string;
 };
 
 function getTransferSubmitErrorMessage(error: unknown, fallback: string) {
-  const apiError = getTransferApiError(error);
+  const apiError = getBankingApiError(error);
   return translateError(apiError?.code, fallback);
 }
 
@@ -43,7 +48,7 @@ export function Step06TransferSubmitFailed() {
   };
 
   const handleRetry = async () => {
-    if (!state.payload) {
+    if (!state.payload || !state.idempotencyKey) {
       navigate("/global-transfer/send/step-05");
       return;
     }
@@ -55,7 +60,7 @@ export function Step06TransferSubmitFailed() {
     setIsRetrying(true);
 
     try {
-      await transferApi.submitRemittance(state.payload);
+      await bankingApi.createGlobalTransaction(state.payload, state.idempotencyKey);
       navigate("/global-transfer/send/step-06", { replace: true });
     } catch (error) {
       setErrorMessage(

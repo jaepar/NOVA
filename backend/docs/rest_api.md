@@ -96,6 +96,9 @@
 | `BANK-006`     | 홈 계좌 정보 조회(Cloud)    | GET    | `/banking/home`                                          | O    | USER   |                               |
 | `BANK-007`     | 해외 송금(Cloud)         | TBD    | `TBD`                                                    | O    | USER   | 프로세스 정의 중 (추후 작성)             |
 | `BANK-008`     | 이체 사전 조회(Cloud) | POST | `/banking/transfers/preview` | O | USER | 내 계좌(account_ref) + 수취인(coreBanking) 통합 조회 |
+| `EXCHANGE-001` | 메인 환율 하이라이트 조회 | GET | `/exchange-rates/highlights` | X | PUBLIC | USD/JPY/EUR 3개 기준 환율, 비영업일 보정 포함 |
+| `EXCHANGE-002` | 환율 목록 조회 | GET | `/exchange-rates` | X | PUBLIC | 환율 페이지용 기준 환율 목록, 비영업일 보정 포함 |
+| `EXCHANGE-003` | 해외송금 환율 조회 | GET | `/exchange-rates/remittance` | X | PUBLIC | 국가/통화/금액 기준 송금 환율 및 원화 환산값 반환 |
 
 ## JOB-001 / JOB-002 / JOB-005 Language Query
 
@@ -292,6 +295,94 @@ Processing Rules
 - 해외송금 원장 저장, 계좌 선출금, FDS 비동기 심사, 실패 시 환급은 CoreBanking에서 처리한다.
 - `receiverDistrict`, `receiverZipCode`는 선택값이다.
 - `receiverCity`는 필수값이다.
+
+## EXCHANGE-001 메인 환율 하이라이트 조회
+
+- Method: `GET`
+- Path: `/exchange-rates/highlights`
+- Auth: `X` (PUBLIC)
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": "20000",
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "requestedDate": "2026-06-15",
+    "effectiveDate": "2026-06-15",
+    "comparisonDate": "2026-06-13",
+    "marketStatus": "OPEN",
+    "notice": "기준 환율입니다.",
+    "rates": [
+      {
+        "countryId": "us",
+        "currencyCode": "USD",
+        "currencyName": "미국 달러",
+        "rate": 1363.83,
+        "previousRate": 1360.00,
+        "changeRate": 3.83,
+        "changePercent": 0.28,
+        "changeDirection": "UP"
+      }
+    ]
+  }
+}
+```
+
+Notes
+- 메인 화면에는 3개 통화(`USD`, `JPY`, `EUR`)만 반환한다.
+- `marketStatus`는 `OPEN | WEEKEND | HOLIDAY | PRE_OPEN` 중 하나다.
+- `effectiveDate`가 `requestedDate`보다 과거면 직전 영업일 값을 사용한 것이다.
+
+## EXCHANGE-002 환율 목록 조회
+
+- Method: `GET`
+- Path: `/exchange-rates`
+- Auth: `X` (PUBLIC)
+
+Notes
+- 환율 페이지에 노출할 주요 국가/통화 목록을 반환한다.
+- 기준 환율(`DEAL_BAS_R`)을 사용하며, `JPY(100)`, `IDR(100)` 같은 단위 환율은 1통화 기준으로 정규화해 반환한다.
+
+## EXCHANGE-003 해외송금 환율 조회
+
+- Method: `GET`
+- Path: `/exchange-rates/remittance`
+- Auth: `X` (PUBLIC)
+
+Query Parameters
+
+| Name | Type | Required | Description |
+|---|---|---|---|
+| `countryId` | string | Y | 프론트 송금 국가 ID (`us`, `jp`, `vn` 등) |
+| `currencyCode` | string | Y | 송금 통화 코드 (`USD`, `JPY`, `VND` 등) |
+| `amount` | string | Y | 송금 외화 금액 |
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": "20000",
+  "message": "요청에 성공했습니다.",
+  "data": {
+    "countryId": "us",
+    "currencyCode": "USD",
+    "currencyName": "미국 달러",
+    "requestedDate": "2026-06-15",
+    "effectiveDate": "2026-06-15",
+    "marketStatus": "OPEN",
+    "notice": "송금 보내실때 환율입니다.",
+    "exchangeRate": 1377.46,
+    "remitAmount": 1000,
+    "krwAmount": 1377460
+  }
+}
+```
+
+Notes
+- 해외송금 요약에는 송금 보내실때 환율(`TTS`)을 사용한다.
+- 비영업일 또는 영업일 오전 11시 이전에는 직전 영업일 기준 값을 반환할 수 있다.
 
 ## BANK-009 해외 송금 목록 조회(Cloud)
 

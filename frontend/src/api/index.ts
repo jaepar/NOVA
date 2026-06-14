@@ -91,6 +91,7 @@ export type {
 } from './endpoints/wallet';
 export { jobApi } from './endpoints/job';
 export { hospitalChatApi } from './endpoints/hospitalChat';
+export { exchangeApi } from './endpoints/exchange';
 export type {
   ApplicationItemResponse,
   ApplicationListResponse,
@@ -117,8 +118,17 @@ export type {
 export { bankingApi, getBankingApiError } from './endpoints/banking';
 export type {
   BankingApiErrorBody,
+  CreateGlobalTransactionRequest,
+  CreateGlobalTransactionResponse,
   TransferPreviewRequest,
   TransferPreviewResponse,
   TransferRequest,
   GlobalTransferHistoryItem,
 } from './endpoints/banking';
+export type {
+  ExchangeMarketStatus,
+  ExchangeRateApiItem,
+  ExchangeRateChangeDirection,
+  ExchangeRateQuoteResponse,
+  ExchangeRatesResponse,
+} from './endpoints/exchange';

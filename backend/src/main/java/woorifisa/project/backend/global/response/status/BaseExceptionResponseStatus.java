@@ -106,6 +106,13 @@ public enum BaseExceptionResponseStatus implements ResponseStatus {
     BANKING_TRANSACTION_MEMO_TOO_LONG("BANK-009", "메모는 20자 이내로 입력해야 합니다."),
 
     /**
+     * exchange
+     */
+    EXCHANGE_RATE_COMMUNICATION_FAILED("EXCHANGE-001", "환율 정보 통신에 실패했습니다."),
+    EXCHANGE_RATE_UNAVAILABLE("EXCHANGE-002", "사용 가능한 환율 정보를 찾을 수 없습니다."),
+    EXCHANGE_RATE_UNSUPPORTED_CURRENCY("EXCHANGE-003", "지원하지 않는 환율 통화입니다."),
+
+    /**
      * job
      */
     APPLICATION_NOT_FOUND("JOB-001", "지원서를 찾을 수 없습니다."),
