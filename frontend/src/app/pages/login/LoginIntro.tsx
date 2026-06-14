@@ -13,16 +13,18 @@ export function LoginIntro() {
   const backPath = locationState?.fromLanguage ? '/language' : '/main'
 
   if (!locationState?.fromLanguage && !isOnboardingCompleted()) {
-    return <Navigate to="/language" replace />
+    return <Navigate to="/language" replace />;
   }
 
   const handleLogin = () => {
-    navigate('/login/form', { state: { backPath: '/login', redirectTo: '/main' } })
-  }
+    navigate("/login/form", {
+      state: { backPath: "/login", redirectTo: "/main" },
+    });
+  };
 
   const handleSignup = () => {
-    navigate('/signup')
-  }
+    navigate("/signup");
+  };
 
   return (
     <MobileLayout
@@ -39,7 +41,7 @@ export function LoginIntro() {
         </div>
       }
     >
-      <section className="flex min-h-full flex-col pt-8">
+      <section className="flex min-h-full flex-col pt-2">
         <section className="space-y-3">
           <h2 className="whitespace-pre-line text-2xl font-semibold leading-tight">
             {t('login.introHeading')}
@@ -55,5 +57,5 @@ export function LoginIntro() {
         </div>
       </section>
     </MobileLayout>
-  )
+  );
 }

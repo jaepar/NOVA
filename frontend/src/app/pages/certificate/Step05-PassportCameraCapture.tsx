@@ -15,6 +15,7 @@ import {
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { Btn_2Col } from "../../components/design-system/Btn_2Col";
 import { InlineBanner } from "../../components/design-system/InlineBanner";
+import { novaToast } from "../../components/design-system/toast";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { useTranslation } from "../../i18n";
 import { useStep5PassportCaptureStore } from "../../stores/pageStores";
@@ -49,6 +50,40 @@ const mapPassportResponseToEditableValues = (passport: PassportResponse) => ({
   issueDate: passport.issueDate ?? "",
   expireDate: passport.expireDate ?? "",
 });
+
+const datePattern = /^\d{4}\.\d{2}\.\d{2}$/;
+
+const hasValidDateValue = (value: string) => {
+  if (!datePattern.test(value)) {
+    return false;
+  }
+
+  const [yearText, monthText, dayText] = value.split(".");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const parsedDate = new Date(year, month - 1, day);
+
+  return (
+    parsedDate.getFullYear() === year &&
+    parsedDate.getMonth() === month - 1 &&
+    parsedDate.getDate() === day
+  );
+};
+
+const passportFieldValidators: Record<string, (value: string) => boolean> = {
+  종류: (value) => /^[A-Z0-9]{1,3}$/.test(value),
+  "국가 코드": (value) => /^[A-Z]{3}$/.test(value),
+  여권번호: (value) => /^[A-Z0-9]{5,20}$/.test(value),
+  성: (value) => /^[A-Z][A-Z\s'-]*$/.test(value),
+  이름: (value) => /^[A-Z][A-Z\s'-]*$/.test(value),
+  생년월일: hasValidDateValue,
+  성별: (value) => /^(M|F|X)$/.test(value),
+  국적: (value) => /^[A-Z][A-Z\s'-]*$/.test(value),
+  "발행 관청": (value) => /^[A-Z][A-Z\s&'().-]*$/.test(value),
+  발급일: hasValidDateValue,
+  기간만료일: hasValidDateValue,
+};
 
 export function PassportCameraCapture() {
   const navigate = useNavigate();
@@ -86,6 +121,13 @@ export function PassportCameraCapture() {
   const [editableOcrValues, setEditableOcrValues] = useState<Record<string, string>>(
     () => Object.fromEntries(ocrResultRows.map((row) => [row.id, ""]))
   );
+
+  const isReviewFormValid = ocrResultRows.every((row) => {
+    const value = (editableOcrValues[row.label] ?? "").trim();
+    const validator = passportFieldValidators[row.label];
+
+    return value.length > 0 && Boolean(validator?.(value));
+  });
 
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -131,7 +173,14 @@ export function PassportCameraCapture() {
 
     try {
       const ocrResult = await certificateApi.recognizePassport(imageFile);
-      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult));
+
+      if (ocrResult.nameMatchWithUser === false) {
+        novaToast.error(t("certificate.passportNameMismatch"));
+        setMode("live");
+        return;
+      }
+
+      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult.result));
       setCapturedImage(imageDataUrl);
       setMode("review");
     } catch (error) {
@@ -180,6 +229,10 @@ export function PassportCameraCapture() {
   };
 
   const handleMoveToStep06 = () => {
+    if (!isReviewFormValid) {
+      return;
+    }
+
     setParsedPassportData({
       type: editableOcrValues["type"] ?? "",
       issueCountry: editableOcrValues["countryCode"] ?? "",
@@ -213,6 +266,7 @@ export function PassportCameraCapture() {
             rightLabel={t("common.next")}
             leftVariant="outline"
             rightVariant="primary"
+            rightDisabled={!isReviewFormValid}
             onLeftClick={() => {
               setCapturedImage(null);
               setMode("live");
@@ -274,7 +328,7 @@ export function PassportCameraCapture() {
       contentBackgroundColor="#ffffff"
       contentTextColor="#000000"
       bottomContent={
-        <div className="space-y-4">
+        <div className="space-y-2">
           <div className="flex items-center justify-center gap-2 text-xs text-black">
             <ShieldCheck className="w-4 h-4" />
             <p>{t("certificate.passportNoReflect")}</p>

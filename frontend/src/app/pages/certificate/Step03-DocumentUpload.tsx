@@ -32,17 +32,33 @@ export function Step03DocumentUpload() {
     return file.type === 'application/pdf' || lowerName.endsWith('.pdf')
   }
 
+  const handleNext = () => {
+    if (!isAllAttached) {
+      return
+    }
+
+    navigate('/certificate/step-04')
+  }
+
+  // [TEST ONLY START] 서류 업로드 여부와 무관하게 다음 단계로 이동하는 임시 버튼
+  const handleSkipDocumentUploadForTest = () => {
+    navigate('/certificate/step-04')
+  }
+  // [TEST ONLY END]
+
   return (
     <MobileLayout
       title={t('certificate.title')}
       backPath="/certificate/step-02"
       bottomContent={
-        // <Btn_1Col disabled={!isAllAttached} onClick={() => navigate('/certificate/step-04')}>
-        //   {t('certificate.nextButton')}
-        // </Btn_1Col>  // 실제 배포
-        <Btn_1Col onClick={() => navigate('/certificate/step-04')}>
-          {t('certificate.nextButton')}
-        </Btn_1Col>  // 테스트
+        <div className="space-y-2">
+          <Btn_1Col disabled={!isAllAttached} onClick={handleNext}>
+            {t('certificate.nextButton')}
+          </Btn_1Col>
+          <Btn_1Col variant="outline" onClick={handleSkipDocumentUploadForTest}>
+            {t('certificate.skipUploadTest')}
+          </Btn_1Col>
+        </div>
       }
     >
       <div className="space-y-5 pb-2">

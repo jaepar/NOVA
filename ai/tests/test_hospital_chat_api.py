@@ -7,6 +7,13 @@ from app.api.routes import hospital_chat as hospital_chat_route
 client = TestClient(app)
 
 
+def test_health_check():
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "UP"}
+
+
 def test_start_session():
     response = client.post("/chat", json={})
 

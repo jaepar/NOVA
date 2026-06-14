@@ -14,7 +14,16 @@ interface MainAccountPanelProps {
   onOpenCertificateSheet: () => void
   onOpenAccount: () => void
   onAccountPanelClick: () => void
+  onTransferClick: () => void
 }
+
+const panelShellClassName =
+  "min-h-[180px] rounded-2xl p-6 flex flex-col justify-between";
+
+const neutralPanelClassName = `${panelShellClassName} border border-border bg-background shadow-[0_4px_16px_rgba(15,23,42,0.05)]`;
+const secondaryPanelClassName = `${panelShellClassName} bg-secondary`;
+const accountPanelClassName =
+  "bg-gradient-to-br from-[#003CA6] to-[#2563EB] text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#003CA6]";
 
 export function MainAccountPanel({
   isLoggedIn,
@@ -24,13 +33,14 @@ export function MainAccountPanel({
   onOpenCertificateSheet,
   onOpenAccount,
   onAccountPanelClick,
+  onTransferClick,
 }: MainAccountPanelProps) {
   const { t, language } = useTranslation()
   const locale = language === 'ko' ? 'ko-KR' : 'en-US'
 
   if (isLoggedIn && isLoading) {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
+      <div className={secondaryPanelClassName}>
         <div className="space-y-3">
           <div className="h-6 w-32 rounded-lg bg-muted animate-pulse" />
           <div className="h-4 w-48 rounded-lg bg-muted animate-pulse" />
@@ -42,8 +52,8 @@ export function MainAccountPanel({
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-[220px] rounded-[24px] border border-border bg-background px-5 py-8 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
-        <div className="space-y-3">
+      <div className={neutralPanelClassName}>
+        <div className="space-y-2">
           <div className="space-y-1">
             <h3 className="font-semibold text-base">{t('main.loginPanelTitle')}</h3>
             <p className="text-sm leading-5 text-muted-foreground">{t('main.loginPanelDescription')}</p>
@@ -58,12 +68,12 @@ export function MainAccountPanel({
 
   if (!accountHome || accountHome.uiState === 'NEED_CERTIFICATE') {
     return (
-      <div className="min-h-[220px] rounded-[24px] border border-border bg-background px-5 py-8 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
-        <div className="mb-6 space-y-3 text-center">
-          <h3 className="text-lg font-semibold text-foreground">
+      <div className={neutralPanelClassName}>
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold text-foreground">
             {t('main.certificateRequiredTitle')}
           </h3>
-          <p className="text-sm font-medium text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {t('main.certificateRequiredDescription')}
           </p>
         </div>
@@ -76,7 +86,7 @@ export function MainAccountPanel({
 
   if (accountHome.uiState === 'CERTIFICATE_ISSUING') {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-center">
+      <div className={secondaryPanelClassName}>
         <div className="space-y-4">
           <div className="space-y-2">
             <h3 className="font-semibold text-base">{t('main.certificateIssuingTitle')}</h3>
@@ -86,13 +96,14 @@ export function MainAccountPanel({
             {t('main.reviewingDocuments')}
           </p>
         </div>
+        <div aria-hidden="true" className="h-11" />
       </div>
     )
   }
 
   if (accountHome.uiState === 'READY_TO_OPEN_ACCOUNT') {
     return (
-      <div className="bg-secondary rounded-2xl p-6 min-h-[180px] flex flex-col justify-between">
+      <div className={secondaryPanelClassName}>
         <div className="space-y-2">
           <h3 className="font-semibold text-base">{t('main.readyToOpenTitle')}</h3>
           <p className="text-sm text-muted-foreground">{t('main.readyToOpenDescription')}</p>
@@ -126,20 +137,21 @@ export function MainAccountPanel({
     }
   }
 
+  const handleTransferClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onTransferClick();
+  };
+
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={onAccountPanelClick}
       onKeyDown={handlePanelKeyDown}
-      className="bg-gradient-to-br from-[#003CA6] to-[#2563EB] rounded-2xl p-6 text-white min-h-[180px] flex flex-col justify-between cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#003CA6]"
+      className={`${panelShellClassName} ${accountPanelClassName}`}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-            <div className="w-6 h-6 rounded-full bg-white" />
-          </div>
-
           <div>
             <div className="flex items-center gap-2">
               <span className="font-medium">{account.accountName}</span>
@@ -169,9 +181,20 @@ export function MainAccountPanel({
         </AppButton>
       </div>
 
-      <div>
-        <p className="text-sm text-white/80 mb-1">{t('main.balance')}</p>
-        <p className="text-2xl font-semibold">{account.balance.toLocaleString(locale)} {t('main.currencyUnit')}</p>
+      <div className="space-y-1">
+        <p className="text-sm text-white/80">{t('main.balance')}</p>
+        <div className="flex items-end justify-between gap-3">
+          <p className="text-2xl font-semibold">
+            {account.balance.toLocaleString(locale)} {t('main.currencyUnit')}
+          </p>
+          <AppButton
+            variant="unstyled"
+            onClick={handleTransferClick}
+            className="inline-flex h-7 shrink-0 items-center justify-center rounded-full bg-white/20 px-4 text-xs font-medium text-white transition-colors hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          >
+            {t('main.transfer')}
+          </AppButton>
+        </div>
       </div>
     </div>
   )

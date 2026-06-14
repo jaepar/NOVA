@@ -67,7 +67,8 @@ public class IdentityVerificationService {
 			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
 		PassportOcrResponse passportOcrResponse = passportOcrService.recognizePassport(file);
-		boolean nameMatchWithUser = passportOcrResponse.fullNameKor().equals(user.getName());
+		String fullNameKor = passportOcrResponse.fullNameKor() == null ? "" : passportOcrResponse.fullNameKor();
+		boolean nameMatchWithUser = fullNameKor.equals(user.getName());
 
 		return IdentityOcrResponse.builder()
 			.ocrDocumentType(OcrDocumentType.PASSPORT)

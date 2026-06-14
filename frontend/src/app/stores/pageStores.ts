@@ -450,14 +450,21 @@ export const useForeignerCardRegistrationStore = create<ForeignerCardRegistratio
 interface LivenessFlowState {
   sessionId: string | null
   expiresAt: string | null
+  registeredPassportIssueCountry: string | null
+  registeredPassportNumber: string | null
   setSession: (sessionId: string, expiresAt: string) => void
+  setRegisteredPassportIdentity: (issueCountry: string, passportNumber: string) => void
   resetSession: () => void
 }
 
 export const useLivenessFlowStore = create<LivenessFlowState>((set) => ({
   sessionId: null,
   expiresAt: null,
+  registeredPassportIssueCountry: null,
+  registeredPassportNumber: null,
   setSession: (sessionId, expiresAt) => set({ sessionId, expiresAt }),
+  setRegisteredPassportIdentity: (registeredPassportIssueCountry, registeredPassportNumber) =>
+    set({ registeredPassportIssueCountry, registeredPassportNumber }),
   resetSession: () => set({ sessionId: null, expiresAt: null }),
 }))
 

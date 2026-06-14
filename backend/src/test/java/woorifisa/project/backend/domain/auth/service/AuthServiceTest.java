@@ -184,12 +184,13 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("로그인 성공 시 세션에 userId를 저장하고 userId를 반환한다")
+    @DisplayName("로그인 성공 시 세션 ID를 변경하고 세션에 userId를 저장한다")
     void loginStoresUserIdInSession() {
         User user = createUser(false, passwordEncoder.encode("Password123!"));
         when(userRepository.findByEmail("login@test.com")).thenReturn(Optional.of(user));
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
-        String oldSessionId = httpRequest.getSession().getId();
+        MockHttpSession oldSession = (MockHttpSession) httpRequest.getSession();
+        String oldSessionId = oldSession.getId();
 
         LoginResponse response = authService.login(
                 new LoginRequest("login@test.com", "Password123!"),
@@ -197,6 +198,7 @@ class AuthServiceTest {
         );
 
         assertThat(response.userId()).isEqualTo(1L);
+        assertThat(oldSession.isInvalid()).isFalse();
         assertThat(httpRequest.getSession().getId()).isNotEqualTo(oldSessionId);
         assertThat(httpRequest.getSession().getAttribute("userId")).isEqualTo(1L);
     }
@@ -256,6 +258,7 @@ class AuthServiceTest {
         assertThat(cookie.isHttpOnly()).isTrue();
         assertThat(cookie.getSecure()).isFalse();
         assertThat(cookie.getMaxAge()).isZero();
+        assertThat(httpResponse.getCookie("SESSION")).isNull();
     }
 
     @Test

@@ -12,9 +12,9 @@ import { authApi } from '../../../api'
 import { completeOnboarding } from '../../utils/onboardingStorage'
 
 type LoginLocationState = {
-  backPath?: string
-  redirectTo?: string
-}
+  backPath?: string;
+  redirectTo?: string;
+};
 
 export function LoginForm() {
   const navigate = useNavigate()
@@ -42,33 +42,36 @@ export function LoginForm() {
   }
 
   const handleBack = () => {
-    if (backPath === '/login') {
-      navigate('/login', { state: { fromLanguage: true } })
-      return
+    if (backPath === "/login") {
+      navigate("/login", { state: { fromLanguage: true } });
+      return;
     }
 
-    navigate(backPath)
-  }
+    navigate(backPath);
+  };
 
   const handleSubmit = async () => {
     if (!canSubmit) {
-      return
+      return;
     }
 
-    setSubmitting(true)
-    setErrorMessage('')
+    setSubmitting(true);
+    setErrorMessage("");
 
     try {
-      const loginResult = await authApi.login({ email: email.trim(), password })
-      setAuthenticated(loginResult.userId)
-      completeOnboarding()
-      navigate(redirectTo)
+      const loginResult = await authApi.login({
+        email: email.trim(),
+        password,
+      });
+      setAuthenticated(loginResult.userId);
+      completeOnboarding();
+      navigate(redirectTo);
     } catch (error) {
-      setErrorMessage(getLoginErrorMessage(error))
+      setErrorMessage(getLoginErrorMessage(error));
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <MobileLayout
@@ -82,7 +85,7 @@ export function LoginForm() {
         </Btn_1Col>
       }
     >
-      <section className="flex min-h-full flex-col pt-8">
+      <section className="flex min-h-full flex-col pt-2">
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold leading-tight">{t('login.formHeading')}</h2>
         </section>
@@ -94,8 +97,8 @@ export function LoginForm() {
             placeholder="example@email.com"
             value={email}
             onChange={(value) => {
-              setEmail(value)
-              setErrorMessage('')
+              setEmail(value);
+              setErrorMessage("");
             }}
           />
 
@@ -107,12 +110,12 @@ export function LoginForm() {
                 placeholder={t('login.passwordPlaceholder')}
                 value={password}
                 onChange={(event) => {
-                  setPassword(event.target.value)
-                  setErrorMessage('')
+                  setPassword(event.target.value);
+                  setErrorMessage("");
                 }}
                 autoComplete="current-password"
                 className="mt-[6px] w-full rounded-lg border border-border bg-input-background py-3 pl-4 pr-12 transition-all focus:outline-none focus:ring-2 focus:ring-primary"
-                style={{ fontSize: '16px' }}
+                style={{ fontSize: "16px" }}
               />
               <AppButton
                 type="button"
@@ -126,9 +129,11 @@ export function LoginForm() {
             </div>
           </div>
 
-          {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
+          {errorMessage && (
+            <p className="text-sm text-red-500">{errorMessage}</p>
+          )}
         </div>
       </section>
     </MobileLayout>
-  )
+  );
 }

@@ -4,7 +4,7 @@ import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { InlineBanner } from '../../components/design-system/InlineBanner'
 import { useTranslation } from '../../i18n'
-import { useStep5PassportCaptureStore } from '../../stores/pageStores'
+import { useLivenessFlowStore, useStep5PassportCaptureStore } from '../../stores/pageStores'
 
 type ParsedNfcRecord = {
   recordType: string
@@ -50,6 +50,9 @@ export function NfcGuide() {
   const { t } = useTranslation()
   const parsedPassportData = useStep5PassportCaptureStore((state) => state.parsedPassportData)
   const setParsedPassportData = useStep5PassportCaptureStore((state) => state.setParsedPassportData)
+  const setRegisteredPassportIdentity = useLivenessFlowStore(
+    (state) => state.setRegisteredPassportIdentity
+  )
   const [isScanning, setIsScanning] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [statusVariant, setStatusVariant] = useState<'info' | 'success' | 'warning' | 'error'>('info')
@@ -164,6 +167,11 @@ export function NfcGuide() {
         return
       }
 
+      setRegisteredPassportIdentity(
+        parsedPassportData.issueCountry,
+        parsedPassportData.num
+      )
+      // 인증 성공 직전에만 인증 비교용 데이터를 폐기
       setParsedPassportData(null)
       setStatusMessage(t('certificate.nfcSuccess'))
       setStatusVariant('success')

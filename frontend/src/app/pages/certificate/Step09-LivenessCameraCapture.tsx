@@ -14,10 +14,9 @@ import { useLivenessFlowStore } from "../../stores/pageStores";
 const awsRegion = import.meta.env.VITE_AWS_REGION as string | undefined;
 const identityPoolId = import.meta.env.VITE_AWS_COGNITO_IDENTITY_POOL_ID as string | undefined;
 const registeredImageBucket =
-  (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_BUCKET as string | undefined) ?? "nova-object-bucket";
-const registeredImageKey =
-  (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_KEY as string | undefined) ??
-  "goverment/KOR-M592W1577/profile.jpg";
+  (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_BUCKET as
+    | string
+    | undefined) ?? "nova-object-bucket";
 const STEP08_PATH = "/certificate/step-08";
 
 const HiddenPhotosensitiveWarning = () => null;
@@ -27,6 +26,12 @@ export function LivenessCameraCapture() {
   const { t } = useTranslation();
   const sessionId = useLivenessFlowStore((state) => state.sessionId);
   const expiresAt = useLivenessFlowStore((state) => state.expiresAt);
+  const registeredPassportIssueCountry = useLivenessFlowStore(
+    (state) => state.registeredPassportIssueCountry
+  );
+  const registeredPassportNumber = useLivenessFlowStore(
+    (state) => state.registeredPassportNumber
+  );
   const setSession = useLivenessFlowStore((state) => state.setSession);
   const resetSession = useLivenessFlowStore((state) => state.resetSession);
 
@@ -65,6 +70,17 @@ export function LivenessCameraCapture() {
   const [liveHintText, setLiveHintText] = useState("");
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [hasStartedLiveness, setHasStartedLiveness] = useState(false);
+
+  const triggerSdkStart = () => {
+    const root = detectorContainerRef.current;
+    if (!root) return;
+
+    const startButton = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("button")
+    ).find((button) => button.textContent?.trim() === "얼굴 인증 시작");
+
+    startButton?.click();
+  };
 
   const navigateToStep08 = () => {
     navigate(STEP08_PATH, {
@@ -300,6 +316,18 @@ export function LivenessCameraCapture() {
     });
   }, [hasAwsConfig]);
 
+  const registeredImageKey = useMemo(() => {
+    if (registeredPassportIssueCountry && registeredPassportNumber) {
+      return `goverment/${registeredPassportIssueCountry}-${registeredPassportNumber}/profile.jpg`;
+    }
+
+    return (
+      (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_KEY as
+        | string
+        | undefined) ?? "goverment/KOR-M592W1577/profile.jpg"
+    );
+  }, [registeredPassportIssueCountry, registeredPassportNumber]);
+
   const handleAnalysisComplete = async () => {
     if (!sessionId) return;
 
@@ -394,12 +422,18 @@ export function LivenessCameraCapture() {
           <Btn_1Col onClick={handleRetry} disabled={isRetrying}>
             {isRetrying ? t("certificate.livenessRetryPreparing") : t("certificate.livenessRetakeButton")}
           </Btn_1Col>
+        ) : isDetectorVisible && isCameraActive && !hasStartedLiveness ? (
+          <Btn_1Col onClick={triggerSdkStart}>
+            {livenessDisplayText.startScreenBeginCheckText}
+          </Btn_1Col>
         ) : undefined
       }
     >
       <div
         className={`space-y-4 nova-liveness-surface ${
-          hasStartedLiveness ? "nova-liveness-active" : ""
+          isDetectorVisible && isCameraActive && !hasStartedLiveness
+            ? "nova-liveness-prestart"
+            : ""
         }`}
         ref={detectorContainerRef}
       >

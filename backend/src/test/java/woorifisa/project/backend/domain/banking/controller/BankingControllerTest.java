@@ -438,6 +438,7 @@ class BankingControllerTest {
                 .thenReturn(java.util.List.of(
                         new woorifisa.project.backend.domain.banking.dto.response.GlobalTransactionListItemResponse(
                                 1L,
+                                "USA",
                                 "JOHN SMITH",
                                 "1000.00",
                                 "USD",
