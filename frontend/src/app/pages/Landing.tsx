@@ -2,8 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import { Btn_1Col } from '../components/design-system/Btn_1Col'
 import { AppButton } from '../components/design-system/AppButton'
 import { MobileLayout } from '../components/layout/MobileLayout'
+import landingIllustrationSrc from './main/assets/header-brand-wordmark.png'
 import { useTranslation } from '../i18n'
-import landingIllustrationSrc from './assets/landing-illustration.png'
 
 export function Landing() {
   const navigate = useNavigate()

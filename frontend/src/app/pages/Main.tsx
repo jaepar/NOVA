@@ -275,7 +275,7 @@ export function Main() {
           />
         }
       >
-        <div className="space-y-4 pt-3">
+        <div className="space-y-4 pt-1">
           <section>
             <MainAccountPanel
               isLoggedIn={isLoggedIn}
@@ -335,5 +335,5 @@ export function Main() {
         onOpenAccount={handleOpenAccountFromIssuedModal}
       />
     </div>
-  )
+  );
 }

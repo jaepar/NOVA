@@ -6,7 +6,7 @@ export function MainHeaderBrand() {
       <img
         src={headerBrandWordmark}
         alt="NOVA"
-        className="h-[18px] w-auto shrink-0 object-contain"
+        className="h-[22px] w-auto shrink-0 object-contain"
       />
     </div>
   );
