@@ -97,6 +97,23 @@ export type CorrectionDocumentUploadRequest = {
   alienRegistrationApplicationPdf?: File
 }
 
+async function postCertificateDocuments({
+  residenceVerificationPdf,
+  alienRegistrationApplicationPdf,
+}: CorrectionDocumentUploadRequest): Promise<void> {
+  const formData = new FormData()
+
+  if (residenceVerificationPdf) {
+    formData.append('residenceVerificationPdf', residenceVerificationPdf)
+  }
+
+  if (alienRegistrationApplicationPdf) {
+    formData.append('alienRegistrationApplicationPdf', alienRegistrationApplicationPdf)
+  }
+
+  await apiClient.post<ApiEnvelope<null>>('/users/documents', formData)
+}
+
 export const certificateApi = {
   requestIssuance: async (): Promise<void> => {
     await apiClient.post<ApiEnvelope<null>>('/users/verifications')
@@ -107,21 +124,11 @@ export const certificateApi = {
     )
     return response.data.data.map(normalizeCorrectionDocument)
   },
-  uploadCorrectionDocuments: async ({
-    residenceVerificationPdf,
-    alienRegistrationApplicationPdf,
-  }: CorrectionDocumentUploadRequest): Promise<void> => {
-    const formData = new FormData()
-
-    if (residenceVerificationPdf) {
-      formData.append('residenceVerificationPdf', residenceVerificationPdf)
-    }
-
-    if (alienRegistrationApplicationPdf) {
-      formData.append('alienRegistrationApplicationPdf', alienRegistrationApplicationPdf)
-    }
-
-    await apiClient.post<ApiEnvelope<null>>('/users/documents', formData)
+  uploadDocuments: async (payload: CorrectionDocumentUploadRequest): Promise<void> => {
+    await postCertificateDocuments(payload)
+  },
+  uploadCorrectionDocuments: async (payload: CorrectionDocumentUploadRequest): Promise<void> => {
+    await postCertificateDocuments(payload)
   },
   createLivenessSession: async (): Promise<LivenessSessionResponse> => {
     const response = await apiClient.post<ApiEnvelope<LivenessSessionResponse>>(
