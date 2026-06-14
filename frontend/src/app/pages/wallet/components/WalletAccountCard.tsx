@@ -1,4 +1,4 @@
-import wooriBankLogo from "../assets/woori-bank-logo.png";
+import wooriBankLogo from "../assets/woori-bank-logo.webp";
 
 interface WalletAccountCardProps {
   accountNumber?: string | null;

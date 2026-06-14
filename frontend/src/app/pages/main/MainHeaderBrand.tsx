@@ -1,4 +1,4 @@
-import headerBrandWordmark from "./assets/header-brand-wordmark.png";
+import headerBrandWordmark from "./assets/header-brand-wordmark.webp";
 
 export function MainHeaderBrand() {
   return (

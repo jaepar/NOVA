@@ -1,8 +1,7 @@
-import type { RouteObject } from "react-router-dom";
-import { LoginIntro } from "../pages/login/LoginIntro";
-import { LoginForm } from "../pages/login/LoginForm";
+import type { RouteObject } from 'react-router-dom'
+import { lazyComponent } from './lazyRoute'
 
 export const loginRoutes: RouteObject[] = [
-  { path: "/login", Component: LoginIntro },
-  { path: "/login/form", Component: LoginForm },
-];
+  { path: '/login', lazy: lazyComponent(() => import('../pages/login/LoginIntro'), 'LoginIntro') },
+  { path: '/login/form', lazy: lazyComponent(() => import('../pages/login/LoginForm'), 'LoginForm') },
+]

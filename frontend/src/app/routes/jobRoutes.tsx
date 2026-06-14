@@ -1,12 +1,9 @@
 import type { RouteObject } from 'react-router-dom'
-import { JobApplications } from '../pages/job/JobApplications'
-import { JobApply } from '../pages/job/JobApply'
-import { JobDetail } from '../pages/job/JobDetail'
-import { JobList } from '../pages/job/JobList'
+import { lazyComponent } from './lazyRoute'
 
 export const jobRoutes: RouteObject[] = [
-  { path: '/jobs', Component: JobList },
-  { path: '/jobs/applications', Component: JobApplications },
-  { path: '/jobs/:jobId', Component: JobDetail },
-  { path: '/jobs/:jobId/apply', Component: JobApply },
+  { path: '/jobs', lazy: lazyComponent(() => import('../pages/job/JobList'), 'JobList') },
+  { path: '/jobs/applications', lazy: lazyComponent(() => import('../pages/job/JobApplications'), 'JobApplications') },
+  { path: '/jobs/:jobId', lazy: lazyComponent(() => import('../pages/job/JobDetail'), 'JobDetail') },
+  { path: '/jobs/:jobId/apply', lazy: lazyComponent(() => import('../pages/job/JobApply'), 'JobApply') },
 ]

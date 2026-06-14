@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { walletApi, type WalletNextStep } from "../../../api";
 import { AppButton } from "../../components/design-system/AppButton";
 import { BottomSheet } from "../../components/layout/BottomSheet";
-import accountRequiredIcon from "./assets/account-required-icon.png";
-import myWalletLogo from "./assets/my-wallet-logo.png";
+import accountRequiredIcon from "./assets/account-required-icon.webp";
+import myWalletLogo from "./assets/my-wallet-logo.webp";
 import { walletPrimaryButtonClass, walletSecondaryButtonClass } from "./styles";
 
 const LOGO_ONLY_DURATION_MS = 1500;

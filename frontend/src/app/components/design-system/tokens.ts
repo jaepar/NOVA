@@ -132,7 +132,7 @@ export const colors = {
 
 export const fonts = {
   family: {
-    primary: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    secondary: 'Urbanist, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    primary: 'Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    secondary: 'Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   },
 } as const

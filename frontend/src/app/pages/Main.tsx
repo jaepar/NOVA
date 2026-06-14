@@ -1,20 +1,14 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import { BottomNav } from '../components/layout/BottomNav'
-import { SideMenu } from '../components/layout/SideMenu'
-import { BottomSheet } from '../components/layout/BottomSheet'
 import { novaToast } from '../components/design-system/toast'
 import { useTranslation } from '../i18n'
 import { useMainPageStore } from '../stores/pageStores'
-import {
-  authApi,
-  bankingApi,
-  hospitalChatApi,
-  userApi,
-  type AccountHomeResponse,
-  type NotificationResponse,
-} from '../../api'
+import { authApi } from '../../api/endpoints/auth'
+import { bankingApi, type AccountHomeResponse } from '../../api/endpoints/banking'
+import { hospitalChatApi } from '../../api/endpoints/hospitalChat'
+import { userApi, type NotificationResponse } from '../../api/endpoints/user'
 import { MainHeaderBrand } from './main/MainHeaderBrand'
 import { MainHeaderActions } from './main/MainHeaderActions'
 import { MainAccountPanel } from './main/MainAccountPanel'
@@ -22,12 +16,35 @@ import { MainJobBanner } from './main/MainJobBanner'
 import { MainServiceGrid } from './main/MainServiceGrid'
 import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
 import { MainAdBanner } from './main/MainAdBanner'
-import { MainCertificateSheetContent } from './main/MainCertificateSheetContent'
-import { CertificateIssuedModal } from './main/CertificateIssuedModal'
-import hospitalReservationIcon from './main/assets/hospital-reservation-icon.png'
-import registrationCardIcon from './main/assets/registration-card-icon.png'
-import walletIcon from './main/assets/wallet-icon.png'
+import './main/main.css'
+import hospitalReservationIcon from './main/assets/hospital-reservation-icon.webp'
+import registrationCardIcon from './main/assets/registration-card-icon.webp'
+import walletIcon from './main/assets/wallet-icon.webp'
 import type { ExchangeRateItem, ServiceItem } from './main/types'
+
+const LazySideMenu = lazy(async () => {
+  const module = await import('../components/layout/SideMenu')
+
+  return { default: module.SideMenu }
+})
+
+const LazyBottomSheet = lazy(async () => {
+  const module = await import('../components/layout/BottomSheet')
+
+  return { default: module.BottomSheet }
+})
+
+const LazyMainCertificateSheetContent = lazy(async () => {
+  const module = await import('./main/MainCertificateSheetContent')
+
+  return { default: module.MainCertificateSheetContent }
+})
+
+const LazyCertificateIssuedModal = lazy(async () => {
+  const module = await import('./main/CertificateIssuedModal')
+
+  return { default: module.CertificateIssuedModal }
+})
 
 export function Main() {
   const navigate = useNavigate()
@@ -49,6 +66,9 @@ export function Main() {
   const [notificationsError, setNotificationsError] = useState(false)
   const [isCertificateIssuedModalOpen, setCertificateIssuedModalOpen] = useState(false)
   const [isHospitalChatStarting, setHospitalChatStarting] = useState(false)
+  const [hasLoadedSideMenu, setHasLoadedSideMenu] = useState(false)
+  const [hasLoadedCertificateSheet, setHasLoadedCertificateSheet] = useState(false)
+  const [hasLoadedCertificateIssuedModal, setHasLoadedCertificateIssuedModal] = useState(false)
 
   const services: ServiceItem[] = [
     {
@@ -94,6 +114,24 @@ export function Main() {
     { currency: 'JPY', rate: '9.82', change: '-0.5%', isPositive: false },
     { currency: 'EUR', rate: '1,456.20', change: '+1.8%', isPositive: true },
   ]
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      setHasLoadedSideMenu(true)
+    }
+  }, [isMenuOpen])
+
+  useEffect(() => {
+    if (isCertificateSheetOpen) {
+      setHasLoadedCertificateSheet(true)
+    }
+  }, [isCertificateSheetOpen])
+
+  useEffect(() => {
+    if (isCertificateIssuedModalOpen) {
+      setHasLoadedCertificateIssuedModal(true)
+    }
+  }, [isCertificateIssuedModalOpen])
 
   const handleServiceClick = async (service: ServiceItem) => {
     if (service.disabled) {
@@ -308,35 +346,49 @@ export function Main() {
 
       <BottomNav />
 
-      <SideMenu
-        isOpen={isMenuOpen}
-        onClose={() => setMenuOpen(false)}
-        isLoggedIn={isLoggedIn}
-        onLogout={handleLogout}
-        onLogin={() =>
-          navigate('/login/form', {
-            state: { backPath: '/main', redirectTo: '/main' },
-          })
-        }
-        onProfile={() => navigate('/mypage')}
-      />
+      {hasLoadedSideMenu ? (
+        <Suspense fallback={null}>
+          <LazySideMenu
+            isOpen={isMenuOpen}
+            onClose={() => setMenuOpen(false)}
+            isLoggedIn={isLoggedIn}
+            onLogout={handleLogout}
+            onLogin={() =>
+              navigate('/login/form', {
+                state: { backPath: '/main', redirectTo: '/main' },
+              })
+            }
+            onProfile={() => navigate('/mypage')}
+          />
+        </Suspense>
+      ) : null}
 
-      <BottomSheet
-        isOpen={isCertificateSheetOpen}
-        onClose={() => setCertificateSheetOpen(false)}
-        title=""
-      >
-        <MainCertificateSheetContent
-          onLaterClick={() => setCertificateSheetOpen(false)}
-          onIssueClick={handleIssueCertificate}
-        />
-      </BottomSheet>
+      {hasLoadedCertificateSheet ? (
+        <Suspense fallback={null}>
+          <LazyBottomSheet
+            isOpen={isCertificateSheetOpen}
+            onClose={() => setCertificateSheetOpen(false)}
+            title=""
+          >
+            <Suspense fallback={null}>
+              <LazyMainCertificateSheetContent
+                onLaterClick={() => setCertificateSheetOpen(false)}
+                onIssueClick={handleIssueCertificate}
+              />
+            </Suspense>
+          </LazyBottomSheet>
+        </Suspense>
+      ) : null}
 
-      <CertificateIssuedModal
-        isOpen={isCertificateIssuedModalOpen}
-        onClose={() => setCertificateIssuedModalOpen(false)}
-        onOpenAccount={handleOpenAccountFromIssuedModal}
-      />
+      {hasLoadedCertificateIssuedModal ? (
+        <Suspense fallback={null}>
+          <LazyCertificateIssuedModal
+            isOpen={isCertificateIssuedModalOpen}
+            onClose={() => setCertificateIssuedModalOpen(false)}
+            onOpenAccount={handleOpenAccountFromIssuedModal}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

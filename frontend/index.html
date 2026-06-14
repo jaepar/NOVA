@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -7,12 +7,20 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <title>프론트엔드 프레임</title>
+    <link
+      rel="preload"
+      as="image"
+      href="/src/app/pages/main/assets/ad-banners/ad-banner-honey-event.webp"
+      type="image/webp"
+      fetchpriority="high"
+    />
+    <title>NOVA</title>
     <style>
       html,
       body {
         height: 100%;
         margin: 0;
+        background: #eef2f7;
       }
       #root {
         height: 100%;
