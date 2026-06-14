@@ -136,7 +136,7 @@ export const BANK_PLUGINS_DATA: readonly BankPluginData[] = [
   {
     id: 'kb',
     bankName: 'KB국민은행',
-    bankNameEn: 'Kookmin Bank',
+    bankNameEn: 'KB Bank',
     rules: [
       { length: 12, subStart: 3, subLen: 2, subjects: ['01', '05', '04', '21', '24', '25', '26'] },
       { length: 12, subStart: 4, subLen: 2, subjects: ['06', '18'] },
@@ -169,7 +169,7 @@ export const BANK_PLUGINS_DATA: readonly BankPluginData[] = [
   {
     id: 'nonghyup',
     bankName: 'NH농협은행',
-    bankNameEn: 'NongHyup Bank',
+    bankNameEn: 'NH Bank',
     rules: [
       {
         length: 11,

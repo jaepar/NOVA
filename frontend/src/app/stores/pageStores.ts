@@ -316,7 +316,7 @@ export const useDesignSystemPageStore = create<DesignSystemPageState>((set) => (
 
 interface Step3DocumentItem {
   id: 'registration-application' | 'residence-proof'
-  title: string
+  titleKey: string
   file: File | null
   error: string | null
 }
@@ -329,8 +329,8 @@ interface Step3PageState {
 }
 
 const initialStep3Documents: Step3DocumentItem[] = [
-  { id: 'registration-application', title: '외국인등록증 신청 서류', file: null, error: null },
-  { id: 'residence-proof', title: '거소확인 증빙 서류', file: null, error: null },
+  { id: 'registration-application', titleKey: 'certificate.step03RegistrationApplication', file: null, error: null },
+  { id: 'residence-proof', titleKey: 'certificate.step03ResidenceProof', file: null, error: null },
 ]
 
 export const useStep3PageStore = create<Step3PageState>((set) => ({

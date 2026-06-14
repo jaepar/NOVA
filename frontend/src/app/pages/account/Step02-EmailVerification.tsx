@@ -54,6 +54,7 @@ export function Step02EmailVerification() {
         </section>
 
         <EmailVerificationFields
+          className="mt-6"
           email={email}
           verificationCode={verificationCode}
           isCodeSent={isCodeSent}

@@ -156,7 +156,7 @@ export function ForeignerCardOcrReview() {
               className="grid grid-cols-[140px_1fr] border-b border-border last:border-b-0"
             >
               <div className="flex items-center bg-secondary/20 px-4 py-4">
-                <label className="text-base whitespace-nowrap" htmlFor={row.key}>
+                <label className="min-w-0 text-base leading-tight break-words" htmlFor={row.key}>
                   {row.label}
                 </label>
               </div>
@@ -168,7 +168,7 @@ export function ForeignerCardOcrReview() {
                   onChange={(event) => setOcrValue(row.key, event.target.value)}
                   autoComplete="off"
                   spellCheck={false}
-                  className="w-full rounded-md bg-background px-2 py-1 text-base text-foreground outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary"
+                  className="w-full min-w-0 rounded-md bg-background px-2 py-1 text-base text-foreground outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>

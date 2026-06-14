@@ -39,15 +39,15 @@ export function TransferComplete() {
           {t('transfer.completeTask').replace('{name}', recipientName)}
         </h2>
         <div className="mt-12 rounded-2xl bg-[#F7F7F8] px-6 py-5 text-[15px]">
-          <div className="flex justify-between py-2">
-            <span className="text-[#7B828C]">{t('transfer.recipientAccount')}</span>
-            <span className="font-bold">
+          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 py-2">
+            <span className="whitespace-nowrap text-[#7B828C]">{t('transfer.recipientAccount')}</span>
+            <span className="min-w-0 text-right font-bold">
               {getShortTransferBankName(recipientBank, language)} {recipientAccount}
             </span>
           </div>
-          <div className="flex justify-between py-2">
-            <span className="text-[#7B828C]">{t('transfer.amount')}</span>
-            <span className="font-bold">{amountText}</span>
+          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 py-2">
+            <span className="whitespace-nowrap text-[#7B828C]">{t('transfer.amount')}</span>
+            <span className="min-w-0 text-right font-bold">{amountText}</span>
           </div>
         </div>
       </section>

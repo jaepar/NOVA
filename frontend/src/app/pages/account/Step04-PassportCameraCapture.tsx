@@ -254,13 +254,13 @@ export function PassportCameraCapture() {
               return (
                 <div
                   key={row.id}
-                  className="grid grid-cols-[140px_1fr] border-b border-border last:border-b-0"
+                  className="grid grid-cols-[168px_minmax(0,1fr)] border-b border-border last:border-b-0"
                 >
                   <div className="px-4 py-4 flex items-center gap-3 bg-secondary/20">
                     <div className="w-10 h-10 rounded-full bg-primary-soft text-primary flex items-center justify-center shrink-0">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <p className="text-base whitespace-nowrap">{t(row.labelKey)}</p>
+                    <p className="min-w-0 text-base leading-tight break-words">{t(row.labelKey)}</p>
                   </div>
                   <div className="px-4 py-4 flex items-center">
                     <input
@@ -268,7 +268,7 @@ export function PassportCameraCapture() {
                       onChange={(event) =>
                         handleOcrValueChange(row.id, event.target.value)
                       }
-                      className="w-full bg-transparent text-base outline-none"
+                      className="w-full min-w-0 bg-transparent text-base outline-none"
                     />
                   </div>
                 </div>

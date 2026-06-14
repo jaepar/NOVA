@@ -63,7 +63,7 @@ export function Step03DocumentUpload() {
                 <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center font-semibold">
                   {index + 1}
                 </div>
-                <p className="font-medium">{doc.title}</p>
+                <p className="font-medium">{t(doc.titleKey)}</p>
               </div>
 
               <input
