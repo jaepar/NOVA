@@ -4,14 +4,20 @@ import { X } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
+import { useTranslation } from '../../i18n'
 
 interface FailedProps {
   headerTitle: string
+  headerTitleKey?: string
   task: string
+  taskKey?: string
   description?: string
+  descriptionKey?: string
   visualImageSrc?: string
   visualImageAlt?: string
+  visualImageAltKey?: string
   buttonText?: string
+  buttonTextKey?: string
   onButtonClick?: () => void
   redirectPath?: string
   backPath?: string
@@ -22,13 +28,25 @@ export function Failed({
   task,
   description,
   visualImageSrc,
-  visualImageAlt = '실패 이미지',
-  buttonText = '다시 시도',
+  visualImageAlt,
+  buttonText,
   onButtonClick,
   redirectPath = '/',
   backPath,
+  headerTitleKey,
+  taskKey,
+  descriptionKey,
+  visualImageAltKey,
+  buttonTextKey,
 }: FailedProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
+  const resolvedButtonText = buttonTextKey
+    ? t(buttonTextKey, buttonText)
+    : buttonText ?? t('common.retry')
+  const resolvedVisualImageAlt = visualImageAltKey
+    ? t(visualImageAltKey, visualImageAlt)
+    : visualImageAlt ?? t('status.failedImageAlt')
 
   const handleRetry = () => {
     if (onButtonClick) {
@@ -41,19 +59,30 @@ export function Failed({
   return (
     <MobileLayout
       title={headerTitle}
+      titleKey={headerTitleKey}
       backPath={backPath}
       bottomBackgroundColor="transparent"
       bottomContent={
         <Btn_1Col variant="primary" onClick={handleRetry}>
-          {buttonText}
+          {resolvedButtonText}
         </Btn_1Col>
       }
     >
-      <CenteredTaskContent task={task} description={description} contentGapClassName="gap-3">
+      <CenteredTaskContent
+        task={task}
+        taskKey={taskKey}
+        description={description}
+        descriptionKey={descriptionKey}
+        contentGapClassName="gap-3"
+      >
         {visualImageSrc ? (
-          <img src={visualImageSrc} alt={visualImageAlt} className="h-56 w-56 object-contain" />
+          <img
+            src={visualImageSrc}
+            alt={resolvedVisualImageAlt}
+            className="h-56 w-56 object-contain"
+          />
         ) : (
-          <FailedPopVisual label={visualImageAlt} />
+          <FailedPopVisual label={resolvedVisualImageAlt} />
         )}
       </CenteredTaskContent>
     </MobileLayout>

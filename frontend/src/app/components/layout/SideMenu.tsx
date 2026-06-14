@@ -3,6 +3,7 @@ import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 import { X, User, Settings, HelpCircle, LogOut, LogIn } from 'lucide-react'
 import { AppButton } from '../design-system/AppButton'
+import { useTranslation } from '../../i18n'
 
 interface SideMenuProps {
   isOpen: boolean
@@ -21,6 +22,7 @@ export function SideMenu({
   onLogin,
   onProfile,
 }: SideMenuProps) {
+  const { t } = useTranslation()
   const visibilityStore = useMemo(
     () =>
       createStore<{ isVisible: boolean; setIsVisible: (next: boolean) => void }>((set) => ({
@@ -44,12 +46,12 @@ export function SideMenu({
   }, [isOpen])
 
   const menuItems = [
-    { icon: <User className="w-5 h-5" />, label: '프로필', onClick: onProfile || (() => {}) },
-    { icon: <Settings className="w-5 h-5" />, label: '설정', onClick: () => {} },
-    { icon: <HelpCircle className="w-5 h-5" />, label: '고객센터', onClick: () => {} },
+    { icon: <User className="w-5 h-5" />, label: t('sideMenu.profile'), onClick: onProfile || (() => {}) },
+    { icon: <Settings className="w-5 h-5" />, label: t('sideMenu.settings'), onClick: () => {} },
+    { icon: <HelpCircle className="w-5 h-5" />, label: t('sideMenu.help'), onClick: () => {} },
     isLoggedIn
-      ? { icon: <LogOut className="w-5 h-5" />, label: '로그아웃', onClick: onLogout || (() => {}) }
-      : { icon: <LogIn className="w-5 h-5" />, label: '로그인', onClick: onLogin || (() => {}) },
+      ? { icon: <LogOut className="w-5 h-5" />, label: t('sideMenu.logout'), onClick: onLogout || (() => {}) }
+      : { icon: <LogIn className="w-5 h-5" />, label: t('sideMenu.login'), onClick: onLogin || (() => {}) },
   ]
 
   if (!isVisible) return null
@@ -73,7 +75,7 @@ export function SideMenu({
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-5 border-b border-border">
-            <h2>메뉴</h2>
+            <h2>{t('sideMenu.title')}</h2>
             <AppButton
               variant="unstyled"
               onClick={onClose}

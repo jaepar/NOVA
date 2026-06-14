@@ -13,6 +13,7 @@ export interface AccountTransaction {
   title: string
   counterParty: string
   type: string
+  rawType: string
   amount: number
   date: string
   dateTime: string

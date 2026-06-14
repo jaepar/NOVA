@@ -30,10 +30,12 @@ import woorifisa.project.backend.domain.job.dto.response.PortfolioFileResponse;
 import woorifisa.project.backend.domain.job.entity.Application;
 import woorifisa.project.backend.domain.job.entity.ApplicationResume;
 import woorifisa.project.backend.domain.job.entity.Job;
+import woorifisa.project.backend.domain.job.entity.JobTranslation;
 import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
 import woorifisa.project.backend.domain.job.repository.ApplicationResumeRepository;
 import woorifisa.project.backend.domain.job.repository.ApplicationRepository;
 import woorifisa.project.backend.domain.job.repository.JobRepository;
+import woorifisa.project.backend.domain.job.repository.JobTranslationRepository;
 import woorifisa.project.backend.domain.user.entity.Resume;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.repository.ResumeRepository;
@@ -47,6 +49,7 @@ import woorifisa.project.backend.global.exception.CustomException;
 public class JobService {
 
 	private final JobRepository jobRepository;
+	private final JobTranslationRepository jobTranslationRepository;
 	private final ApplicationRepository applicationRepository;
 	private final ApplicationResumeRepository applicationResumeRepository;
 	private final UserRepository userRepository;
@@ -55,14 +58,15 @@ public class JobService {
 	private final JdbcTemplate jdbcTemplate;
 
 	@Transactional(readOnly = true)
-	public JobOpeningListResponse getJobOpeningList(Pageable pageable) {
-		return JobOpeningListResponse.from(jobRepository.findAllBy(pageable));
+	public JobOpeningListResponse getJobOpeningList(String language, Pageable pageable) {
+		Slice<Job> jobs = jobRepository.findAllBy(pageable);
+		return JobOpeningListResponse.from(jobs, findTranslationsByJobId(jobs.getContent(), language));
 	}
 
 	@Transactional(readOnly = true)
-	public JobOpeningResponse getJobOpeningDetail(Long jobId) {
+	public JobOpeningResponse getJobOpeningDetail(Long jobId, String language) {
 		return jobRepository.findById(jobId)
-			.map(JobOpeningResponse::from)
+			.map(job -> JobOpeningResponse.from(job, findTranslation(job, language)))
 			.orElseThrow(() -> {
 				log.warn("Job opening detail lookup failed. reason=not_found jobId={}", jobId);
 				return new CustomException(APPLICATION_NOT_FOUND);
@@ -126,18 +130,60 @@ public class JobService {
 
 	// 지원 내역 전체 조회
 	@Transactional(readOnly = true)
-	public ApplicationListResponse findApplications(Long userId, Pageable pageable) {
+	public ApplicationListResponse findApplications(Long userId, String language, Pageable pageable) {
 		log.info("[job_applications_list:requested] userId={}, page={}, size={}",
 			userId, pageable.getPageNumber(), pageable.getPageSize());
 
 		Slice<Application> applications = applicationRepository.findAllByUser_UserId(userId, pageable);
 
-		ApplicationListResponse response = ApplicationListResponse.from(applications);
+		ApplicationListResponse response = ApplicationListResponse.from(
+			applications,
+			findTranslationsByJobId(applications.getContent().stream()
+				.map(Application::getJob)
+				.toList(), language)
+		);
 
 		log.info("[job_applications_list:completed] userId={}, page={}, size={}, count={}, hasNext={}",
 			userId, response.page(), response.size(), response.items().size(), response.hasNext());
 
 		return response;
+	}
+
+	private JobTranslation findTranslation(Job job, String language) {
+		String normalizedLanguage = normalizeTranslationLanguage(language);
+		if (normalizedLanguage == null) {
+			return null;
+		}
+		return jobTranslationRepository.findByJob_JobIdAndLanguage(job.getJobId(), normalizedLanguage).orElse(null);
+	}
+
+	private Map<Long, JobTranslation> findTranslationsByJobId(List<Job> jobs, String language) {
+		String normalizedLanguage = normalizeTranslationLanguage(language);
+		if (normalizedLanguage == null || jobs.isEmpty()) {
+			return Map.of();
+		}
+
+		List<Long> jobIds = jobs.stream()
+			.map(Job::getJobId)
+			.distinct()
+			.toList();
+
+		return jobTranslationRepository.findAllByJob_JobIdInAndLanguage(jobIds, normalizedLanguage)
+			.stream()
+			.collect(java.util.stream.Collectors.toMap(
+				translation -> translation.getJob().getJobId(),
+				translation -> translation,
+				(existing, replacement) -> existing
+			));
+	}
+
+	private String normalizeTranslationLanguage(String language) {
+		if (language == null || language.isBlank()) {
+			return null;
+		}
+
+		String normalizedLanguage = language.trim().toLowerCase();
+		return "ko".equals(normalizedLanguage) ? null : normalizedLanguage;
 	}
 
 	// 지원 내역 세부 조회

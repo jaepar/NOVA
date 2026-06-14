@@ -1,26 +1,28 @@
 import { useNavigate } from 'react-router-dom'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
-
-const verificationSteps = [
-  { id: 1, title: '서류 제출' },
-  { id: 2, title: 'OCR 인증' },
-  { id: 3, title: 'NFC 인증' },
-  { id: 4, title: '얼굴 인증' },
-]
+import { useTranslation } from '../../i18n'
 
 export function Step02VerificationFlow() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
+
+  const verificationSteps = [
+    { id: 1, title: t('certificate.step02step1') },
+    { id: 2, title: t('certificate.step02step2') },
+    { id: 3, title: t('certificate.step02step3') },
+    { id: 4, title: t('certificate.step02step4') },
+  ]
 
   return (
     <MobileLayout
-      title="비대면 실명확인"
+      title={t('certificate.title')}
       backPath="/certificate/step-01"
-      bottomContent={<Btn_1Col onClick={() => navigate('/certificate/step-03')}>다음</Btn_1Col>}
+      bottomContent={<Btn_1Col onClick={() => navigate('/certificate/step-03')}>{t('common.next')}</Btn_1Col>}
     >
       <div className="space-y-6 pb-2">
         <section className="pt-2">
-          <h2 className="text-2xl font-semibold leading-tight">아래의 단계로 진행할게요</h2>
+          <h2 className="text-2xl font-semibold leading-tight">{t('certificate.step02Heading')}</h2>
         </section>
 
         <section className="space-y-0">

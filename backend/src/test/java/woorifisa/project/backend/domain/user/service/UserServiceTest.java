@@ -564,14 +564,14 @@ class UserServiceTest {
 
 	@Test
 	@DisplayName("보완 서류 조회 시 REJECTED/APPROVED 상태 문서만 반환하고 missing을 콤마 기준으로 파싱한다")
-	void getCorrectionDocumentsParsesMissingItems() {
+	void getCorrectionDocumentsParsesRejectionReasonCodes() {
 		Long userId = 1L;
 		User user = User.builder().userId(userId).build();
 		Document residenceRejected = Document.builder()
 			.user(user)
 			.documentType(DocumentType.RESIDENCE_VERIFICATION_DOCUMENT)
 			.status(DocumentStatus.REJECTED)
-			.missing("주소 항목 누락, 직업 / 직업명")
+			.missing("RESIDENCE_ADDRESS_PAGE_MISSING, RESIDENCE_ISSUED_WITHIN_3_MONTHS_REQUIRED")
 			.fileUrl("url1")
 			.build();
 		Document alienApproved = Document.builder()
@@ -595,10 +595,11 @@ class UserServiceTest {
 		assertThat(result).hasSize(2);
 		assertThat(result.get(0).documentType()).isEqualTo("RESIDENCE_VERIFICATION_DOCUMENT");
 		assertThat(result.get(0).status()).isEqualTo("REJECTED");
-		assertThat(result.get(0).missingItems()).containsExactly("주소 항목 누락", "직업 / 직업명");
+		assertThat(result.get(0).rejectionReasonCodes())
+			.containsExactly("RESIDENCE_ADDRESS_PAGE_MISSING", "RESIDENCE_ISSUED_WITHIN_3_MONTHS_REQUIRED");
 		assertThat(result.get(1).documentType()).isEqualTo("ALIEN_REGISTRATION_SUPPORTING_DOCUMENT");
 		assertThat(result.get(1).status()).isEqualTo("APPROVED");
-		assertThat(result.get(1).missingItems()).isEmpty();
+		assertThat(result.get(1).rejectionReasonCodes()).isEmpty();
 	}
 
 	@Test

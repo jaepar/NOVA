@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Btn_1Col, InlineBanner } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { useTranslation } from '../../i18n'
 import {
   CorrectionDocumentCard,
   CorrectionEmptyState,
@@ -13,6 +14,7 @@ import { useCertificateCorrection } from './hooks/useCertificateCorrection'
 
 export function CertificateCorrectionDetail() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const {
     rejectedDocuments,
     files,
@@ -38,32 +40,32 @@ export function CertificateCorrectionDetail() {
   const bottomAction =
     errorMessage && rejectedDocuments.length === 0 ? (
       <Btn_1Col variant="outline" onClick={loadCorrectionDocuments}>
-        다시 불러오기
+        {t('certificate.reload')}
       </Btn_1Col>
     ) : rejectedDocuments.length > 0 ? (
       <div className="[&>button]:border-0">
         <Btn_1Col disabled={!isAllAttached || isSubmitting} onClick={handleSubmit}>
-          {isSubmitting ? '제출 중...' : '제출하기'}
+          {isSubmitting ? t('certificate.submitting') : t('certificate.submit')}
         </Btn_1Col>
       </div>
     ) : undefined
 
   return (
     <MobileLayout
-      title="보완 서류 제출"
+      title={t('certificate.correctionPageTitle')}
       backPath="/main"
       bottomContent={bottomAction}
     >
       <div className="space-y-6 pb-2">
         <p className="text-[15px] leading-relaxed text-muted-foreground">
-          아래 서류를 확인하고 누락된 항목을 보완해 주세요.
+          {t('certificate.correctionDescription')}
         </p>
 
         <CorrectionReviewProgress />
 
         <section className="rounded-2xl border border-border bg-background p-4">
           <h3 className="text-[17px] font-semibold text-foreground">
-            보완 필요 서류 ({rejectedDocuments.length})
+            {t('certificate.correctionNeededDocs')} ({rejectedDocuments.length})
           </h3>
 
           <div className="mt-4">

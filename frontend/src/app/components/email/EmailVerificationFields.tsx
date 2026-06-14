@@ -1,6 +1,7 @@
 import { AppButton } from "../design-system/AppButton";
 import { SignupInputGroup } from "../../pages/signup/components/SignupInputGroup";
 import { formatEmailVerificationTimer } from "./useEmailVerification";
+import { useTranslation } from "../../i18n";
 
 interface EmailVerificationFieldsProps {
   email: string;
@@ -42,20 +43,26 @@ export function EmailVerificationFields({
   onEmailChange,
   onVerificationCodeChange,
   onSendVerification,
-  emailLabel = "이메일",
+  emailLabel,
   emailPlaceholder = "example@email.com",
-  codeLabel = "인증번호",
-  codePlaceholder = "인증번호 6자리를 입력해주세요",
+  codeLabel,
+  codePlaceholder,
   emailAutoComplete = "email",
   codeHelperText,
   className = "",
   disabled = false,
 }: EmailVerificationFieldsProps) {
+  const { t } = useTranslation();
+  const resolvedEmailLabel = emailLabel ?? t("signup.email");
+  const resolvedCodeLabel = codeLabel ?? t("signup.code");
+  const resolvedCodePlaceholder =
+    codePlaceholder ?? t("signup.codePlaceholder");
+
   return (
     <section className={`space-y-6 ${className}`.trim()}>
       <div className="space-y-2">
         <SignupInputGroup
-          label={emailLabel}
+          label={resolvedEmailLabel}
           type="email"
           placeholder={emailPlaceholder}
           value={email}
@@ -70,22 +77,28 @@ export function EmailVerificationFields({
               disabled={disabled || !canRequestInitialCode}
               className="text-sm font-semibold text-primary disabled:cursor-not-allowed disabled:text-muted-foreground"
             >
-              {isSendingCode ? "발송 중" : "인증번호 받기"}
+              {isSendingCode
+                ? t("signup.sending")
+                : t("signup.getCode")}
             </AppButton>
           }
         />
         {email && !isEmailValid && (
-          <p className="text-sm text-red-500">올바른 이메일 형식을 입력해주세요.</p>
+          <p className="text-sm text-red-500">
+            {t("signup.invalidEmail")}
+          </p>
         )}
         {isCodeSent && (
-          <p className="text-sm text-muted-foreground">인증번호가 발송되었습니다.</p>
+          <p className="text-sm text-muted-foreground">
+            {t("signup.codeSent")}
+          </p>
         )}
       </div>
 
       <div className="space-y-2">
         <SignupInputGroup
-          label={codeLabel}
-          placeholder={codePlaceholder}
+          label={resolvedCodeLabel}
+          placeholder={resolvedCodePlaceholder}
           value={verificationCode}
           onChange={onVerificationCodeChange}
           disabled={disabled || !isCodeSent || isEmailVerified}
@@ -103,15 +116,19 @@ export function EmailVerificationFields({
             className="text-sm font-semibold text-primary disabled:cursor-not-allowed disabled:text-muted-foreground"
           >
             {resendSeconds > 0
-              ? `재전송 (${formatEmailVerificationTimer(resendSeconds)})`
-              : "재전송"}
+              ? `${t("signup.resend")} (${formatEmailVerificationTimer(resendSeconds)})`
+              : t("signup.resend")}
           </AppButton>
         )}
         {isVerifying && (
-          <p className="text-sm text-muted-foreground">인증번호를 확인하고 있습니다.</p>
+          <p className="text-sm text-muted-foreground">
+            {t("signup.verifying")}
+          </p>
         )}
         {isEmailVerified && (
-          <p className="text-sm text-primary">이메일 인증이 완료되었습니다.</p>
+          <p className="text-sm text-primary">
+            {t("signup.emailVerified")}
+          </p>
         )}
         {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
       </div>

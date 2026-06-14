@@ -1,24 +1,32 @@
-import { AppButton } from "./AppButton";
+import { AppButton } from './AppButton'
+import { useTranslation } from '../../i18n'
 
 interface Btn2ColProps {
-  leftLabel: string;
-  rightLabel: string;
-  onLeftClick?: () => void;
-  onRightClick?: () => void;
-  leftVariant?: "primary" | "secondary" | "outline";
-  rightVariant?: "primary" | "secondary" | "outline";
-  rightDisabled?: boolean;
+  leftLabel: string
+  leftLabelKey?: string
+  rightLabel: string
+  rightLabelKey?: string
+  onLeftClick?: () => void
+  onRightClick?: () => void
+  leftVariant?: 'primary' | 'secondary' | 'outline'
+  rightVariant?: 'primary' | 'secondary' | 'outline'
+  rightDisabled?: boolean
 }
 
 export function Btn_2Col({
   leftLabel,
+  leftLabelKey,
   rightLabel,
+  rightLabelKey,
   onLeftClick,
   onRightClick,
   leftVariant = "outline",
   rightVariant = "primary",
   rightDisabled = false,
 }: Btn2ColProps) {
+  const { t } = useTranslation()
+  const resolvedLeftLabel = leftLabelKey ? t(leftLabelKey, leftLabel) : leftLabel
+  const resolvedRightLabel = rightLabelKey ? t(rightLabelKey, rightLabel) : rightLabel
   const variants = {
     primary:
       "bg-primary text-primary-foreground hover:bg-primary-dark border-2 border-primary disabled:bg-secondary disabled:text-muted-foreground disabled:border-border disabled:hover:bg-secondary",
@@ -35,7 +43,7 @@ export function Btn_2Col({
         variant="unstyled"
         className={`flex-1 py-4 px-6 rounded-xl transition-all disabled:cursor-not-allowed ${variants[leftVariant]}`}
       >
-        {leftLabel}
+        {resolvedLeftLabel}
       </AppButton>
       <AppButton
         onClick={onRightClick}
@@ -43,7 +51,7 @@ export function Btn_2Col({
         variant="unstyled"
         className={`flex-1 py-4 px-6 rounded-xl transition-all disabled:cursor-not-allowed ${variants[rightVariant]}`}
       >
-        {rightLabel}
+        {resolvedRightLabel}
       </AppButton>
     </div>
   );

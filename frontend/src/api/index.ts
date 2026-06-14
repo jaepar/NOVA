@@ -23,9 +23,9 @@ export { authApi } from './endpoints/auth';
 export { certificateApi, getCertificateApiError } from './endpoints/certificate';
 export {
   emailVerificationApi,
-  getEmailVerificationApiErrorMessage,
+  getEmailVerificationApiError,
 } from './endpoints/emailVerification';
-export { userApi } from './endpoints/user';
+export { getUserApiError, userApi } from './endpoints/user';
 export type {
   AuthMessageResponse,
   EmailVerificationConfirmRequest,
@@ -55,6 +55,7 @@ export type {
   NotificationType,
   UpdateUserProfilePayload,
   UpdateUserRequestPayload,
+  UserApiErrorBody,
   UserProfilePortfolioResponse,
   UserProfileResponse,
 } from './endpoints/user';
@@ -66,6 +67,7 @@ export type {
   CorrectionDocumentType,
 } from './endpoints/certificate';
 export type {
+  EmailVerificationApiErrorBody,
   EmailVerificationConfirmResponse,
   EmailVerificationSendResponse,
 } from './endpoints/emailVerification';
@@ -106,10 +108,11 @@ export type {
   HospitalChatItem,
   HospitalChatPayload,
 } from './endpoints/hospitalChat';
-export { transferApi } from "./endpoints/transfer";
+export { getTransferApiError, transferApi } from "./endpoints/transfer";
 export type {
   SubmitRemittanceRequest,
   SubmitRemittanceResponse,
+  TransferApiErrorBody,
 } from "./endpoints/transfer";
 export { bankingApi, getBankingApiError } from './endpoints/banking';
 export type {

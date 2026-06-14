@@ -89,11 +89,12 @@ class JobControllerTest {
 			10,
 			true
 		);
-		when(jobService.getJobOpeningList(any(Pageable.class))).thenReturn(response);
+		when(jobService.getJobOpeningList(eq("en"), any(Pageable.class))).thenReturn(response);
 
 		mockMvc.perform(get("/jobs")
 				.param("page", "0")
 				.param("size", "10")
+				.param("language", "en")
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
@@ -116,6 +117,8 @@ class JobControllerTest {
 			.andExpect(jsonPath("$.data.items[0].employment_type").doesNotExist())
 			.andExpect(jsonPath("$.data.items[0].deadline_type").doesNotExist())
 			.andExpect(jsonPath("$.data.items[0].created_at").value("2026-05-13T12:30:00"));
+
+		verify(jobService).getJobOpeningList(eq("en"), any(Pageable.class));
 	}
 
 	@Test
@@ -141,9 +144,10 @@ class JobControllerTest {
 			"Seoul Gangnam-gu",
 			"Company introduction"
 		);
-		when(jobService.getJobOpeningDetail(1L)).thenReturn(response);
+		when(jobService.getJobOpeningDetail(1L, "en")).thenReturn(response);
 
 		mockMvc.perform(get("/jobs/{jobId}", 1L)
+				.param("language", "en")
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
@@ -166,12 +170,14 @@ class JobControllerTest {
 			.andExpect(jsonPath("$.data.benefits").value("Meal support, insurance"))
 			.andExpect(jsonPath("$.data.address").value("Seoul Gangnam-gu"))
 			.andExpect(jsonPath("$.data.introduce").value("Company introduction"));
+
+		verify(jobService).getJobOpeningDetail(1L, "en");
 	}
 
 	@Test
 	@DisplayName("return custom error when job opening detail does not exist")
 	void findJobOpeningNotFound() throws Exception {
-		when(jobService.getJobOpeningDetail(999L)).thenThrow(new CustomException(APPLICATION_NOT_FOUND));
+		when(jobService.getJobOpeningDetail(999L, "ko")).thenThrow(new CustomException(APPLICATION_NOT_FOUND));
 
 		mockMvc.perform(get("/jobs/{jobId}", 999L)
 				.accept(MediaType.APPLICATION_JSON))
@@ -217,7 +223,7 @@ class JobControllerTest {
 	@Test
 	@DisplayName("authenticated user can find paged application list")
 	void findApplications() throws Exception {
-		when(jobService.findApplications(eq(1L), any(Pageable.class)))
+		when(jobService.findApplications(eq(1L), eq("en"), any(Pageable.class)))
 			.thenReturn(new ApplicationListResponse(List.of(new ApplicationItem(
 				99L,
 				10L,
@@ -229,6 +235,7 @@ class JobControllerTest {
 		mockMvc.perform(get("/jobs/applications")
 				.param("page", "0")
 				.param("size", "10")
+				.param("language", "en")
 				.with(authentication(authToken()))
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
@@ -244,7 +251,7 @@ class JobControllerTest {
 			.andExpect(jsonPath("$.data.size").value(10))
 			.andExpect(jsonPath("$.data.has_next").value(true));
 
-		verify(jobService).findApplications(eq(1L), any(Pageable.class));
+		verify(jobService).findApplications(eq(1L), eq("en"), any(Pageable.class));
 	}
 
 	@Test

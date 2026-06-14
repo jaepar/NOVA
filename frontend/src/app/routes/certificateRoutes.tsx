@@ -39,9 +39,13 @@ export const certificateRoutes: RouteObject[] = [
     element: (
       <Success
         headerTitle="보완 서류 제출"
+        headerTitleKey="certificate.correctionCompleteTitle"
         task="보완 서류를 제출했어요"
+        taskKey="certificate.correctionCompleteTask"
         description={"담당자가 서류를 확인한 뒤\n알림으로 결과를 안내해드릴게요."}
+        descriptionKey="certificate.correctionCompleteDescription"
         buttonText="확인"
+        buttonTextKey="common.confirm"
         redirectPath="/main"
         headerType="none"
       />

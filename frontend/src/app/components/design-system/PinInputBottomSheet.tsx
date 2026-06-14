@@ -4,6 +4,7 @@ import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 import { BottomSheet } from '../layout/BottomSheet'
 import { AppButton } from './AppButton'
+import { useTranslation } from '../../i18n'
 
 interface PinInputBottomSheetProps {
   isOpen: boolean
@@ -16,10 +17,12 @@ interface PinInputBottomSheetProps {
 export function PinInputBottomSheet({
   isOpen,
   onClose,
-  title = '계좌 비밀번호',
+  title,
   pinLength = 4,
   onComplete,
 }: PinInputBottomSheetProps) {
+  const { t } = useTranslation()
+  const resolvedTitle = title ?? t('common.accountPassword')
   const pinStore = useMemo(
     () =>
       createStore<{ pin: string; setPin: (next: string) => void }>((set) => ({
@@ -73,7 +76,7 @@ export function PinInputBottomSheet({
     >
       <div className="space-y-5 overflow-hidden">
         <div className="min-h-[88px] flex flex-col items-center justify-center">
-          <p className="text-center">{title}</p>
+          <p className="text-center">{resolvedTitle}</p>
         </div>
 
         <div className="flex justify-center gap-3">

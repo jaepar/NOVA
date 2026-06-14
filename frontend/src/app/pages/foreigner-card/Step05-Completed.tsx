@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom'
-import { Success } from '../common/Success'
+import { useTranslation } from '../../i18n'
 import { useForeignerCardRegistrationStore } from '../../stores/pageStores'
+import { Success } from '../common/Success'
 
 export function ForeignerCardCompleted() {
   const navigate = useNavigate()
   const reset = useForeignerCardRegistrationStore((state) => state.reset)
+  const { t } = useTranslation()
 
   const handleConfirm = () => {
     reset()
@@ -13,9 +15,9 @@ export function ForeignerCardCompleted() {
 
   return (
     <Success
-      headerTitle="외국인등록증 등록"
-      task="외국인등록증 등록을 완료했어요"
-      buttonText="확인"
+      headerTitle={t('foreignerCard.title')}
+      task={t('foreignerCard.completedTask')}
+      buttonText={t('common.confirm')}
       onButtonClick={handleConfirm}
       headerType="none"
     />

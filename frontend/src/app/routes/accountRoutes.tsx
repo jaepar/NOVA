@@ -43,9 +43,13 @@ export const accountRoutes: RouteObject[] = [
     element: (
       <Success
         headerTitle="입출금계좌 개설"
+        headerTitleKey="account.openingTitle"
         task={"우리 SUPER주거래\n통장을 만들었어요"}
+        taskKey="account.completeTask"
         description="지금 바로 활용해 볼까요?"
+        descriptionKey="account.completeDescription"
         buttonText="확인"
+        buttonTextKey="common.confirm"
         redirectPath="/main"
       />
     ),
