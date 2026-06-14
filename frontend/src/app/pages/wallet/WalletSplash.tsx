@@ -4,10 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { walletApi, type WalletNextStep } from "../../../api";
 import { AppButton } from "../../components/design-system/AppButton";
 import { BottomSheet } from "../../components/layout/BottomSheet";
-import accountRequiredIcon from "./assets/account-required-icon.png";
-import accountRequiredIconWebp from "./assets/account-required-icon.webp";
-import myWalletLogo from "./assets/my-wallet-logo.png";
-import myWalletLogoWebp from "./assets/my-wallet-logo.webp";
+import accountRequiredIcon from "./assets/account-required-icon.webp";
+import myWalletLogo from "./assets/my-wallet-logo.webp";
 import { walletPrimaryButtonClass, walletSecondaryButtonClass } from "./styles";
 
 const LOGO_ONLY_DURATION_MS = 1500;
@@ -142,14 +140,11 @@ export function WalletSplash() {
               : "scale-100 opacity-100"
         }`}
       >
-        <picture>
-          <source srcSet={myWalletLogoWebp} type="image/webp" />
-          <img
-            src={myWalletLogo}
-            alt="MYWALLET"
-            className="w-full max-w-[280px] animate-in fade-in zoom-in-95 duration-700 object-contain"
-          />
-        </picture>
+        <img
+          src={myWalletLogo}
+          alt="MYWALLET"
+          className="w-full max-w-[280px] animate-in fade-in zoom-in-95 duration-700 object-contain"
+        />
       </div>
 
       <div
@@ -183,15 +178,12 @@ export function WalletSplash() {
       >
         <div className="space-y-8 pb-2">
           <div className="space-y-4 text-center">
-            <picture>
-              <source srcSet={accountRequiredIconWebp} type="image/webp" />
-              <img
-                src={accountRequiredIcon}
-                alt=""
-                aria-hidden="true"
-                className="mx-auto mb-3 h-[132px] w-[132px] object-contain"
-              />
-            </picture>
+            <img
+              src={accountRequiredIcon}
+              alt=""
+              aria-hidden="true"
+              className="mx-auto mb-3 h-[132px] w-[132px] object-contain"
+            />
 
             <h3 className="text-xl font-semibold leading-snug text-[#111111]">
               계좌 개설이 필요해요

@@ -1,5 +1,4 @@
-import wooriBankLogo from "../assets/woori-bank-logo.png";
-import wooriBankLogoWebp from "../assets/woori-bank-logo.webp";
+import wooriBankLogo from "../assets/woori-bank-logo.webp";
 
 interface WalletAccountCardProps {
   accountNumber?: string | null;
@@ -11,15 +10,12 @@ export function WalletAccountCard({ accountNumber }: WalletAccountCardProps) {
       <h2 className="text-[18px] font-semibold leading-7 text-[#111111]">출금 계좌</h2>
 
       <div className="mt-8 flex min-w-0 items-center gap-3">
-        <picture>
-          <source srcSet={wooriBankLogoWebp} type="image/webp" />
-          <img
-            src={wooriBankLogo}
-            alt=""
-            aria-hidden="true"
-            className="h-11 w-11 shrink-0 rounded-full object-cover"
-          />
-        </picture>
+        <img
+          src={wooriBankLogo}
+          alt=""
+          aria-hidden="true"
+          className="h-11 w-11 shrink-0 rounded-full object-cover"
+        />
 
         <div className="min-w-0">
           <p className="text-[16px] font-medium leading-6 text-[#111111]">우리은행</p>

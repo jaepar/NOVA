@@ -3,7 +3,7 @@ import { AppButton, novaToast } from '../../../components/design-system'
 import { useTranslation } from '../../../i18n'
 import type { AccountInfo } from '../types'
 import { formatWon } from '../utils'
-import wooriBankLogo from '../assets/woori-bank-logo.png'
+import wooriBankLogo from '../../wallet/assets/woori-bank-logo.webp'
 
 interface AccountSummaryCardProps {
   account: AccountInfo

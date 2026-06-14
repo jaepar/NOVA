@@ -16,12 +16,9 @@ import { MainJobBanner } from './main/MainJobBanner'
 import { MainServiceGrid } from './main/MainServiceGrid'
 import { MainExchangeRateGrid } from './main/MainExchangeRateGrid'
 import { MainAdBanner } from './main/MainAdBanner'
-import hospitalReservationIcon from './main/assets/hospital-reservation-icon.png'
-import hospitalReservationIconWebp from './main/assets/hospital-reservation-icon.webp'
-import registrationCardIcon from './main/assets/registration-card-icon.png'
-import registrationCardIconWebp from './main/assets/registration-card-icon.webp'
-import walletIcon from './main/assets/wallet-icon.png'
-import walletIconWebp from './main/assets/wallet-icon.webp'
+import hospitalReservationIcon from './main/assets/hospital-reservation-icon.webp'
+import registrationCardIcon from './main/assets/registration-card-icon.webp'
+import walletIcon from './main/assets/wallet-icon.webp'
 import type { ExchangeRateItem, ServiceItem } from './main/types'
 
 const LazySideMenu = lazy(async () => {
@@ -76,14 +73,11 @@ export function Main() {
     {
       id: 'hospital-chat',
       icon: (
-        <picture>
-          <source srcSet={hospitalReservationIconWebp} type="image/webp" />
-          <img
-            src={hospitalReservationIcon}
-            alt=""
-            className="h-9 w-9 object-contain"
-          />
-        </picture>
+        <img
+          src={hospitalReservationIcon}
+          alt=""
+          className="h-9 w-9 object-contain"
+        />
       ),
       label: isHospitalChatStarting ? t('main.connecting') : t('main.hospitalReservation'),
       disabled: isHospitalChatStarting,
@@ -91,14 +85,11 @@ export function Main() {
     {
       id: 'foreigner-card',
       icon: (
-        <picture>
-          <source srcSet={registrationCardIconWebp} type="image/webp" />
-          <img
-            src={registrationCardIcon}
-            alt=""
-            className="h-9 w-9 object-contain"
-          />
-        </picture>
+        <img
+          src={registrationCardIcon}
+          alt=""
+          className="h-9 w-9 object-contain"
+        />
       ),
       label: t('main.residenceCard'),
       path: '/foreigner-card/step-01',
@@ -106,14 +97,11 @@ export function Main() {
     {
       id: 'wallet',
       icon: (
-        <picture>
-          <source srcSet={walletIconWebp} type="image/webp" />
-          <img
-            src={walletIcon}
-            alt=""
-            className="h-9 w-9 rounded-lg object-cover"
-          />
-        </picture>
+        <img
+          src={walletIcon}
+          alt=""
+          className="h-9 w-9 rounded-lg object-cover"
+        />
       ),
       label: t('main.wallet'),
       path: '/wallet',
