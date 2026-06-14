@@ -90,7 +90,7 @@ export function MainAdBanner({ onClick }: MainAdBannerProps) {
               : {})}
             className="block w-full overflow-hidden rounded-2xl text-left"
           >
-            <div className="relative min-h-[120px] overflow-hidden rounded-2xl border border-[#E9D3CF] bg-[#F6E4E1] shadow-[0_10px_28px_rgba(0,60,166,0.10)]">
+            <div className="relative aspect-[464/152] overflow-hidden rounded-2xl border border-[#E9D3CF] bg-[#F6E4E1] shadow-[0_10px_28px_rgba(0,60,166,0.10)]">
               <div
                 className="flex transition-transform duration-500 ease-out"
                 style={{ transform: `translateX(-${activeIndex * 100}%)` }}
@@ -98,13 +98,13 @@ export function MainAdBanner({ onClick }: MainAdBannerProps) {
                 {bannerImages.map((bannerImage) => (
                   <picture
                     key={bannerImage.src}
-                    className="block h-[120px] w-full shrink-0"
+                    className="block h-full w-full shrink-0"
                   >
                     <source srcSet={bannerImage.srcWebp} type="image/webp" />
                     <img
                       src={bannerImage.src}
                       alt={bannerImage.alt}
-                      className="h-[120px] w-full object-cover object-center"
+                      className="h-full w-full object-cover object-center"
                     />
                   </picture>
                 ))}
@@ -129,8 +129,8 @@ export function MainAdBanner({ onClick }: MainAdBannerProps) {
         </>
       ) : (
         <>
-          <div className="min-h-[120px] overflow-hidden rounded-2xl border border-[#E9D3CF] bg-[#F6E4E1] shadow-[0_10px_28px_rgba(0,60,166,0.10)]">
-            <div className="h-[120px] w-full animate-pulse bg-[linear-gradient(90deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.42)_50%,rgba(255,255,255,0.18)_100%)] bg-[length:200%_100%]" />
+          <div className="aspect-[464/152] overflow-hidden rounded-2xl border border-[#E9D3CF] bg-[#F6E4E1] shadow-[0_10px_28px_rgba(0,60,166,0.10)]">
+            <div className="h-full w-full animate-pulse bg-[linear-gradient(90deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.42)_50%,rgba(255,255,255,0.18)_100%)] bg-[length:200%_100%]" />
           </div>
 
           <div className="flex items-center justify-center gap-1.5">
