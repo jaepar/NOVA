@@ -5,6 +5,7 @@ import { jobApi, type JobOpeningItemResponse } from '../../../api'
 import { AppButton } from '../../components/design-system/AppButton'
 import { HeaderActionButton } from '../../components/layout/HeaderActionButton'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { useTranslation } from '../../i18n'
 import {
   Select,
   SelectContent,
@@ -13,7 +14,7 @@ import {
   SelectValue,
 } from '../../components/ui/select'
 
-function formatDate(value: string) {
+function formatDate(value: string, language: string) {
   if (!value) {
     return ''
   }
@@ -23,7 +24,7 @@ function formatDate(value: string) {
     return value
   }
 
-  return date.toLocaleDateString('ko-KR', {
+  return date.toLocaleDateString(language === 'en' ? 'en-US' : 'ko-KR', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -32,6 +33,7 @@ function formatDate(value: string) {
 
 export function JobList() {
   const navigate = useNavigate()
+  const { t, language } = useTranslation()
   const [selectedRegion, setSelectedRegion] = useState('ALL')
   const [jobs, setJobs] = useState<JobOpeningItemResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -45,13 +47,13 @@ export function JobList() {
       setErrorMessage('')
 
       try {
-        const response = await jobApi.listOpenings()
+        const response = await jobApi.listOpenings({ language })
         if (isMounted) {
           setJobs(response.items)
         }
       } catch {
         if (isMounted) {
-          setErrorMessage('공고 목록을 불러오지 못했습니다.')
+          setErrorMessage(t('job.listLoadFailed'))
         }
       } finally {
         if (isMounted) {
@@ -65,7 +67,7 @@ export function JobList() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [language, t])
 
   const filteredJobs = useMemo(() => {
     if (selectedRegion === 'ALL') {
@@ -83,7 +85,8 @@ export function JobList() {
 
   return (
     <MobileLayout
-      title="구인구직"
+      title={t('job.title')}
+      titleKey="job.title"
       backPath="/main"
       headerRightContent={
         <HeaderActionButton onClick={() => navigate('/jobs/applications')} align="right">
@@ -93,21 +96,18 @@ export function JobList() {
     >
       <div className="sticky top-0 z-10 -mx-5 border-b border-border bg-background px-5 py-3">
         <div className="flex items-center justify-between gap-3">
-          <Select
-            value={selectedRegion}
-            onValueChange={setSelectedRegion}
-          >
+          <Select value={selectedRegion} onValueChange={setSelectedRegion}>
             <SelectTrigger
-              aria-label="지역 선택"
+              aria-label={t('job.regionSelect')}
               className="h-9 w-auto min-w-[96px] justify-start rounded-full border-border bg-background px-4 text-sm text-foreground shadow-none transition-colors hover:bg-secondary focus-visible:ring-primary/20"
             >
-              <span className="text-muted-foreground">지역</span>
+              <span className="text-muted-foreground">{t('job.region')}</span>
               <span className="h-3 w-px bg-border" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent align="start" className="max-h-[280px] rounded-xl">
               <SelectItem value="ALL" className="h-10">
-                전국
+                {t('job.allRegions')}
               </SelectItem>
               {regionOptions.map((region) => (
                 <SelectItem key={region} value={region} className="h-10">
@@ -118,7 +118,7 @@ export function JobList() {
           </Select>
 
           <span className="shrink-0 text-sm font-medium text-muted-foreground">
-            {filteredJobs.length}건
+            {t('job.count').replace('{count}', String(filteredJobs.length))}
           </span>
         </div>
       </div>
@@ -126,7 +126,7 @@ export function JobList() {
       <section className="-mx-5">
         {isLoading && (
           <div className="px-5 py-20 text-center">
-            <p className="text-muted-foreground">공고를 불러오는 중입니다.</p>
+            <p className="text-muted-foreground">{t('job.listLoading')}</p>
           </div>
         )}
 
@@ -151,7 +151,7 @@ export function JobList() {
                   {job.region}
                 </span>
                 <span className="shrink-0 text-[15px] text-muted-foreground">
-                  {formatDate(job.created_at)}
+                  {formatDate(job.created_at, language)}
                 </span>
               </div>
 
@@ -167,7 +167,7 @@ export function JobList() {
 
         {!isLoading && !errorMessage && filteredJobs.length === 0 && (
           <div className="px-5 py-20 text-center">
-            <p className="text-muted-foreground">해당 지역의 공고가 없습니다.</p>
+            <p className="text-muted-foreground">{t('job.emptyRegion')}</p>
           </div>
         )}
       </section>
