@@ -21,6 +21,11 @@ app.add_middleware(
 app.include_router(hospital_chat_router)
 
 
+@app.get("/health")
+async def health_check() -> dict[str, str]:
+    return {"status": "UP"}
+
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:
     # 라우트에서 발생한 HTTP 예외도 공통 응답 포맷으로 감싼다.

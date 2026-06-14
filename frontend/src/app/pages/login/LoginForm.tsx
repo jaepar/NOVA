@@ -1,26 +1,15 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { Eye, EyeOff } from "lucide-react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
-import { Btn_1Col } from "../../components/design-system/Btn_1Col";
-import { AppButton } from "../../components/design-system/AppButton";
-import { CommonInputGroup } from "../../components/design-system/CommonInputGroup";
-import { useMainPageStore } from "../../stores/pageStores";
-import { authApi } from "../../../api";
-import { completeOnboarding } from "../../utils/onboardingStorage";
-
-const LOGIN_FAILED_MESSAGE = "이메일 또는 비밀번호가 일치하지 않습니다.";
-const NETWORK_ERROR_MESSAGE =
-  "서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.";
-
-function getLoginErrorMessage(error: unknown) {
-  if (axios.isAxiosError(error) && error.response) {
-    return LOGIN_FAILED_MESSAGE;
-  }
-
-  return NETWORK_ERROR_MESSAGE;
-}
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { Eye, EyeOff } from 'lucide-react'
+import { MobileLayout } from '../../components/layout/MobileLayout'
+import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { AppButton } from '../../components/design-system/AppButton'
+import { CommonInputGroup } from '../../components/design-system/CommonInputGroup'
+import { translateError, useTranslation } from '../../i18n'
+import { useMainPageStore } from '../../stores/pageStores'
+import { authApi } from '../../../api'
+import { completeOnboarding } from '../../utils/onboardingStorage'
 
 type LoginLocationState = {
   backPath?: string;
@@ -28,20 +17,29 @@ type LoginLocationState = {
 };
 
 export function LoginForm() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const setAuthenticated = useMainPageStore((state) => state.setAuthenticated);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isPasswordVisible, setPasswordVisible] = useState(false);
-  const [isSubmitting, setSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const canSubmit =
-    email.trim().length > 0 && password.trim().length > 0 && !isSubmitting;
-  const PasswordIcon = isPasswordVisible ? EyeOff : Eye;
-  const locationState = location.state as LoginLocationState | null;
-  const backPath = locationState?.backPath ?? "/main";
-  const redirectTo = locationState?.redirectTo ?? "/main";
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { t } = useTranslation()
+  const setAuthenticated = useMainPageStore((state) => state.setAuthenticated)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isPasswordVisible, setPasswordVisible] = useState(false)
+  const [isSubmitting, setSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const canSubmit = email.trim().length > 0 && password.trim().length > 0 && !isSubmitting
+  const PasswordIcon = isPasswordVisible ? EyeOff : Eye
+  const locationState = location.state as LoginLocationState | null
+  const backPath = locationState?.backPath ?? '/main'
+  const redirectTo = locationState?.redirectTo ?? '/main'
+
+  const getLoginErrorMessage = (error: unknown) => {
+    if (axios.isAxiosError(error) && error.response) {
+      const data = error.response.data as { code?: string; message?: string } | undefined
+      return translateError(data?.code, data?.message ?? t('login.failed'))
+    }
+
+    return t('login.networkError')
+  }
 
   const handleBack = () => {
     if (backPath === "/login") {
@@ -77,25 +75,24 @@ export function LoginForm() {
 
   return (
     <MobileLayout
-      title="로그인"
+      title={t('login.formTitle')}
+      titleKey="login.formTitle"
       headerType="back"
       onBack={handleBack}
       bottomContent={
         <Btn_1Col onClick={handleSubmit} disabled={!canSubmit}>
-          {isSubmitting ? "처리 중" : "로그인"}
+          {isSubmitting ? t('login.submitting') : t('login.login')}
         </Btn_1Col>
       }
     >
       <section className="flex min-h-full flex-col pt-2">
         <section className="space-y-3">
-          <h2 className="text-2xl font-semibold leading-tight">
-            로그인을 진행할게요
-          </h2>
+          <h2 className="text-2xl font-semibold leading-tight">{t('login.formHeading')}</h2>
         </section>
 
         <div className="mt-14 space-y-9">
           <CommonInputGroup
-            label="이메일"
+            label={t('login.email')}
             type="email"
             placeholder="example@email.com"
             value={email}
@@ -106,11 +103,11 @@ export function LoginForm() {
           />
 
           <div className="flex flex-col gap-2">
-            <label className="block">비밀번호</label>
+            <label className="block">{t('login.password')}</label>
             <div className="relative">
               <input
-                type={isPasswordVisible ? "text" : "password"}
-                placeholder="비밀번호 입력"
+                type={isPasswordVisible ? 'text' : 'password'}
+                placeholder={t('login.passwordPlaceholder')}
                 value={password}
                 onChange={(event) => {
                   setPassword(event.target.value);
@@ -125,9 +122,7 @@ export function LoginForm() {
                 variant="unstyled"
                 onClick={() => setPasswordVisible((visible) => !visible)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-muted-foreground transition-colors hover:text-foreground"
-                aria-label={
-                  isPasswordVisible ? "비밀번호 숨기기" : "비밀번호 보기"
-                }
+                aria-label={isPasswordVisible ? t('login.hidePassword') : t('login.showPassword')}
               >
                 <PasswordIcon className="h-5 w-5" />
               </AppButton>

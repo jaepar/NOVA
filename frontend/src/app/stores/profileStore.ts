@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { UserProfileResponse } from '../../api'
+import { getLanguageCookie as getStoredLanguageCookie } from '../i18n'
 
 export type PortfolioFileType = 'pdf' | 'docx' | 'file'
 
@@ -32,19 +33,6 @@ interface ProfileState {
   clearProfile: () => void
 }
 
-const DEFAULT_LANGUAGE_ID = 'ko'
-const UNKNOWN_DATE_LABEL = '등록일 정보 없음'
-
-function getLanguageCookie() {
-  if (typeof document === 'undefined') return DEFAULT_LANGUAGE_ID
-
-  const languageCookie = document.cookie
-    .split('; ')
-    .find((cookie) => cookie.startsWith('NOVA_LANGUAGE='))
-
-  return languageCookie ? decodeURIComponent(languageCookie.split('=')[1]) : DEFAULT_LANGUAGE_ID
-}
-
 function inferPortfolioFileType(name: string, url?: string): PortfolioFileType {
   const target = `${name} ${url ?? ''}`.toLowerCase()
 
@@ -59,37 +47,37 @@ function inferPortfolioFileType(name: string, url?: string): PortfolioFileType {
   return 'file'
 }
 
-function formatGender(gender: string) {
+function normalizeGender(gender: string): string {
   switch (gender.toUpperCase()) {
     case 'MALE':
     case 'M':
-      return '남성'
+      return 'male'
     case 'FEMALE':
     case 'F':
-      return '여성'
+      return 'female'
     default:
       return gender || '-'
   }
 }
 
-function formatCertificateStatus(status: string) {
+function normalizeCertificateStatus(status: string): string {
   switch (status.toUpperCase()) {
     case 'ISSUED':
     case 'ACTIVE':
-      return '보유'
+      return 'owned'
     case 'NONE':
     case 'NOT_ISSUED':
-      return '미보유'
+      return 'notOwned'
     case 'PENDING':
     case 'REQUESTED':
-      return '발급 진행 중'
+      return 'pending'
     default:
       return status || '-'
   }
 }
 
-function formatBooleanStatus(value: boolean) {
-  return value ? '보유' : '미보유'
+function normalizeBooleanStatus(value: boolean): string {
+  return value ? 'owned' : 'notOwned'
 }
 
 function formatBirthDate(birth: string) {
@@ -110,21 +98,21 @@ export const useProfileStore = create<ProfileState>((set) => ({
   profile: null,
   portfolios: [],
   isProfileLoaded: false,
-  setProfileFromResponse: (payload, languageId = getLanguageCookie()) =>
+  setProfileFromResponse: (payload, languageId = getStoredLanguageCookie()) =>
     set({
       profile: {
         name: payload.name,
         email: payload.email,
         birthDate: formatBirthDate(payload.birth),
-        gender: formatGender(payload.gender),
+        gender: normalizeGender(payload.gender),
         languageId,
-        hasCertificate: formatCertificateStatus(payload.certificateStatus),
-        hasForeignerCard: formatBooleanStatus(payload.hasResidenceCard),
+        hasCertificate: normalizeCertificateStatus(payload.certificateStatus),
+        hasForeignerCard: normalizeBooleanStatus(payload.hasResidenceCard),
       },
       portfolios: payload.portfolios.map((portfolio) => ({
         portfolioId: portfolio.portfolioId,
         name: portfolio.name,
-        date: UNKNOWN_DATE_LABEL,
+        date: '',
         type: inferPortfolioFileType(portfolio.name, portfolio.url),
         url: portfolio.url,
       })),

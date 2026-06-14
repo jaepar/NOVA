@@ -4,10 +4,12 @@ import { CircleAlert, FileText, Upload, X } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { AppButton } from '../../components/design-system/AppButton'
+import { useTranslation } from '../../i18n'
 import { useStep3PageStore } from '../../stores/pageStores'
 
 export function Step03DocumentUpload() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const documents = useStep3PageStore((state) => state.documents)
   const setDocumentFile = useStep3PageStore((state) => state.setDocumentFile)
   const setDocumentError = useStep3PageStore((state) => state.setDocumentError)
@@ -46,24 +48,24 @@ export function Step03DocumentUpload() {
 
   return (
     <MobileLayout
-      title="비대면 실명확인"
+      title={t('certificate.title')}
       backPath="/certificate/step-02"
       bottomContent={
         <div className="space-y-2">
           <Btn_1Col disabled={!isAllAttached} onClick={handleNext}>
-            다음으로
+            {t('certificate.nextButton')}
           </Btn_1Col>
           <Btn_1Col variant="outline" onClick={handleSkipDocumentUploadForTest}>
-            업로드 없이 다음으로 (테스트)
+            {t('certificate.skipUploadTest')}
           </Btn_1Col>
         </div>
       }
     >
       <div className="space-y-5 pb-2">
         <section className="space-y-2">
-          <h2 className="text-2xl font-semibold leading-tight">서류를 업로드해 주세요.</h2>
+          <h2 className="text-2xl font-semibold leading-tight">{t('certificate.step03Heading')}</h2>
           <p className="text-sm text-muted-foreground">
-            아래 2개 서류를 제출해 본인 확인을 완료해 주세요.
+            {t('certificate.step03Description')}
           </p>
         </section>
 
@@ -77,7 +79,7 @@ export function Step03DocumentUpload() {
                 <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm flex items-center justify-center font-semibold">
                   {index + 1}
                 </div>
-                <p className="font-medium">{doc.title}</p>
+                <p className="font-medium">{t(doc.titleKey)}</p>
               </div>
 
               <input
@@ -91,7 +93,7 @@ export function Step03DocumentUpload() {
                   if (!file) return
                   if (!isPdfFile(file)) {
                     setDocumentFile(doc.id, null)
-                    setDocumentError(doc.id, 'PDF 파일만 첨부할 수 있습니다.')
+                    setDocumentError(doc.id, t('certificate.pdfOnlyError'))
                     event.target.value = ''
                     return
                   }
@@ -105,7 +107,7 @@ export function Step03DocumentUpload() {
                 className="w-full rounded-xl border border-dashed border-border bg-background py-5 flex items-center justify-center gap-2 text-primary hover:bg-primary-soft transition-colors"
               >
                 <Upload className="w-4 h-4" />
-                파일 첨부
+                {t('certificate.attachFile')}
               </AppButton>
 
               {doc.file && (
@@ -137,14 +139,14 @@ export function Step03DocumentUpload() {
         <section className="rounded-2xl bg-secondary p-4 space-y-3">
           <div className="flex items-center gap-2 text-primary">
             <CircleAlert className="w-5 h-5" />
-            <p className="font-medium">주의사항</p>
+            <p className="font-medium">{t('certificate.cautionTitle')}</p>
           </div>
           <ul className="text-sm text-foreground/90 space-y-2 list-disc pl-5">
-            <li>3개월 이내에 실물 외국인등록증을 인증하지 않으면 서비스 이용 자격이 정지됩니다.</li>
-            <li>서류 형태는 pdf만 가능합니다.</li>
-            <li>서류 정보가 흐리거나 가려진 경우 심사가 지연될 수 있습니다.</li>
-            <li>파일은 본인 명의 서류만 제출 바랍니다.</li>
-            <li>허위 서류 제출 시 서비스 이용이 제한될 수 있습니다.</li>
+            <li>{t('certificate.docCaution1')}</li>
+            <li>{t('certificate.docCaution2')}</li>
+            <li>{t('certificate.docCaution3')}</li>
+            <li>{t('certificate.docCaution4')}</li>
+            <li>{t('certificate.docCaution5')}</li>
           </ul>
         </section>
       </div>

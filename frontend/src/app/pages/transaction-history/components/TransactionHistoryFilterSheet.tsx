@@ -1,9 +1,7 @@
+import { useTranslation } from '../../../i18n'
 import { FilterBottomSheet } from '../../../components/design-system/FilterBottomSheet'
 import { CommonInputGroup } from '../../../components/design-system/CommonInputGroup'
 
-const periodOptions = ['1주일', '1개월', '직접입력']
-const typeOptions = ['전체', '입금', '출금']
-const sortOptions = ['최신순', '과거순']
 const searchMaxLength = 14
 
 interface DateInputProps {
@@ -57,15 +55,21 @@ export function TransactionHistoryFilterSheet({
   onCustomDateFromChange,
   onCustomDateToChange,
 }: TransactionHistoryFilterSheetProps) {
+  const { t } = useTranslation()
+
   const sections = [
     {
-      title: '조회 기간',
-      options: periodOptions.map((o) => ({ value: o, label: o })),
+      title: t('transactionHistory.periodLabel'),
+      options: [
+        { value: 'ONE_WEEK', label: t('transactionHistory.periodWeek') },
+        { value: 'ONE_MONTH', label: t('transactionHistory.periodMonth') },
+        { value: 'CUSTOM', label: t('transactionHistory.periodCustom') },
+      ],
       selectedValue: selectedPeriod,
       onSelect: onSelectPeriod,
       columns: 3 as const,
       customContent:
-        selectedPeriod === '직접입력' ? (
+        selectedPeriod === 'CUSTOM' ? (
           <div className="grid grid-cols-2 gap-3">
             <DateInput value={customDateFrom} onChange={onCustomDateFromChange} />
             <DateInput value={customDateTo} onChange={onCustomDateToChange} />
@@ -73,15 +77,22 @@ export function TransactionHistoryFilterSheet({
         ) : undefined,
     },
     {
-      title: '거래 구분',
-      options: typeOptions.map((o) => ({ value: o, label: o })),
+      title: t('transactionHistory.typeLabel'),
+      options: [
+        { value: 'ALL', label: t('transactionHistory.typeAll') },
+        { value: 'DEPOSIT', label: t('transactionHistory.typeDeposit') },
+        { value: 'WITHDRAWAL', label: t('transactionHistory.typeWithdrawal') },
+      ],
       selectedValue: selectedType,
       onSelect: onSelectType,
       columns: 3 as const,
     },
     {
-      title: '정렬 순서',
-      options: sortOptions.map((o) => ({ value: o, label: o })),
+      title: t('transactionHistory.sortLabel'),
+      options: [
+        { value: 'DESC', label: t('transactionHistory.sortLatest') },
+        { value: 'ASC', label: t('transactionHistory.sortOldest') },
+      ],
       selectedValue: selectedSort,
       onSelect: onSelectSort,
       columns: 2 as const,
@@ -92,16 +103,16 @@ export function TransactionHistoryFilterSheet({
     <FilterBottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title="조회조건 선택"
+      title={t('transactionHistory.filterTitle')}
       sections={sections}
       onApply={onApply}
-      applyButtonText="조회"
+      applyButtonText={t('transactionHistory.filterApply')}
       height="640px"
     >
       <section className="space-y-3">
-        <h4 className="text-[14px] font-semibold leading-5 text-foreground">검색</h4>
+        <h4 className="text-[14px] font-semibold leading-5 text-foreground">{t('transactionHistory.searchLabel')}</h4>
         <CommonInputGroup
-          placeholder="메모, 거래대상 검색"
+          placeholder={t('transactionHistory.searchPlaceholder')}
           value={searchKeyword}
           onChange={onSearchKeywordChange}
           showSearchIcon
@@ -109,7 +120,7 @@ export function TransactionHistoryFilterSheet({
           showCounter
         />
         <p className="text-[12px] font-medium leading-4 text-muted-foreground">
-          ⓘ 한글/영문/숫자 최대 {searchMaxLength}자까지 입력가능합니다.
+          {t('transactionHistory.searchMaxLengthHint').replace('{max}', String(searchMaxLength))}
         </p>
       </section>
     </FilterBottomSheet>

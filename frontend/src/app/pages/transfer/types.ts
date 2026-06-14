@@ -1,4 +1,6 @@
 import {
+  getShortTransferBankName,
+  getTransferBankName,
   type TransferBankOption,
   TRANSFER_BANK_OPTIONS,
 } from '../../data/accountNumberDetector'
@@ -8,6 +10,7 @@ export type BankOption = TransferBankOption
 export type MemoType = 'recipient' | 'sender'
 
 export const BANK_OPTIONS = TRANSFER_BANK_OPTIONS as BankOption[]
+export { getShortTransferBankName, getTransferBankName }
 export const REQUIRED_ACCOUNT_LENGTH = 10
 export const SOURCE_BANK = BANK_OPTIONS.find((bank) => bank.id === 'woori') ?? BANK_OPTIONS[0]
 export const SOURCE_ACCOUNT = '1002-867-390781'
@@ -49,7 +52,10 @@ export function normalizeAccountNumber(value: string) {
   return value.replace(/\D/g, '').slice(0, 14)
 }
 
-export function formatCurrency(value: string) {
+export function formatCurrency(value: string, language = 'ko') {
   const amount = Number(value || '0')
+  if (language === 'en') {
+    return `KRW ${amount.toLocaleString('en-US')}`
+  }
   return `${amount.toLocaleString('ko-KR')}원`
 }

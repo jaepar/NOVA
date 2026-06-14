@@ -1,10 +1,16 @@
 import apiClient from "../client";
+import { extractApiErrorBody } from "../utils";
 
 type TransferApiResponse<T> = {
   success: boolean;
   code: string;
   message: string;
   data: T;
+};
+
+export type TransferApiErrorBody = {
+  code: string;
+  message: string;
 };
 
 export type SubmitRemittanceRequest = {
@@ -53,3 +59,7 @@ export const transferApi = {
     return response.data.data;
   },
 };
+
+export function getTransferApiError(error: unknown): TransferApiErrorBody | null {
+  return extractApiErrorBody<TransferApiErrorBody>(error);
+}

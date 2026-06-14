@@ -2,27 +2,30 @@ import { ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { AppButton, Btn_1Col } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { useTranslation } from '../../i18n'
 import { formatCurrency } from './types'
 import { useTransferStore } from './transferStore'
 import { TransferAccountSummary } from './components/TransferAccountSummary'
 
 export function TransferAmountConfirm() {
   const navigate = useNavigate()
+  const { t, language } = useTranslation()
   const amount = useTransferStore((state) => state.amount)
   const preview = useTransferStore((state) => state.preview)
   const recipientMemoName = useTransferStore((state) => state.recipientMemoName)
   const senderMemoName = useTransferStore((state) => state.senderMemoName)
-  const amountText = formatCurrency(amount)
-  const balanceText = formatCurrency(String(preview?.myAccount.balance ?? 0))
+  const amountText = formatCurrency(amount, language)
+  const balanceText = formatCurrency(String(preview?.myAccount.balance ?? 0), language)
 
   return (
     <MobileLayout
-      title="이체"
+      title={t('transfer.title')}
+      titleKey="transfer.title"
       headerType="back"
       onBack={() => navigate('/transfer/amount')}
       bottomContent={
         <Btn_1Col onClick={() => navigate('/transfer/review')}>
-          다음
+          {t('transfer.amountConfirm.next')}
         </Btn_1Col>
       }
     >
@@ -36,7 +39,7 @@ export function TransferAmountConfirm() {
         >
           <h2 className="text-[36px] font-bold leading-tight text-[#050B2D]">{amountText}</h2>
           <p className="mt-2 text-[16px] font-semibold text-[#30343B]">
-            출금 가능 금액 {balanceText}
+            {t('transfer.amountConfirm.withdrawable')} {balanceText}
           </p>
         </AppButton>
 
@@ -47,7 +50,7 @@ export function TransferAmountConfirm() {
             onClick={() => navigate('/transfer/memo/recipient')}
             className="flex w-full items-center justify-between text-left"
           >
-            <span>받는 분 통장표기</span>
+            <span>{t('transfer.amountConfirm.recipientMemo')}</span>
             <span className="flex items-center gap-3 text-[#59606A]">
               {recipientMemoName}
               <ChevronRight className="h-5 w-5" />
@@ -59,7 +62,7 @@ export function TransferAmountConfirm() {
             onClick={() => navigate('/transfer/memo/sender')}
             className="flex w-full items-center justify-between text-left"
           >
-            <span>내 통장표기</span>
+            <span>{t('transfer.amountConfirm.senderMemo')}</span>
             <span className="flex items-center gap-3 text-[#59606A]">
               {senderMemoName}
               <ChevronRight className="h-5 w-5" />

@@ -93,21 +93,24 @@ public class AuthService {
             throw new CustomException(PASSWORD_NOT_MATCHED);
         }
 
-        httpRequest.getSession();
+        httpRequest.getSession(true);
         httpRequest.changeSessionId();
-        HttpSession session = httpRequest.getSession();
+        HttpSession session = httpRequest.getSession(false);
         session.setAttribute("userId", user.getUserId());
+        log.info("login session created. sessionClass={}, sessionId={}, userId={}",
+                session.getClass().getName(),
+                session.getId(),
+                user.getUserId());
         return LoginResponse.from(user.getUserId());
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new CustomException(UNAUTHORIZED_SESSION);
+        if (session != null) {
+            session.invalidate();
         }
 
-        session.invalidate();
-        expireSessionCookie(request, response);
+        expireCookie(request, response, "JSESSIONID");
         SecurityContextHolder.clearContext();
     }
 
@@ -197,8 +200,8 @@ public class AuthService {
         return String.format(EMAIL_VERIFICATION_COOLDOWN_KEY, email);
     }
 
-    private void expireSessionCookie(HttpServletRequest request, HttpServletResponse response) {
-        Cookie cookie = new Cookie("JSESSIONID", null);
+    private void expireCookie(HttpServletRequest request, HttpServletResponse response, String cookieName) {
+        Cookie cookie = new Cookie(cookieName, null);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(request.isSecure());

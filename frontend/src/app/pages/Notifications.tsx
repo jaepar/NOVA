@@ -2,57 +2,58 @@ import { useState } from 'react'
 import { Bell, CheckCircle, AlertCircle, Info, Gift } from 'lucide-react'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import { AppButton } from '../components/design-system/AppButton'
+import { useTranslation } from '../i18n'
 
 interface Notification {
   id: string
   type: 'success' | 'info' | 'alert' | 'event'
-  title: string
-  message: string
-  time: string
+  titleKey: string
+  messageKey: string
+  timeKey: string
   isRead: boolean
 }
 
 export function Notifications() {
-  // TODO: 실제 구현 시 API에서 가져올 데이터
+  const { t } = useTranslation()
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: '1',
       type: 'success',
-      title: '송금 완료',
-      message: '김철수님에게 50,000원 송금이 완료되었습니다.',
-      time: '5분 전',
+      titleKey: 'notifications.sample.transferTitle',
+      messageKey: 'notifications.sample.transferMessage',
+      timeKey: 'notifications.sample.fiveMinutesAgo',
       isRead: false,
     },
     {
       id: '2',
       type: 'info',
-      title: '환율 변동 알림',
-      message: 'USD 환율이 1,340.50원으로 변경되었습니다.',
-      time: '1시간 전',
+      titleKey: 'notifications.sample.exchangeTitle',
+      messageKey: 'notifications.sample.exchangeMessage',
+      timeKey: 'notifications.sample.oneHourAgo',
       isRead: false,
     },
     {
       id: '3',
       type: 'event',
-      title: '이벤트 안내',
-      message: '신규 고객 환전 수수료 할인 이벤트가 진행중입니다.',
-      time: '3시간 전',
+      titleKey: 'notifications.sample.eventTitle',
+      messageKey: 'notifications.sample.eventMessage',
+      timeKey: 'notifications.sample.threeHoursAgo',
       isRead: true,
     },
     {
       id: '4',
       type: 'alert',
-      title: '보안 알림',
-      message: '새로운 기기에서 로그인이 감지되었습니다.',
-      time: '1일 전',
+      titleKey: 'notifications.sample.securityTitle',
+      messageKey: 'notifications.sample.securityMessage',
+      timeKey: 'notifications.sample.oneDayAgo',
       isRead: true,
     },
     {
       id: '5',
       type: 'info',
-      title: '계좌 입금',
-      message: '100,000원이 입금되었습니다.',
-      time: '2일 전',
+      titleKey: 'notifications.sample.depositTitle',
+      messageKey: 'notifications.sample.depositMessage',
+      timeKey: 'notifications.sample.twoDaysAgo',
       isRead: true,
     },
   ])
@@ -72,30 +73,32 @@ export function Notifications() {
 
   const handleNotificationClick = (id: string) => {
     setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, isRead: true } : notif))
+      prev.map((notification) =>
+        notification.id === id ? { ...notification, isRead: true } : notification
+      )
     )
   }
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length
+  const unreadCount = notifications.filter((notification) => !notification.isRead).length
 
   return (
-    <MobileLayout title="알림" headerType="close" closePath="/main">
+    <MobileLayout title={t('notifications.title')} titleKey="notifications.title" headerType="close" closePath="/main">
       <div className="space-y-4 pb-8">
-        {/* Header Info */}
         {unreadCount > 0 && (
           <div className="bg-primary-soft border border-primary-light/30 p-4 rounded-xl">
-            <p className="text-sm text-primary">읽지 않은 알림 {unreadCount}개가 있습니다.</p>
+            <p className="text-sm text-primary">
+              {t('notifications.unreadCount').replace('{count}', String(unreadCount))}
+            </p>
           </div>
         )}
 
-        {/* Notifications List */}
         <div className="space-y-3">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <Bell className="w-16 h-16 text-muted-foreground mb-4" />
-              <h3 className="text-muted-foreground mb-2">알림이 없습니다</h3>
+              <h3 className="text-muted-foreground mb-2">{t('notifications.emptyTitle')}</h3>
               <p className="text-sm text-muted-foreground">
-                새로운 알림이 도착하면 여기에 표시됩니다.
+                {t('notifications.emptyDescription')}
               </p>
             </div>
           ) : (
@@ -115,7 +118,7 @@ export function Notifications() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h4 className={`break-words ${notification.isRead ? 'text-muted-foreground' : ''}`}>
-                        {notification.title}
+                        {t(notification.titleKey)}
                       </h4>
                       {!notification.isRead && (
                         <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2"></span>
@@ -126,9 +129,9 @@ export function Notifications() {
                         notification.isRead ? 'text-muted-foreground' : 'text-foreground'
                       }`}
                     >
-                      {notification.message}
+                      {t(notification.messageKey)}
                     </p>
-                    <p className="text-xs text-muted-foreground">{notification.time}</p>
+                    <p className="text-xs text-muted-foreground">{t(notification.timeKey)}</p>
                   </div>
                 </div>
               </AppButton>

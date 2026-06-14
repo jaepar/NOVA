@@ -4,6 +4,7 @@ import { SlidersHorizontal } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Switch } from '../../components/ui/switch'
+import { useTranslation } from '../../i18n'
 import { useTransactionHistoryStore } from './store'
 import { groupTransactionsByMonth } from './utils'
 import { AccountSummaryCard } from './components/AccountSummaryCard'
@@ -21,11 +22,12 @@ interface TransactionFilterDraft {
 
 export function TransactionHistoryPage() {
   const navigate = useNavigate()
+  const { t, language } = useTranslation()
   const [isFilterOpen, setFilterOpen] = useState(false)
   const [filterDraft, setFilterDraft] = useState<TransactionFilterDraft>({
-    selectedPeriod: '1개월',
-    selectedType: '전체',
-    selectedSort: '최신순',
+    selectedPeriod: 'ONE_MONTH',
+    selectedType: 'ALL',
+    selectedSort: 'DESC',
     searchKeyword: '',
     customDateFrom: '',
     customDateTo: '',
@@ -58,7 +60,7 @@ export function TransactionHistoryPage() {
     void fetchInitialData()
   }, [fetchInitialData])
 
-  const groupedTransactions = groupTransactionsByMonth(transactions)
+  const groupedTransactions = groupTransactionsByMonth(transactions, language)
   const showEmptyState = !isLoading && !errorMessage && groupedTransactions.length === 0
   const showLastTransactionNotice = !isLoading && transactions.length > 0 && !hasNext
   const openFilterSheet = () => {
@@ -75,7 +77,12 @@ export function TransactionHistoryPage() {
 
   return (
     <>
-      <MobileLayout title="거래내역조회" headerType="back" backPath="/main">
+      <MobileLayout
+        title={t('transactionHistory.title')}
+        titleKey="transactionHistory.title"
+        headerType="back"
+        backPath="/main"
+      >
         <div className="-mx-5">
           {account && (
             <AccountSummaryCard account={account} onTransferClick={() => navigate('/transfer')} />
@@ -89,15 +96,15 @@ export function TransactionHistoryPage() {
                 variant="unstyled"
                 onClick={openFilterSheet}
                 className="inline-flex h-7 shrink-0 items-center gap-1 px-0 text-[13px] font-semibold leading-none text-foreground"
-                aria-label="필터 열기"
+                aria-label={t('transactionHistory.filterLabel')}
               >
-                <span>필터</span>
+                <span>{t('transactionHistory.filterLabel')}</span>
                 <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
               </AppButton>
 
               <div className="flex shrink-0 items-center gap-2">
                 <span className="text-[13px] font-semibold leading-5 text-muted-foreground">
-                  잔액표시
+                  {t('transactionHistory.showBalance')}
                 </span>
                 <Switch checked={showBalance} onCheckedChange={setShowBalance} />
               </div>
@@ -106,13 +113,13 @@ export function TransactionHistoryPage() {
             <div className="mt-5 space-y-6">
               {errorMessage && (
                 <div className="rounded-lg bg-destructive/10 px-4 py-3 text-[13px] font-semibold text-destructive">
-                  {errorMessage}
+                  {t(errorMessage as Parameters<typeof t>[0], errorMessage ?? '')}
                 </div>
               )}
 
               {isLoading && groupedTransactions.length === 0 && (
                 <div className="py-12 text-center text-[14px] font-medium text-muted-foreground">
-                  거래내역을 불러오는 중입니다.
+                  {t('transactionHistory.loading')}
                 </div>
               )}
 
@@ -128,7 +135,7 @@ export function TransactionHistoryPage() {
 
               {showEmptyState && (
                 <div className="py-12 text-center text-[14px] font-medium text-muted-foreground">
-                  거래내역이 없습니다.
+                  {t('transactionHistory.notFound')}
                 </div>
               )}
 
@@ -139,13 +146,13 @@ export function TransactionHistoryPage() {
                   disabled={isLoading}
                   className="h-11 w-full rounded-lg text-[14px] font-semibold"
                 >
-                  {isLoading ? '불러오는 중' : '더보기'}
+                  {isLoading ? t('common.loading') : t('transactionHistory.loadMore')}
                 </AppButton>
               )}
 
               {showLastTransactionNotice && (
                 <div className="py-4 text-center text-[13px] font-semibold text-muted-foreground">
-                  마지막 거래내역입니다.
+                  {t('transactionHistory.lastRecord')}
                 </div>
               )}
             </div>

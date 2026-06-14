@@ -1,13 +1,14 @@
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, ChevronDown, Eye, EyeOff, FileText, Plus, Trash2 } from 'lucide-react'
-import { userApi } from '../../../api'
+import { getUserApiError, userApi } from '../../../api'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
 import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { languages } from '../../data/languages'
+import { getLanguageCookie, setLanguageCookie, translateError, useTranslation } from '../../i18n'
 import { useMainPageStore } from '../../stores/pageStores'
 import { PortfolioFileType, PortfolioItem, useProfileStore } from '../../stores/profileStore'
 
@@ -61,12 +62,13 @@ function getPortfolioFileType(file: File): PortfolioFileType {
 
 export function ProfileEdit() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const isLoggedIn = useMainPageStore((state) => state.isLoggedIn)
   const profile = useProfileStore((state) => state.profile)
   const storedPortfolios = useProfileStore((state) => state.portfolios)
   const setProfileFromResponse = useProfileStore((state) => state.setProfileFromResponse)
-  const [language, setLanguage] = useState(profile?.languageId ?? 'ko')
+  const [language, setLanguage] = useState(profile?.languageId ?? getLanguageCookie())
   const [isLanguageSheetOpen, setLanguageSheetOpen] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
@@ -90,13 +92,14 @@ export function ProfileEdit() {
 
     try {
       const response = await userApi.getProfile()
-      setProfileFromResponse(response, profile?.languageId)
+      setProfileFromResponse(response)
     } catch (error) {
-      setErrorMessage('프로필 정보를 불러오지 못했습니다.')
+      const apiError = getUserApiError(error)
+      setErrorMessage(translateError(apiError?.code, apiError?.message || t('profile.loadFailedFallback')))
     } finally {
       setIsLoading(false)
     }
-  }, [isLoggedIn, profile?.languageId, setProfileFromResponse])
+  }, [isLoggedIn, setProfileFromResponse, t])
 
   useEffect(() => {
     if (isLoggedIn && !profile) {
@@ -181,7 +184,7 @@ export function ProfileEdit() {
     }
 
     if (!portfolio.portfolioId) {
-      setPortfolioError('삭제할 포트폴리오 정보를 확인할 수 없습니다.')
+      setPortfolioError(t('profile.portfolioDeleteError'))
       return
     }
 
@@ -210,64 +213,67 @@ export function ProfileEdit() {
         portfolioFiles: newPortfolioFiles,
       })
 
-      for (const deletePortfolioId of remainingDeletePortfolioIds) {
-        await userApi.updateProfile({
-          request: {
-            deletePortfolioId,
-          },
-        })
+      await Promise.all(
+        remainingDeletePortfolioIds.map((deletePortfolioId) =>
+          userApi.updateProfile({ request: { deletePortfolioId } })
+        )
+      )
+
+      if (isLanguageChanged) {
+        setLanguageCookie(language)
       }
 
       const latestProfile = await userApi.getProfile()
       setProfileFromResponse(latestProfile, language)
       navigate('/mypage')
     } catch (error) {
-      setErrorMessage('회원정보를 저장하지 못했습니다. 입력값을 확인해주세요.')
+      const apiError = getUserApiError(error)
+      setErrorMessage(translateError(apiError?.code, apiError?.message || t('profile.saveFailed')))
     } finally {
       setIsSaving(false)
     }
   }
 
   const bottomContent = !isLoggedIn ? (
-    <Btn_1Col onClick={() => navigate('/login/form')}>로그인하기</Btn_1Col>
+    <Btn_1Col onClick={() => navigate('/login/form')}>{t('profile.login')}</Btn_1Col>
   ) : undefined
 
   return (
     <MobileLayout
-      title="회원정보 수정"
+      title={t('profile.editTitle')}
       headerType="back"
       backPath="/mypage"
       bottomContent={bottomContent}
     >
       {!isLoggedIn ? (
         <CenteredTaskContent
-          task="로그인이 필요합니다"
-          description="프로필 정보를 수정하려면 먼저 로그인해주세요."
+          task={t('profile.loginRequiredTask')}
+          description={t('profile.editLoginRequiredDescription')}
         />
       ) : isLoading ? (
         <CenteredTaskContent
-          task="프로필 정보를 불러오고 있습니다"
-          description="잠시만 기다려주세요."
+          task={t('profile.loadingTask')}
+          description={t('profile.loadingDescription')}
         />
       ) : errorMessage && !profile ? (
-        <CenteredTaskContent task={errorMessage} description="잠시 후 다시 시도해주세요.">
-          <Btn_1Col onClick={loadProfile}>다시 시도</Btn_1Col>
+        <CenteredTaskContent task={errorMessage} description={t('profile.retryDescription')}>
+          <Btn_1Col onClick={loadProfile}>{t('profile.retry')}</Btn_1Col>
         </CenteredTaskContent>
       ) : profile ? (
         <div className="-mb-32 space-y-6 pb-3 pt-3">
           <section className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              변경 가능한 정보만 수정할 수 있습니다.
+              {t('profile.editableInfoNote')}
             </p>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-foreground">언어 설정</label>
+              <label className="block text-sm font-medium text-foreground">{t('profile.languageSetting')}</label>
               <AppButton
                 type="button"
                 variant="unstyled"
                 onClick={() => setLanguageSheetOpen(true)}
                 className="mt-[6px] flex w-full items-center justify-between rounded-lg border border-border bg-input-background px-4 py-3 text-left text-base transition-all focus:outline-none focus:ring-2 focus:ring-primary"
-                aria-label="언어 설정"
+                aria-label={t('profile.languageSetting')}
               >
                 <span className="flex min-w-0 items-center gap-3">
                   <span className="text-xl">{selectedLanguage.flag}</span>
@@ -276,24 +282,24 @@ export function ProfileEdit() {
                 <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground" />
               </AppButton>
               <p className="text-xs text-muted-foreground">
-                언어를 변경하면 다음 요청부터 적용됩니다.
+                {t('profile.languageChangeNote')}
               </p>
             </div>
           </section>
 
           <section className="space-y-4">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">비밀번호 변경</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t('profile.passwordChangeTitle')}</h3>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-foreground">현재 비밀번호</label>
+              <label className="block text-sm font-medium text-foreground">{t('profile.currentPassword')}</label>
               <div className="relative">
                 <input
                   type={isCurrentPasswordVisible ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(event) => setCurrentPassword(event.target.value)}
-                  placeholder="현재 비밀번호 입력"
+                  placeholder={t('profile.currentPasswordPlaceholder')}
                   autoComplete="current-password"
                   className="mt-[6px] w-full rounded-lg border border-border bg-input-background py-3 pl-4 pr-12 transition-all focus:outline-none focus:ring-2 focus:ring-primary"
                   style={{ fontSize: '16px' }}
@@ -303,18 +309,18 @@ export function ProfileEdit() {
                   variant="unstyled"
                   onClick={() => setCurrentPasswordVisible((visible) => !visible)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label={isCurrentPasswordVisible ? '현재 비밀번호 숨기기' : '현재 비밀번호 보기'}
+                  aria-label={isCurrentPasswordVisible ? t('profile.hideCurrentPassword') : t('profile.showCurrentPassword')}
                 >
                   <CurrentPasswordIcon className="h-5 w-5" />
                 </AppButton>
               </div>
               {isCurrentPasswordMissing ? (
-                <p className="text-xs text-red-500">현재 비밀번호를 입력해주세요.</p>
+                <p className="text-xs text-red-500">{t('profile.currentPasswordRequired')}</p>
               ) : null}
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-foreground">새 비밀번호 입력</label>
+              <label className="block text-sm font-medium text-foreground">{t('profile.newPassword')}</label>
               <div className="relative">
                 <input
                   type={isPasswordVisible ? 'text' : 'password'}
@@ -323,7 +329,7 @@ export function ProfileEdit() {
                     setPassword(event.target.value)
                     setPasswordInputCompleted(false)
                   }}
-                  placeholder="새 비밀번호 입력"
+                  placeholder={t('profile.newPasswordPlaceholder')}
                   autoComplete="off"
                   className="mt-[6px] w-full rounded-lg border border-border bg-input-background py-3 pl-4 pr-12 transition-all focus:outline-none focus:ring-2 focus:ring-primary"
                   style={{ fontSize: '16px' }}
@@ -333,35 +339,29 @@ export function ProfileEdit() {
                   variant="unstyled"
                   onClick={() => setPasswordVisible((visible) => !visible)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
+                  aria-label={isPasswordVisible ? t('login.hidePassword') : t('login.showPassword')}
                 >
                   <PasswordIcon className="h-5 w-5" />
                 </AppButton>
               </div>
               {isPasswordFormatInvalid ? (
-                <p className="text-xs text-red-500">
-                  영문, 숫자, 특수문자 포함 8~16자로 입력해주세요.
-                </p>
+                <p className="text-xs text-red-500">{t('profile.passwordFormatHint')}</p>
               ) : isSameAsCurrentPassword ? (
-                <p className="text-xs text-red-500">
-                  새 비밀번호는 현재 비밀번호와 다르게 입력해주세요.
-                </p>
+                <p className="text-xs text-red-500">{t('profile.passwordSameAsCurrent')}</p>
               ) : (
-                <p className="text-xs text-muted-foreground">
-                  영문, 숫자, 특수문자 포함 8~16자로 입력해주세요.
-                </p>
+                <p className="text-xs text-muted-foreground">{t('profile.passwordFormatHint')}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-foreground">새 비밀번호 확인</label>
+              <label className="block text-sm font-medium text-foreground">{t('profile.passwordConfirmLabel')}</label>
               <div className="relative">
                 <input
                   type={isPasswordConfirmVisible ? 'text' : 'password'}
                   value={passwordConfirm}
                   onChange={(event) => setPasswordConfirm(event.target.value)}
                   onFocus={() => setPasswordInputCompleted(password.length > 0)}
-                  placeholder="새 비밀번호 확인"
+                  placeholder={t('profile.passwordConfirmPlaceholder')}
                   autoComplete="off"
                   className="mt-[6px] w-full rounded-lg border border-border bg-input-background py-3 pl-4 pr-12 transition-all focus:outline-none focus:ring-2 focus:ring-primary"
                   style={{ fontSize: '16px' }}
@@ -371,28 +371,24 @@ export function ProfileEdit() {
                   variant="unstyled"
                   onClick={() => setPasswordConfirmVisible((visible) => !visible)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label={
-                    isPasswordConfirmVisible ? '비밀번호 확인 숨기기' : '비밀번호 확인 보기'
-                  }
+                  aria-label={isPasswordConfirmVisible ? t('profile.hidePasswordConfirm') : t('profile.showPasswordConfirm')}
                 >
                   <PasswordConfirmIcon className="h-5 w-5" />
                 </AppButton>
               </div>
               {shouldShowPasswordConfirmMissing ? (
-                <p className="text-xs text-red-500">
-                  새 비밀번호와 새 비밀번호 확인을 모두 입력해주세요.
-                </p>
+                <p className="text-xs text-red-500">{t('profile.passwordConfirmRequired')}</p>
               ) : isPasswordMismatch ? (
-                <p className="text-xs text-red-500">비밀번호가 일치하지 않습니다.</p>
+                <p className="text-xs text-red-500">{t('profile.passwordMismatch')}</p>
               ) : null}
             </div>
           </section>
 
           <section className="space-y-3">
             <div>
-              <h3 className="text-sm font-semibold text-foreground">포트폴리오 관리</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t('profile.portfolioManageTitle')}</h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                포트폴리오를 추가하거나 삭제할 수 있습니다.
+                {t('profile.portfolioManageNote')}
               </p>
             </div>
 
@@ -425,7 +421,7 @@ export function ProfileEdit() {
                         variant="unstyled"
                         onClick={() => handleRemovePortfolio(portfolio, index)}
                         className="shrink-0 rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50"
-                        aria-label={`${portfolio.name} 삭제`}
+                        aria-label={`${portfolio.name} ${t('common.cancel')}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </AppButton>
@@ -442,7 +438,7 @@ export function ProfileEdit() {
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border px-4 py-4 text-sm font-medium text-primary transition-colors hover:bg-primary-soft"
             >
               <Plus className="h-5 w-5" />
-              포트폴리오 추가
+              {t('profile.portfolioAdd')}
             </AppButton>
             <input
               ref={fileInputRef}
@@ -459,16 +455,16 @@ export function ProfileEdit() {
 
           <section>
             <Btn_1Col disabled={!canSave} onClick={handleSave}>
-              {isSaving ? '저장 중' : '저장하기'}
+              {isSaving ? t('common.saving') : t('common.save')}
             </Btn_1Col>
           </section>
         </div>
       ) : (
         <CenteredTaskContent
-          task="프로필 정보가 없습니다"
-          description="프로필 정보를 다시 불러와주세요."
+          task={t('profile.emptyTask')}
+          description={t('profile.emptyDescription')}
         >
-          <Btn_1Col onClick={loadProfile}>다시 시도</Btn_1Col>
+          <Btn_1Col onClick={loadProfile}>{t('profile.retry')}</Btn_1Col>
         </CenteredTaskContent>
       )}
 
@@ -476,7 +472,7 @@ export function ProfileEdit() {
         <BottomSheet
           isOpen={isLanguageSheetOpen}
           onClose={() => setLanguageSheetOpen(false)}
-          title="언어 설정"
+          title={t('profile.languageSetting')}
           height="560px"
         >
           <div className="space-y-2 pb-2">

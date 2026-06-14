@@ -3,9 +3,11 @@ import { Btn_1Col } from '../components/design-system/Btn_1Col'
 import { AppButton } from '../components/design-system/AppButton'
 import { MobileLayout } from '../components/layout/MobileLayout'
 import landingIllustrationSrc from './main/assets/header-brand-wordmark.png'
+import { useTranslation } from '../i18n'
 
 export function Landing() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   return (
     <div className="h-full bg-background w-full relative">
@@ -15,14 +17,14 @@ export function Landing() {
           onClick={() => navigate('/language')}
           className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          Language
+          {t('language.title')}
         </AppButton>
       </div>
 
       <MobileLayout
         title=""
         headerType="none"
-        bottomContent={<Btn_1Col onClick={() => navigate('/language')}>시작하기</Btn_1Col>}
+        bottomContent={<Btn_1Col onClick={() => navigate('/language')}>{t('landing.start')}</Btn_1Col>}
       >
         <div className="flex min-h-full flex-col items-center justify-center">
           <div className="flex flex-col items-center">
@@ -31,8 +33,8 @@ export function Landing() {
               alt="NOVA"
               className="h-auto w-[250px] object-contain"
             />
-            <h2 className="mt-3 text-center text-sm text-muted-foreground">
-              한국에서의 첫 금융 생활
+            <h2 className="-mt-2 text-center text-sm text-muted-foreground">
+              {t('landing.subtitle')}
             </h2>
           </div>
         </div>

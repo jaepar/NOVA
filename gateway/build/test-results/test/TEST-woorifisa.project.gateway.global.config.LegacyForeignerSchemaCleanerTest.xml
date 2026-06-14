@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="woorifisa.project.gateway.global.config.LegacyForeignerSchemaCleanerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-06-02T05:41:02.464Z" hostname="bagjaehaui-MacBookAir.local" time="0.811">
-  <properties/>
-  <testcase name="기존 registration_number 컬럼이 남아 있으면 삭제한다" classname="woorifisa.project.gateway.global.config.LegacyForeignerSchemaCleanerTest" time="0.781"/>
-  <testcase name="기존 registration_number 컬럼이 없으면 스키마를 변경하지 않는다" classname="woorifisa.project.gateway.global.config.LegacyForeignerSchemaCleanerTest" time="0.009"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

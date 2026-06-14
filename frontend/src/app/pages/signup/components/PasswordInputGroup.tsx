@@ -1,5 +1,6 @@
 import { Eye, EyeOff } from "lucide-react";
 import { AppButton } from "../../../components/design-system/AppButton";
+import { useTranslation } from "../../../i18n";
 
 interface PasswordInputGroupProps {
   label: string;
@@ -18,6 +19,7 @@ export function PasswordInputGroup({
   visible,
   onToggleVisible,
 }: PasswordInputGroupProps) {
+  const { t } = useTranslation();
   const Icon = visible ? EyeOff : Eye;
 
   return (
@@ -37,7 +39,7 @@ export function PasswordInputGroup({
           variant="unstyled"
           onClick={onToggleVisible}
           className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-foreground"
-          aria-label={visible ? "비밀번호 숨기기" : "비밀번호 보기"}
+          aria-label={visible ? t('login.hidePassword') : t('login.showPassword')}
         >
           <Icon className="h-5 w-5" />
         </AppButton>

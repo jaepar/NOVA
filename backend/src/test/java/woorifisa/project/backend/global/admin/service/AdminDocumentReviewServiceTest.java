@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.DOCUMENT_REVIEW_SOURCE_STATUS_INVALID;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import woorifisa.project.backend.domain.user.entity.Document;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
+import woorifisa.project.backend.domain.user.entity.enums.DocumentRejectionReasonCode;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
@@ -81,7 +83,12 @@ class AdminDocumentReviewServiceTest {
 			DocumentStatus.APPROVED
 		)).thenReturn("https://s3/documents/1_RESIDENCE_VERIFICATION_DOCUMENT_APPROVED.pdf");
 
-		adminDocumentReviewService.reviewDocument(userId, "RESIDENCE_PROOF", "APPROVED", "name");
+		adminDocumentReviewService.reviewDocument(
+			userId,
+			"RESIDENCE_PROOF",
+			"APPROVED",
+			List.of(DocumentRejectionReasonCode.DOCUMENT_NAME_MISMATCH)
+		);
 
 		assertThat(latestResidence.getStatus()).isEqualTo(DocumentStatus.APPROVED);
 		assertThat(latestResidence.getMissing()).isNull();
@@ -118,10 +125,18 @@ class AdminDocumentReviewServiceTest {
 			DocumentStatus.REJECTED
 		)).thenReturn("https://s3/documents/1_ALIEN_REGISTRATION_SUPPORTING_DOCUMENT_REJECTED.pdf");
 
-		adminDocumentReviewService.reviewDocument(userId, "ALIEN_REGISTRATION_APPLICATION", "REJECTED", "issue_date,signature");
+		adminDocumentReviewService.reviewDocument(
+			userId,
+			"ALIEN_REGISTRATION_APPLICATION",
+			"REJECTED",
+			List.of(
+				DocumentRejectionReasonCode.ALIEN_REGISTRATION_APPLICATION_DATE_MISSING,
+				DocumentRejectionReasonCode.DOCUMENT_NAME_MISMATCH
+			)
+		);
 
 		assertThat(latestAlien.getStatus()).isEqualTo(DocumentStatus.REJECTED);
-		assertThat(latestAlien.getMissing()).isEqualTo("issue_date,signature");
+		assertThat(latestAlien.getMissing()).isEqualTo("ALIEN_REGISTRATION_APPLICATION_DATE_MISSING,DOCUMENT_NAME_MISMATCH");
 		verify(documentRepository).save(latestAlien);
 		verify(notificationService, never()).createOrReplaceSupplementDocumentNotification(user, "서류 심사 결과 보완이 필요합니다.");
 	}
@@ -156,7 +171,12 @@ class AdminDocumentReviewServiceTest {
 			DocumentStatus.REJECTED
 		)).thenReturn("https://s3/documents/1_ALIEN_REGISTRATION_SUPPORTING_DOCUMENT_REJECTED.pdf");
 
-		adminDocumentReviewService.reviewDocument(userId, "ALIEN_REGISTRATION_APPLICATION", "REJECTED", "issue_date");
+		adminDocumentReviewService.reviewDocument(
+			userId,
+			"ALIEN_REGISTRATION_APPLICATION",
+			"REJECTED",
+			List.of(DocumentRejectionReasonCode.ALIEN_REGISTRATION_APPLICATION_DATE_MISSING)
+		);
 
 		verify(notificationService).createOrReplaceSupplementDocumentNotification(user, "서류 심사 결과 보완이 필요합니다.");
 	}

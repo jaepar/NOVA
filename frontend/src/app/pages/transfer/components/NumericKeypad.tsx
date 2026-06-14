@@ -1,4 +1,5 @@
 import { AppButton } from '../../../components/design-system'
+import { useTranslation } from '../../../i18n'
 
 export function NumericKeypad({
   onPress,
@@ -11,6 +12,7 @@ export function NumericKeypad({
   onClear?: () => void
   showClear?: boolean
 }) {
+  const { t } = useTranslation()
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
   return (
@@ -32,7 +34,7 @@ export function NumericKeypad({
         onClick={showClear ? onClear : () => onPress('00')}
         className="h-10 text-[18px] font-semibold leading-none"
       >
-        {showClear ? '전체삭제' : '00'}
+        {showClear ? t('transfer.keypad.clearAll') : '00'}
       </AppButton>
       <AppButton
         type="button"

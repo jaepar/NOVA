@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import woorifisa.project.backend.domain.user.entity.enums.DocumentRejectionReasonCode;
 import woorifisa.project.backend.global.admin.service.AdminService;
 
 @WebMvcTest(AdminController.class)
@@ -36,7 +39,10 @@ class AdminDocumentReviewControllerTest {
 			eq(1L),
 			eq("ALIEN_REGISTRATION_APPLICATION"),
 			eq("REJECTED"),
-			eq("name,issue_date,signature")
+			eq(List.of(
+				DocumentRejectionReasonCode.DOCUMENT_NAME_MISMATCH,
+				DocumentRejectionReasonCode.ALIEN_REGISTRATION_APPLICATION_DATE_MISSING
+			))
 		);
 
 		mockMvc.perform(patch("/admin/users/1/documents/ALIEN_REGISTRATION_APPLICATION")
@@ -44,7 +50,10 @@ class AdminDocumentReviewControllerTest {
 				.content("""
 					{
 					  "targetStatus": "REJECTED",
-					  "missing": "name,issue_date,signature"
+					  "rejectionReasonCodes": [
+					    "DOCUMENT_NAME_MISMATCH",
+					    "ALIEN_REGISTRATION_APPLICATION_DATE_MISSING"
+					  ]
 					}
 					"""))
 			.andExpect(status().isOk())

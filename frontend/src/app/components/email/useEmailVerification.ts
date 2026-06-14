@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   emailVerificationApi,
-  getEmailVerificationApiErrorMessage,
+  getEmailVerificationApiError,
 } from "../../../api";
+import { translateError, useTranslation } from "../../i18n";
 
 const DEFAULT_RESEND_SECONDS = 60;
 
@@ -32,6 +33,7 @@ export function useEmailVerification({
   isReadyToSend = true,
   onVerifiedChange,
 }: UseEmailVerificationOptions) {
+  const { t } = useTranslation();
   const [isCodeSent, setCodeSent] = useState(false);
   const [isSendingCode, setSendingCode] = useState(false);
   const [isVerifying, setVerifying] = useState(false);
@@ -43,6 +45,10 @@ export function useEmailVerification({
   const canSendCode = isReadyToSend && isEmailValid && !isSendingCode && !isEmailVerified;
   const canRequestInitialCode = canSendCode && !isCodeSent;
   const canResend = isCodeSent && resendSeconds === 0 && !isSendingCode && !isEmailVerified;
+  const getTranslatedErrorMessage = (error: unknown, fallbackKey: string) => {
+    const apiError = getEmailVerificationApiError(error);
+    return translateError(apiError?.code, t(fallbackKey));
+  };
 
   useEffect(() => {
     if (!isCodeSent || resendSeconds === 0) {
@@ -80,7 +86,7 @@ export function useEmailVerification({
         if (isCurrentRequest) {
           setEmailVerified(false);
           onVerifiedChange?.(false);
-          setErrorMessage(getEmailVerificationApiErrorMessage(error));
+          setErrorMessage(getTranslatedErrorMessage(error, "signup.emailConfirmFailed"));
         }
       } finally {
         if (isCurrentRequest) {
@@ -94,7 +100,7 @@ export function useEmailVerification({
     return () => {
       isCurrentRequest = false;
     };
-  }, [email, isCodeSent, isEmailVerified, onVerifiedChange, verificationCode]);
+  }, [email, isCodeSent, isEmailVerified, onVerifiedChange, t, verificationCode]);
 
   const resetVerificationState = useCallback(() => {
     setCodeSent(false);
@@ -138,7 +144,7 @@ export function useEmailVerification({
       setCodeSent(false);
       setEmailVerified(false);
       onVerifiedChange?.(false);
-      setErrorMessage(getEmailVerificationApiErrorMessage(error));
+      setErrorMessage(getTranslatedErrorMessage(error, "signup.emailSendFailed"));
     } finally {
       setSendingCode(false);
     }

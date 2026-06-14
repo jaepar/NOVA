@@ -2,12 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { useTranslation } from "../../i18n";
 import { useSignupPageStore } from "../../stores/pageStores";
 import { completeOnboarding } from "../../utils/onboardingStorage";
 import { SignupContent } from "./components/SignupContent";
 
 export function Complete() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const resetSignup = useSignupPageStore((state) => state.resetSignup);
   const resetPassword = useSignupPageStore((state) => state.resetPassword);
 
@@ -24,9 +26,9 @@ export function Complete() {
 
   return (
     <MobileLayout
-      title="회원가입"
+      title={t('signup.title')}
       onBack={handleBack}
-      bottomContent={<Btn_1Col onClick={handleComplete}>완료</Btn_1Col>}
+      bottomContent={<Btn_1Col onClick={handleComplete}>{t('signup.complete')}</Btn_1Col>}
     >
       <SignupContent className="flex min-h-full flex-col">
         <div className="flex flex-1 flex-col items-center justify-center gap-7 text-center">
@@ -37,8 +39,7 @@ export function Complete() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-2xl font-semibold">가입이 완료되었어요!</h2>
-            
+            <h2 className="text-2xl font-semibold">{t('signup.completeHeading')}</h2>
           </div>
         </div>
       </SignupContent>

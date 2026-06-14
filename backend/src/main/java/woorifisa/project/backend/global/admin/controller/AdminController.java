@@ -26,7 +26,7 @@ public class AdminController {
 		@PathVariable String documentType,
 		@Valid @RequestBody DocumentReviewRequest request
 	) {
-		adminDocumentReviewService.reviewDocument(userId, documentType, request.targetStatus(), request.missing());
+		adminDocumentReviewService.reviewDocument(userId, documentType, request.targetStatus(), request.rejectionReasonCodes());
 		return BaseResponse.ok(null);
 	}
 }

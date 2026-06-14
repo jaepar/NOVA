@@ -2,6 +2,7 @@ package woorifisa.project.backend.domain.job.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import woorifisa.project.backend.domain.job.entity.Job;
+import woorifisa.project.backend.domain.job.entity.JobTranslation;
 
 import java.time.LocalDateTime;
 
@@ -23,16 +24,24 @@ public record JobOpeningItem(
 ) {
 
     public static JobOpeningItem from(Job job) {
+        return from(job, null);
+    }
+
+    public static JobOpeningItem from(Job job, JobTranslation translation) {
         return new JobOpeningItem(
                 job.getJobId(),
-                job.getCompany(),
-                job.getRegion(),
-                job.getOpeningTitle(),
-                job.getJobCategory(),
-                job.getExperience(),
-                job.getWorkPeriod(),
-                job.getSalary(),
+                translated(translation == null ? null : translation.getCompany(), job.getCompany()),
+                translated(translation == null ? null : translation.getRegion(), job.getRegion()),
+                translated(translation == null ? null : translation.getOpeningTitle(), job.getOpeningTitle()),
+                translated(translation == null ? null : translation.getJobCategory(), job.getJobCategory()),
+                translated(translation == null ? null : translation.getExperience(), job.getExperience()),
+                translated(translation == null ? null : translation.getWorkPeriod(), job.getWorkPeriod()),
+                translated(translation == null ? null : translation.getSalary(), job.getSalary()),
                 job.getCreatedAt()
         );
+    }
+
+    private static String translated(String translatedValue, String fallbackValue) {
+        return translatedValue == null || translatedValue.isBlank() ? fallbackValue : translatedValue;
     }
 }

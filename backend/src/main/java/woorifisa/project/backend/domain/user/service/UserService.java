@@ -268,7 +268,7 @@ public class UserService {
 				.map(document -> new CorrectionDocumentResponse(
 					document.getDocumentType().name(),
 					document.getStatus().name(),
-					parseMissingItems(document.getMissing())
+					parseRejectionReasonCodes(document.getMissing())
 				))
 				.orElse(null))
 			.filter(java.util.Objects::nonNull)
@@ -276,7 +276,7 @@ public class UserService {
 	}
 
 	// document의 missing을 컴마(,) 단위로 파싱
-	private List<String> parseMissingItems(String missing) {
+	private List<String> parseRejectionReasonCodes(String missing) {
 		if (missing == null || missing.isBlank()) {
 			return Collections.emptyList();
 		}

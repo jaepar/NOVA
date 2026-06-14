@@ -10,19 +10,26 @@ import type {
 } from '../../../api/endpoints/banking'
 import type { AccountInfo } from './types'
 
-export function formatWon(amount: number) {
+export function formatWon(amount: number, language = 'ko') {
+  if (language === 'en') {
+    return `KRW ${amount.toLocaleString('en-US')}`
+  }
   return `${amount.toLocaleString('ko-KR')}원`
 }
 
-export function getMonthLabel(date: string) {
+export function getMonthLabel(date: string, language = 'ko') {
   const [year, month] = date.split('.')
+  if (language !== 'ko') {
+    const d = new Date(Number(year), Number(month) - 1)
+    return d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+  }
   return `${year}년 ${Number(month)}월`
 }
 
-export function groupTransactionsByMonth(transactions: AccountTransaction[]) {
+export function groupTransactionsByMonth(transactions: AccountTransaction[], language = 'ko') {
   const map = new Map<string, AccountTransaction[]>()
   for (const transaction of transactions) {
-    const month = getMonthLabel(transaction.date)
+    const month = getMonthLabel(transaction.date, language)
     const existing = map.get(month)
     if (existing) {
       existing.push(transaction)
@@ -57,6 +64,7 @@ export function toAccountTransaction(transaction: BankingTransaction): AccountTr
     title: transaction.counterParty,
     counterParty: transaction.counterParty,
     type: formatTransactionType(transaction.transactionType),
+    rawType: transaction.transactionType,
     amount,
     date: dateTime.slice(0, 10),
     dateTime,
@@ -107,7 +115,7 @@ export function isValidTransactionDateRange(
   customDateFrom: string,
   customDateTo: string
 ) {
-  if (mapPeriod(selectedPeriod) !== 'CUSTOM') {
+  if (selectedPeriod !== 'CUSTOM') {
     return true
   }
   if (!customDateFrom || !customDateTo) {
@@ -117,19 +125,19 @@ export function isValidTransactionDateRange(
 }
 
 function mapPeriod(period: string): TransactionPeriod {
-  if (period === '1주일') return 'ONE_WEEK'
-  if (period === '직접입력') return 'CUSTOM'
+  if (period === 'ONE_WEEK') return 'ONE_WEEK'
+  if (period === 'CUSTOM') return 'CUSTOM'
   return 'ONE_MONTH'
 }
 
 function mapFlow(type: string): TransactionFlowFilter {
-  if (type === '입금') return 'DEPOSIT'
-  if (type === '출금') return 'WITHDRAWAL'
+  if (type === 'DEPOSIT') return 'DEPOSIT'
+  if (type === 'WITHDRAWAL') return 'WITHDRAWAL'
   return 'ALL'
 }
 
 function mapSortDirection(sort: string): TransactionSortDirection {
-  return sort === '과거순' ? 'ASC' : 'DESC'
+  return sort === 'ASC' ? 'ASC' : 'DESC'
 }
 
 function formatTransactionType(type: TransactionType) {

@@ -6,6 +6,7 @@ import {
   type CorrectionDocumentType,
 } from '../../../../api'
 import { novaToast } from '../../../components/design-system'
+import { translateError, useTranslation } from '../../../i18n'
 import {
   correctionUploadFieldMap,
   type RejectedCorrectionDocument,
@@ -25,6 +26,10 @@ function isPdfFile(file: File) {
 }
 
 export function useCertificateCorrection(onSubmitSuccess: () => void) {
+  const { t } = useTranslation()
+  const tRef = useRef(t)
+  tRef.current = t
+
   const fileInputRefs = useRef<Record<CorrectionDocumentType, HTMLInputElement | null>>({
     RESIDENCE_VERIFICATION_DOCUMENT: null,
     ALIEN_REGISTRATION_SUPPORTING_DOCUMENT: null,
@@ -61,7 +66,7 @@ export function useCertificateCorrection(onSubmitSuccess: () => void) {
     } catch {
       setDocuments([])
       setOpenDocumentType(null)
-      setErrorMessage('서류 정보를 불러오지 못했어요. 잠시 후 다시 확인해 주세요.')
+      setErrorMessage(tRef.current('certificate.correctionLoadFailed'))
     } finally {
       setIsLoading(false)
     }
@@ -95,12 +100,12 @@ export function useCertificateCorrection(onSubmitSuccess: () => void) {
     if (!file) return
 
     if (!isPdfFile(file)) {
-      rejectFile(documentType, 'PDF 파일만 첨부할 수 있어요.')
+      rejectFile(documentType, t('certificate.correctionPdfOnlyError'))
       return
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      rejectFile(documentType, '10MB 이하 파일만 첨부할 수 있어요.')
+      rejectFile(documentType, t('certificate.correctionFileTooLarge'))
       return
     }
 
@@ -135,7 +140,7 @@ export function useCertificateCorrection(onSubmitSuccess: () => void) {
       onSubmitSuccess()
     } catch (error) {
       const apiError = getCertificateApiError(error)
-      novaToast.error(apiError?.message || '서류 제출에 실패했어요. 잠시 후 다시 시도해 주세요.')
+      novaToast.error(translateError(apiError?.code, apiError?.message || t('certificate.correctionSubmitFailed')))
     } finally {
       setIsSubmitting(false)
     }

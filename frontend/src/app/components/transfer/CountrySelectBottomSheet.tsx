@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { Search, X, Check } from 'lucide-react'
 import { AppButton } from '../design-system/AppButton'
 import { BottomSheet } from '../layout/BottomSheet'
-import type { TransferCountry } from '../../data/transferCountries'
+import { formatTransferCountryName, type TransferCountry } from '../../data/transferCountries'
+import { useTranslation } from '../../i18n'
 
 interface CountrySelectBottomSheetProps {
   countries: TransferCountry[]
@@ -20,10 +21,12 @@ export function CountrySelectBottomSheet({
   isOpen,
   onClose,
   onSelect,
-  title = '국가 선택',
+  title,
   height = '640px',
 }: CountrySelectBottomSheetProps) {
+  const { language, t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState('')
+  const sheetTitle = title ?? t('globalTransfer.swiftLookup.countrySelectTitle')
 
   const filteredCountries = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -31,8 +34,8 @@ export function CountrySelectBottomSheet({
     if (!query) return countries
 
     return countries.filter((country) => {
-      const korean = country.name.toLowerCase()
-      const english = country.englishName.toLowerCase()
+      const korean = country.nameKo.toLowerCase()
+      const english = country.nameEn.toLowerCase()
       return korean.includes(query) || english.includes(query)
     })
   }, [countries, searchQuery])
@@ -46,7 +49,7 @@ export function CountrySelectBottomSheet({
     <BottomSheet isOpen={isOpen} onClose={handleClose} title="" height={height} disableScroll>
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex items-center justify-between pb-4">
-          <p className="text-lg font-semibold text-foreground">{title}</p>
+          <p className="text-lg font-semibold text-foreground">{sheetTitle}</p>
           <AppButton
             type="button"
             variant="unstyled"
@@ -66,7 +69,7 @@ export function CountrySelectBottomSheet({
               type="text"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="국가명을 입력해 주세요"
+              placeholder={t('globalTransfer.swiftLookup.countrySearchPlaceholder')}
               className="w-full rounded-xl border border-border bg-input-background py-3 pl-12 pr-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               style={{ fontSize: '16px' }}
             />
@@ -92,7 +95,7 @@ export function CountrySelectBottomSheet({
                   <span className="flex min-w-0 items-center gap-3">
                     <span className="text-2xl">{country.flag}</span>
                     <span className="truncate">
-                      {country.name}({country.englishName})
+                      {formatTransferCountryName(country, language)}
                     </span>
                   </span>
                   {isSelected ? <Check className="h-5 w-5 shrink-0 text-primary" /> : null}

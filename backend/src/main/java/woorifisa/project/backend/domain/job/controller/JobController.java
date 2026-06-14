@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,15 +37,19 @@ public class JobController {
 	// 구인구직 공고 목록 조회
 	@GetMapping
 	public BaseResponse<JobOpeningListResponse> findJobOpenings(
+		@RequestParam(defaultValue = "ko") String language,
 		@PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
 	) {
-		return BaseResponse.ok(jobService.getJobOpeningList(pageable));
+		return BaseResponse.ok(jobService.getJobOpeningList(language, pageable));
 	}
 
 	// 구인구직 공고 상세 조회
 	@GetMapping("/{jobId}")
-	public BaseResponse<JobOpeningResponse> findJobOpening(@PathVariable Long jobId) {
-		return BaseResponse.ok(jobService.getJobOpeningDetail(jobId));
+	public BaseResponse<JobOpeningResponse> findJobOpening(
+		@PathVariable Long jobId,
+		@RequestParam(defaultValue = "ko") String language
+	) {
+		return BaseResponse.ok(jobService.getJobOpeningDetail(jobId, language));
 	}
 
 	// 지원하기 화면 진입 시 로그인 사용자 정보와 기존 등록 포트폴리오를 한 번에 내려준다.
@@ -59,9 +64,10 @@ public class JobController {
 	@GetMapping("/applications")
 	public BaseResponse<ApplicationListResponse> findApplications(
 		@AuthenticationPrincipal SessionUserPrincipal principal,
+		@RequestParam(defaultValue = "ko") String language,
 		@PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
 	) {
-		return BaseResponse.ok(jobService.findApplications(principal.userId(), pageable));
+		return BaseResponse.ok(jobService.findApplications(principal.userId(), language, pageable));
 	}
 
 	// 지원 내역 상세 조회

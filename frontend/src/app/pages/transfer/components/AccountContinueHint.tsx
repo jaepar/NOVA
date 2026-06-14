@@ -1,7 +1,11 @@
+import { useTranslation } from '../../../i18n'
+
 export function AccountContinueHint() {
+  const { t } = useTranslation()
+
   return (
     <div className="mt-5 flex items-center justify-center gap-3 text-[15px] font-semibold text-[#59606A]">
-      <span>계좌번호를 계속 입력해주세요</span>
+      <span>{t('transfer.continueHint')}</span>
       <div className="flex items-center gap-1.5" aria-hidden="true">
         {[0, 1, 2, 3].map((index) => (
           <span

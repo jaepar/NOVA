@@ -1,4 +1,5 @@
 import { AppButton } from '../../components/design-system'
+import { useTranslation } from '../../i18n'
 import {
   CertificateIssuedAnimationStyles,
   CertificateIssuedCheckMark,
@@ -16,6 +17,8 @@ export function CertificateIssuedModal({
   onClose,
   onOpenAccount,
 }: CertificateIssuedModalProps) {
+  const { t } = useTranslation()
+
   if (!isOpen) return null
 
   return (
@@ -37,18 +40,20 @@ export function CertificateIssuedModal({
           <CertificateIssuedCheckMark />
 
           <div className="mt-5 flex items-center justify-center text-primary">
-            <span className="text-[13px] font-semibold">발급 완료</span>
+            <span className="text-[13px] font-semibold">
+              {t('main.certificateIssuedModal.badge')}
+            </span>
           </div>
 
           <h2
             id="certificate-issued-title"
             className="mt-2 text-[22px] font-bold leading-[1.35] text-foreground"
           >
-            인증서 발급이 완료되었습니다.
+            {t('main.certificateIssuedModal.title')}
           </h2>
 
           <p className="mt-3 text-[15px] leading-[1.55] text-muted-foreground">
-            이제 바로 계좌 개설을 시작할 수 있어요.
+            {t('main.certificateIssuedModal.description')}
           </p>
 
           <div className="mt-6 grid grid-cols-2 gap-2.5">
@@ -57,14 +62,14 @@ export function CertificateIssuedModal({
               onClick={onClose}
               className="h-[52px] w-full rounded-xl text-[15px] font-semibold text-muted-foreground"
             >
-              확인
+              {t('common.confirm')}
             </AppButton>
             <AppButton
               variant="primary"
               onClick={onOpenAccount}
               className="h-[52px] w-full rounded-xl text-[16px] font-semibold"
             >
-              계좌 개설하기
+              {t('main.openAccount')}
             </AppButton>
           </div>
         </div>
