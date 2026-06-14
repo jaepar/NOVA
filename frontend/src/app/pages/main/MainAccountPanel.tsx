@@ -90,21 +90,17 @@ export function MainAccountPanel({
 
   if (accountHome.uiState === "CERTIFICATE_ISSUING") {
     return (
-      <div className={secondaryPanelClassName}>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h3 className="font-semibold text-base">
-              {t("main.certificateIssuingTitle")}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {t("main.certificateIssuingDescription")}
-            </p>
-          </div>
-          <p className="rounded-lg bg-background/60 px-3 py-2.5 text-center text-sm font-medium text-foreground">
+      <div
+        className={`${secondaryPanelClassName} items-center justify-center text-center`}
+      >
+        <div className="space-y-2">
+          <h3 className="font-semibold text-base">
+            {t("main.certificateIssuingTitle")}
+          </h3>
+          <p className="text-sm font-medium text-foreground">
             {t("main.reviewingDocuments")}
           </p>
         </div>
-        <div aria-hidden="true" className="h-11" />
       </div>
     );
   }
