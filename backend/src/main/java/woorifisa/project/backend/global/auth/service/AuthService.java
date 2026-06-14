@@ -106,11 +106,10 @@ public class AuthService {
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new CustomException(UNAUTHORIZED_SESSION);
+        if (session != null) {
+            session.invalidate();
         }
 
-        session.invalidate();
         expireCookie(request, response, "JSESSIONID");
         SecurityContextHolder.clearContext();
     }

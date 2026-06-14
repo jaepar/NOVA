@@ -11,6 +11,7 @@ export function TransferTermDetail() {
       termId={termId}
       basePath="/global-transfer/send/step-01"
       preserveStateKey="preserveConsentState"
+      translationNamespace="consent.transfer"
     />
   );
 }

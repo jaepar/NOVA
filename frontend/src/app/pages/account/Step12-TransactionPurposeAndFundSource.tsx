@@ -5,29 +5,33 @@ import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
 import { useAccountCreateFlowStore } from "../../stores/pageStores";
+import { useTranslation } from "../../i18n";
 
 const transactionPurposeOptions = [
-  "저축 및 투자",
-  "급여 및 생활비",
-  "사업상 거래",
-  "상속·증여성 거래 등",
+  { value: "SAVING_AND_INVESTMENT", labelKey: "account.transactionInfo.savingInvestment" },
+  { value: "SALARY_AND_LIVING_EXPENSES", labelKey: "account.transactionInfo.salaryLiving" },
+  { value: "BUSINESS_TRANSACTION", labelKey: "account.transactionInfo.business" },
+  { value: "INHERITANCE_OR_GIFT", labelKey: "account.transactionInfo.inheritanceGift" },
 ] as const;
 
 const fundSourceOptions = [
-  "근로 및 연금소득",
-  "사업소득",
-  "금융소득",
-  "기타",
+  { value: "EARNED_AND_PENSION_INCOME", labelKey: "account.transactionInfo.earnedPension" },
+  { value: "BUSINESS_INCOME", labelKey: "account.transactionInfo.businessIncome" },
+  { value: "FINANCIAL_INCOME", labelKey: "account.transactionInfo.financialIncome" },
+  { value: "OTHER", labelKey: "account.transactionInfo.other" },
 ] as const;
 
 export function Step12TransactionPurposeAndFundSource() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const isOwner = useAccountCreateFlowStore((state) => state.isOwner);
   const purpose = useAccountCreateFlowStore((state) => state.transactionPurpose);
   const fundSource = useAccountCreateFlowStore((state) => state.fundSource);
   const setTransactionInfo = useAccountCreateFlowStore((state) => state.setTransactionInfo);
   const [isPurposeOpen, setIsPurposeOpen] = useState(false);
   const [isFundSourceOpen, setIsFundSourceOpen] = useState(false);
+  const selectedPurposeLabelKey = transactionPurposeOptions.find((option) => option.value === purpose)?.labelKey;
+  const selectedFundSourceLabelKey = fundSourceOptions.find((option) => option.value === fundSource)?.labelKey;
 
   const canSubmit = useMemo(
     () => isOwner && Boolean(purpose) && Boolean(fundSource),
@@ -36,28 +40,36 @@ export function Step12TransactionPurposeAndFundSource() {
 
   return (
     <MobileLayout
-      title="거래목적 및 자금출처"
+      title={t("account.transactionInfoTitle")}
+      titleKey="account.transactionInfoTitle"
       backPath="/account/step-11"
       bottomContent={
         <Btn_1Col
           disabled={!canSubmit}
           onClick={() => navigate("/account/step-13")}
         >
-          다음
+          {t("account.next")}
         </Btn_1Col>
       }
     >
       <div className="space-y-8 pb-2">
         <section className="space-y-2">
           <h2 className="text-2xl leading-tight font-semibold text-foreground">
-            금융거래 목적과
-            <br />
-            자금출처를 선택해주세요
+            {t("account.transactionInfo.heading")
+              .split("\n")
+              .map((line, index, lines) => (
+                <span key={`${line}-${index}`}>
+                  {line}
+                  {index < lines.length - 1 && <br />}
+                </span>
+              ))}
           </h2>
         </section>
 
         <section className="space-y-4">
-          <p className="text-foreground">거래자금이 본인 소유인가요?</p>
+          <p className="text-foreground">
+            {t("account.transactionInfo.ownerQuestion")}
+          </p>
           <div className="grid grid-cols-2 gap-2">
             <AppButton
               type="button"
@@ -69,7 +81,7 @@ export function Step12TransactionPurposeAndFundSource() {
                   : "border-border bg-background text-foreground"
               }`}
             >
-              예
+              {t("account.transactionInfo.yes")}
             </AppButton>
             <AppButton
               type="button"
@@ -81,14 +93,16 @@ export function Step12TransactionPurposeAndFundSource() {
                   : "border-border bg-background text-foreground"
               }`}
             >
-              아니오
+              {t("account.transactionInfo.no")}
             </AppButton>
           </div>
         </section>
 
         <section className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-foreground">거래목적 선택</label>
+            <label className="block text-foreground">
+              {t("account.transactionInfo.purposeLabel")}
+            </label>
             <AppButton
               variant="unstyled"
               onClick={() => {
@@ -98,7 +112,9 @@ export function Step12TransactionPurposeAndFundSource() {
               className="w-full rounded-xl border border-border bg-background px-4 py-4 flex items-center justify-between text-left"
             >
               <span className={purpose ? "text-foreground" : "text-muted-foreground"}>
-                {purpose || "선택해 주세요"}
+                {selectedPurposeLabelKey
+                  ? t(selectedPurposeLabelKey)
+                  : t("account.transactionInfo.placeholder")}
               </span>
               <ChevronDown className="w-5 h-5 text-muted-foreground" />
             </AppButton>
@@ -106,18 +122,18 @@ export function Step12TransactionPurposeAndFundSource() {
               <div className="rounded-xl border border-border bg-background overflow-hidden">
                 {transactionPurposeOptions.map((option) => (
                   <AppButton
-                    key={option}
+                    key={option.value}
                     variant="unstyled"
                     onClick={() => {
-                      setTransactionInfo(isOwner, option, fundSource);
+                      setTransactionInfo(isOwner, option.value, fundSource);
                       setIsPurposeOpen(false);
                     }}
                     className={`w-full px-4 py-4 flex items-center justify-between text-left border-b border-border last:border-b-0 ${
-                      purpose === option ? "bg-secondary" : ""
+                      purpose === option.value ? "bg-secondary" : ""
                     }`}
                   >
-                    <span>{option}</span>
-                    {purpose === option && <Check className="w-4 h-4 text-primary" />}
+                    <span>{t(option.labelKey)}</span>
+                    {purpose === option.value && <Check className="w-4 h-4 text-primary" />}
                   </AppButton>
                 ))}
               </div>
@@ -125,7 +141,9 @@ export function Step12TransactionPurposeAndFundSource() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-foreground">자금출처 선택</label>
+            <label className="block text-foreground">
+              {t("account.transactionInfo.fundSourceLabel")}
+            </label>
             <AppButton
               variant="unstyled"
               onClick={() => {
@@ -135,7 +153,9 @@ export function Step12TransactionPurposeAndFundSource() {
               className="w-full rounded-xl border border-border bg-background px-4 py-4 flex items-center justify-between text-left"
             >
               <span className={fundSource ? "text-foreground" : "text-muted-foreground"}>
-                {fundSource || "선택해 주세요"}
+                {selectedFundSourceLabelKey
+                  ? t(selectedFundSourceLabelKey)
+                  : t("account.transactionInfo.placeholder")}
               </span>
               <ChevronDown className="w-5 h-5 text-muted-foreground" />
             </AppButton>
@@ -143,18 +163,18 @@ export function Step12TransactionPurposeAndFundSource() {
               <div className="rounded-xl border border-border bg-background overflow-hidden">
                 {fundSourceOptions.map((option) => (
                   <AppButton
-                    key={option}
+                    key={option.value}
                     variant="unstyled"
                     onClick={() => {
-                      setTransactionInfo(isOwner, purpose, option);
+                      setTransactionInfo(isOwner, purpose, option.value);
                       setIsFundSourceOpen(false);
                     }}
                     className={`w-full px-4 py-4 flex items-center justify-between text-left border-b border-border last:border-b-0 ${
-                      fundSource === option ? "bg-secondary" : ""
+                      fundSource === option.value ? "bg-secondary" : ""
                     }`}
                   >
-                    <span>{option}</span>
-                    {fundSource === option && <Check className="w-4 h-4 text-primary" />}
+                    <span>{t(option.labelKey)}</span>
+                    {fundSource === option.value && <Check className="w-4 h-4 text-primary" />}
                   </AppButton>
                 ))}
               </div>

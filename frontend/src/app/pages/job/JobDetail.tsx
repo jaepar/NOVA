@@ -6,6 +6,7 @@ import { jobApi, type JobOpeningResponse } from '../../../api'
 import { AppButton } from '../../components/design-system/AppButton'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { useTranslation } from '../../i18n'
 
 interface DetailSectionProps {
   title: string
@@ -36,21 +37,27 @@ function DetailSection({ title, children }: DetailSectionProps) {
   )
 }
 
-function formatRecruitCount(value: string) {
+function formatRecruitCount(value: string, undeterminedLabel: string, peopleUnit: string) {
   if (!value) {
     return '-'
   }
 
   const trimmedValue = value.trim()
   if (trimmedValue.includes('인원미정')) {
-    return '인원미정'
+    return undeterminedLabel
   }
 
-  return trimmedValue.endsWith('명') ? trimmedValue : `${trimmedValue}명`
+  const koreanCountMatch = trimmedValue.match(/^(\d+)\s*명$/)
+  if (koreanCountMatch) {
+    return `${koreanCountMatch[1]}${peopleUnit}`
+  }
+
+  return /^\d+$/.test(trimmedValue) ? `${trimmedValue}${peopleUnit}` : trimmedValue
 }
 
 export function JobDetail() {
   const navigate = useNavigate()
+  const { t, language } = useTranslation()
   const { jobId } = useParams()
   const numericJobId = Number(jobId)
   const [job, setJob] = useState<JobOpeningResponse | null>(null)
@@ -62,7 +69,7 @@ export function JobDetail() {
 
     async function loadJob() {
       if (!Number.isFinite(numericJobId)) {
-        setErrorMessage('공고 정보를 찾을 수 없습니다.')
+        setErrorMessage(t('job.detailNotFound'))
         setIsLoading(false)
         return
       }
@@ -71,13 +78,13 @@ export function JobDetail() {
       setErrorMessage('')
 
       try {
-        const response = await jobApi.getOpening(numericJobId)
+        const response = await jobApi.getOpening(numericJobId, { language })
         if (isMounted) {
           setJob(response)
         }
       } catch {
         if (isMounted) {
-          setErrorMessage('공고 상세 정보를 불러오지 못했습니다.')
+          setErrorMessage(t('job.detailLoadFailed'))
         }
       } finally {
         if (isMounted) {
@@ -91,35 +98,45 @@ export function JobDetail() {
     return () => {
       isMounted = false
     }
-  }, [numericJobId])
+  }, [language, numericJobId, t])
 
   const workConditions = job
     ? [
-        ['근무형태', job.employment_type],
-        ['경력', job.experience],
-        ['직종', job.job_category],
-        ['급여', job.salary],
-        ['근무기간', job.work_period],
-        ['마감', job.deadline_type],
-        ['모집인원', formatRecruitCount(job.recruit_count)],
-        ['근무지', job.address],
-        ['복리후생', job.benefits],
+        [t('job.detail.employmentType'), job.employment_type],
+        [t('job.detail.experience'), job.experience],
+        [t('job.detail.category'), job.job_category],
+        [t('job.detail.salary'), job.salary],
+        [t('job.detail.workPeriod'), job.work_period],
+        [t('job.detail.deadline'), job.deadline_type],
+        [
+          t('job.detail.recruitCount'),
+          formatRecruitCount(
+            job.recruit_count,
+            t('job.detail.recruitUndetermined'),
+            t('job.detail.peopleUnit')
+          ),
+        ],
+        [t('job.detail.address'), job.address],
+        [t('job.detail.benefits'), job.benefits],
       ]
     : []
 
   return (
     <MobileLayout
-      title="구인구직"
+      title={t('job.title')}
+      titleKey="job.title"
       backPath="/jobs"
       bottomContent={
         job ? (
-          <Btn_1Col onClick={() => navigate(`/jobs/${job.job_id}/apply`)}>지원하기</Btn_1Col>
+          <Btn_1Col onClick={() => navigate(`/jobs/${job.job_id}/apply`)}>
+            {t('job.apply')}
+          </Btn_1Col>
         ) : undefined
       }
     >
       {isLoading && (
         <div className="px-5 py-20 text-center">
-          <p className="text-muted-foreground">공고를 불러오는 중입니다.</p>
+          <p className="text-muted-foreground">{t('job.listLoading')}</p>
         </div>
       )}
 
@@ -142,7 +159,9 @@ export function JobDetail() {
           </div>
 
           <section className="border-t border-border py-6">
-            <h3 className="mb-4 text-[20px] font-semibold text-[#111827]">근무 조건</h3>
+            <h3 className="mb-4 text-[20px] font-semibold text-[#111827]">
+              {t('job.detail.workConditions')}
+            </h3>
             <dl className="space-y-3">
               {workConditions.map(([label, value]) => (
                 <div key={label} className="grid grid-cols-[92px_1fr] gap-4 text-[16px] leading-7">
@@ -153,26 +172,26 @@ export function JobDetail() {
             </dl>
           </section>
 
-          <DetailSection title="회사 소개">
+          <DetailSection title={t('job.detail.companyIntro')}>
             <p>{job.introduce || '-'}</p>
           </DetailSection>
 
-          <DetailSection title="담당 업무">
+          <DetailSection title={t('job.detail.jobRole')}>
             <p>{job.job_role || '-'}</p>
           </DetailSection>
 
-          <DetailSection title="지원 조건">
+          <DetailSection title={t('job.detail.requirements')}>
             <dl className="space-y-2">
               <div className="grid grid-cols-[92px_1fr] gap-4">
-                <dt className="text-[#4b5563]">나이</dt>
+                <dt className="text-[#4b5563]">{t('job.detail.age')}</dt>
                 <dd>{job.age || '-'}</dd>
               </div>
               <div className="grid grid-cols-[92px_1fr] gap-4">
-                <dt className="text-[#4b5563]">성별</dt>
+                <dt className="text-[#4b5563]">{t('job.detail.gender')}</dt>
                 <dd>{job.gender || '-'}</dd>
               </div>
               <div className="grid grid-cols-[92px_1fr] gap-4">
-                <dt className="text-[#4b5563]">우대</dt>
+                <dt className="text-[#4b5563]">{t('job.detail.preferred')}</dt>
                 <dd>{job.preferred || '-'}</dd>
               </div>
             </dl>

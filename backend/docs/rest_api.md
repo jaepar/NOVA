@@ -60,8 +60,8 @@
 | `USER-011`     | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
 | `USER-012`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
 | `USER-013`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
-| `USER-014`     | 보완 서류 목록 조회 | GET | `/users/documents/corrections` | O | USER | `missing` 필드를 `,` 기준으로 파싱해 리스트 반환 |
-| `USER-015`     | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED` |
+| `USER-014`     | 보완 서류 목록 조회 | GET | `/users/documents/corrections` | O | USER | `missing` 컬럼의 반려 사유 코드를 `,` 기준으로 파싱해 `rejectionReasonCodes` 반환 |
+| `USER-015`     | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED`, `rejectionReasonCodes`: 반려 사유 코드 목록 |
 | `USER-016`     | Liveness 얼굴 인증       | POST   | `/users/verifications/liveness`                          | O    | USER   |                               |
 | `USER-017`     | Liveness 결과 조회       | GET    | `/users/verifications/liveness/{sessionId}`              | O    | USER   |                               |
 | `USER-018`     | Liveness 동일인 비교      | POST   | `/users/verifications/liveness/{sessionId}/face-match`   | O    | USER   |                               |
@@ -96,6 +96,20 @@
 | `BANK-006`     | 홈 계좌 정보 조회(Cloud)    | GET    | `/banking/home`                                          | O    | USER   |                               |
 | `BANK-007`     | 해외 송금(Cloud)         | TBD    | `TBD`                                                    | O    | USER   | 프로세스 정의 중 (추후 작성)             |
 | `BANK-008`     | 이체 사전 조회(Cloud) | POST | `/banking/transfers/preview` | O | USER | 내 계좌(account_ref) + 수취인(coreBanking) 통합 조회 |
+
+## JOB-001 / JOB-002 / JOB-005 Language Query
+
+- `GET /jobs`, `GET /jobs/{job_id}`, and `GET /jobs/applications` accept an optional `language` query parameter.
+- Default: `ko`
+- Supported current values: `ko`, `en`
+- When `language=ko` or no translation exists, the response uses the base `job` table values.
+- When a matching `job_translation` row exists, translated display fields such as `company`, `region`, `opening_title`, `job_category`, `experience`, `salary`, `deadline_type`, `recruit_count`, `preferred`, `age`, `gender`, `job_role`, `work_period`, `employment_type`, `benefits`, `address`, and `introduce` are returned.
+
+Example:
+
+```http
+GET /jobs?page=0&size=50&language=en
+```
 
 ## Naming and Contract Notes
 

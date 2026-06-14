@@ -2,42 +2,59 @@ import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { useTranslation } from '../../i18n'
 
-const completedItems = ['서류 제출', 'OCR 인식', 'NFC 인식', '얼굴 인식'] as const
+const completedItems = [
+  'account.verificationCompleted.document',
+  'account.verificationCompleted.ocr',
+  'account.verificationCompleted.nfc',
+  'account.verificationCompleted.liveness',
+] as const
 
 export function VerificationCompleted() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   return (
     <MobileLayout
-      title="비대면 실명확인"
+      title={t('account.identityTitle')}
+      titleKey="account.identityTitle"
       backPath="/account/step-07"
-      bottomContent={<Btn_1Col onClick={() => navigate('/account/step-10')}>최종 제출하기</Btn_1Col>}
+      bottomContent={
+        <Btn_1Col onClick={() => navigate('/account/step-10')}>
+          {t('account.verificationCompleted.submit')}
+        </Btn_1Col>
+      }
     >
       <div className="space-y-8 pb-2">
         <section className="pt-8">
           <h2 className="text-2xl leading-tight font-semibold text-center">
-            모든 인증 절차가
-            <br />
-            완료되었어요
+            {t('account.verificationCompleted.heading')
+              .split('\n')
+              .map((line, index, lines) => (
+                <span key={`${line}-${index}`}>
+                  {line}
+                  {index < lines.length - 1 && <br />}
+                </span>
+              ))}
           </h2>
         </section>
 
         <section className="rounded-3xl border border-border bg-background p-4">
           <div className="divide-y divide-border">
-            {completedItems.map((item) => (
+            {completedItems.map((itemKey) => (
               <div
-                key={item}
+                key={itemKey}
                 className="flex items-center justify-between py-4 first:pt-2 last:pb-2"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                     <Check className="w-5 h-5" />
                   </div>
-                  <p>{item}</p>
+                  <p>{t(itemKey)}</p>
                 </div>
                 <div className="px-4 py-1.5 rounded-full bg-primary-soft text-primary text-sm font-medium">
-                  완료
+                  {t('account.verificationCompleted.completed')}
                 </div>
               </div>
             ))}
@@ -47,6 +64,3 @@ export function VerificationCompleted() {
     </MobileLayout>
   )
 }
-
-
-

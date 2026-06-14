@@ -79,6 +79,7 @@ export type ApplicationPortfolioResponse = ApplicationPortfolioItemResponse[]
 export type JobOpeningListParams = {
   page?: number
   size?: number
+  language?: string
 }
 
 export const jobApi = {
@@ -87,13 +88,21 @@ export const jobApi = {
       params: {
         page: params.page ?? 0,
         size: params.size ?? 50,
+        language: params.language,
       },
     })
     return response.data.data
   },
 
-  getOpening: async (jobId: number): Promise<JobOpeningResponse> => {
-    const response = await apiClient.get<ApiEnvelope<JobOpeningResponse>>(`/jobs/${jobId}`)
+  getOpening: async (
+    jobId: number,
+    params: Pick<JobOpeningListParams, 'language'> = {}
+  ): Promise<JobOpeningResponse> => {
+    const response = await apiClient.get<ApiEnvelope<JobOpeningResponse>>(`/jobs/${jobId}`, {
+      params: {
+        language: params.language,
+      },
+    })
     return response.data.data
   },
 
@@ -112,6 +121,7 @@ export const jobApi = {
         params: {
           page: params.page ?? 0,
           size: params.size ?? 50,
+          language: params.language,
         },
       }
     )

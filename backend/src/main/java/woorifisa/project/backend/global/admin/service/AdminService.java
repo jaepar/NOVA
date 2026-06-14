@@ -2,6 +2,9 @@ package woorifisa.project.backend.global.admin.service;
 
 import static woorifisa.project.backend.global.response.status.BaseExceptionResponseStatus.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.backend.domain.user.entity.Document;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
+import woorifisa.project.backend.domain.user.entity.enums.DocumentRejectionReasonCode;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentStatus;
 import woorifisa.project.backend.domain.user.entity.enums.DocumentType;
 import woorifisa.project.backend.domain.user.repository.DocumentRepository;
@@ -32,7 +36,12 @@ public class AdminService {
 	private final NotificationService notificationService;
 
 	@Transactional
-	public void reviewDocument(Long userId, String documentTypeValue, String targetStatusValue, String missing) {
+	public void reviewDocument(
+		Long userId,
+		String documentTypeValue,
+		String targetStatusValue,
+		List<DocumentRejectionReasonCode> rejectionReasonCodes
+	) {
 		log.info("[admin_review:requested] userId={}, documentType={}, targetStatus={}",
 			userId, documentTypeValue, targetStatusValue);
 		User user = userRepository.findById(userId)
@@ -56,7 +65,9 @@ public class AdminService {
 		);
 
 		try {
-			String reviewedMissing = targetStatus == DocumentStatus.APPROVED ? null : missing;
+			String reviewedMissing = targetStatus == DocumentStatus.APPROVED
+				? null
+				: serializeRejectionReasonCodes(rejectionReasonCodes);
 			document.changeStatus(updatedFileUrl, targetStatus, reviewedMissing);
 				documentRepository.save(document);
 				log.info("[admin_review:status_updated] userId={}, documentType={}, from={}, to={}",
@@ -73,6 +84,15 @@ public class AdminService {
 			rollbackS3Status(userId, documentType, targetStatus, previousStatus, exception);
 			throw exception;
 		}
+	}
+
+	private String serializeRejectionReasonCodes(List<DocumentRejectionReasonCode> rejectionReasonCodes) {
+		if (rejectionReasonCodes == null || rejectionReasonCodes.isEmpty()) {
+			return null;
+		}
+		return rejectionReasonCodes.stream()
+			.map(DocumentRejectionReasonCode::name)
+			.collect(Collectors.joining(","));
 	}
 
 	private DocumentType parseDocumentType(String rawDocumentType) {

@@ -1,29 +1,33 @@
 import { Home, Send, TrendingUp, User } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { AppButton } from '../design-system/AppButton'
+import { useTranslation } from '../../i18n'
 
 interface NavItem {
   id: string
-  label: string
+  labelKey: string
   icon: React.ReactNode
   path: string
 }
 
 const navItems: NavItem[] = [
-  { id: 'home', label: '홈', icon: <Home className="w-6 h-6" />, path: '/main' },
-  { id: 'transfer', label: '송금', icon: <Send className="w-6 h-6" />, path: '/global-transfer' },
-  { id: 'exchange', label: '환율', icon: <TrendingUp className="w-6 h-6" />, path: '/exchange' },
-  { id: 'mypage', label: '마이페이지', icon: <User className="w-6 h-6" />, path: '/mypage' },
+  { id: 'home', labelKey: 'bottomNav.home', icon: <Home className="w-6 h-6" />, path: '/main' },
+  { id: 'transfer', labelKey: 'bottomNav.transfer', icon: <Send className="w-6 h-6" />, path: '/global-transfer' },
+  { id: 'exchange', labelKey: 'bottomNav.exchange', icon: <TrendingUp className="w-6 h-6" />, path: '/exchange' },
+  { id: 'mypage', labelKey: 'bottomNav.mypage', icon: <User className="w-6 h-6" />, path: '/mypage' },
 ]
 
 export function BottomNav() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
 
   return (
-    <div className="fixed bottom-5 left-0 right-0 z-40 w-full px-5">
+    <>
+      <div className="fixed bottom-0 left-0 right-0 z-30 h-[112px] bg-white" aria-hidden="true" />
+      <div className="fixed bottom-5 left-0 right-0 z-40 w-full px-5">
       <div
-        className="bg-background/95 backdrop-blur-[20px] px-2 py-3 rounded-2xl shadow-lg border border-border/50 w-full"
+        className="relative bg-background/95 backdrop-blur-[20px] px-2 py-3 rounded-2xl shadow-lg border border-border/50 w-full"
         style={{
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
@@ -45,12 +49,13 @@ export function BottomNav() {
                 }`}
               >
                 {item.icon}
-                <span className="text-xs">{item.label}</span>
+                <span className="text-xs">{t(item.labelKey)}</span>
               </AppButton>
             )
           })}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

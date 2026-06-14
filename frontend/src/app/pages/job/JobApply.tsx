@@ -14,6 +14,7 @@ import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
 import { CommonInputGroup } from '../../components/design-system/CommonInputGroup'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { useTranslation } from '../../i18n'
 import {
   Select,
   SelectContent,
@@ -102,6 +103,7 @@ function PortfolioPreviewModal({
   portfolio: PreviewPortfolio
   onClose: () => void
 }) {
+  const { t, language } = useTranslation()
   const isImagePreview = isImagePreviewUrl(portfolio.url)
 
   return (
@@ -124,7 +126,7 @@ function PortfolioPreviewModal({
             variant="unstyled"
             onClick={onClose}
             className="rounded-lg p-1 hover:bg-secondary"
-            aria-label="미리보기 닫기"
+            aria-label={t('job.previewClose')}
           >
             <X className="h-6 w-6" />
           </AppButton>
@@ -135,13 +137,13 @@ function PortfolioPreviewModal({
             <div className="flex h-full w-full items-center justify-center bg-[#f8fafc]">
               <img
                 src={portfolio.url}
-                alt={`${portfolio.name} 미리보기`}
+                alt={t('job.previewAlt').replace('{name}', portfolio.name)}
                 className="h-full w-full object-contain"
               />
             </div>
           ) : (
             <iframe
-              title={`${portfolio.name} 미리보기`}
+              title={t('job.previewAlt').replace('{name}', portfolio.name)}
               src={portfolio.url}
               className="h-full w-full border-0"
             />
@@ -154,6 +156,7 @@ function PortfolioPreviewModal({
 
 export function JobApply() {
   const navigate = useNavigate()
+  const { t, language } = useTranslation()
   const { jobId } = useParams()
   const numericJobId = Number(jobId)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -177,7 +180,7 @@ export function JobApply() {
 
     async function loadApplyData() {
       if (!Number.isFinite(numericJobId)) {
-        setErrorMessage('공고 정보를 찾을 수 없습니다.')
+        setErrorMessage(t('job.detailNotFound'))
         setIsLoading(false)
         return
       }
@@ -187,7 +190,7 @@ export function JobApply() {
       setRequiresLogin(false)
 
       try {
-        const jobResponse = await jobApi.getOpening(numericJobId)
+        const jobResponse = await jobApi.getOpening(numericJobId, { language })
 
         if (isMounted) {
           setJob(jobResponse)
@@ -202,9 +205,9 @@ export function JobApply() {
         if (isMounted) {
           if (isUnauthorizedError(error)) {
             setRequiresLogin(true)
-            setErrorMessage('로그인이 필요한 서비스입니다. 로그인 후 지원서를 작성해주세요.')
+            setErrorMessage(t('job.applyLoginRequiredService'))
           } else {
-            setErrorMessage('지원서 정보를 불러오지 못했습니다.')
+            setErrorMessage(t('job.applyLoadFailed'))
           }
         }
       } finally {
@@ -219,7 +222,7 @@ export function JobApply() {
     return () => {
       isMounted = false
     }
-  }, [numericJobId])
+  }, [language, numericJobId, t])
 
   const selectedFiles = useMemo(
     () =>
@@ -250,7 +253,7 @@ export function JobApply() {
     setPreviewPortfolio({
       name: portfolio.name,
       url: portfolio.url,
-      description: '등록된 포트폴리오',
+      description: t('job.registeredPortfolio'),
     })
   }
 
@@ -258,7 +261,7 @@ export function JobApply() {
     setPreviewPortfolio({
       name: file.name,
       url: URL.createObjectURL(file.file),
-      description: '새로 추가한 파일',
+      description: t('job.newFile'),
       shouldRevokeUrl: true,
     })
   }
@@ -317,9 +320,9 @@ export function JobApply() {
     } catch (error) {
       if (isUnauthorizedError(error)) {
         setRequiresLogin(true)
-        setErrorMessage('로그인이 필요한 서비스입니다. 로그인 후 지원서를 작성해주세요.')
+        setErrorMessage(t('job.applyLoginRequiredService'))
       } else {
-        setSubmitErrorMessage(getApiErrorMessage(error, '지원서를 제출하지 못했습니다.'))
+        setSubmitErrorMessage(getApiErrorMessage(error, t('job.submitFailed')))
       }
     } finally {
       setIsSubmitting(false)
@@ -329,7 +332,8 @@ export function JobApply() {
   return (
     <div className="relative h-full w-full">
       <MobileLayout
-        title="지원하기"
+        title={t('job.applyTitle')}
+        titleKey="job.applyTitle"
         backPath={job ? `/jobs/${job.job_id}` : '/jobs'}
         bottomContent={
           !isLoading && requiresLogin ? (
@@ -343,29 +347,29 @@ export function JobApply() {
                 })
               }
             >
-              로그인하기
+              {t('job.login')}
             </Btn_1Col>
           ) : !isLoading && !errorMessage ? (
             <Btn_1Col disabled={!canSubmit} onClick={handleSubmit}>
-              {isSubmitting ? '제출 중' : '제출하기'}
+              {isSubmitting ? t('job.submitting') : t('job.submit')}
             </Btn_1Col>
           ) : undefined
         }
       >
         {isLoading && (
           <CenteredTaskContent
-            task="지원서 정보를 불러오는 중입니다."
-            description="잠시만 기다려주세요."
+            task={t('job.applyLoading')}
+            description={t('job.wait')}
           />
         )}
 
         {!isLoading && errorMessage && (
           <CenteredTaskContent
-            task={requiresLogin ? '로그인이 필요합니다.' : errorMessage}
+            task={requiresLogin ? t('job.loginRequired') : errorMessage}
             description={
               requiresLogin
-                ? '지원서를 작성하려면 먼저 로그인해주세요.'
-                : '잠시 후 다시 시도해주세요.'
+                ? t('job.applyLoginDescription')
+                : t('job.retryLater')
             }
           />
         )}
@@ -374,19 +378,19 @@ export function JobApply() {
           <div className="space-y-8 pt-6">
             <section className="space-y-5">
               <div>
-                <h2 className="mb-1 text-[22px] font-semibold text-[#111827]">지원 정보</h2>
+                <h2 className="mb-1 text-[22px] font-semibold text-[#111827]">{t('job.applyInfo')}</h2>
                 <p className="text-sm text-muted-foreground">{job.opening_title}</p>
               </div>
 
-              <ReadOnlyProfileField label="이름" value={form.name} />
-              <ReadOnlyProfileField label="이메일" value={form.email} />
+              <ReadOnlyProfileField label={t('job.name')} value={form.name} />
+              <ReadOnlyProfileField label={t('job.email')} value={form.email} />
 
               <div className="flex flex-col gap-2">
-                <label>연락처 (선택 사항)</label>
+                <label>{t('job.contactOptional')}</label>
                 <div className="grid grid-cols-[94px_1fr] gap-3">
                   <Select value={countryCode} onValueChange={setCountryCode}>
                     <SelectTrigger
-                      aria-label="국가번호 선택"
+                      aria-label={t('job.countryCodeSelect')}
                       className="mt-[6px] !h-[50px] w-full rounded-lg border-border bg-input-background px-3 text-[16px] shadow-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary"
                     >
                       <SelectValue />
@@ -410,8 +414,8 @@ export function JobApply() {
               </div>
 
               <CommonInputGroup
-                label="추천인 (선택 사항)"
-                placeholder="선택 사항"
+                label={t('job.recommenderOptional')}
+                placeholder={t('job.optional')}
                 value={recommender}
                 onChange={setRecommender}
               />
@@ -424,15 +428,15 @@ export function JobApply() {
             )}
 
             <section className="-mx-5 border-t border-border px-5 pt-6">
-              <h2 className="mb-2 text-[22px] font-semibold text-[#111827]">첨부파일 선택</h2>
+              <h2 className="mb-2 text-[22px] font-semibold text-[#111827]">{t('job.attachmentsTitle')}</h2>
               <p className="mb-5 text-[16px] text-muted-foreground">
-                이번 지원서에 반영할 포트폴리오와 새 파일을 선택해주세요.
+                {t('job.attachmentsDescription')}
               </p>
 
               <div className="space-y-3">
                 {form.portfolios.length === 0 && localFiles.length === 0 && (
                   <p className="rounded-xl bg-secondary px-4 py-5 text-[15px] text-muted-foreground">
-                    등록된 포트폴리오가 없습니다. 필요한 파일을 새로 추가해주세요.
+                    {t('job.noRegisteredPortfolio')}
                   </p>
                 )}
 
@@ -465,7 +469,7 @@ export function JobApply() {
                           {portfolio.name}
                         </span>
                         <span className="mt-2 flex items-center gap-3">
-                          <span className="text-sm text-muted-foreground">등록된 포트폴리오</span>
+                          <span className="text-sm text-muted-foreground">{t('job.registeredPortfolio')}</span>
                           <span
                             role="button"
                             tabIndex={0}
@@ -485,7 +489,7 @@ export function JobApply() {
                             className="inline-flex items-center gap-1 text-sm font-semibold text-primary"
                           >
                             <Eye className="h-4 w-4" />
-                            보기
+                            {t('job.view')}
                           </span>
                         </span>
                       </span>
@@ -528,7 +532,7 @@ export function JobApply() {
                         </span>
                         <span className="mt-2 flex items-center gap-3">
                           <span className="text-sm text-muted-foreground">
-                            새 파일 · {file.createdAt}
+                            {t('job.newFile')} · {file.createdAt}
                           </span>
                           <span
                             role="button"
@@ -549,7 +553,7 @@ export function JobApply() {
                             className="inline-flex items-center gap-1 text-sm font-semibold text-primary"
                           >
                             <Eye className="h-4 w-4" />
-                            보기
+                            {t('job.view')}
                           </span>
                         </span>
                       </span>
@@ -576,7 +580,7 @@ export function JobApply() {
                   onClick={() => fileInputRef.current?.click()}
                   className="flex h-14 w-full items-center justify-center gap-3 rounded-xl border border-dashed border-border text-[#2563EB] transition-colors hover:bg-primary-soft"
                 >
-                  <Plus className="h-5 w-5" />새 파일 추가
+                  <Plus className="h-5 w-5" />{t('job.addNewFile')}
                 </AppButton>
               </div>
             </section>

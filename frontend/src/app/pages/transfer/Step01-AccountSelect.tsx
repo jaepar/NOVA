@@ -4,11 +4,13 @@ import { useNavigate } from 'react-router-dom'
 import { AppButton, Btn_1Col, novaToast } from '../../components/design-system'
 import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { translateError, useTranslation } from '../../i18n'
 import { bankingApi, getBankingApiError } from '../../../api'
 import { detectAccountNumber } from '../../data/accountNumberDetector'
 import {
   BANK_OPTIONS,
   BANK_CODE_BY_ID,
+  getTransferBankName,
   REQUIRED_ACCOUNT_LENGTH,
   normalizeAccountNumber,
   type BankOption,
@@ -19,6 +21,7 @@ import { BankMark } from './components/BankMark'
 
 export function TransferAccountSelect() {
   const navigate = useNavigate()
+  const { t, language } = useTranslation()
   const accountNumber = useTransferStore((state) => state.accountNumber)
   const selectedBank = useTransferStore((state) => state.selectedBank)
   const setAccountNumber = useTransferStore((state) => state.setAccountNumber)
@@ -67,12 +70,12 @@ export function TransferAccountSelect() {
       navigate('/transfer/amount')
     } catch (error) {
       const apiError = getBankingApiError(error)
-      if (apiError?.code === 'BANK-006') {
-        novaToast.error(apiError.message || '수취인 계좌 정보를 찾을 수 없습니다.')
-        return
-      }
+      const fallback =
+        apiError?.code === 'BANK-006' || apiError?.code === 'ACCOUNT-005'
+          ? t('transfer.accountSelect.errorNotFound')
+          : t('transfer.accountSelect.errorDefault')
 
-      novaToast.error(apiError?.message || '이체 정보를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.')
+      novaToast.error(translateError(apiError?.code, apiError?.message || fallback))
     } finally {
       setIsPreviewLoading(false)
     }
@@ -81,27 +84,25 @@ export function TransferAccountSelect() {
   return (
     <>
       <MobileLayout
-        title="이체"
+        title={t('transfer.title')}
+        titleKey="transfer.title"
         headerType="back"
         onBack={() => navigate('/main')}
         headerTextColor="#020A2F"
         bottomContent={
-          <Btn_1Col
-            disabled={!isNextEnabled || isPreviewLoading}
-            onClick={handleNext}
-          >
-            {isPreviewLoading ? '확인 중' : '다음'}
+          <Btn_1Col disabled={!isNextEnabled || isPreviewLoading} onClick={handleNext}>
+            {isPreviewLoading ? t('transfer.accountSelect.checking') : t('transfer.accountSelect.next')}
           </Btn_1Col>
         }
       >
         <section className="pt-5 text-[#020A2F]">
           <h2 className="text-[25px] font-bold leading-tight tracking-normal">
-            어떤 계좌로 보낼까요?
+            {t('transfer.accountSelect.heading')}
           </h2>
 
           <div className="mt-7">
             <label htmlFor="transfer-account-number" className="text-sm font-medium">
-              계좌번호 입력
+              {t('transfer.accountSelect.accountLabel')}
             </label>
             <div className="relative mt-3">
               <input
@@ -111,14 +112,14 @@ export function TransferAccountSelect() {
                 pattern="[0-9]*"
                 value={accountNumber}
                 onChange={(event) => handleAccountChange(event.target.value)}
-                placeholder="'-' 없이 숫자만 입력"
+                placeholder={t('transfer.accountSelect.accountPlaceholder')}
                 className="h-[58px] w-full rounded-lg border border-[#CBD2E1] bg-white px-4 pr-12 text-[17px] font-medium outline-none transition-colors placeholder:text-[#A5ABBE] focus:border-[#075BFF] focus:ring-1 focus:ring-[#075BFF]"
               />
               {accountNumber ? (
                 <AppButton
                   type="button"
                   variant="unstyled"
-                  aria-label="계좌번호 지우기"
+                  aria-label={t('transfer.accountSelect.clearAria')}
                   onClick={() => {
                     setAccountNumber('')
                     setSelectedBank(null)
@@ -132,7 +133,7 @@ export function TransferAccountSelect() {
           </div>
 
           <div className="mt-8">
-            <p className="text-sm font-medium">은행 선택</p>
+            <p className="text-sm font-medium">{t('transfer.accountSelect.bankLabel')}</p>
             <AppButton
               type="button"
               variant="unstyled"
@@ -142,10 +143,10 @@ export function TransferAccountSelect() {
               {selectedBank ? (
                 <span className="flex items-center gap-3 text-[#020A2F]">
                   <BankMark bank={selectedBank} size="sm" />
-                  {selectedBank.name}
+                  {getTransferBankName(selectedBank, language)}
                 </span>
               ) : (
-                <span className="text-[#687089]">은행을 선택해주세요</span>
+                <span className="text-[#687089]">{t('transfer.accountSelect.bankPlaceholder')}</span>
               )}
               <ChevronDown className="h-5 w-5 text-[#020A2F]" />
             </AppButton>
@@ -166,7 +167,7 @@ export function TransferAccountSelect() {
                   }`}
                 >
                   <BankMark bank={bank} size="xs" />
-                  <span className="whitespace-nowrap">{bank.name}</span>
+                  <span className="whitespace-nowrap">{getTransferBankName(bank, language)}</span>
                 </AppButton>
               ))}
             </div>
@@ -179,7 +180,7 @@ export function TransferAccountSelect() {
       <BottomSheet
         isOpen={isBankSheetOpen}
         onClose={() => setIsBankSheetOpen(false)}
-        title="은행을 선택해주세요"
+        title={t('transfer.accountSelect.bankSheetTitle')}
         height="440px"
       >
         <div className="grid grid-cols-3 gap-2">
@@ -196,7 +197,7 @@ export function TransferAccountSelect() {
               }`}
             >
               <BankMark bank={bank} size="lg" />
-              <span className="whitespace-nowrap leading-none">{bank.name}</span>
+              <span className="whitespace-nowrap leading-none">{getTransferBankName(bank, language)}</span>
             </AppButton>
           ))}
         </div>

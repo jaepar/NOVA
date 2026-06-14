@@ -4,37 +4,44 @@ import { bankingApi, type GlobalTransferHistoryItem } from "../../../api";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { AppButton } from "../../components/design-system/AppButton";
 import { FilterBottomSheet } from "../../components/design-system/FilterBottomSheet";
-import { transferCountries } from "../../data/transferCountries";
+import { getTransferCountryName, transferCountries } from "../../data/transferCountries";
+import { useTranslation } from "../../i18n";
 
-const statusLabels: Record<string, string> = {
-  PENDING: "처리중",
-  PROCESSING: "처리중",
-  SUCCESS: "완료",
-  COMPLETED: "완료",
-  COMPLETE: "완료",
-  FAILED: "실패",
-  REJECTED: "실패",
-  CANCELED: "실패",
-  CANCELLED: "실패",
+type PeriodFilter = "ALL" | "ONE_MONTH" | "THREE_MONTHS" | "SIX_MONTHS";
+type StatusFilter = "ALL" | "COMPLETED" | "PROCESSING" | "FAILED";
+
+const PERIOD_MONTH_MAP: Partial<Record<PeriodFilter, number>> = {
+  ONE_MONTH: 1,
+  THREE_MONTHS: 3,
+  SIX_MONTHS: 6,
 };
 
-const PERIOD_MONTH_MAP: Record<string, number> = {
-  "1개월": 1,
-  "3개월": 3,
-  "6개월": 6,
-};
+const countryMap = new Map(transferCountries.map((country) => [country.id.toLowerCase(), country]));
 
-const countryNameMap = new Map(
-  transferCountries.map((c) => [c.id.toLowerCase(), c.name])
-);
+function getStatusGroup(status: string): Exclude<StatusFilter, "ALL"> {
+  if (["SUCCESS", "COMPLETED", "COMPLETE"].includes(status)) return "COMPLETED";
+  if (["FAILED", "REJECTED", "CANCELED", "CANCELLED"].includes(status)) return "FAILED";
+  return "PROCESSING";
+}
 
-function formatDate(value: string | null) {
+function isCompletedStatus(status: string) {
+  return getStatusGroup(status) === "COMPLETED";
+}
+
+function getStatusLabelKey(status: string) {
+  const group = getStatusGroup(status);
+  if (group === "COMPLETED") return "globalTransfer.history.completed";
+  if (group === "FAILED") return "globalTransfer.history.failed";
+  return "globalTransfer.history.processing";
+}
+
+function formatDate(value: string | null, language: string) {
   if (!value) return "";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
 
-  return date.toLocaleString("ko-KR", {
+  return date.toLocaleString(language === "ko" ? "ko-KR" : "en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -44,21 +51,14 @@ function formatDate(value: string | null) {
   });
 }
 
-function getStatusLabel(status: string) {
-  return statusLabels[status] ?? status;
+function getCountryName(targetCountry: string | null, fallback: string, language: string) {
+  if (!targetCountry) return fallback;
+  const country = countryMap.get(targetCountry.toLowerCase());
+  return country ? getTransferCountryName(country, language) : targetCountry;
 }
 
-function isCompletedStatus(status: string) {
-  return ["SUCCESS", "COMPLETED", "COMPLETE"].includes(status);
-}
-
-function getCountryName(targetCountry: string | null) {
-  if (!targetCountry) return "국가 미확인";
-  return countryNameMap.get(targetCountry.toLowerCase()) ?? targetCountry;
-}
-
-function isWithinPeriod(item: GlobalTransferHistoryItem, selectedPeriod: string) {
-  if (selectedPeriod === "전체") return true;
+function isWithinPeriod(item: GlobalTransferHistoryItem, selectedPeriod: PeriodFilter) {
+  if (selectedPeriod === "ALL") return true;
   if (!item.createdAt) return false;
 
   const createdAt = new Date(item.createdAt);
@@ -76,7 +76,7 @@ function formatAmount(item: GlobalTransferHistoryItem) {
   return `${item.currency} ${item.remitAmount}`;
 }
 
-function formatTotal(items: GlobalTransferHistoryItem[]) {
+function formatTotal(items: GlobalTransferHistoryItem[], countUnit: string) {
   const totals = items.reduce<Record<string, number>>((acc, item) => {
     const amount = Number(item.remitAmount);
     if (Number.isNaN(amount)) return acc;
@@ -86,8 +86,8 @@ function formatTotal(items: GlobalTransferHistoryItem[]) {
   }, {});
 
   const entries = Object.entries(totals);
-  if (entries.length === 0) return "0건";
-  if (entries.length > 1) return `${items.length}건`;
+  if (entries.length === 0) return `0${countUnit}`;
+  if (entries.length > 1) return `${items.length}${countUnit}`;
 
   const [currency, amount] = entries[0];
   return `${currency} ${amount.toLocaleString("en-US", {
@@ -97,12 +97,13 @@ function formatTotal(items: GlobalTransferHistoryItem[]) {
 }
 
 export function TransferHistory() {
+  const { t, language } = useTranslation();
   const [transfers, setTransfers] = useState<GlobalTransferHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isFilterOpen, setFilterOpen] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState("전체");
-  const [selectedType, setSelectedType] = useState("전체");
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodFilter>("ALL");
+  const [selectedType, setSelectedType] = useState<StatusFilter>("ALL");
 
   useEffect(() => {
     let isMounted = true;
@@ -118,7 +119,7 @@ export function TransferHistory() {
         }
       } catch {
         if (isMounted) {
-          setErrorMessage("송금 내역을 불러오지 못했습니다.");
+          setErrorMessage(t("globalTransfer.history.loadError"));
         }
       } finally {
         if (isMounted) {
@@ -132,7 +133,7 @@ export function TransferHistory() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [t]);
 
   const periodFilteredTransfers = useMemo(
     () => transfers.filter((transfer) => isWithinPeriod(transfer, selectedPeriod)),
@@ -140,29 +141,42 @@ export function TransferHistory() {
   );
 
   const filteredTransfers = useMemo(() => {
-    if (selectedType === "전체") return periodFilteredTransfers;
+    if (selectedType === "ALL") return periodFilteredTransfers;
     return periodFilteredTransfers.filter(
-      (transfer) => getStatusLabel(transfer.status) === selectedType
+      (transfer) => getStatusGroup(transfer.status) === selectedType
     );
   }, [periodFilteredTransfers, selectedType]);
 
   const { completedCount, processingCount } = useMemo(() => {
     let completed = 0;
     let processing = 0;
-    for (const t of periodFilteredTransfers) {
-      const label = getStatusLabel(t.status);
-      if (label === "완료") completed++;
-      else if (label === "처리중") processing++;
+    for (const transfer of periodFilteredTransfers) {
+      const group = getStatusGroup(transfer.status);
+      if (group === "COMPLETED") completed++;
+      else if (group === "PROCESSING") processing++;
     }
     return { completedCount: completed, processingCount: processing };
   }, [periodFilteredTransfers]);
 
+  const periodLabels: Record<PeriodFilter, string> = {
+    ALL: t("globalTransfer.history.periodAll"),
+    ONE_MONTH: t("globalTransfer.history.period1Month"),
+    THREE_MONTHS: t("globalTransfer.history.period3Months"),
+    SIX_MONTHS: t("globalTransfer.history.period6Months"),
+  };
+  const statusLabels: Record<StatusFilter, string> = {
+    ALL: t("globalTransfer.history.all"),
+    COMPLETED: t("globalTransfer.history.completed"),
+    PROCESSING: t("globalTransfer.history.processing"),
+    FAILED: t("globalTransfer.history.failed"),
+  };
   const showEmptyState = !isLoading && !errorMessage && filteredTransfers.length === 0;
+  const countUnit = t("globalTransfer.history.countUnit");
 
   return (
     <>
       <MobileLayout
-        title="송금 내역 조회"
+        title={t("globalTransfer.history.title")}
         headerType="back"
         backPath="/global-transfer"
         headerRightContent={
@@ -179,34 +193,48 @@ export function TransferHistory() {
           <section className="rounded-2xl bg-secondary p-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                최근 송금 합계
+                {t("globalTransfer.history.recentTotal")}
               </span>
               <h2 className="text-lg font-semibold text-foreground">
-                {formatTotal(filteredTransfers)}
+                {formatTotal(filteredTransfers, countUnit)}
               </h2>
             </div>
             <div className="flex gap-4 text-sm">
               <div>
-                <span className="text-muted-foreground">완료 </span>
-                <span className="text-blue-600">{completedCount}건</span>
+                <span className="text-muted-foreground">
+                  {t("globalTransfer.history.completed")}{" "}
+                </span>
+                <span className="text-blue-600">
+                  {completedCount}
+                  {countUnit}
+                </span>
               </div>
               <div>
-                <span className="text-muted-foreground">처리중 </span>
-                <span className="text-foreground">{processingCount}건</span>
+                <span className="text-muted-foreground">
+                  {t("globalTransfer.history.processing")}{" "}
+                </span>
+                <span className="text-foreground">
+                  {processingCount}
+                  {countUnit}
+                </span>
               </div>
             </div>
           </section>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>기간: {selectedPeriod}</span>
-            <span>•</span>
-            <span>상태: {selectedType}</span>
+            <span>
+              {t("globalTransfer.history.periodLabel")}: {periodLabels[selectedPeriod]}
+            </span>
+            <span>/</span>
+            <span>
+              {t("globalTransfer.history.statusLabel")}: {statusLabels[selectedType]}
+            </span>
           </div>
 
           <section className="space-y-3">
             {isLoading && (
               <div className="rounded-2xl bg-secondary px-5 py-12 text-center text-sm text-muted-foreground">
-                송금 내역을 불러오는 중입니다.
+                {t("globalTransfer.history.loading")}
               </div>
             )}
 
@@ -218,42 +246,47 @@ export function TransferHistory() {
 
             {showEmptyState && (
               <div className="rounded-2xl bg-secondary px-5 py-12 text-center text-sm text-muted-foreground">
-                조회된 송금 내역이 없습니다.
+                {t("globalTransfer.history.empty")}
               </div>
             )}
 
-            {!isLoading && !errorMessage && filteredTransfers.map((transfer) => (
-              <div
-                key={transfer.globalTransactionId}
-                className="w-full rounded-2xl border border-border bg-background p-4 text-left"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <span
-                        className={`rounded px-2 py-0.5 text-xs ${
-                          isCompletedStatus(transfer.status)
-                            ? "bg-blue-50 text-blue-600"
-                            : "bg-secondary text-foreground"
-                        }`}
-                      >
-                        {getStatusLabel(transfer.status)}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {formatDate(transfer.createdAt)}
-                      </span>
+            {!isLoading &&
+              !errorMessage &&
+              filteredTransfers.map((transfer) => (
+                <div
+                  key={transfer.globalTransactionId}
+                  className="w-full rounded-2xl border border-border bg-background p-4 text-left"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span
+                          className={`rounded px-2 py-0.5 text-xs ${
+                            isCompletedStatus(transfer.status)
+                              ? "bg-blue-50 text-blue-600"
+                              : "bg-secondary text-foreground"
+                          }`}
+                        >
+                          {t(getStatusLabelKey(transfer.status))}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {formatDate(transfer.createdAt, language)}
+                        </span>
+                      </div>
+                      <p className="mb-1 text-sm text-foreground">
+                        {getCountryName(
+                          transfer.targetCountry,
+                          t("globalTransfer.history.unknownCountry"),
+                          language
+                        )}{" "}
+                        {transfer.receiverEngName}
+                      </p>
+                      <p className="font-medium text-foreground">{formatAmount(transfer)}</p>
                     </div>
-                    <p className="mb-1 text-sm text-foreground">
-                      {getCountryName(transfer.targetCountry)} {transfer.receiverEngName}
-                    </p>
-                    <p className="font-medium text-foreground">
-                      {formatAmount(transfer)}
-                    </p>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 </div>
-              </div>
-            ))}
+              ))}
           </section>
         </div>
       </MobileLayout>
@@ -263,26 +296,26 @@ export function TransferHistory() {
         onClose={() => setFilterOpen(false)}
         sections={[
           {
-            title: "조회 기간",
+            title: t("globalTransfer.history.periodFilterTitle"),
             options: [
-              { value: "전체", label: "전체" },
-              { value: "1개월", label: "1개월" },
-              { value: "3개월", label: "3개월" },
-              { value: "6개월", label: "6개월" },
+              { value: "ALL", label: periodLabels.ALL },
+              { value: "ONE_MONTH", label: periodLabels.ONE_MONTH },
+              { value: "THREE_MONTHS", label: periodLabels.THREE_MONTHS },
+              { value: "SIX_MONTHS", label: periodLabels.SIX_MONTHS },
             ],
             selectedValue: selectedPeriod,
-            onSelect: setSelectedPeriod,
+            onSelect: (value) => setSelectedPeriod(value as PeriodFilter),
           },
           {
-            title: "송금 상태",
+            title: t("globalTransfer.history.statusFilterTitle"),
             options: [
-              { value: "전체", label: "전체" },
-              { value: "완료", label: "완료" },
-              { value: "처리중", label: "처리중" },
-              { value: "실패", label: "실패" },
+              { value: "ALL", label: statusLabels.ALL },
+              { value: "COMPLETED", label: statusLabels.COMPLETED },
+              { value: "PROCESSING", label: statusLabels.PROCESSING },
+              { value: "FAILED", label: statusLabels.FAILED },
             ],
             selectedValue: selectedType,
-            onSelect: setSelectedType,
+            onSelect: (value) => setSelectedType(value as StatusFilter),
           },
         ]}
         onApply={() => setFilterOpen(false)}

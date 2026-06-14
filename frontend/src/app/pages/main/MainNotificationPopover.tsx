@@ -1,26 +1,20 @@
 import { Bell, CalendarClock, ShieldCheck } from 'lucide-react'
 import { AppButton } from '../../components/design-system/AppButton'
+import { normalizeLanguage, useTranslation } from '../../i18n'
 import type { NotificationResponse, NotificationType } from '../../../api'
 
-function getNotificationTitle(type: NotificationType) {
-  switch (type) {
-    case 'SUPPLEMENT_DOCUMENT':
-      return '보완서류 알림'
-    case 'RESIDENCE_CARD_PERIOD':
-      return '외국인등록증 기간 알림'
-    case 'CERTIFICATE_ISSUED':
-      return '인증서 발급 완료'
-  }
+function getNotificationDateLocale(language: string) {
+  return normalizeLanguage(language) === 'en' ? 'en-US' : 'ko-KR'
 }
 
-function formatNotificationTime(createdAt: string) {
+function formatNotificationTime(createdAt: string, language: string) {
   const date = new Date(createdAt)
 
   if (Number.isNaN(date.getTime())) {
     return createdAt
   }
 
-  return new Intl.DateTimeFormat('ko-KR', {
+  return new Intl.DateTimeFormat(getNotificationDateLocale(language), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -30,7 +24,10 @@ function formatNotificationTime(createdAt: string) {
 }
 
 function NotificationIcon({ type }: { type: NotificationType }) {
-  const Icon = (type === 'SUPPLEMENT_DOCUMENT' || type === 'CERTIFICATE_ISSUED') ? ShieldCheck : CalendarClock
+  const Icon =
+    type === 'SUPPLEMENT_DOCUMENT' || type === 'CERTIFICATE_ISSUED'
+      ? ShieldCheck
+      : CalendarClock
 
   return (
     <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -40,6 +37,8 @@ function NotificationIcon({ type }: { type: NotificationType }) {
 }
 
 function LoginRequiredMessage() {
+  const { t } = useTranslation()
+
   return (
     <div className="relative flex items-center gap-3 py-1">
       <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -47,10 +46,10 @@ function LoginRequiredMessage() {
       </div>
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-semibold leading-[1.35] text-foreground">
-          로그인이 필요합니다
+          {t('notifications.loginRequiredTitle')}
         </h3>
         <p className="mt-1 text-[14px] leading-[1.45] text-muted-foreground">
-          알림을 확인하려면 먼저 로그인해 주세요.
+          {t('notifications.loginRequiredDescription')}
         </p>
       </div>
     </div>
@@ -72,7 +71,11 @@ export function MainNotificationPopover({
   hasError,
   onNotificationClick,
 }: MainNotificationPopoverProps) {
+  const { language, t } = useTranslation()
   const visibleNotifications = notifications.slice(0, 2)
+
+  const getNotificationTitle = (type: NotificationType) => t(`notifications.titles.${type}`)
+  const getNotificationMessage = (type: NotificationType) => t(`notifications.messages.${type}`)
 
   return (
     <div className="absolute right-[-8px] top-[52px] z-[60] w-[calc(100vw-40px)] max-w-[322px] rounded-[18px] bg-white px-4 py-4 shadow-[0_4px_18px_rgba(15,23,42,0.18)] ring-1 ring-black/5">
@@ -100,10 +103,10 @@ export function MainNotificationPopover({
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-[16px] font-semibold leading-[1.35] text-foreground">
-              알림을 불러오지 못했어요
+              {t('notifications.loadFailedTitle')}
             </h3>
             <p className="mt-1 text-[14px] leading-[1.45] text-muted-foreground">
-              잠시 후 다시 확인해 주세요.
+              {t('notifications.loadFailedDescription')}
             </p>
           </div>
         </div>
@@ -122,10 +125,10 @@ export function MainNotificationPopover({
                   {getNotificationTitle(notification.type)}
                 </h3>
                 <p className="mt-1 whitespace-pre-wrap break-words text-[14px] leading-[1.4] text-foreground">
-                  {notification.type === 'CERTIFICATE_ISSUED' ? '인증서 발급이 성공적으로 완료되었습니다.' : notification.content}
+                  {getNotificationMessage(notification.type)}
                 </p>
                 <p className="mt-1 text-[13px] leading-none text-muted-foreground">
-                  {formatNotificationTime(notification.createdAt)}
+                  {formatNotificationTime(notification.createdAt, language)}
                 </p>
               </div>
             </AppButton>
@@ -138,10 +141,10 @@ export function MainNotificationPopover({
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-[16px] font-semibold leading-[1.35] text-foreground">
-              새 알림이 없습니다
+              {t('notifications.noNewTitle')}
             </h3>
             <p className="mt-1 text-[14px] leading-[1.45] text-muted-foreground">
-              확인할 알림이 생기면 이곳에 표시됩니다.
+              {t('notifications.noNewDescription')}
             </p>
           </div>
         </div>

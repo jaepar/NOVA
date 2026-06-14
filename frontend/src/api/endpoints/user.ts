@@ -1,4 +1,5 @@
 import apiClient from '../client'
+import { extractApiErrorBody } from '../utils'
 
 type UserApiResponse<T> = {
   success: boolean
@@ -48,6 +49,11 @@ export type NotificationResponse = {
   createdAt: string
 }
 
+export type UserApiErrorBody = {
+  code: string
+  message: string
+}
+
 function hasRequestPayload(request?: UpdateUserRequestPayload) {
   if (!request) return false
 
@@ -94,3 +100,7 @@ export const userApi = {
     );
   },
 };
+
+export function getUserApiError(error: unknown): UserApiErrorBody | null {
+  return extractApiErrorBody<UserApiErrorBody>(error)
+}

@@ -1,6 +1,7 @@
 ﻿import { useEffect, useRef } from 'react'
 import { Bell, Menu } from 'lucide-react'
 import { AppButton } from '../../components/design-system/AppButton'
+import { useTranslation } from '../../i18n'
 import { MainNotificationPopover } from './MainNotificationPopover'
 import type { NotificationResponse } from '../../../api'
 
@@ -30,6 +31,7 @@ export function MainHeaderActions({
   onMenuClick,
 }: MainHeaderActionsProps) {
   const notificationRef = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (!isNotificationOpen) return
@@ -58,7 +60,7 @@ export function MainHeaderActions({
         <AppButton
           variant="unstyled"
           onClick={onNotificationsClick}
-          aria-label="알림 목록 열기"
+          aria-label={t('notifications.openList')}
           aria-expanded={isNotificationOpen}
           className="p-2 hover:bg-secondary rounded-lg transition-colors relative"
         >
@@ -71,7 +73,7 @@ export function MainHeaderActions({
       <AppButton
         variant="unstyled"
         onClick={onMenuClick}
-        aria-label="메뉴 열기"
+        aria-label={t('notifications.openMenu')}
         className="p-2 hover:bg-secondary rounded-lg transition-colors"
       >
         <Menu className="w-6 h-6" />

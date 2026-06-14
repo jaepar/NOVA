@@ -3,9 +3,11 @@ import { FixedHeader } from './FixedHeader'
 import { CloseFixedHeader } from './CloseFixedHeader'
 import { TitleOnlyFixedHeader } from './TitleOnlyFixedHeader'
 import { FloatingBottom } from './FloatingBottom'
+import { useTranslation } from '../../i18n'
 
 interface MobileLayoutProps {
   title: string
+  titleKey?: string
   children: ReactNode
   bottomContent?: ReactNode
   bottomBackgroundColor?: string
@@ -38,7 +40,10 @@ export function MobileLayout({
   closePath,
   headerLeftContent,
   headerRightContent,
+  titleKey,
 }: MobileLayoutProps) {
+  const { t } = useTranslation()
+  const resolvedTitle = titleKey ? t(titleKey, title) : title
   const effectiveHeaderType: 'back' | 'close' | 'none' =
     headerType === 'none'
       ? 'none'
@@ -54,7 +59,7 @@ export function MobileLayout({
     <div className="h-full w-full bg-background flex flex-col overflow-hidden">
       {effectiveHeaderType === 'close' ? (
         <CloseFixedHeader
-          title={title}
+          title={resolvedTitle}
           onClose={onClose}
           closePath={closePath}
           backgroundColor={headerBackgroundColor}
@@ -62,13 +67,13 @@ export function MobileLayout({
         />
       ) : effectiveHeaderType === 'none' ? (
         <TitleOnlyFixedHeader
-          title={title}
+          title={resolvedTitle}
           backgroundColor={headerBackgroundColor}
           textColor={headerTextColor}
         />
       ) : (
         <FixedHeader
-          title={title}
+          title={resolvedTitle}
           onBack={onBack}
           backPath={backPath}
           backgroundColor={headerBackgroundColor}

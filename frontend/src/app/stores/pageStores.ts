@@ -1,9 +1,28 @@
 import { create } from 'zustand'
 
+const TRANSFER_INITIAL_VERIFICATION_STORAGE_KEY = 'nova-transfer-initial-verified'
+
 function clearSessionStorage() {
   if (typeof window === 'undefined' || typeof window.sessionStorage === 'undefined') return
 
   window.sessionStorage.clear()
+}
+
+function getStoredTransferInitialVerification() {
+  if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return false
+
+  return window.localStorage.getItem(TRANSFER_INITIAL_VERIFICATION_STORAGE_KEY) === 'true'
+}
+
+function setStoredTransferInitialVerification(isVerified: boolean) {
+  if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') return
+
+  if (isVerified) {
+    window.localStorage.setItem(TRANSFER_INITIAL_VERIFICATION_STORAGE_KEY, 'true')
+    return
+  }
+
+  window.localStorage.removeItem(TRANSFER_INITIAL_VERIFICATION_STORAGE_KEY)
 }
 
 interface MainPageState {
@@ -131,9 +150,15 @@ interface TransferSendPageState {
 }
 
 export const useTransferSendPageStore = create<TransferSendPageState>((set) => ({
-  isInitialVerificationComplete: false,
-  completeInitialVerification: () => set({ isInitialVerificationComplete: true }),
-  resetInitialVerification: () => set({ isInitialVerificationComplete: false }),
+  isInitialVerificationComplete: getStoredTransferInitialVerification(),
+  completeInitialVerification: () => {
+    setStoredTransferInitialVerification(true)
+    set({ isInitialVerificationComplete: true })
+  },
+  resetInitialVerification: () => {
+    setStoredTransferInitialVerification(false)
+    set({ isInitialVerificationComplete: false })
+  },
 }))
 
 type TransferFeeBurden = 'sender' | 'receiver'
@@ -153,7 +178,7 @@ interface TransferBasicInfoPageState {
 }
 
 const transferBasicInfoInitialState = {
-  purpose: '거주자(외국인 제외)의 무증빙 해외송금',
+  purpose: 'resident',
   countryId: 'us',
   currencyCode: 'USD',
   amount: '',
@@ -316,7 +341,7 @@ export const useDesignSystemPageStore = create<DesignSystemPageState>((set) => (
 
 interface Step3DocumentItem {
   id: 'registration-application' | 'residence-proof'
-  title: string
+  titleKey: string
   file: File | null
   error: string | null
 }
@@ -329,8 +354,8 @@ interface Step3PageState {
 }
 
 const initialStep3Documents: Step3DocumentItem[] = [
-  { id: 'registration-application', title: '외국인등록증 신청 서류', file: null, error: null },
-  { id: 'residence-proof', title: '거소확인 증빙 서류', file: null, error: null },
+  { id: 'registration-application', titleKey: 'certificate.step03RegistrationApplication', file: null, error: null },
+  { id: 'residence-proof', titleKey: 'certificate.step03ResidenceProof', file: null, error: null },
 ]
 
 export const useStep3PageStore = create<Step3PageState>((set) => ({

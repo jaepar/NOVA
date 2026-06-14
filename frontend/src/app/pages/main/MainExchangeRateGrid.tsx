@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n'
 import type { ExchangeRateItem } from './types'
 
 interface MainExchangeRateGridProps {
@@ -16,9 +17,11 @@ const getFlagSrc = (currency: string) => {
 }
 
 export function MainExchangeRateGrid({ exchangeRates }: MainExchangeRateGridProps) {
+  const { t } = useTranslation()
+
   return (
     <section className="main-responsive-grid-container space-y-4">
-      <h3>환율 정보</h3>
+      <h3>{t('main.exchangeRates')}</h3>
       <div className="main-responsive-grid">
         {exchangeRates.map((rate) => {
           const flagSrc = getFlagSrc(rate.currency)
@@ -31,7 +34,7 @@ export function MainExchangeRateGrid({ exchangeRates }: MainExchangeRateGridProp
                   {flagSrc && (
                     <img
                       src={flagSrc}
-                      alt={`${rate.currency} 국기`}
+                      alt={`${rate.currency} ${t('main.flagAlt', 'flag')}`}
                       className="main-exchange-rate-flag h-5 w-5 shrink-0 rounded-full border border-white object-cover shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
                     />
                   )}

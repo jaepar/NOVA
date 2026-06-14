@@ -5,6 +5,6 @@ import java.util.List;
 public record CorrectionDocumentResponse(
 	String documentType,
 	String status,
-	List<String> missingItems
+	List<String> rejectionReasonCodes
 ) {
 }

@@ -76,12 +76,15 @@ export interface AccountRule {
 export interface BankPluginData {
   id: string
   bankName: string
+  bankNameEn: string
   rules: readonly AccountRule[]
 }
 
 export interface TransferBankOption {
   id: string
   name: string
+  nameKo: string
+  nameEn: string
 }
 
 export interface DetectionResult {
@@ -94,6 +97,7 @@ export const BANK_PLUGINS_DATA: readonly BankPluginData[] = [
   {
     id: 'woori',
     bankName: '우리은행',
+    bankNameEn: 'Woori Bank',
     rules: [
       { length: 13, subStart: 1, subLen: 3, subjects: ['006', '007', '002', '004', '003', '005'] },
       {
@@ -115,6 +119,7 @@ export const BANK_PLUGINS_DATA: readonly BankPluginData[] = [
   {
     id: 'shinhan',
     bankName: '신한은행',
+    bankNameEn: 'Shinhan Bank',
     rules: [
       { length: 12, subStart: 0, subLen: 3, subjects: [...range(100, 161), '268', '269', '298'] },
       {
@@ -131,6 +136,7 @@ export const BANK_PLUGINS_DATA: readonly BankPluginData[] = [
   {
     id: 'kb',
     bankName: 'KB국민은행',
+    bankNameEn: 'KB Bank',
     rules: [
       { length: 12, subStart: 3, subLen: 2, subjects: ['01', '05', '04', '21', '24', '25', '26'] },
       { length: 12, subStart: 4, subLen: 2, subjects: ['06', '18'] },
@@ -142,6 +148,7 @@ export const BANK_PLUGINS_DATA: readonly BankPluginData[] = [
   {
     id: 'hana',
     bankName: '하나은행',
+    bankNameEn: 'Hana Bank',
     rules: [
       { length: 12, subStart: 0, subLen: 3, subjects: ['611', '620', '600', '601', '630', '610', '621', '631'] },
       { length: 11, subStart: 3, subLen: 2, subjects: ['13', '33', '18', '19', '26', '11', '22', '38', '39'] },
@@ -151,6 +158,7 @@ export const BANK_PLUGINS_DATA: readonly BankPluginData[] = [
   {
     id: 'ibk',
     bankName: 'IBK기업은행',
+    bankNameEn: 'IBK Bank',
     rules: [
       { length: 14, subStart: 9, subLen: 2, subjects: ['01', '02', '03', '13', '07', '06', '04'] },
       { length: 12, subStart: 3, subLen: 2, subjects: ['01', '02', '03', '13', '07', '06', '04'] },
@@ -161,6 +169,7 @@ export const BANK_PLUGINS_DATA: readonly BankPluginData[] = [
   {
     id: 'nonghyup',
     bankName: 'NH농협은행',
+    bankNameEn: 'NH Bank',
     rules: [
       {
         length: 11,
@@ -194,41 +203,58 @@ export const BANK_PLUGINS_DATA: readonly BankPluginData[] = [
   {
     id: 'busan',
     bankName: '부산은행',
+    bankNameEn: 'Busan Bank',
     rules: [],
   },
   {
     id: 'kakao',
     bankName: '카카오뱅크',
+    bankNameEn: 'KakaoBank',
     rules: [],
   },
   {
     id: 'toss',
     bankName: '토스뱅크',
+    bankNameEn: 'Toss Bank',
     rules: [],
   },
   {
     id: 'sc',
     bankName: 'SC제일은행',
+    bankNameEn: 'SC First Bank',
     rules: [],
   },
   {
     id: 'kbank',
     bankName: '케이뱅크',
+    bankNameEn: 'Kbank',
     rules: [],
   },
   {
     id: 'suhyup',
     bankName: '수협은행',
+    bankNameEn: 'Suhyup Bank',
     rules: [],
   },
 ]
 
 export const TRANSFER_BANK_OPTIONS: TransferBankOption[] = BANK_PLUGINS_DATA.map(
-  ({ id, bankName }) => ({
+  ({ id, bankName, bankNameEn }) => ({
     id,
     name: bankName,
+    nameKo: bankName,
+    nameEn: bankNameEn,
   })
 )
+
+export function getTransferBankName(bank: TransferBankOption, language: string) {
+  return language === 'en' ? bank.nameEn : bank.nameKo
+}
+
+export function getShortTransferBankName(bank: TransferBankOption, language: string) {
+  const name = getTransferBankName(bank, language)
+  return name.replace('은행', '').replace(/ Bank$/u, '').trim()
+}
 
 const MIN_DETECTION_LENGTH = 8
 

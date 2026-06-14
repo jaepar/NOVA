@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { CloseButtonTemplate } from '../../pages/common/CloseButtonTemplate'
 import { AppButton } from '../design-system/AppButton'
 import { ConsentDefinition, findCategory } from '../../domains/spec'
+import { useTranslation } from '../../i18n'
 import {
   markTermsAgreed,
   setCategoryCursor,
@@ -17,6 +18,7 @@ interface ConsentCategoryCarouselViewProps {
   preserveStateKey?: string
   resetCarouselCursorKey?: string
   showSelectionControls?: boolean
+  translationNamespace?: string
 }
 
 export function ConsentCategoryCarouselView({
@@ -26,9 +28,12 @@ export function ConsentCategoryCarouselView({
   preserveStateKey = 'preserveConsentState',
   resetCarouselCursorKey = 'resetCategoryCursor',
   showSelectionControls = true,
+  translationNamespace,
 }: ConsentCategoryCarouselViewProps) {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
+  const namespace = translationNamespace ?? `consent.${definition.domain}`
   const dragStartX = useRef<number | null>(null)
   const didApplyInitialReset = useRef(false)
 
@@ -49,10 +54,13 @@ export function ConsentCategoryCarouselView({
   if (!category) {
     return (
       <CloseButtonTemplate
-        headerTitle="약관/동의서 상세"
+        headerTitle={t('account.terms.detailTitle')}
+        headerTitleKey="account.terms.detailTitle"
         onClose={() => navigate(basePath, { state: { [preserveStateKey]: true } })}
       >
-        <div className="pt-10 text-center">카테고리를 찾을 수 없습니다.</div>
+        <div className="pt-10 text-center">
+          {t('account.terms.categoryNotFound')}
+        </div>
       </CloseButtonTemplate>
     )
   }
@@ -88,10 +96,12 @@ export function ConsentCategoryCarouselView({
 
   return (
     <CloseButtonTemplate
-      headerTitle="약관/동의서 상세"
+      headerTitle={t('account.terms.detailTitle')}
+      headerTitleKey="account.terms.detailTitle"
       onClose={() => navigate(basePath, { state: { [preserveStateKey]: true } })}
       showBottomButton={showSelectionControls}
-      buttonText={total > 1 ? '모두 동의하기' : '동의하기'}
+      buttonText={total > 1 ? t('account.terms.agreeAll') : t('account.terms.agree')}
+      buttonTextKey={total > 1 ? 'account.terms.agreeAll' : 'account.terms.agree'}
       onButtonClick={() => {
         markTermsAgreed(category.terms.map((term) => term.id))
         setCategoryCursor(category.id, 0)
@@ -104,10 +114,12 @@ export function ConsentCategoryCarouselView({
             {currentIndex + 1} / {total}
           </p>
         )}
-        <h2 className="text-xl font-semibold">{current.title}</h2>
+        <h2 className="text-xl font-semibold">
+          {t(`${namespace}.terms.${current.id}.title`, current.title)}
+        </h2>
         {current.content.map((p, i) => (
           <p key={`${current.id}-${i}`} className="text-sm text-foreground/90 leading-relaxed">
-            {p}
+            {t(`${namespace}.terms.${current.id}.content.${i}`, p)}
           </p>
         ))}
 

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ko } from "date-fns/locale";
+import { ko, enUS } from "date-fns/locale";
 import { Calendar } from "../../../components/ui/calendar";
 import {
   Sheet,
@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../../../components/ui/sheet";
+import { useTranslation } from "../../../i18n";
 
 interface BirthDatePickerProps {
   value: string;
@@ -48,8 +49,10 @@ function parseBirthDate(value: string) {
 
 export function BirthDatePicker({ value, onChange }: BirthDatePickerProps) {
   const [isOpen, setOpen] = useState(false);
+  const { t, language } = useTranslation();
   const today = useMemo(() => new Date(), []);
   const selectedDate = useMemo(() => parseBirthDate(value), [value]);
+  const calendarLocale = language === "en" ? enUS : ko;
 
   const handleSelect = (date?: Date) => {
     if (!date) {
@@ -62,7 +65,7 @@ export function BirthDatePicker({ value, onChange }: BirthDatePickerProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="block">생년월일</label>
+      <label className="block">{t('signup.birthDate')}</label>
       <Sheet open={isOpen} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <button
@@ -72,13 +75,13 @@ export function BirthDatePicker({ value, onChange }: BirthDatePickerProps) {
             }`}
             style={{ fontSize: "16px" }}
           >
-            {value || "생년월일 (예: YYYYMMDD)"}
+            {value || t('signup.birthDatePlaceholder')}
           </button>
         </SheetTrigger>
         <SheetContent side="bottom" className="max-h-[78vh] overflow-y-auto rounded-t-2xl px-5 pb-6 pt-5">
           <SheetHeader className="p-0 pr-8">
-            <SheetTitle>생년월일 선택</SheetTitle>
-            <SheetDescription>달력에서 생년월일을 선택해주세요.</SheetDescription>
+            <SheetTitle>{t('signup.birthDateSheetTitle')}</SheetTitle>
+            <SheetDescription>{t('signup.birthDateSheetDescription')}</SheetDescription>
           </SheetHeader>
           <Calendar
             mode="single"
@@ -89,7 +92,7 @@ export function BirthDatePicker({ value, onChange }: BirthDatePickerProps) {
             captionLayout="dropdown-buttons"
             fromYear={1900}
             toYear={today.getFullYear()}
-            locale={ko}
+            locale={calendarLocale}
             onSelect={handleSelect}
             className="mx-auto"
             classNames={{

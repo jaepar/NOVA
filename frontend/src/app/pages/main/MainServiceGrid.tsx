@@ -1,18 +1,18 @@
-import { AppButton } from "../../components/design-system/AppButton";
-import type { ServiceItem } from "./types";
+import { AppButton } from '../../components/design-system/AppButton'
+import { useTranslation } from '../../i18n'
+import type { ServiceItem } from './types'
 
 interface MainServiceGridProps {
-  services: ServiceItem[];
-  onServiceClick: (service: ServiceItem) => void;
+  services: ServiceItem[]
+  onServiceClick: (service: ServiceItem) => void
 }
 
-export function MainServiceGrid({
-  services,
-  onServiceClick,
-}: MainServiceGridProps) {
+export function MainServiceGrid({ services, onServiceClick }: MainServiceGridProps) {
+  const { t } = useTranslation()
+
   return (
     <section className="main-responsive-grid-container space-y-4">
-      <h3>생활</h3>
+      <h3>{t('main.life')}</h3>
       <div className="main-responsive-grid">
         {services.map((service) => (
           <AppButton
@@ -31,5 +31,5 @@ export function MainServiceGrid({
         ))}
       </div>
     </section>
-  );
+  )
 }

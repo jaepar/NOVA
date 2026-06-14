@@ -5,6 +5,7 @@ import { certificateApi, getCertificateApiError, type IdCardOcrResult } from '..
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { InlineBanner } from '../../components/design-system/InlineBanner'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { useTranslation } from '../../i18n'
 import { useForeignerCardRegistrationStore } from '../../stores/pageStores'
 
 function isIdCardOcrResult(result: unknown): result is IdCardOcrResult {
@@ -15,33 +16,14 @@ function isIdCardOcrResult(result: unknown): result is IdCardOcrResult {
   return 'name' in result || 'residentRegistrationNumber' in result || 'issueDate' in result
 }
 
-function getOcrErrorMessage(error: unknown) {
-  const apiError = getCertificateApiError(error)
-
-  switch (apiError?.code) {
-    case 'USER-009':
-      return '외국인등록증 이미지를 다시 촬영해 주세요.'
-    case 'USER-015':
-    case 'USER-017':
-      return '사진이 올바르지 않습니다. 외국인등록증을 다시 촬영해 주세요.'
-    case 'USER-016':
-      return '인식에 실패했습니다. 등록증 위치와 조명을 확인해 주세요.'
-    case 'USER-018':
-      return '등록증 이름이 사용자 정보와 일치하지 않습니다.'
-    case 'USER-020':
-      return '신원 정보가 정확하지 않습니다. 정보를 확인해 주세요.'
-    case 'USER-021':
-      return '신원 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.'
-    default:
-      return apiError?.message || 'OCR 처리 중 오류가 발생했습니다. 다시 촬영해 주세요.'
-  }
-}
-
 export function ForeignerCardCameraCapture() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const tRef = useRef(t)
+  tRef.current = t
   const cameraError = useForeignerCardRegistrationStore((state) => state.cameraError)
   const setCapturedImage = useForeignerCardRegistrationStore((state) => state.setCapturedImage)
   const setCameraError = useForeignerCardRegistrationStore((state) => state.setCameraError)
@@ -53,6 +35,28 @@ export function ForeignerCardCameraCapture() {
   const [ocrError, setOcrError] = useState<string | null>(null)
   const [isCaptureErrorVisible, setIsCaptureErrorVisible] = useState(false)
   const captureErrorMessage = ocrError || cameraError
+
+  function getOcrErrorMessage(error: unknown) {
+    const apiError = getCertificateApiError(error)
+
+    switch (apiError?.code) {
+      case 'USER-009':
+        return t('foreignerCard.ocrError009')
+      case 'USER-015':
+      case 'USER-017':
+        return t('foreignerCard.ocrError015017')
+      case 'USER-016':
+        return t('foreignerCard.ocrError016')
+      case 'USER-018':
+        return t('foreignerCard.ocrError018')
+      case 'USER-020':
+        return t('foreignerCard.ocrError020')
+      case 'USER-021':
+        return t('foreignerCard.ocrError021')
+      default:
+        return apiError?.message || t('foreignerCard.ocrErrorDefault')
+    }
+  }
 
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop())
@@ -81,7 +85,7 @@ export function ForeignerCardCameraCapture() {
           await videoRef.current.play()
         }
       } catch {
-        setCameraError('카메라를 사용할 수 없습니다. 권한을 확인해 주세요.')
+        setCameraError(tRef.current('foreignerCard.cameraError'))
       }
     }
 
@@ -168,7 +172,7 @@ export function ForeignerCardCameraCapture() {
 
   return (
     <MobileLayout
-      title="외국인등록증 등록"
+      title={t('foreignerCard.title')}
       backPath="/foreigner-card/step-02"
       headerBackgroundColor="#ffffff"
       headerTextColor="#000000"
@@ -177,10 +181,10 @@ export function ForeignerCardCameraCapture() {
         <div className="space-y-4">
           <div className="flex items-center justify-center gap-2 text-xs text-black">
             <ShieldCheck className="h-4 w-4" />
-            <p>빛 반사가 없도록 주의해 주세요.</p>
+            <p>{t('foreignerCard.captureNoReflect')}</p>
           </div>
           <Btn_1Col onClick={handleCapture} disabled={isOcrProcessing}>
-            {isOcrProcessing ? '분석 중...' : '촬영하기'}
+            {isOcrProcessing ? t('foreignerCard.analyzing') : t('foreignerCard.capture')}
           </Btn_1Col>
         </div>
       }
@@ -188,11 +192,13 @@ export function ForeignerCardCameraCapture() {
       <div className="min-h-full -mx-5 -mb-32 bg-white px-5 pb-32 text-black">
         <section className="space-y-5 pt-8 text-center">
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">외국인 등록증 촬영</h2>
+            <h2 className="text-xl font-semibold text-foreground">{t('foreignerCard.cameraTitle')}</h2>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              영역 안에 <span className="text-primary">외국인 등록증</span>이 꽉 차도록 배치 후
+              {t('foreignerCard.cameraInstructionPre')}
+              <span className="text-primary">{t('foreignerCard.cameraInstructionHighlight')}</span>
+              {t('foreignerCard.cameraInstructionMid')}
               <br />
-              하단의 버튼을 누르면 촬영됩니다
+              {t('foreignerCard.cameraInstructionPost')}
             </p>
           </div>
 
@@ -215,7 +221,7 @@ export function ForeignerCardCameraCapture() {
         )}
         {isOcrProcessing && (
           <div className="mt-4 rounded-xl border border-border bg-secondary p-3 text-center text-sm text-black">
-            OCR 분석 중입니다. 잠시만 기다려 주세요.
+            {t('foreignerCard.ocrProcessing')}
           </div>
         )}
       </div>

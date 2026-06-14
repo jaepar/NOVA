@@ -1,5 +1,6 @@
+import { getLanguageCookie, setLanguageCookie } from "../i18n";
+
 const ONBOARDING_COMPLETED_KEY = "nova:onboardingCompleted";
-const LANGUAGE_KEY = "nova:language";
 
 function getLocalStorage() {
   if (typeof window === "undefined") {
@@ -18,9 +19,9 @@ export function completeOnboarding() {
 }
 
 export function saveOnboardingLanguage(languageId: string) {
-  getLocalStorage()?.setItem(LANGUAGE_KEY, languageId);
+  setLanguageCookie(languageId);
 }
 
 export function getOnboardingLanguage() {
-  return getLocalStorage()?.getItem(LANGUAGE_KEY) ?? null;
+  return getLanguageCookie();
 }

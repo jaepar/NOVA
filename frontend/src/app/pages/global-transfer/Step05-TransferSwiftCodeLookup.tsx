@@ -1,29 +1,32 @@
-import { useMemo, useState } from 'react'
-import { X } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { AppButton } from '../../components/design-system/AppButton'
-import { Btn_1Col } from '../../components/design-system/Btn_1Col'
-import { MobileLayout } from '../../components/layout/MobileLayout'
-import { transferCountries } from '../../data/transferCountries'
+import { useMemo, useState } from "react";
+import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AppButton } from "../../components/design-system/AppButton";
+import { Btn_1Col } from "../../components/design-system/Btn_1Col";
+import { MobileLayout } from "../../components/layout/MobileLayout";
+import { formatTransferCountryName, transferCountries } from "../../data/transferCountries";
 import {
   transferSwiftLookupItems,
   type TransferSwiftLookupItem,
-} from '../../data/transferSwiftLookup'
+} from "../../data/transferSwiftLookup";
 import {
   useTransferBasicInfoPageStore,
   useTransferRecipientInfoPageStore,
-} from '../../stores/pageStores'
+} from "../../stores/pageStores";
+import { useTranslation } from "../../i18n";
 
 function LookupInput({
   label,
   value,
   onChange,
   placeholder,
+  clearAria,
 }: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  clearAria: string;
 }) {
   return (
     <div className="space-y-2">
@@ -41,9 +44,9 @@ function LookupInput({
             <AppButton
               type="button"
               variant="unstyled"
-              onClick={() => onChange('')}
+              onClick={() => onChange("")}
               className="rounded-full bg-muted p-1 text-muted-foreground"
-              aria-label="입력값 지우기"
+              aria-label={clearAria}
             >
               <X className="h-4 w-4" />
             </AppButton>
@@ -51,85 +54,95 @@ function LookupInput({
         ) : null}
       </div>
     </div>
-  )
+  );
 }
 
 export function Step05TransferSwiftCodeLookup() {
-  const navigate = useNavigate()
-  const countryId = useTransferBasicInfoPageStore((state) => state.countryId)
-  const setSwiftCode = useTransferRecipientInfoPageStore((state) => state.setSwiftCode)
-  const setRoutingNumber = useTransferRecipientInfoPageStore((state) => state.setRoutingNumber)
-  const setBankBranchName = useTransferRecipientInfoPageStore((state) => state.setBankBranchName)
-  const [bankNameQuery, setBankNameQuery] = useState('')
-  const [cityQuery, setCityQuery] = useState('')
-  const [hasSearched, setHasSearched] = useState(false)
+  const navigate = useNavigate();
+  const { t, language } = useTranslation();
+  const countryId = useTransferBasicInfoPageStore((state) => state.countryId);
+  const setSwiftCode = useTransferRecipientInfoPageStore((state) => state.setSwiftCode);
+  const setRoutingNumber = useTransferRecipientInfoPageStore((state) => state.setRoutingNumber);
+  const setBankBranchName = useTransferRecipientInfoPageStore((state) => state.setBankBranchName);
+  const [bankNameQuery, setBankNameQuery] = useState("");
+  const [cityQuery, setCityQuery] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
 
   const selectedCountry = useMemo(
     () => transferCountries.find((country) => country.id === countryId) ?? transferCountries[0],
     [countryId]
-  )
+  );
   const scopedItems = useMemo(
     () => transferSwiftLookupItems.filter((item) => item.countryId === selectedCountry.id),
     [selectedCountry.id]
-  )
+  );
   const filteredItems = useMemo(() => {
-    const bankQuery = bankNameQuery.trim().toLowerCase()
-    const citySearch = cityQuery.trim().toLowerCase()
+    const bankQuery = bankNameQuery.trim().toLowerCase();
+    const citySearch = cityQuery.trim().toLowerCase();
 
     return scopedItems.filter((item) => {
       const bankMatched =
-        bankQuery.length === 0 || item.bankName.toLowerCase().includes(bankQuery)
-      const cityMatched = citySearch.length === 0 || item.city.toLowerCase().includes(citySearch)
-      return bankMatched && cityMatched
-    })
-  }, [bankNameQuery, cityQuery, scopedItems])
-  const resultItems = hasSearched ? filteredItems : scopedItems
+        bankQuery.length === 0 || item.bankName.toLowerCase().includes(bankQuery);
+      const cityMatched = citySearch.length === 0 || item.city.toLowerCase().includes(citySearch);
+      return bankMatched && cityMatched;
+    });
+  }, [bankNameQuery, cityQuery, scopedItems]);
+  const resultItems = hasSearched ? filteredItems : scopedItems;
 
   const handleSearch = () => {
-    setHasSearched(true)
-  }
+    setHasSearched(true);
+  };
 
   const handleSelectBank = (item: TransferSwiftLookupItem) => {
-    setSwiftCode(item.swiftCode)
-    setRoutingNumber(item.routingNumber)
-    setBankBranchName(
-      item.branchName ? `${item.bankName} / ${item.branchName}` : item.bankName
-    )
-    navigate('/global-transfer/send/step-05')
-  }
+    setSwiftCode(item.swiftCode);
+    setRoutingNumber(item.routingNumber);
+    setBankBranchName(item.branchName ? `${item.bankName} / ${item.branchName}` : item.bankName);
+    navigate("/global-transfer/send/step-05");
+  };
 
   return (
     <MobileLayout
-      title="SWIFT CODE 조회"
+      title={t("globalTransfer.swiftLookup.title")}
       headerType="close"
       closePath="/global-transfer/send/step-05"
-      bottomContent={<Btn_1Col onClick={handleSearch}>조회</Btn_1Col>}
+      bottomContent={<Btn_1Col onClick={handleSearch}>{t("globalTransfer.swiftLookup.search")}</Btn_1Col>}
     >
       <div className="space-y-8 pb-4 pt-3">
         <section className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-base text-muted-foreground">국가명</label>
+            <label className="block text-base text-muted-foreground">
+              {t("globalTransfer.swiftLookup.countryLabel")}
+            </label>
             <div className="flex items-center gap-4 rounded-2xl bg-background px-5 py-5">
-              <span className="text-4xl">{selectedCountry.flag}</span>
+              <span className="inline-flex items-center justify-center text-4xl leading-none">
+                {selectedCountry.flag}
+              </span>
               <span className="text-[18px] font-medium text-foreground">
-                {selectedCountry.name}({selectedCountry.englishName})
+                {formatTransferCountryName(selectedCountry, language)}
               </span>
             </div>
           </div>
 
           <LookupInput
-            label="은행명"
+            label={t("globalTransfer.swiftLookup.bankLabel")}
             value={bankNameQuery}
             onChange={setBankNameQuery}
+            clearAria={t("globalTransfer.swiftLookup.clearAria")}
           />
 
-          <LookupInput label="도시명" value={cityQuery} onChange={setCityQuery} />
+          <LookupInput
+            label={t("globalTransfer.swiftLookup.cityLabel")}
+            value={cityQuery}
+            onChange={setCityQuery}
+            clearAria={t("globalTransfer.swiftLookup.clearAria")}
+          />
         </section>
 
         <section className="space-y-4">
           <div className="border-t border-border pt-5">
             <p className="text-base text-muted-foreground">
-              조회된 은행 : {resultItems.length}건
+              {t("globalTransfer.swiftLookup.resultCountLabel")} : {resultItems.length}
+              {t("globalTransfer.swiftLookup.resultCountUnit")}
             </p>
           </div>
 
@@ -145,9 +158,13 @@ export function Step05TransferSwiftCodeLookup() {
                 <div className="space-y-5">
                   <p className="text-[18px] font-semibold text-foreground">{item.swiftCode}</p>
                   <div className="grid grid-cols-[88px_1fr] gap-y-4 text-base">
-                    <span className="text-muted-foreground">은행명</span>
+                    <span className="text-muted-foreground">
+                      {t("globalTransfer.swiftLookup.bankNameCol")}
+                    </span>
                     <span className="text-right text-primary">{item.bankName}</span>
-                    <span className="text-muted-foreground">도시명</span>
+                    <span className="text-muted-foreground">
+                      {t("globalTransfer.swiftLookup.cityCol")}
+                    </span>
                     <span className="text-right text-foreground">{item.city}</span>
                   </div>
                 </div>
@@ -157,5 +174,5 @@ export function Step05TransferSwiftCodeLookup() {
         </section>
       </div>
     </MobileLayout>
-  )
+  );
 }

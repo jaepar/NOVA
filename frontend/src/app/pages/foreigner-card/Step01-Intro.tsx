@@ -2,22 +2,18 @@ import { CreditCard, Globe2, ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { MobileLayout } from '../../components/layout/MobileLayout'
+import { useTranslation } from '../../i18n'
 import { useForeignerCardRegistrationStore } from '../../stores/pageStores'
-
-const guideItems = [
-  {
-    icon: Globe2,
-    text: '외국인등록증이 발급된 경우 등록해 주세요',
-  },
-  {
-    icon: ShieldCheck,
-    text: '등록 후 해외 송금 서비스를 이용할 수 있어요',
-  },
-]
 
 export function ForeignerCardIntro() {
   const navigate = useNavigate()
   const reset = useForeignerCardRegistrationStore((state) => state.reset)
+  const { t } = useTranslation()
+
+  const guideItems = [
+    { icon: Globe2, text: t('foreignerCard.introGuide1') },
+    { icon: ShieldCheck, text: t('foreignerCard.introGuide2') },
+  ]
 
   const handleStart = () => {
     reset()
@@ -26,16 +22,17 @@ export function ForeignerCardIntro() {
 
   return (
     <MobileLayout
-      title="외국인등록증 등록"
+      title={t('foreignerCard.title')}
       backPath="/main"
-      bottomContent={<Btn_1Col onClick={handleStart}>등록하기</Btn_1Col>}
+      bottomContent={<Btn_1Col onClick={handleStart}>{t('foreignerCard.register')}</Btn_1Col>}
     >
       <div className="flex min-h-full flex-col pb-2">
         <section className="space-y-3 pt-6">
           <h2 className="text-2xl font-semibold leading-tight">
-            외국인등록증을
+            {t('foreignerCard.introHeadingLine1')}
             <br />
-            <span className="text-primary">등록</span>해 주세요
+            <span className="text-primary">{t('foreignerCard.introHeadingHighlight')}</span>
+            {t('foreignerCard.introHeadingLine2')}
           </h2>
         </section>
 

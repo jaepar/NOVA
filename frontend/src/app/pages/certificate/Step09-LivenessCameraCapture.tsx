@@ -8,44 +8,22 @@ import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { InlineBanner } from "../../components/design-system/InlineBanner";
 import { certificateApi } from "../../../api";
+import { useTranslation } from "../../i18n";
 import { useLivenessFlowStore } from "../../stores/pageStores";
 
 const awsRegion = import.meta.env.VITE_AWS_REGION as string | undefined;
-const identityPoolId = import.meta.env.VITE_AWS_COGNITO_IDENTITY_POOL_ID as
-  | string
-  | undefined;
+const identityPoolId = import.meta.env.VITE_AWS_COGNITO_IDENTITY_POOL_ID as string | undefined;
 const registeredImageBucket =
   (import.meta.env.VITE_LIVENESS_REGISTERED_IMAGE_BUCKET as
     | string
     | undefined) ?? "nova-object-bucket";
 const STEP08_PATH = "/certificate/step-08";
 
-const livenessDisplayText = {
-  startScreenBeginCheckText: "얼굴 인증 시작",
-  cancelLivenessCheckText: "닫기",
-  hintCenterFaceText: "얼굴을 원 안 중앙에 맞춰 주세요.",
-  hintMoveFaceFrontOfCameraText: "카메라를 정면으로 바라봐 주세요.",
-  hintTooFarText: "카메라에 조금 더 가까이 와 주세요.",
-  hintTooCloseText: "카메라와 조금 거리를 두어 주세요.",
-  hintHoldFaceForFreshnessText: "상태를 유지해 주세요.",
-  hintConnectingText: "인증 준비 중입니다.",
-  hintVerifyingText: "인증 결과를 확인하고 있습니다.",
-  hintCheckCompleteText: "잠시만 기다려주십시오...",
-  waitingCameraPermissionText: "카메라 권한 허용을 기다리고 있습니다.",
-  retryCameraPermissionsText: "카메라 권한을 허용해 주세요.",
-  cameraNotFoundHeadingText: "카메라를 찾을 수 없습니다.",
-  cameraNotFoundMessageText: "카메라 연결 상태를 확인한 뒤 다시 시도해 주세요.",
-  serverHeaderText: "서버 오류",
-  serverMessageText: "서버 문제로 인증을 완료하지 못했습니다.",
-  clientHeaderText: "인증 오류",
-  clientMessageText: "인증 처리 중 오류가 발생했습니다.",
-  tryAgainText: "다시 시도",
-} as const;
-
 const HiddenPhotosensitiveWarning = () => null;
 
 export function LivenessCameraCapture() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const sessionId = useLivenessFlowStore((state) => state.sessionId);
   const expiresAt = useLivenessFlowStore((state) => state.expiresAt);
   const registeredPassportIssueCountry = useLivenessFlowStore(
@@ -56,6 +34,28 @@ export function LivenessCameraCapture() {
   );
   const setSession = useLivenessFlowStore((state) => state.setSession);
   const resetSession = useLivenessFlowStore((state) => state.resetSession);
+
+  const livenessDisplayText = useMemo(() => ({
+    startScreenBeginCheckText: t("certificate.livenessStart"),
+    cancelLivenessCheckText: t("common.close"),
+    hintCenterFaceText: t("certificate.livenessHintCenterFace"),
+    hintMoveFaceFrontOfCameraText: t("certificate.livenessHintFaceFront"),
+    hintTooFarText: t("certificate.livenessHintTooFar"),
+    hintTooCloseText: t("certificate.livenessHintTooClose"),
+    hintHoldFaceForFreshnessText: t("certificate.livenessHintHold"),
+    hintConnectingText: t("certificate.livenessHintConnecting"),
+    hintVerifyingText: t("certificate.livenessHintVerifying"),
+    hintCheckCompleteText: t("certificate.livenessHintComplete"),
+    waitingCameraPermissionText: t("certificate.livenessWaitingCamera"),
+    retryCameraPermissionsText: t("certificate.livenessRetryCamera"),
+    cameraNotFoundHeadingText: t("certificate.livenessNoCameraHeading"),
+    cameraNotFoundMessageText: t("certificate.livenessNoCameraMessage"),
+    serverHeaderText: t("certificate.livenessServerHeading"),
+    serverMessageText: t("certificate.livenessServerMessage"),
+    clientHeaderText: t("certificate.livenessClientHeading"),
+    clientMessageText: t("certificate.livenessClientMessage"),
+    tryAgainText: t("certificate.livenessTryAgain"),
+  }), [t]);
 
   const detectorContainerRef = useRef<HTMLDivElement | null>(null);
   const hasRedirectedRef = useRef(false);
@@ -227,9 +227,7 @@ export function LivenessCameraCapture() {
     const updateHintFromDom = () => {
       const root = detectorContainerRef.current;
       if (!root) return;
-      const elements = Array.from(
-        root.querySelectorAll<HTMLElement>("div, span, p")
-      );
+      const elements = Array.from(root.querySelectorAll<HTMLElement>("div, span, p"));
       const matched = elements.find((element) => {
         const text = element.textContent?.trim();
         if (!text || !hintCandidates.has(text)) return false;
@@ -250,7 +248,7 @@ export function LivenessCameraCapture() {
     });
 
     return () => observer.disconnect();
-  }, [detectorRenderKey, isDetectorVisible]);
+  }, [detectorRenderKey, isDetectorVisible, livenessDisplayText]);
 
   useEffect(() => {
     if (!isDetectorVisible) {
@@ -285,9 +283,9 @@ export function LivenessCameraCapture() {
     if (!root) return;
 
     const attachStartButtonHandler = () => {
-      const startButton = Array.from(
-        root.querySelectorAll<HTMLButtonElement>("button")
-      ).find((button) => button.textContent?.trim() === "얼굴 인증 시작");
+      const startButton = Array.from(root.querySelectorAll<HTMLButtonElement>("button")).find(
+        (button) => button.textContent?.trim() === livenessDisplayText.startScreenBeginCheckText
+      );
       if (!startButton) return () => {};
 
       const onStart = () => setHasStartedLiveness(true);
@@ -306,7 +304,7 @@ export function LivenessCameraCapture() {
       observer.disconnect();
       detach();
     };
-  }, [detectorRenderKey, isDetectorVisible]);
+  }, [detectorRenderKey, isDetectorVisible, livenessDisplayText.startScreenBeginCheckText]);
 
   const hasAwsConfig = Boolean(awsRegion && identityPoolId);
 
@@ -348,12 +346,12 @@ export function LivenessCameraCapture() {
       setIsDetectorVisible(false);
       setHasStartedLiveness(false);
       stopCameraTracksRepeatedly();
-      setFailureMessage("실명 인증에 실패했습니다. 다시 시도해 주세요.");
+      setFailureMessage(t("certificate.livenessFailed"));
     } catch {
       setIsDetectorVisible(false);
       setHasStartedLiveness(false);
       stopCameraTracksRepeatedly();
-      setFailureMessage("인증 결과 확인에 실패했습니다. 다시 시도해 주세요.");
+      setFailureMessage(t("certificate.livenessResultFailed"));
     }
   };
 
@@ -374,9 +372,7 @@ export function LivenessCameraCapture() {
         setDetectorRenderKey((prev) => prev + 1);
         setIsDetectorVisible(true);
       } catch {
-        setFailureMessage(
-          "재촬영 세션 생성에 실패했습니다. 잠시 후 다시 시도해 주세요."
-        );
+        setFailureMessage(t("certificate.livenessRetryFailed"));
       } finally {
         setIsRetrying(false);
       }
@@ -404,12 +400,11 @@ export function LivenessCameraCapture() {
 
   if (!hasAwsConfig) {
     return (
-      <MobileLayout title="비대면 실명확인" backPath={STEP08_PATH}>
+      <MobileLayout title={t("certificate.title")} backPath={STEP08_PATH}>
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Liveness 설정이 필요합니다</h2>
+          <h2 className="text-xl font-semibold">{t("certificate.livenessConfigRequired")}</h2>
           <p className="text-sm text-muted-foreground">
-            VITE_AWS_REGION, VITE_AWS_COGNITO_IDENTITY_POOL_ID 환경변수를 설정해
-            주세요.
+            {t("certificate.livenessConfigMessage")}
           </p>
         </div>
       </MobileLayout>
@@ -418,17 +413,19 @@ export function LivenessCameraCapture() {
 
   return (
     <MobileLayout
-      title="비대면 실명확인"
+      title={t("certificate.title")}
       headerType="close"
       onClose={handleCancel}
       closePath={STEP08_PATH}
       bottomContent={
         failureMessage ? (
           <Btn_1Col onClick={handleRetry} disabled={isRetrying}>
-            {isRetrying ? "재촬영 준비 중..." : "재촬영"}
+            {isRetrying ? t("certificate.livenessRetryPreparing") : t("certificate.livenessRetakeButton")}
           </Btn_1Col>
         ) : isDetectorVisible && isCameraActive && !hasStartedLiveness ? (
-          <Btn_1Col onClick={triggerSdkStart}>얼굴 인증 시작</Btn_1Col>
+          <Btn_1Col onClick={triggerSdkStart}>
+            {livenessDisplayText.startScreenBeginCheckText}
+          </Btn_1Col>
         ) : undefined
       }
     >
@@ -452,7 +449,7 @@ export function LivenessCameraCapture() {
             onError={() => {
               setIsDetectorVisible(false);
               stopCameraTracksRepeatedly();
-              setFailureMessage("인증에 실패했습니다. 다시 시도해 주세요.");
+              setFailureMessage(t("certificate.livenessError"));
             }}
             config={{ credentialProvider }}
           />

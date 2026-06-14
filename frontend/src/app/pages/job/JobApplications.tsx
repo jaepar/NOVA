@@ -12,13 +12,7 @@ import { AppButton } from '../../components/design-system/AppButton'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
 import { MobileLayout } from '../../components/layout/MobileLayout'
-
-const statusLabels: Record<ApplicationStatus, string> = {
-  PASSED: '합격',
-  FAILED: '불합격',
-  UNREAD: '읽지 않음',
-  READ: '읽음',
-}
+import { useTranslation } from '../../i18n'
 
 const statusBadgeClasses: Record<ApplicationStatus, string> = {
   PASSED: 'border-green-100 bg-green-50 text-green-700',
@@ -33,7 +27,7 @@ const statusDotClasses: Partial<Record<ApplicationStatus, string>> = {
   UNREAD: 'bg-primary',
 }
 
-function formatDate(value: string) {
+function formatDate(value: string, language: string) {
   if (!value) {
     return ''
   }
@@ -43,7 +37,7 @@ function formatDate(value: string) {
     return value
   }
 
-  return date.toLocaleDateString('ko-KR', {
+  return date.toLocaleDateString(language === 'en' ? 'en-US' : 'ko-KR', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -76,10 +70,11 @@ function PortfolioPreviewModal({
   errorMessage: string
   onClose: () => void
 }) {
+  const { t, language } = useTranslation()
   const [portfolioIndex, setPortfolioIndex] = useState(0)
   const portfolio = portfolios[portfolioIndex]
   const hasMultiplePortfolios = portfolios.length > 1
-  const appliedDate = formatDate(application.applied_at)
+  const appliedDate = formatDate(application.applied_at, language)
   const isImagePreview = isImagePreviewUrl(portfolio?.url)
 
   const movePortfolio = (direction: -1 | 1) => {
@@ -125,7 +120,7 @@ function PortfolioPreviewModal({
             variant="unstyled"
             onClick={onClose}
             className="shrink-0 rounded-lg p-1 transition-colors hover:bg-secondary"
-            aria-label="미리보기 닫기"
+            aria-label={t('job.previewClose')}
           >
             <X className="h-5 w-5" />
           </AppButton>
@@ -134,7 +129,7 @@ function PortfolioPreviewModal({
         <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-white">
           {isLoading && (
             <div className="flex h-full items-center justify-center px-5 text-center">
-              <p className="text-muted-foreground">포트폴리오를 불러오는 중입니다.</p>
+              <p className="text-muted-foreground">{t('job.portfolioLoading')}</p>
             </div>
           )}
 
@@ -148,7 +143,7 @@ function PortfolioPreviewModal({
             <div className="flex h-full w-full items-center justify-center bg-[#f8fafc]">
               <img
                 src={portfolio.url}
-                alt={`${portfolio.name || '첨부파일'} 미리보기`}
+                alt={t('job.previewAlt').replace('{name}', portfolio.name || t('job.attachment'))}
                 className="h-full w-full object-contain"
               />
             </div>
@@ -156,7 +151,7 @@ function PortfolioPreviewModal({
 
           {!isLoading && !errorMessage && portfolio?.url && !isImagePreview && (
             <iframe
-              title={`${portfolio.name || '첨부파일'} 미리보기`}
+              title={t('job.previewAlt').replace('{name}', portfolio.name || t('job.attachment'))}
               src={portfolio.url}
               className="h-full w-full border-0"
             />
@@ -164,7 +159,7 @@ function PortfolioPreviewModal({
 
           {!isLoading && !errorMessage && !portfolio?.url && (
             <div className="flex h-full items-center justify-center px-5 text-center">
-              <p className="text-muted-foreground">첨부된 포트폴리오가 없습니다.</p>
+              <p className="text-muted-foreground">{t('job.noAttachedPortfolio')}</p>
             </div>
           )}
         </div>
@@ -176,7 +171,7 @@ function PortfolioPreviewModal({
               variant="unstyled"
               onClick={() => movePortfolio(-1)}
               className="rounded-lg p-2 transition-colors hover:bg-secondary"
-              aria-label="이전 포트폴리오"
+              aria-label={t('job.previousPortfolio')}
             >
               <ChevronLeft className="h-5 w-5" />
             </AppButton>
@@ -188,7 +183,7 @@ function PortfolioPreviewModal({
               variant="unstyled"
               onClick={() => movePortfolio(1)}
               className="rounded-lg p-2 transition-colors hover:bg-secondary"
-              aria-label="다음 포트폴리오"
+              aria-label={t('job.nextPortfolio')}
             >
               <ChevronRight className="h-5 w-5" />
             </AppButton>
@@ -201,6 +196,7 @@ function PortfolioPreviewModal({
 
 export function JobApplications() {
   const navigate = useNavigate()
+  const { t, language } = useTranslation()
   const [applications, setApplications] = useState<ApplicationItemResponse[]>([])
   const [selectedApplication, setSelectedApplication] = useState<ApplicationItemResponse | null>(
     null
@@ -221,7 +217,7 @@ export function JobApplications() {
       setRequiresLogin(false)
 
       try {
-        const response = await jobApi.listApplications()
+        const response = await jobApi.listApplications({ language })
         if (isMounted) {
           setApplications(response.items)
         }
@@ -232,9 +228,9 @@ export function JobApplications() {
 
         if (isUnauthorizedError(error)) {
           setRequiresLogin(true)
-          setErrorMessage('로그인이 필요한 서비스입니다.')
+          setErrorMessage(t('job.loginRequiredService'))
         } else {
-          setErrorMessage('지원내역을 불러오지 못했습니다.')
+          setErrorMessage(t('job.applicationsLoadFailed'))
         }
       } finally {
         if (isMounted) {
@@ -248,7 +244,7 @@ export function JobApplications() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [language, t])
 
   const handleSelectApplication = async (application: ApplicationItemResponse) => {
     setSelectedApplication(application)
@@ -261,9 +257,9 @@ export function JobApplications() {
       setSelectedPortfolios(portfolio)
     } catch (error) {
       if (isUnauthorizedError(error)) {
-        setPortfolioErrorMessage('로그인이 필요한 서비스입니다.')
+        setPortfolioErrorMessage(t('job.loginRequiredService'))
       } else {
-        setPortfolioErrorMessage('포트폴리오를 불러오지 못했습니다.')
+        setPortfolioErrorMessage(t('job.portfolioLoadFailed'))
       }
     } finally {
       setIsPortfolioLoading(false)
@@ -274,8 +270,8 @@ export function JobApplications() {
     if (isLoading) {
       return (
         <CenteredTaskContent
-          task="지원내역을 불러오는 중입니다"
-          description="잠시만 기다려주세요."
+          task={t('job.applicationsLoading')}
+          description={t('job.wait')}
         />
       )
     }
@@ -283,8 +279,8 @@ export function JobApplications() {
     if (errorMessage) {
       return (
         <CenteredTaskContent
-          task={requiresLogin ? '로그인이 필요합니다' : '지원내역을 불러오지 못했습니다'}
-          description={requiresLogin ? '로그인 후 지원내역을 확인해주세요.' : errorMessage}
+          task={requiresLogin ? t('job.loginRequired') : t('job.applicationsLoadFailed')}
+          description={requiresLogin ? t('job.applicationsLoginDescription') : errorMessage}
         />
       )
     }
@@ -292,8 +288,8 @@ export function JobApplications() {
     if (applications.length === 0) {
       return (
         <CenteredTaskContent
-          task="지원내역이 없습니다"
-          description="지원한 공고가 생기면 여기에서 확인할 수 있습니다."
+          task={t('job.applicationsEmpty')}
+          description={t('job.applicationsEmptyDescription')}
         />
       )
     }
@@ -307,7 +303,8 @@ export function JobApplications() {
   return (
     <div className="relative h-full w-full">
       <MobileLayout
-        title="지원내역"
+        title={t('job.applicationsTitle')}
+        titleKey="job.applicationsTitle"
         backPath="/jobs"
         bottomContent={
           requiresLogin ? (
@@ -321,7 +318,7 @@ export function JobApplications() {
                 })
               }
             >
-              로그인하기
+              {t('job.login')}
             </Btn_1Col>
           ) : undefined
         }
@@ -330,7 +327,7 @@ export function JobApplications() {
           {shouldShowTotalCount && (
             <div className="mb-6 flex items-center justify-between">
               <p className="text-[17px] font-semibold text-muted-foreground">
-                전체 {applications.length}건
+                {t('job.totalCount').replace('{count}', String(applications.length))}
               </p>
             </div>
           )}
@@ -340,9 +337,9 @@ export function JobApplications() {
           {!isLoading && !errorMessage && applications.length > 0 && (
             <section className="space-y-3">
               {applications.map((application, index) => {
-                const appliedDate = formatDate(application.applied_at)
+                const appliedDate = formatDate(application.applied_at, language)
                 const previousAppliedDate =
-                  index > 0 ? formatDate(applications[index - 1].applied_at) : ''
+                  index > 0 ? formatDate(applications[index - 1].applied_at, language) : ''
                 const shouldShowDate = appliedDate !== previousAppliedDate
 
                 return (
@@ -375,7 +372,7 @@ export function JobApplications() {
                               }`}
                             />
                           )}
-                          {statusLabels[application.status]}
+                          {t(`job.applicationStatus.${application.status}`)}
                         </span>
                       </span>
                       <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
