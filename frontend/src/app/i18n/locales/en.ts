@@ -128,6 +128,7 @@ export const en = {
     openAccount: 'Open account',
     accountNumberCopied: 'Account number copied.',
     accountNumberCopyFailed: 'Failed to copy account number.',
+    exchangeLoadFailed: 'Could not load exchange rates.',
     limitedAccount: 'Limited',
     balance: 'Balance',
     transfer: 'transfer',
@@ -147,6 +148,10 @@ export const en = {
     title: 'Exchange Rates',
     heading: 'Exchange Rates',
     preparing: 'Preparing this page',
+    description: 'reference exchange rate.',
+    loadFailed: 'Could not load exchange rates.',
+    weekendGuide:
+      'On weekends and holidays, rates may be shown from the most recent business day.',
   },
   bottomNav: {
     home: 'Home',
@@ -723,7 +728,8 @@ export const en = {
     },
     rateSummary: {
       heading: 'Transfer Summary',
-      notice: 'Exchange rate and amount will be updated in real time after API integration.',
+      notice: 'Exchange rate and amount are shown based on the current reference quote.',
+      loadFailed: 'Could not load the exchange rate. Please try again.',
       exchangeRate: 'Exchange rate',
       remitAmount: 'Transfer amount',
       krwAmount: 'KRW amount',
@@ -750,6 +756,7 @@ export const en = {
     },
     recipientInfo: {
       heading: 'Recipient Information',
+      submitting: 'Submitting',
       nameLabel: 'English name',
       addressLabel: 'English address',
       detailLabel: 'Detail address',

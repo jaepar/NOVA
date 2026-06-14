@@ -1,5 +1,3 @@
-export const MOCK_TRANSFER_EXCHANGE_RATE = 1505.25;
-
 export function normalizeTransferAmount(amount: string) {
   return amount.replace(/,/g, "").trim();
 }
@@ -20,13 +18,13 @@ export function formatForeignAmount(currencyCode: string, amount: string) {
   return `${currencyCode} ${numericAmount.toFixed(2)}`;
 }
 
-export function calculateKrwAmount(
-  amount: string,
-  exchangeRate = MOCK_TRANSFER_EXCHANGE_RATE
-) {
-  return Math.round(toTransferAmountNumber(amount) * exchangeRate);
+export function formatExchangeRate(amount: number) {
+  return `KRW ${amount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
-export function formatKrwAmount(amount: string) {
-  return `KRW ${calculateKrwAmount(amount).toLocaleString("ko-KR")}`;
+export function formatKrwAmount(amount: number) {
+  return `KRW ${amount.toLocaleString("ko-KR")}`;
 }

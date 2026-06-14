@@ -21,10 +21,18 @@ export function MainExchangeRateGrid({ exchangeRates }: MainExchangeRateGridProp
 
   return (
     <section className="main-responsive-grid-container space-y-4">
-      <h3>{t('main.exchangeRates')}</h3>
+      <div className="space-y-1">
+        <h3>{t('main.exchangeRates')}</h3>
+      </div>
       <div className="main-responsive-grid">
         {exchangeRates.map((rate) => {
           const flagSrc = getFlagSrc(rate.currency)
+          const trendClass =
+            rate.trend === 'UP'
+              ? 'text-green-600'
+              : rate.trend === 'DOWN'
+                ? 'text-red-600'
+                : 'text-muted-foreground'
 
           return (
             <div key={rate.currency} className="main-exchange-rate-card min-h-[112px] rounded-2xl border border-border bg-white p-4">
@@ -40,7 +48,7 @@ export function MainExchangeRateGrid({ exchangeRates }: MainExchangeRateGridProp
                   )}
                 </div>
                 <div className="text-lg font-semibold">{rate.rate}</div>
-                <div className={`text-xs ${rate.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`text-xs ${trendClass}`}>
                   {rate.change}
                 </div>
               </div>

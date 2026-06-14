@@ -7,6 +7,7 @@ import { useTranslation } from '../i18n'
 import { useMainPageStore } from '../stores/pageStores'
 import { authApi } from '../../api/endpoints/auth'
 import { bankingApi, type AccountHomeResponse } from '../../api/endpoints/banking'
+import { exchangeApi } from '../../api/endpoints/exchange'
 import { hospitalChatApi } from '../../api/endpoints/hospitalChat'
 import { userApi, type NotificationResponse } from '../../api/endpoints/user'
 import { MainHeaderBrand } from './main/MainHeaderBrand'
@@ -69,6 +70,7 @@ export function Main() {
   const [hasLoadedSideMenu, setHasLoadedSideMenu] = useState(false)
   const [hasLoadedCertificateSheet, setHasLoadedCertificateSheet] = useState(false)
   const [hasLoadedCertificateIssuedModal, setHasLoadedCertificateIssuedModal] = useState(false)
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRateItem[]>([])
 
   const services: ServiceItem[] = [
     {
@@ -107,12 +109,6 @@ export function Main() {
       label: t('main.wallet'),
       path: '/wallet',
     },
-  ]
-
-  const exchangeRates: ExchangeRateItem[] = [
-    { currency: 'USD', rate: '1,340.50', change: '+2.3%', isPositive: true },
-    { currency: 'JPY', rate: '9.82', change: '-0.5%', isPositive: false },
-    { currency: 'EUR', rate: '1,456.20', change: '+1.8%', isPositive: true },
   ]
 
   useEffect(() => {
@@ -205,6 +201,44 @@ export function Main() {
       isMounted = false
     }
   }, [isLoggedIn, setHasUnreadNotifications])
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadExchangeRates() {
+      try {
+        const response = await exchangeApi.getHighlights()
+
+        if (!isMounted) {
+          return
+        }
+
+        setExchangeRates(
+          response.rates.map((rate) => ({
+            currency: rate.currencyCode,
+            rate: rate.rate.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+            change: `${rate.changePercent > 0 ? '+' : ''}${rate.changePercent.toFixed(2)}%`,
+            trend: rate.changeDirection,
+          }))
+        )
+      } catch {
+        if (!isMounted) {
+          return
+        }
+
+        setExchangeRates([])
+      }
+    }
+
+    loadExchangeRates()
+
+    return () => {
+      isMounted = false
+    }
+  }, [t])
 
   const loadNotifications = async () => {
     if (!isLoggedIn) {

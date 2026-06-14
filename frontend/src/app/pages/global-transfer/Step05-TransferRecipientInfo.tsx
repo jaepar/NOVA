@@ -1,12 +1,25 @@
 import { useState } from "react";
 import { ChevronDown, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  bankingApi,
+  createIdempotencyKey,
+  exchangeApi,
+  getBankingApiError,
+  type CreateGlobalTransactionRequest,
+} from "../../../api";
 import { AppButton } from "../../components/design-system/AppButton";
 import { SegmentedOptionField } from "../../components/design-system/SegmentedOptionField";
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { MobileLayout } from "../../components/layout/MobileLayout";
-import { useTransferRecipientInfoPageStore } from "../../stores/pageStores";
-import { useTranslation } from "../../i18n";
+import { transferCountries } from "../../data/transferCountries";
+import {
+  useTransferBasicInfoPageStore,
+  useTransferRecipientInfoPageStore,
+  useTransferSenderInfoPageStore,
+} from "../../stores/pageStores";
+import { translateError, useTranslation } from "../../i18n";
+import { normalizeTransferAmount, toTransferAmountNumber } from "./transferQuote";
 
 const paymentReasonOptions = ["tuition", "living", "family", "medical", "transaction", "other"] as const;
 
@@ -69,6 +82,19 @@ function ClearableInput({
 export function Step05TransferRecipientInfo() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const purpose = useTransferBasicInfoPageStore((state) => state.purpose);
+  const countryId = useTransferBasicInfoPageStore((state) => state.countryId);
+  const currencyCode = useTransferBasicInfoPageStore((state) => state.currencyCode);
+  const amount = useTransferBasicInfoPageStore((state) => state.amount);
+  const feeBurden = useTransferBasicInfoPageStore((state) => state.feeBurden);
+  const senderName = useTransferSenderInfoPageStore((state) => state.senderName);
+  const senderPhone = useTransferSenderInfoPageStore((state) => state.phoneNumber);
+  const senderAddress = useTransferSenderInfoPageStore((state) => state.address);
+  const senderDetailAddress = useTransferSenderInfoPageStore((state) => state.detailAddress);
+  const senderDistrict = useTransferSenderInfoPageStore((state) => state.district);
+  const senderCity = useTransferSenderInfoPageStore((state) => state.city);
+  const senderPostalCode = useTransferSenderInfoPageStore((state) => state.postalCode);
+  const senderCountryId = useTransferSenderInfoPageStore((state) => state.countryId);
   const recipientName = useTransferRecipientInfoPageStore((state) => state.recipientName);
   const recipientDetailAddress = useTransferRecipientInfoPageStore(
     (state) => state.recipientDetailAddress
@@ -118,6 +144,10 @@ export function Step05TransferRecipientInfo() {
     (state) => state.setManualPaymentDetail
   );
   const [openSheet, setOpenSheet] = useState<RecipientSelectionSheet>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const selectedCountry =
+    transferCountries.find((country) => country.id === countryId) ?? transferCountries[0];
+  const resolvedCurrencyCode = selectedCountry.currencyCode;
 
   const paymentDetailOptions = [
     { label: t("globalTransfer.recipientInfo.reasonSelect"), value: "reason-select" as const },
@@ -152,6 +182,80 @@ export function Step05TransferRecipientInfo() {
       ? selectedPaymentReason.length > 0
       : manualPaymentDetail.trim().length > 0);
 
+  const buildRemitReason = () =>
+    paymentDetailMode === "reason-select" ? selectedPaymentReason : manualPaymentDetail.trim();
+
+  const handleSubmit = async () => {
+    if (!canProceed || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    const idempotencyKey = createIdempotencyKey();
+    let payload: CreateGlobalTransactionRequest | undefined;
+
+    try {
+      const accountHome = await bankingApi.getHome();
+      const accountId = accountHome.account?.accountId;
+
+      if (!accountId) {
+        throw new Error("ACCOUNT_NOT_FOUND");
+      }
+
+      const quote = await exchangeApi.getRemittanceQuote(
+        countryId,
+        resolvedCurrencyCode,
+        normalizeTransferAmount(amount)
+      );
+
+      payload = {
+        accountId,
+        remitPurpose: purpose,
+        targetCountry: countryId.toUpperCase(),
+        currency: resolvedCurrencyCode,
+        remitAmount: toTransferAmountNumber(amount).toFixed(2),
+        mediaryFeePayer: feeBurden === "sender" ? "SENDER" : "RECEIVER",
+        exchangeRate: quote.exchangeRate.toFixed(6),
+        krwAmount: Math.round(quote.krwAmount).toString(),
+        senderEngName: senderName.trim(),
+        senderPhone: senderPhone.trim(),
+        senderAddressDetail: `${senderAddress} ${senderDetailAddress}`.trim(),
+        senderDistrict: senderDistrict.trim(),
+        senderCity: senderCity.trim(),
+        senderZipCode: senderPostalCode.trim(),
+        senderCountry: senderCountryId.toUpperCase(),
+        receiverEngName: recipientName.trim(),
+        receiverAddressDetail: recipientDetailAddress.trim(),
+        receiverDistrict: recipientDistrict.trim() || null,
+        receiverCity: recipientCity.trim(),
+        receiverZipCode: recipientPostalCode.trim() || null,
+        receiverPhone: recipientPhoneNumber.trim(),
+        swiftCode: swiftCode.trim(),
+        receiverAccountNum: accountNumber.trim(),
+        routingNumber: routingNumber.trim(),
+        bankName: bankBranchName.trim(),
+        remitReason: buildRemitReason(),
+      };
+
+      await bankingApi.createGlobalTransaction(payload, idempotencyKey);
+      navigate("/global-transfer/send/step-06");
+    } catch (error) {
+      const apiError = getBankingApiError(error);
+      navigate("/global-transfer/send/step-06-failed", {
+        state: {
+          payload,
+          idempotencyKey,
+          translatedMessage: translateError(
+            apiError?.code,
+            t("globalTransfer.submitFailed.fallbackError")
+          ),
+        },
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <>
       <MobileLayout
@@ -168,11 +272,13 @@ export function Step05TransferRecipientInfo() {
             </AppButton>
             <AppButton
               variant="primary"
-              disabled={!canProceed}
-              onClick={() => navigate("/global-transfer/send/step-06")}
+              disabled={!canProceed || isSubmitting}
+              onClick={handleSubmit}
               className="flex-1 rounded-xl px-6 py-4"
             >
-              {t("globalTransfer.recipientInfo.next")}
+              {isSubmitting
+                ? t("globalTransfer.recipientInfo.submitting")
+                : t("globalTransfer.recipientInfo.next")}
             </AppButton>
           </div>
         }

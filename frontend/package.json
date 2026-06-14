@@ -6,7 +6,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "preview": "vite preview"
+    "preview": "vite preview",
     "dev:local": "cross-env VITE_API_BASE_URL=/api VITE_AI_API_BASE_URL=/ai-api vite",
     "dev:prod": "cross-env VITE_API_BASE_URL=https://api.nova-bank.site VITE_AI_API_BASE_URL=https://api.nova-bank.site vite"
   },
