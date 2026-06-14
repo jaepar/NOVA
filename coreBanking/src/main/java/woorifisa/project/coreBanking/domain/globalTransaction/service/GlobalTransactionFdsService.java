@@ -72,6 +72,7 @@ public class GlobalTransactionFdsService {
                 .transactionType(TransactionType.GLOBAL_REMITTANCE_REFUND)
                 .counterParty(REFUND_COUNTERPARTY)
                 .amount(refundAmount)
+                .balanceAfter(globalTransaction.getAccount().getBalance())
                 .externalRequestId(globalTransaction.getExternalRequestId() + ":refund")
                 .build());
         log.info("Global transaction refund completed globalTransactionId={} accountId={} refundAmount={} failureReason={}",
