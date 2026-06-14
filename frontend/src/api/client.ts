@@ -5,10 +5,8 @@ import axios, {
   AxiosResponse,
 } from "axios";
 
-// API Base URL - 환경변수로 관리 권장
-const BASE_URL = import.meta.env.DEV
-  ? "/api"
-  : import.meta.env.VITE_API_BASE_URL;
+const DEFAULT_API_BASE_URL = import.meta.env.DEV ? "/api" : "https://api.nova-bank.site";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL;
 
 // Axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({

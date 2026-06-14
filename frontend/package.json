@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "dev:local": "cross-env VITE_API_BASE_URL=/api VITE_AI_API_BASE_URL=/ai-api vite",
+    "dev:prod": "cross-env VITE_API_BASE_URL=https://api.nova-bank.site VITE_AI_API_BASE_URL=https://api.nova-bank.site vite"
   },
   "dependencies": {
     "@aws-amplify/ui-react-liveness": "^3.6.5",
@@ -76,6 +78,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "4.7.0",
+    "cross-env": "^7.0.3",
     "tailwindcss": "4.1.12",
     "vite": "6.3.5"
   },
