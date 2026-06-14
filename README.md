@@ -105,7 +105,8 @@ FDS는 원장을 직접 수정하지 않습니다. 출금, 입금, 환급, 상�
 
 NOVA는 금융 서비스의 본질인 안정성, 고가용성, 정합성을 위해 AWS 클라우드와 온프레미스 계정계를 연결하는 하이브리드 아키텍처로 구성했습니다.
 
-<img width="1158" height="813" alt="스크린샷 2026-06-14 오후 5 14 00" src="https://github.com/user-attachments/assets/8e19ed26-033f-47a6-9987-b7040775a2ef" />
+<img width="1166" height="815" alt="스크린샷 2026-06-14 오후 6 09 31" src="https://github.com/user-attachments/assets/713a0dac-1470-4af5-99c9-64652cb9febe" />
+
 
 
 ## Public / Private Subnet 분리
