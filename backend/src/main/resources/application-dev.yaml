@@ -53,6 +53,8 @@ app:
     base-url: ${CORE_BANKING_BASE_URL}
   government:
     base-url: ${GOVERNMENT_DB_URL}
+  exchange-rate:
+    auth-key: ${KOREAEXIM_AUTH_KEY}
   ai:
     base-url: ${AI_BASE_URL}
 
