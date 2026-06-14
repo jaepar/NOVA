@@ -30,9 +30,11 @@ export type HospitalChatPayload = {
   data: HospitalChatData | Record<string, unknown> | null
 }
 
-const hospitalChatBaseUrl = import.meta.env.DEV
-  ? 'http://localhost:8004'
-  : import.meta.env.VITE_AI_API_BASE_URL
+const defaultHospitalChatBaseUrl = import.meta.env.DEV
+  ? '/ai-api'
+  : import.meta.env.VITE_API_BASE_URL || 'https://api.nova-bank.site'
+const hospitalChatBaseUrl =
+  import.meta.env.VITE_AI_API_BASE_URL || defaultHospitalChatBaseUrl
 
 const hospitalChatClient = axios.create({
   baseURL: hospitalChatBaseUrl,
