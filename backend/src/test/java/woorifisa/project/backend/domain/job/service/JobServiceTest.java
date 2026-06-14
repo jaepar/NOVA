@@ -41,10 +41,12 @@ import woorifisa.project.backend.domain.job.dto.request.ApplicationCreateRequest
 import woorifisa.project.backend.domain.job.entity.Application;
 import woorifisa.project.backend.domain.job.entity.ApplicationResume;
 import woorifisa.project.backend.domain.job.entity.Job;
+import woorifisa.project.backend.domain.job.entity.JobTranslation;
 import woorifisa.project.backend.domain.job.entity.enums.ApplicationStatus;
 import woorifisa.project.backend.domain.job.repository.ApplicationResumeRepository;
 import woorifisa.project.backend.domain.job.repository.ApplicationRepository;
 import woorifisa.project.backend.domain.job.repository.JobRepository;
+import woorifisa.project.backend.domain.job.repository.JobTranslationRepository;
 import woorifisa.project.backend.domain.user.entity.Resume;
 import woorifisa.project.backend.domain.user.entity.User;
 import woorifisa.project.backend.domain.user.entity.enums.CertificateStatus;
@@ -58,6 +60,9 @@ class JobServiceTest {
 
 	@Mock
 	private JobRepository jobRepository;
+
+	@Mock
+	private JobTranslationRepository jobTranslationRepository;
 
 	@Mock
 	private ApplicationRepository applicationRepository;
@@ -88,7 +93,7 @@ class JobServiceTest {
 		when(jobRepository.findAllBy(any(Pageable.class)))
 			.thenReturn(new SliceImpl<>(List.of(job), requestedPageable, true));
 
-		JobOpeningListResponse response = jobService.getJobOpeningList(requestedPageable);
+		JobOpeningListResponse response = jobService.getJobOpeningList("ko", requestedPageable);
 
 		ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
 		verify(jobRepository).findAllBy(pageableCaptor.capture());
@@ -108,13 +113,42 @@ class JobServiceTest {
 	}
 
 	@Test
+	@DisplayName("get localized job opening list when translation exists")
+	void getJobOpeningListWithTranslation() {
+		Job job = job(1L, "동아산업", "대구", "지게차 기사 모집", LocalDateTime.of(2026, 5, 13, 12, 30));
+		JobTranslation translation = jobTranslation(
+			job,
+			"en",
+			"Donga Industry",
+			"Daegu",
+			"Recruiting forklift drivers"
+		);
+		Pageable requestedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+		when(jobRepository.findAllBy(any(Pageable.class)))
+			.thenReturn(new SliceImpl<>(List.of(job), requestedPageable, false));
+		when(jobTranslationRepository.findAllByJob_JobIdInAndLanguage(List.of(1L), "en"))
+			.thenReturn(List.of(translation));
+
+		JobOpeningListResponse response = jobService.getJobOpeningList("en", requestedPageable);
+
+		assertThat(response.items()).hasSize(1);
+		assertThat(response.items().get(0).company()).isEqualTo("Donga Industry");
+		assertThat(response.items().get(0).region()).isEqualTo("Daegu");
+		assertThat(response.items().get(0).openingTitle()).isEqualTo("Recruiting forklift drivers");
+		assertThat(response.items().get(0).jobCategory()).isEqualTo("Delivery / Logistics");
+		assertThat(response.items().get(0).experience()).isEqualTo("Entry level");
+		assertThat(response.items().get(0).workPeriod()).isEqualTo("Weekly");
+		assertThat(response.items().get(0).salary()).isEqualTo("KRW 2.9M per month");
+	}
+
+	@Test
 	@DisplayName("return empty slice when there are no job openings")
 	void getJobOpeningListEmpty() {
 		Pageable requestedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 		when(jobRepository.findAllBy(any(Pageable.class)))
 			.thenReturn(new SliceImpl<>(List.of(), requestedPageable, false));
 
-		JobOpeningListResponse response = jobService.getJobOpeningList(requestedPageable);
+		JobOpeningListResponse response = jobService.getJobOpeningList("ko", requestedPageable);
 
 		assertThat(response.items()).isEmpty();
 		assertThat(response.page()).isZero();
@@ -147,7 +181,7 @@ class JobServiceTest {
 			.build();
 		when(jobRepository.findById(1L)).thenReturn(Optional.of(job));
 
-		JobOpeningResponse response = jobService.getJobOpeningDetail(1L);
+		JobOpeningResponse response = jobService.getJobOpeningDetail(1L, "ko");
 
 		assertThat(response.jobId()).isEqualTo(1L);
 		assertThat(response.company()).isEqualTo("ABC Company");
@@ -157,11 +191,54 @@ class JobServiceTest {
 	}
 
 	@Test
+	@DisplayName("find localized job opening detail when translation exists")
+	void getJobOpeningDetailWithTranslation() {
+		Job job = Job.builder()
+			.jobId(1L)
+			.company("동아산업")
+			.region("대구")
+			.openingTitle("지게차 기사 모집")
+			.jobCategory("배송/물류")
+			.experience("신입")
+			.salary("월급 290만원")
+			.deadlineType("상시채용")
+			.recruitCount("0명(인원미정)")
+			.preferred("운전가능자")
+			.age("연령무관")
+			.gender("남자")
+			.jobRole("물류")
+			.workPeriod("주 6일")
+			.employmentType("정규직")
+			.benefits("4대보험")
+			.address("대구 서구")
+			.introduce("회사 소개")
+			.build();
+		JobTranslation translation = jobTranslation(
+			job,
+			"en",
+			"Donga Industry",
+			"Daegu",
+			"Recruiting forklift drivers"
+		);
+		when(jobRepository.findById(1L)).thenReturn(Optional.of(job));
+		when(jobTranslationRepository.findByJob_JobIdAndLanguage(1L, "en")).thenReturn(Optional.of(translation));
+
+		JobOpeningResponse response = jobService.getJobOpeningDetail(1L, "en");
+
+		assertThat(response.company()).isEqualTo("Donga Industry");
+		assertThat(response.region()).isEqualTo("Daegu");
+		assertThat(response.openingTitle()).isEqualTo("Recruiting forklift drivers");
+		assertThat(response.deadlineType()).isEqualTo("Always open");
+		assertThat(response.recruitCount()).isEqualTo("Not specified");
+		assertThat(response.introduce()).isEqualTo("We are hiring drivers.");
+	}
+
+	@Test
 	@DisplayName("throw JOB_NOT_FOUND when job opening does not exist")
 	void getJobOpeningDetailNotFound() {
 		when(jobRepository.findById(999L)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> jobService.getJobOpeningDetail(999L))
+		assertThatThrownBy(() -> jobService.getJobOpeningDetail(999L, "ko"))
 			.isInstanceOf(CustomException.class)
 			.extracting("exceptionStatus")
 			.isEqualTo(APPLICATION_NOT_FOUND);
@@ -214,7 +291,7 @@ class JobServiceTest {
 		when(applicationRepository.findAllByUser_UserId(1L, requestedPageable))
 			.thenReturn(new SliceImpl<>(List.of(firstApplication, secondApplication), requestedPageable, true));
 
-		ApplicationListResponse response = jobService.findApplications(1L, requestedPageable);
+		ApplicationListResponse response = jobService.findApplications(1L, "ko", requestedPageable);
 
 		verify(applicationRepository).findAllByUser_UserId(1L, requestedPageable);
 		assertThat(response.items()).hasSize(2);
@@ -229,13 +306,32 @@ class JobServiceTest {
 	}
 
 	@Test
+	@DisplayName("find localized application opening titles")
+	void findApplicationsWithTranslation() {
+		Pageable requestedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+		User user = user(1L);
+		Job job = job(10L, "병원", "서울", "병원 매니저 채용", LocalDateTime.of(2026, 6, 1, 9, 0));
+		Application application = application(100L, user, job, ApplicationStatus.FAILED,
+			LocalDateTime.of(2026, 6, 18, 9, 0));
+		when(applicationRepository.findAllByUser_UserId(1L, requestedPageable))
+			.thenReturn(new SliceImpl<>(List.of(application), requestedPageable, false));
+		when(jobTranslationRepository.findAllByJob_JobIdInAndLanguage(List.of(10L), "en"))
+			.thenReturn(List.of(jobTranslation(job, "en", "Hospital", "Seoul", "Clinic manager opening")));
+
+		ApplicationListResponse response = jobService.findApplications(1L, "en", requestedPageable);
+
+		assertThat(response.items()).hasSize(1);
+		assertThat(response.items().get(0).openingTitle()).isEqualTo("Clinic manager opening");
+	}
+
+	@Test
 	@DisplayName("return empty paged application list when user has no applications")
 	void findApplicationsEmpty() {
 		Pageable requestedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 		when(applicationRepository.findAllByUser_UserId(1L, requestedPageable))
 			.thenReturn(new SliceImpl<>(List.of(), requestedPageable, false));
 
-		ApplicationListResponse response = jobService.findApplications(1L, requestedPageable);
+		ApplicationListResponse response = jobService.findApplications(1L, "ko", requestedPageable);
 
 		verify(applicationRepository).findAllByUser_UserId(1L, requestedPageable);
 		assertThat(response.items()).isEmpty();
@@ -492,6 +588,36 @@ class JobServiceTest {
 			.build();
 		ReflectionTestUtils.setField(job, "createdAt", createdAt);
 		return job;
+	}
+
+	private JobTranslation jobTranslation(
+		Job job,
+		String language,
+		String company,
+		String region,
+		String openingTitle
+	) {
+		return JobTranslation.builder()
+			.job(job)
+			.language(language)
+			.company(company)
+			.region(region)
+			.openingTitle(openingTitle)
+			.jobCategory("Delivery / Logistics")
+			.experience("Entry level")
+			.salary("KRW 2.9M per month")
+			.deadlineType("Always open")
+			.recruitCount("Not specified")
+			.preferred("Driver's license")
+			.age("Any age")
+			.gender("Male")
+			.jobRole("Logistics")
+			.workPeriod("Weekly")
+			.employmentType("Full-time")
+			.benefits("Insurance")
+			.address("Daegu Seo-gu")
+			.introduce("We are hiring drivers.")
+			.build();
 	}
 
 	private Application application(

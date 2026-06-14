@@ -97,6 +97,20 @@
 | `BANK-007`     | 해외 송금(Cloud)         | TBD    | `TBD`                                                    | O    | USER   | 프로세스 정의 중 (추후 작성)             |
 | `BANK-008`     | 이체 사전 조회(Cloud) | POST | `/banking/transfers/preview` | O | USER | 내 계좌(account_ref) + 수취인(coreBanking) 통합 조회 |
 
+## JOB-001 / JOB-002 / JOB-005 Language Query
+
+- `GET /jobs`, `GET /jobs/{job_id}`, and `GET /jobs/applications` accept an optional `language` query parameter.
+- Default: `ko`
+- Supported current values: `ko`, `en`
+- When `language=ko` or no translation exists, the response uses the base `job` table values.
+- When a matching `job_translation` row exists, translated display fields such as `company`, `region`, `opening_title`, `job_category`, `experience`, `salary`, `deadline_type`, `recruit_count`, `preferred`, `age`, `gender`, `job_role`, `work_period`, `employment_type`, `benefits`, `address`, and `introduce` are returned.
+
+Example:
+
+```http
+GET /jobs?page=0&size=50&language=en
+```
+
 ## Naming and Contract Notes
 
 - 경로 세그먼트는 소문자-kebab-case 또는 복수형 리소스 명사를 사용한다.
