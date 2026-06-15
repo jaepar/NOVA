@@ -32,6 +32,7 @@ export function CertificateIssuanceConsentAgreement() {
         preserveStateKey="preserveConsentState"
         resetCarouselCursorKey="resetCategoryCursor"
         translationNamespace="consent.certificateIssuance"
+        categoryTitleAction="consent"
         title={t('certificate.step01Heading')}
         description=""
         onRequiredCompleteChange={setIsRequiredComplete}

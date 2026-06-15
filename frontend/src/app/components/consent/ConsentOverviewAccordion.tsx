@@ -22,6 +22,7 @@ interface ConsentOverviewAccordionProps {
   title?: string
   description?: string
   showSelectionControls?: boolean
+  categoryTitleAction?: 'toggle' | 'consent'
   translationNamespace?: string
   onRequiredCompleteChange?: (complete: boolean) => void
 }
@@ -35,6 +36,7 @@ export function ConsentOverviewAccordion({
   title,
   description,
   showSelectionControls = true,
+  categoryTitleAction = 'toggle',
   translationNamespace,
   onRequiredCompleteChange,
 }: ConsentOverviewAccordionProps) {
@@ -103,6 +105,18 @@ export function ConsentOverviewAccordion({
     })
   }
 
+  const handleCategoryTitleClick = (categoryId: string) => {
+    if (categoryTitleAction === 'toggle') {
+      toggleCategory(categoryId)
+      return
+    }
+
+    setCategoryCursor(categoryId, 0)
+    navigate(`${basePath}/categories/${categoryId}/consent`, {
+      state: { [preserveStateKey]: true, [resetCarouselCursorKey]: true },
+    })
+  }
+
   const handleTermCheckClick = (termId: string) => {
     if (!showSelectionControls) return
     if (checkedTermIds.has(termId)) {
@@ -155,7 +169,7 @@ export function ConsentOverviewAccordion({
                   </AppButton>
                   <AppButton
                     variant="unstyled"
-                    onClick={() => toggleCategory(category.id)}
+                    onClick={() => handleCategoryTitleClick(category.id)}
                     className="flex-1 text-left py-1"
                   >
                     <span className="font-medium">
