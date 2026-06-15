@@ -30,7 +30,8 @@ export function EmailVerification() {
   const [isSendingCode, setSendingCode] = useState(false)
   const [isVerifying, setVerifying] = useState(false)
   const [remainingSeconds, setRemainingSeconds] = useState(0)
-  const [errorMessage, setErrorMessage] = useState('')
+  const [sendErrorMessage, setSendErrorMessage] = useState('')
+  const [confirmErrorMessage, setConfirmErrorMessage] = useState('')
 
   const isEmailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email])
   const canSendCode = isEmailValid && !isSendingCode && !isVerifying
@@ -42,7 +43,7 @@ export function EmailVerification() {
     !isVerifying
   const getTranslatedErrorMessage = (error: unknown, fallbackKey: string) => {
     const apiError = getEmailVerificationApiError(error)
-    return translateError(apiError?.code, t(fallbackKey))
+    return translateError(apiError?.code, apiError?.message || t(fallbackKey))
   }
 
   useEffect(() => {
@@ -62,12 +63,13 @@ export function EmailVerification() {
     setVerificationCode('')
     setCodeSent(false)
     setRemainingSeconds(0)
-    setErrorMessage('')
+    setSendErrorMessage('')
+    setConfirmErrorMessage('')
   }
 
   const handleVerificationCodeChange = (value: string) => {
     setVerificationCode(value.replace(/\D/g, '').slice(0, 6))
-    setErrorMessage('')
+    setConfirmErrorMessage('')
   }
 
   const handleSendVerification = async () => {
@@ -76,7 +78,8 @@ export function EmailVerification() {
     }
 
     setSendingCode(true)
-    setErrorMessage('')
+    setSendErrorMessage('')
+    setConfirmErrorMessage('')
 
     try {
       await emailVerificationApi.send(email)
@@ -84,7 +87,10 @@ export function EmailVerification() {
       setCodeSent(true)
       setRemainingSeconds(verificationExpiresSeconds)
     } catch (error) {
-      setErrorMessage(getTranslatedErrorMessage(error, 'signup.emailSendFailed'))
+      setCodeSent(false)
+      setRemainingSeconds(0)
+      setVerificationCode('')
+      setSendErrorMessage(getTranslatedErrorMessage(error, 'signup.emailSendFailed'))
     } finally {
       setSendingCode(false)
     }
@@ -96,13 +102,13 @@ export function EmailVerification() {
     }
 
     setVerifying(true)
-    setErrorMessage('')
+    setConfirmErrorMessage('')
 
     try {
       await emailVerificationApi.confirm(email, verificationCode)
       navigate('/signup/personal-info')
     } catch (error) {
-      setErrorMessage(getTranslatedErrorMessage(error, 'signup.emailConfirmFailed'))
+      setConfirmErrorMessage(getTranslatedErrorMessage(error, 'signup.emailConfirmFailed'))
     } finally {
       setVerifying(false)
     }
@@ -156,6 +162,9 @@ export function EmailVerification() {
             {email && !isEmailValid && (
               <p className="text-sm text-red-500">{t('signup.invalidEmail')}</p>
             )}
+            {sendErrorMessage && (
+              <p className="text-sm text-red-500">{sendErrorMessage}</p>
+            )}
             {isCodeSent && (
               <p className="text-sm text-muted-foreground">{t('signup.codeSent')}</p>
             )}
@@ -180,7 +189,7 @@ export function EmailVerification() {
             {isCodeSent && remainingSeconds === 0 && (
               <p className="text-sm text-red-500">{t('signup.expired')}</p>
             )}
-            {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
+            {confirmErrorMessage && <p className="text-sm text-red-500">{confirmErrorMessage}</p>}
           </div>
         </section>
       </SignupContent>

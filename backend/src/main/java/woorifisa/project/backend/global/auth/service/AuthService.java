@@ -116,6 +116,7 @@ public class AuthService {
 
     public void sendEmailVerificationCode(String email) {
         validateEmailFormat(email);
+        validateDuplicateEmail(email);
         // TTL 안에 재발송 제한 기능
         validateCooldown(email);
 
