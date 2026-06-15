@@ -15,7 +15,7 @@ function TransferVerificationHero() {
     <section className="overflow-hidden rounded-[28px] border border-[#E6EEF9] bg-[linear-gradient(135deg,#F8FBFF_0%,#EEF5FF_100%)] px-5 py-6">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1 space-y-3">
-          <h2 className="text-[20px] font-semibold leading-8 text-[#132347]">
+          <h2 className="whitespace-nowrap text-[20px] font-semibold leading-8 text-[#132347]">
             {t("globalTransfer.verification.heading")}
           </h2>
           <p className="whitespace-pre-line text-sm leading-7 text-[#4E5E78]">
@@ -23,13 +23,13 @@ function TransferVerificationHero() {
           </p>
         </div>
 
-        <div className="relative -mr-1 mt-2 flex h-[104px] w-[96px] shrink-0 items-center justify-center self-end">
-          <div className="absolute inset-x-1 bottom-2 top-3 rounded-[24px] bg-white/75 shadow-[0_14px_30px_rgba(27,111,255,0.12)]" />
-          <div className="relative flex h-[76px] w-[76px] items-center justify-center rounded-[22px] border border-[#D7E6FF] bg-[linear-gradient(180deg,#FFFFFF_0%,#EEF5FF_100%)] text-[#2476F2]">
-            <IdCard className="h-10 w-10" strokeWidth={1.7} />
-          </div>
-          <div className="absolute bottom-3 right-1 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-[#F3F8FF] bg-[#1B6FFF] text-white shadow-[0_10px_20px_rgba(27,111,255,0.22)]">
-            <ShieldCheck className="h-[18px] w-[18px]" strokeWidth={2.3} />
+        <div className="mt-2 flex h-[104px] w-[96px] shrink-0 items-center justify-center self-end">
+          <div className="relative flex h-[88px] w-[88px] items-center justify-center rounded-[30px] bg-white shadow-[0_16px_34px_rgba(27,111,255,0.10)]">
+            <div className="absolute inset-1 rounded-[26px] border border-[#D7E6FF] bg-[linear-gradient(180deg,#FFFFFF_0%,#F1F7FF_100%)]" />
+            <IdCard className="relative h-10 w-10 text-[#2476F2]" strokeWidth={1.9} />
+            <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-white bg-[#1B6FFF] text-white shadow-[0_10px_20px_rgba(27,111,255,0.24)]">
+              <ShieldCheck className="h-5 w-5" strokeWidth={2.3} />
+            </div>
           </div>
         </div>
       </div>
