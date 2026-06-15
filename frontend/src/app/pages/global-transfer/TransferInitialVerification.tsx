@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BadgeInfo, CreditCard, ShieldCheck } from "lucide-react";
+import { BadgeInfo, IdCard, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
@@ -12,9 +12,9 @@ function TransferVerificationHero() {
   const { t } = useTranslation();
 
   return (
-    <section className="overflow-hidden rounded-[28px] border border-[#E6EEF9] bg-[linear-gradient(135deg,#F8FBFF_0%,#EEF5FF_100%)] p-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="space-y-3">
+    <section className="overflow-hidden rounded-[28px] border border-[#E6EEF9] bg-[linear-gradient(135deg,#F8FBFF_0%,#EEF5FF_100%)] px-5 py-6">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1 space-y-3">
           <h2 className="text-[20px] font-semibold leading-8 text-[#132347]">
             {t("globalTransfer.verification.heading")}
           </h2>
@@ -23,12 +23,13 @@ function TransferVerificationHero() {
           </p>
         </div>
 
-        <div className="relative shrink-0">
-          <div className="flex h-28 w-28 items-center justify-center rounded-[24px] bg-[linear-gradient(180deg,#DCEAFE_0%,#F3F8FF_100%)] text-[#3B82F6]">
-            <CreditCard className="h-14 w-14" strokeWidth={1.5} />
+        <div className="relative -mr-1 mt-2 flex h-[104px] w-[96px] shrink-0 items-center justify-center self-end">
+          <div className="absolute inset-x-1 bottom-2 top-3 rounded-[24px] bg-white/75 shadow-[0_14px_30px_rgba(27,111,255,0.12)]" />
+          <div className="relative flex h-[76px] w-[76px] items-center justify-center rounded-[22px] border border-[#D7E6FF] bg-[linear-gradient(180deg,#FFFFFF_0%,#EEF5FF_100%)] text-[#2476F2]">
+            <IdCard className="h-10 w-10" strokeWidth={1.7} />
           </div>
-          <div className="absolute -bottom-2 -right-3 flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(180deg,#4D99FF_0%,#1B6FFF_100%)] text-white shadow-[0_12px_24px_rgba(27,111,255,0.24)]">
-            <ShieldCheck className="h-7 w-7" strokeWidth={2} />
+          <div className="absolute bottom-3 right-1 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-[#F3F8FF] bg-[#1B6FFF] text-white shadow-[0_10px_20px_rgba(27,111,255,0.22)]">
+            <ShieldCheck className="h-[18px] w-[18px]" strokeWidth={2.3} />
           </div>
         </div>
       </div>
