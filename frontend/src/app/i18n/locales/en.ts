@@ -1194,59 +1194,71 @@ export const en = {
     certificateIssuance: {
       categories: {
         'required-service': {
-          title: '[Required] Service sign-up consent',
+          title: '[Required] Certificate issuance consent',
         },
         'optional-marketing-1': {
-          title: '[Optional] Marketing use consent 1',
+          title: '[Optional] Benefits and event notices',
         },
         'optional-marketing-2': {
-          title: '[Optional] Marketing use consent 2',
+          title: '[Optional] Personalized service notices',
         },
       },
       terms: {
         'electronic-finance-basic': {
           title: 'Electronic financial transaction basic terms',
-          summary: 'Basic terms for using electronic financial services.',
+          summary: 'Terms for remote certificate issuance and electronic financial services.',
           content: {
-            0: 'This is sample text for the terms.',
-            1: 'Replace this with the actual operating terms before production use.',
+            0: 'NOVA electronic financial services are provided through the user account and authentication methods registered in the user’s name.',
+            1: 'Users must safely manage access methods such as passwords, authentication information, and devices.',
+            2: 'Transaction results and important notices may be provided through the app, notifications, or registered contact channels.',
+            3: 'Service access may be temporarily restricted for system maintenance, security risks, or legal and regulatory reasons.',
           },
         },
         'privacy-required': {
           title: 'Consent to collect and use personal information',
-          summary: 'Required consent for processing personal information to provide the service.',
+          summary: 'Required consent for certificate screening and identity verification.',
           content: {
-            0: 'This consent form is a sample.',
-            1: 'Replace the wording according to the actual service policy.',
+            0: 'NOVA collects and uses name, date of birth, gender, email, and verification status information to process certificate applications, verify identity, and notify screening results.',
+            1: 'Collected personal information is used only within the scope required for certificate issuance and financial service provision.',
+            2: 'Retention periods follow applicable laws and internal policies, and information is deleted without delay after the purpose is fulfilled.',
+            3: 'If the user does not consent to required personal information processing, certificate issuance and some financial services may be restricted.',
           },
         },
         'identity-required': {
           title: 'Consent to identity verification and authentication',
-          summary: 'Consent to identity verification procedures required for financial services.',
+          summary: 'Consent to remote identity verification using passport, biometric, and submitted document information.',
           content: {
-            0: 'This item is sample text.',
-            1: 'Replace it with the actual terms after the operating policy is finalized.',
+            0: 'NOVA may verify passport information, submitted documents, face authentication results, and other identity verification materials for remote real-name verification.',
+            1: 'Submitted information is used to check forgery, identity match, and service eligibility.',
+            2: 'If identity verification is insufficient or information does not match, additional review or certificate issuance rejection may occur.',
+            3: 'Users must submit accurate information. Use of false or third-party information may restrict service access.',
           },
         },
         'marketing-consent-1': {
           title: 'Consent to receive marketing information',
-          summary: 'Optional consent for benefit and event notices.',
+          summary: 'Consent to receive NOVA benefits, events, and financial or lifestyle service notices.',
           content: {
-            0: 'This is sample wording.',
+            0: 'NOVA may send event, benefit, and new service notices through email, app notifications, or similar channels.',
+            1: 'This consent is optional. Basic service use is not restricted if the user does not consent.',
+            2: 'Users may withdraw this consent at any time through app settings or customer support.',
           },
         },
         'marketing-consent-2a': {
           title: 'Consent to personalized product recommendations',
-          summary: 'Optional consent for personalized benefit notices.',
+          summary: 'Consent to personalized financial and lifestyle product recommendations based on service use information.',
           content: {
-            0: 'This is sample wording.',
+            0: 'NOVA may recommend personalized products and benefits based on service usage history, interests, and verification status.',
+            1: 'Personalized recommendations are optional and do not affect certificate issuance or basic service use.',
+            2: 'Users may withdraw consent to personalized recommendations at any time.',
           },
         },
         'marketing-consent-2b': {
           title: 'Consent to affiliate service notices',
-          summary: 'Optional consent to receive affiliate service and event information.',
+          summary: 'Consent to receive notices about lifestyle and financial services affiliated with NOVA.',
           content: {
-            0: 'This is sample wording.',
+            0: 'NOVA may provide notices related to affiliate services such as hospitals, jobs, remittance, and wallet services.',
+            1: 'Affiliate service notices are optional and do not affect required financial service use.',
+            2: 'Detailed conditions and providers for affiliate services can be checked on each service screen.',
           },
         },
       },
