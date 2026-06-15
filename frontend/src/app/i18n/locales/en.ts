@@ -127,6 +127,7 @@ export const en = {
     readyToOpenTitle: 'No account opened yet',
     readyToOpenDescription: 'Open an account with NOVA.',
     openAccount: 'Open account',
+    accountAlreadyOpened: 'Your account has already been opened.',
     accountNumberCopied: 'Account number copied.',
     accountNumberCopyFailed: 'Failed to copy account number.',
     exchangeLoadFailed: 'Could not load exchange rates.',

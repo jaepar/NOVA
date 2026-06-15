@@ -129,6 +129,7 @@
     readyToOpenTitle: "아직 계좌가 개설되지 않았어요.",
     readyToOpenDescription: "계좌를 개설하고 새로운 일상을 시작해보세요.",
     openAccount: "계좌 개설하기",
+    accountAlreadyOpened: "이미 계좌 개설이 완료되었습니다.",
     accountNumberCopied: "계좌번호가 복사되었습니다.",
     accountNumberCopyFailed: "계좌번호 복사에 실패했습니다.",
     exchangeLoadFailed: "환율 정보를 불러오지 못했습니다.",

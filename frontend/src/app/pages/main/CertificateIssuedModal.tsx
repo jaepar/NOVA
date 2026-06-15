@@ -9,13 +9,15 @@ import {
 interface CertificateIssuedModalProps {
   isOpen: boolean
   onClose: () => void
-  onOpenAccount: () => void
+  onOpenAccount: () => void | Promise<void>
+  isOpenAccountLoading?: boolean
 }
 
 export function CertificateIssuedModal({
   isOpen,
   onClose,
   onOpenAccount,
+  isOpenAccountLoading = false,
 }: CertificateIssuedModalProps) {
   const { t } = useTranslation()
 
@@ -67,6 +69,7 @@ export function CertificateIssuedModal({
             <AppButton
               variant="primary"
               onClick={onOpenAccount}
+              disabled={isOpenAccountLoading}
               className="h-[52px] w-full rounded-xl text-[16px] font-semibold"
             >
               {t('main.openAccount')}
