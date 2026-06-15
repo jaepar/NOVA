@@ -11,6 +11,7 @@ interface BottomSheetProps {
   height?: string
   disableScroll?: boolean
   dimBackground?: boolean
+  keepMounted?: boolean
 }
 
 export function BottomSheet({
@@ -22,6 +23,7 @@ export function BottomSheet({
   height,
   disableScroll = false,
   dimBackground = true,
+  keepMounted = false,
 }: BottomSheetProps) {
   const visibilityStore = useMemo(
     () =>
@@ -41,7 +43,7 @@ export function BottomSheet({
     } else {
       const timer = setTimeout(() => {
         setIsVisible(false)
-      }, 300)
+      }, 200)
       document.body.style.overflow = ''
       return () => clearTimeout(timer)
     }
@@ -53,23 +55,23 @@ export function BottomSheet({
     }
   }, [])
 
-  if (!isVisible) return null
+  if (!isVisible && !keepMounted) return null
 
   return (
     <>
       <div
-        className={`fixed inset-0 z-[60] transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[60] transition-opacity duration-200 ${
           dimBackground ? 'bg-black/50' : 'bg-transparent'
         } ${
           isOpen ? 'opacity-100' : 'opacity-0'
-        }`}
+        } ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
         onClick={onClose}
       />
 
       <div
-        className={`fixed bottom-0 left-0 right-0 z-[70] bg-[rgb(253,253,253)] rounded-t-3xl w-full transition-transform duration-300 ease-out flex flex-col ${
+        className={`fixed bottom-0 left-0 right-0 z-[70] bg-[rgb(253,253,253)] rounded-t-3xl w-full transition-transform duration-200 ease-out flex flex-col ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
-        }`}
+        } ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
         style={{
           height: height || 'auto',
           maxHeight: '80vh',

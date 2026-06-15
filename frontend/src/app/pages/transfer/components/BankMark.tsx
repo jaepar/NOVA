@@ -19,6 +19,8 @@ export function BankMark({
       src={BANK_LOGO_SRC[bank.id]}
       alt=""
       aria-hidden="true"
+      decoding="async"
+      draggable={false}
       className={`shrink-0 object-contain ${sizeClassName}`}
     />
   )

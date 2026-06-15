@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { AppButton, Btn_1Col, novaToast } from '../../components/design-system'
@@ -10,6 +10,7 @@ import { detectAccountNumber } from '../../data/accountNumberDetector'
 import {
   BANK_OPTIONS,
   BANK_CODE_BY_ID,
+  BANK_LOGO_SRC,
   getTransferBankName,
   REQUIRED_ACCOUNT_LENGTH,
   normalizeAccountNumber,
@@ -27,6 +28,7 @@ export function TransferAccountSelect() {
   const setAccountNumber = useTransferStore((state) => state.setAccountNumber)
   const setSelectedBank = useTransferStore((state) => state.setSelectedBank)
   const setPreview = useTransferStore((state) => state.setPreview)
+  const resetTransfer = useTransferStore((state) => state.resetTransfer)
   const [isBankSheetOpen, setIsBankSheetOpen] = useState(false)
   const [isPreviewLoading, setIsPreviewLoading] = useState(false)
 
@@ -39,6 +41,22 @@ export function TransferAccountSelect() {
   const isNextEnabled = accountNumber.length >= REQUIRED_ACCOUNT_LENGTH && selectedBank !== null
   const shouldShowContinueHint =
     accountNumber.length > 0 && suggestedBanks.length === 0 && selectedBank === null
+
+  useEffect(() => {
+    const preloadBankLogos = () => {
+      BANK_OPTIONS.forEach((bank) => {
+        const src = BANK_LOGO_SRC[bank.id]
+        if (!src) return
+
+        const image = new Image()
+        image.src = src
+        void image.decode?.().catch(() => undefined)
+      })
+    }
+
+    const timer = window.setTimeout(preloadBankLogos, 0)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   const handleAccountChange = (value: string) => {
     const nextValue = normalizeAccountNumber(value)
@@ -54,6 +72,11 @@ export function TransferAccountSelect() {
   const handleSelectBank = (bank: BankOption) => {
     setSelectedBank(bank)
     setIsBankSheetOpen(false)
+  }
+
+  const handleBackToMain = () => {
+    resetTransfer()
+    navigate('/main')
   }
 
   const handleNext = async () => {
@@ -87,7 +110,7 @@ export function TransferAccountSelect() {
         title={t('transfer.title')}
         titleKey="transfer.title"
         headerType="back"
-        onBack={() => navigate('/main')}
+        onBack={handleBackToMain}
         headerTextColor="#020A2F"
         bottomContent={
           <Btn_1Col disabled={!isNextEnabled || isPreviewLoading} onClick={handleNext}>
@@ -182,6 +205,7 @@ export function TransferAccountSelect() {
         onClose={() => setIsBankSheetOpen(false)}
         title={t('transfer.accountSelect.bankSheetTitle')}
         height="440px"
+        keepMounted
       >
         <div className="grid grid-cols-3 gap-2">
           {BANK_OPTIONS.map((bank) => (
