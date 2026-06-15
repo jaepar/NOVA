@@ -359,3 +359,207 @@ def test_langgraph_hospital_agent_rejects_change_without_matching_slot_context()
 
     backend_client.update_reservation.assert_not_called()
     assert result["action"] == "ask_user"
+
+
+def test_langgraph_hospital_agent_rejects_ambiguous_cancel_when_multiple_active_reservations_exist():
+    llm = Mock()
+    bound_llm = Mock()
+    bound_llm.invoke.side_effect = [
+        AIMessage(
+            content="",
+            tool_calls=[
+                {
+                    "name": "update_reservation",
+                    "args": {
+                        "reservation_id": 6,
+                        "action": "CANCEL",
+                    },
+                    "id": "call_1",
+                }
+            ],
+        ),
+        AIMessage(content="활성 예약이 여러 건입니다. 취소할 예약 ID를 먼저 알려주세요. [ASK_USER]"),
+    ]
+    llm.bind_tools.return_value = bound_llm
+    backend_client = Mock()
+    agent = LangGraphHospitalAgent(
+        llm=llm,
+        backend_client=backend_client,
+    )
+
+    result = agent.run_turn(
+        conversation_id="conv_test",
+        user_message="예약 취소해줘.",
+        conversation_messages=[{"role": "user", "message": "예약 취소해줘."}],
+        jsessionid="abc123",
+        persisted_state={
+            "recent_context": {
+                "latest_reservations": [
+                    {
+                        "reservation_id": 6,
+                        "hospital_id": 4,
+                        "hospital_name": "인천바른내과",
+                        "reserved_at": "2026-06-16T13:30:00",
+                        "status": "RESERVED",
+                    },
+                    {
+                        "reservation_id": 5,
+                        "hospital_id": 4,
+                        "hospital_name": "인천바른내과",
+                        "reserved_at": "2026-06-15T10:00:00",
+                        "status": "RESERVED",
+                    },
+                ]
+            }
+        },
+    )
+
+    backend_client.update_reservation.assert_not_called()
+    assert result["action"] == "ask_user"
+
+
+def test_langgraph_hospital_agent_allows_cancel_when_user_explicitly_mentions_reservation_id():
+    llm = Mock()
+    bound_llm = Mock()
+    bound_llm.invoke.side_effect = [
+        AIMessage(
+            content="",
+            tool_calls=[
+                {
+                    "name": "update_reservation",
+                    "args": {
+                        "reservation_id": 6,
+                        "action": "CANCEL",
+                    },
+                    "id": "call_1",
+                }
+            ],
+        ),
+        AIMessage(content="예약을 취소했습니다. [FINAL_ANSWER]"),
+    ]
+    llm.bind_tools.return_value = bound_llm
+    backend_client = Mock()
+    backend_client.update_reservation.return_value = {"data": None}
+    agent = LangGraphHospitalAgent(
+        llm=llm,
+        backend_client=backend_client,
+    )
+
+    result = agent.run_turn(
+        conversation_id="conv_test",
+        user_message="예약 ID 6 취소해줘.",
+        conversation_messages=[{"role": "user", "message": "예약 ID 6 취소해줘."}],
+        jsessionid="abc123",
+        persisted_state={
+            "recent_context": {
+                "latest_reservations": [
+                    {
+                        "reservation_id": 6,
+                        "hospital_id": 4,
+                        "hospital_name": "인천바른내과",
+                        "reserved_at": "2026-06-16T13:30:00",
+                        "status": "RESERVED",
+                    },
+                    {
+                        "reservation_id": 5,
+                        "hospital_id": 4,
+                        "hospital_name": "인천바른내과",
+                        "reserved_at": "2026-06-15T10:00:00",
+                        "status": "RESERVED",
+                    },
+                ]
+            }
+        },
+    )
+
+    backend_client.update_reservation.assert_called_once_with(
+        jsessionid="abc123",
+        reservation_id=6,
+        action="CANCEL",
+        reserved_at=None,
+    )
+    assert result["action"] == "final_answer"
+
+
+def test_langgraph_hospital_agent_rejects_create_without_matching_slot_context():
+    llm = Mock()
+    bound_llm = Mock()
+    bound_llm.invoke.side_effect = [
+        AIMessage(
+            content="",
+            tool_calls=[
+                {
+                    "name": "create_reservation",
+                    "args": {
+                        "hospital_id": 3,
+                        "reserved_at": "2026-06-13T17:00:00",
+                    },
+                    "id": "call_1",
+                }
+            ],
+        ),
+        AIMessage(content="That time is not available. Please choose one of the available slots. [ASK_USER]"),
+    ]
+    llm.bind_tools.return_value = bound_llm
+    backend_client = Mock()
+    agent = LangGraphHospitalAgent(
+        llm=llm,
+        backend_client=backend_client,
+    )
+
+    result = agent.run_turn(
+        conversation_id="conv_test",
+        user_message="Book 5 PM at Miso Dental.",
+        conversation_messages=[{"role": "user", "message": "Book 5 PM at Miso Dental."}],
+        jsessionid="abc123",
+        persisted_state={
+            "recent_context": {
+                "latest_hospitals": [
+                    {
+                        "hospital_id": 3,
+                        "name": "Miso Dental",
+                        "type": "DENTAL",
+                    }
+                ],
+                "latest_slots": [
+                    {"available_at": "2026-06-13T15:00:00"},
+                    {"available_at": "2026-06-13T16:00:00"},
+                ],
+                "latest_slot_query": {
+                    "hospital_id": 3,
+                    "date": "2026-06-13",
+                },
+            }
+        },
+        response_language="en",
+    )
+
+    backend_client.create_reservation.assert_not_called()
+    assert result["action"] == "ask_user"
+
+
+def test_langgraph_hospital_agent_uses_requested_response_language_in_system_prompt():
+    llm = Mock()
+    bound_llm = Mock()
+    bound_llm.invoke.return_value = AIMessage(
+        content="Dentist options are ready. [FINAL_ANSWER]"
+    )
+    llm.bind_tools.return_value = bound_llm
+    agent = LangGraphHospitalAgent(
+        llm=llm,
+        backend_client=Mock(),
+    )
+
+    result = agent.run_turn(
+        conversation_id="conv_test",
+        user_message="Find a dentist.",
+        conversation_messages=[{"role": "user", "message": "Find a dentist."}],
+        jsessionid="abc123",
+        persisted_state={},
+        response_language="en",
+    )
+
+    messages = bound_llm.invoke.call_args.args[0]
+    assert "Answer in English" in messages[0].content
+    assert "always Korean" not in messages[0].content
+    assert result["message"] == "Dentist options are ready."
