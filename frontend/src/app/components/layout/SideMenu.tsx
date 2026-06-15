@@ -11,6 +11,7 @@ interface SideMenuProps {
   isLoggedIn?: boolean
   onLogout?: () => void
   onLogin?: () => void
+  onSignup?: () => void
   onProfile?: () => void
 }
 
@@ -20,6 +21,7 @@ export function SideMenu({
   isLoggedIn = false,
   onLogout,
   onLogin,
+  onSignup,
   onProfile,
 }: SideMenuProps) {
   const { t } = useTranslation()
@@ -49,6 +51,9 @@ export function SideMenu({
     { icon: <User className="w-5 h-5" />, label: t('sideMenu.profile'), onClick: onProfile || (() => {}) },
     { icon: <Settings className="w-5 h-5" />, label: t('sideMenu.settings'), onClick: () => {} },
     { icon: <HelpCircle className="w-5 h-5" />, label: t('sideMenu.help'), onClick: () => {} },
+    ...(!isLoggedIn
+      ? [{ icon: <User className="w-5 h-5" />, label: t('sideMenu.signup'), onClick: onSignup || (() => {}) }]
+      : []),
     isLoggedIn
       ? { icon: <LogOut className="w-5 h-5" />, label: t('sideMenu.logout'), onClick: onLogout || (() => {}) }
       : { icon: <LogIn className="w-5 h-5" />, label: t('sideMenu.login'), onClick: onLogin || (() => {}) },
