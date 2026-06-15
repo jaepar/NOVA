@@ -1,12 +1,10 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CircleAlert, FileText, Upload, X } from 'lucide-react'
-import { certificateApi, getCertificateApiError } from '../../../api'
-import { novaToast } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { AppButton } from '../../components/design-system/AppButton'
-import { translateError, useTranslation } from '../../i18n'
+import { useTranslation } from '../../i18n'
 import { useStep3PageStore } from '../../stores/pageStores'
 
 export function Step03DocumentUpload() {
@@ -16,7 +14,6 @@ export function Step03DocumentUpload() {
   const setDocumentFile = useStep3PageStore((state) => state.setDocumentFile)
   const setDocumentError = useStep3PageStore((state) => state.setDocumentError)
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const isAllAttached = documents.every((doc) => Boolean(doc.file))
 
@@ -42,31 +39,12 @@ export function Step03DocumentUpload() {
     return file.type === 'application/pdf' || lowerName.endsWith('.pdf')
   }
 
-  const handleNext = async () => {
-    if (!isAllAttached || isSubmitting) {
+  const handleNext = () => {
+    if (!isAllAttached) {
       return
     }
 
-    const registrationApplicationFile =
-      documents.find((document) => document.id === 'registration-application')?.file ?? undefined
-    const residenceProofFile =
-      documents.find((document) => document.id === 'residence-proof')?.file ?? undefined
-
-    try {
-      setIsSubmitting(true)
-      await certificateApi.uploadDocuments({
-        residenceVerificationPdf: residenceProofFile ?? undefined,
-        alienRegistrationApplicationPdf: registrationApplicationFile ?? undefined,
-      })
-      navigate('/certificate/step-04')
-    } catch (error) {
-      const apiError = getCertificateApiError(error)
-      novaToast.error(
-        translateError(apiError?.code, apiError?.message || t('certificate.correctionSubmitFailed'))
-      )
-    } finally {
-      setIsSubmitting(false)
-    }
+    navigate('/certificate/step-04')
   }
 
   // [TEST ONLY START] 서류 업로드 여부와 무관하게 다음 단계로 이동하는 임시 버튼
@@ -81,10 +59,10 @@ export function Step03DocumentUpload() {
       backPath="/certificate/step-02"
       bottomContent={
         <div className="space-y-2">
-          <Btn_1Col disabled={!isAllAttached || isSubmitting} onClick={handleNext}>
-            {isSubmitting ? t('certificate.submitting') : t('certificate.nextButton')}
+          <Btn_1Col disabled={!isAllAttached} onClick={handleNext}>
+            {t('certificate.nextButton')}
           </Btn_1Col>
-          <Btn_1Col variant="outline" onClick={handleSkipDocumentUploadForTest} disabled={isSubmitting}>
+          <Btn_1Col variant="outline" onClick={handleSkipDocumentUploadForTest}>
             {t('certificate.skipUploadTest')}
           </Btn_1Col>
         </div>
