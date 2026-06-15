@@ -286,6 +286,36 @@ class UserControllerTest {
 	}
 
 	@Test
+	@DisplayName("최종 제출 API는 서류 파일을 함께 전달할 수 있다")
+	void requestCertificateIssuanceWithDocumentsReturnsSuccess() throws Exception {
+		MockMultipartFile residencePdf = new MockMultipartFile(
+			"residenceVerificationPdf",
+			"residence.pdf",
+			MediaType.APPLICATION_PDF_VALUE,
+			"residence".getBytes()
+		);
+		MockMultipartFile alienPdf = new MockMultipartFile(
+			"alienRegistrationApplicationPdf",
+			"alien.pdf",
+			MediaType.APPLICATION_PDF_VALUE,
+			"alien".getBytes()
+		);
+
+		doNothing().when(userService).requestCertificateIssuance(any(), any(), any());
+
+		mockMvc.perform(multipart("/users/verifications")
+				.file(residencePdf)
+				.file(alienPdf)
+				.with(authentication(authToken()))
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.code").value("20000"));
+
+		verify(userService).requestCertificateIssuance(nullable(Long.class), any(), any());
+	}
+
+	@Test
 	@DisplayName("Liveness 세션 생성 API는 성공 응답을 반환한다")
 	void createLivenessSessionReturnsSuccess() throws Exception {
 			LivenessSessionResponse payload = new LivenessSessionResponse(

@@ -297,6 +297,56 @@ class UserServiceTest {
 	}
 
 	@Test
+	@DisplayName("최종 제출 시 서류 2개를 제출하고 사용자 상태를 PENDING으로 변경한다")
+	void requestCertificateIssuanceWithDocumentsUploadsDocumentsAndChangesStatusToPending() {
+		Long userId = 1L;
+		User user = User.builder()
+			.userId(userId)
+			.certificateStatus(CertificateStatus.NOT_ISSUED)
+			.build();
+		MockMultipartFile residencePdf = new MockMultipartFile(
+			"residenceVerificationPdf",
+			"residence.pdf",
+			"application/pdf",
+			"residence".getBytes()
+		);
+		MockMultipartFile alienPdf = new MockMultipartFile(
+			"alienRegistrationApplicationPdf",
+			"alien.pdf",
+			"application/pdf",
+			"alien".getBytes()
+		);
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(documentRepository.existsByUser(user)).thenReturn(false);
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(
+			user,
+			DocumentType.RESIDENCE_VERIFICATION_DOCUMENT
+		)).thenReturn(Optional.empty());
+		when(documentRepository.findTopByUserAndDocumentTypeOrderByDocumentIdDesc(
+			user,
+			DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT
+		)).thenReturn(Optional.empty());
+		when(userDocumentS3Uploader.upload(
+			userId,
+			residencePdf,
+			DocumentType.RESIDENCE_VERIFICATION_DOCUMENT,
+			DocumentStatus.PENDING
+		)).thenReturn("https://s3/documents/1_RESIDENCE_VERIFICATION_DOCUMENT_PENDING.pdf");
+		when(userDocumentS3Uploader.upload(
+			userId,
+			alienPdf,
+			DocumentType.ALIEN_REGISTRATION_SUPPORTING_DOCUMENT,
+			DocumentStatus.PENDING
+		)).thenReturn("https://s3/documents/1_ALIEN_REGISTRATION_SUPPORTING_DOCUMENT_PENDING.pdf");
+
+		userService.requestCertificateIssuance(userId, residencePdf, alienPdf);
+
+		assertThat(user.getCertificateStatus()).isEqualTo(CertificateStatus.PENDING);
+		verify(documentRepository, times(2)).save(any(Document.class));
+	}
+
+	@Test
 	@DisplayName("인증서 발급 요청 시 사용자가 없으면 예외가 발생한다")
 	void requestCertificateIssuanceThrowsWhenUserNotFound() {
 		Long userId = 1L;
