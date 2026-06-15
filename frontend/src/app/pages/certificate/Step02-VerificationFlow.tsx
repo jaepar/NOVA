@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { FileText, IdCard, ScanFace, ScanLine } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { useTranslation } from '../../i18n'
@@ -8,17 +9,25 @@ export function Step02VerificationFlow() {
   const { t } = useTranslation()
 
   const verificationSteps = [
-    { id: 1, title: t('certificate.step02step1') },
-    { id: 2, title: t('certificate.step02step2') },
-    { id: 3, title: t('certificate.step02step3') },
-    { id: 4, title: t('certificate.step02step4') },
+    { id: 1, title: t('certificate.step02step1'), icon: FileText },
+    { id: 2, title: t('certificate.step02step2'), icon: ScanLine },
+    { id: 3, title: t('certificate.step02step3'), icon: IdCard },
+    { id: 4, title: t('certificate.step02step4'), icon: ScanFace },
   ]
 
   return (
     <MobileLayout
       title={t('certificate.title')}
       backPath="/certificate/step-01"
-      bottomContent={<Btn_1Col onClick={() => navigate('/certificate/step-03')}>{t('common.next')}</Btn_1Col>}
+      bottomContent={
+        <Btn_1Col
+          onClick={() =>
+            navigate('/certificate/step-03', { state: { resetDocumentUpload: true } })
+          }
+        >
+          {t('common.next')}
+        </Btn_1Col>
+      }
     >
       <div className="space-y-6 pb-2">
         <section className="pt-2">
@@ -28,6 +37,7 @@ export function Step02VerificationFlow() {
         <section className="space-y-0">
           {verificationSteps.map((step, index) => {
             const isLast = index === verificationSteps.length - 1
+            const Icon = step.icon
 
             return (
               <div key={step.id}>
@@ -36,8 +46,8 @@ export function Step02VerificationFlow() {
                     {step.id}
                   </div>
 
-                  <div className="w-11 h-11 shrink-0 rounded-full bg-background border border-border flex items-center justify-center text-[10px] text-muted-foreground">
-                    ICON
+                  <div className="w-11 h-11 shrink-0 flex items-center justify-center text-primary-light">
+                    <Icon className="w-6 h-6" />
                   </div>
 
                   <p className="font-medium">{step.title}</p>

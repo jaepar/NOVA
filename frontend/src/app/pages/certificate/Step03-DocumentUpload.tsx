@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { CircleAlert, FileText, Upload, X } from 'lucide-react'
 import { certificateApi, getCertificateApiError } from '../../../api'
 import { novaToast } from '../../components/design-system'
@@ -11,14 +11,24 @@ import { useStep3PageStore } from '../../stores/pageStores'
 
 export function Step03DocumentUpload() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useTranslation()
   const documents = useStep3PageStore((state) => state.documents)
   const setDocumentFile = useStep3PageStore((state) => state.setDocumentFile)
   const setDocumentError = useStep3PageStore((state) => state.setDocumentError)
+  const resetDocuments = useStep3PageStore((state) => state.reset)
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const shouldResetDocumentUpload = Boolean(
+    (location.state as { resetDocumentUpload?: boolean } | null)?.resetDocumentUpload
+  )
 
   const isAllAttached = documents.every((doc) => Boolean(doc.file))
+
+  useEffect(() => {
+    if (!shouldResetDocumentUpload) return
+    resetDocuments()
+  }, [resetDocuments, shouldResetDocumentUpload])
 
   const openPicker = (id: string) => {
     fileInputRefs.current[id]?.click()
@@ -58,6 +68,7 @@ export function Step03DocumentUpload() {
         residenceVerificationPdf: residenceProofFile ?? undefined,
         alienRegistrationApplicationPdf: registrationApplicationFile ?? undefined,
       })
+      resetDocuments()
       navigate('/certificate/step-04')
     } catch (error) {
       const apiError = getCertificateApiError(error)
@@ -71,6 +82,7 @@ export function Step03DocumentUpload() {
 
   // [TEST ONLY START] 서류 업로드 여부와 무관하게 다음 단계로 이동하는 임시 버튼
   const handleSkipDocumentUploadForTest = () => {
+    resetDocuments()
     navigate('/certificate/step-04')
   }
   // [TEST ONLY END]
