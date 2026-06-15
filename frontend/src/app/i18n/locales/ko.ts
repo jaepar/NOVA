@@ -45,7 +45,7 @@
   },
   login: {
     title: "시작하기",
-    introHeading: "반가워요!\n회원가입 또는 로그인을 진행해주세요",
+    introHeading: "반가워요!\n회원가입/로그인을 진행해주세요",
     signup: "회원가입",
     login: "로그인",
     formTitle: "로그인",
