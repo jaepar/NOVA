@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   bankingApi,
@@ -19,7 +19,9 @@ import {
   useTransferSenderInfoPageStore,
 } from "../../stores/pageStores";
 import { translateError, useTranslation } from "../../i18n";
+import { getDialCodeByCountryId, PhoneNumberField } from "./PhoneNumberField";
 import { normalizeTransferAmount, toTransferAmountNumber } from "./transferQuote";
+import { isValidEnglishName, isValidPhoneNumber } from "./transferValidation";
 
 const paymentReasonOptions = ["tuition", "living", "family", "medical", "transaction", "other"] as const;
 
@@ -35,6 +37,7 @@ function ClearableInput({
   multiline = false,
   labelAction,
   inputMode,
+  error,
 }: {
   label: string;
   value: string;
@@ -44,6 +47,7 @@ function ClearableInput({
   multiline?: boolean;
   labelAction?: React.ReactNode;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  error?: string;
 }) {
   return (
     <div className="space-y-2">
@@ -51,12 +55,17 @@ function ClearableInput({
         <label className="block text-base text-foreground">{label}</label>
         {labelAction}
       </div>
-      <div className="relative mt-[6px] overflow-hidden rounded-2xl border border-border bg-background">
+      <div
+        className={`relative mt-[6px] overflow-hidden rounded-2xl border bg-background ${
+          error ? "border-destructive" : "border-border"
+        }`}
+      >
         {multiline ? (
           <textarea
             value={value}
             onChange={(event) => onChange(event.target.value)}
             placeholder={placeholder}
+            aria-invalid={Boolean(error)}
             className="min-h-24 w-full resize-none bg-transparent px-5 py-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
         ) : (
@@ -66,6 +75,7 @@ function ClearableInput({
             value={value}
             onChange={(event) => onChange(event.target.value)}
             placeholder={placeholder}
+            aria-invalid={Boolean(error)}
             className={`h-16 w-full bg-transparent px-5 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none ${
               trailing ? "pr-16" : "pr-5"
             }`}
@@ -75,6 +85,7 @@ function ClearableInput({
           <div className="absolute inset-y-0 right-4 flex items-center">{trailing}</div>
         ) : null}
       </div>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>
   );
 }
@@ -156,6 +167,16 @@ export function Step05TransferRecipientInfo() {
   const selectedPaymentReason = paymentReasonOptions.includes(paymentReason as PaymentReason)
     ? paymentReason
     : "";
+  const isRecipientNameValid = isValidEnglishName(recipientName);
+  const isRecipientPhoneNumberValid = isValidPhoneNumber(recipientPhoneNumber);
+  const recipientNameError =
+    recipientName.trim().length > 0 && !isRecipientNameValid
+      ? t("globalTransfer.recipientInfo.nameError")
+      : "";
+  const recipientPhoneNumberError =
+    recipientPhoneNumber.trim().length > 0 && !isRecipientPhoneNumberValid
+      ? t("globalTransfer.recipientInfo.phoneError")
+      : "";
 
   const renderClearButton = (onClear: () => void) => (
     <AppButton
@@ -170,10 +191,10 @@ export function Step05TransferRecipientInfo() {
   );
 
   const canProceed =
-    recipientName.trim().length > 0 &&
+    isRecipientNameValid &&
     recipientDetailAddress.trim().length > 0 &&
     recipientCity.trim().length > 0 &&
-    recipientPhoneNumber.trim().length > 0 &&
+    isRecipientPhoneNumberValid &&
     swiftCode.trim().length > 0 &&
     accountNumber.trim().length > 0 &&
     routingNumber.trim().length > 0 &&
@@ -295,6 +316,7 @@ export function Step05TransferRecipientInfo() {
               label={t("globalTransfer.recipientInfo.nameLabel")}
               value={recipientName}
               onChange={setRecipientName}
+              error={recipientNameError}
               trailing={recipientName ? renderClearButton(() => setRecipientName("")) : undefined}
             />
 
@@ -344,16 +366,15 @@ export function Step05TransferRecipientInfo() {
               }
             />
 
-            <ClearableInput
+            <PhoneNumberField
               label={t("globalTransfer.recipientInfo.phoneLabel")}
               value={recipientPhoneNumber}
               onChange={setRecipientPhoneNumber}
-              inputMode="tel"
-              trailing={
-                recipientPhoneNumber
-                  ? renderClearButton(() => setRecipientPhoneNumber(""))
-                  : undefined
-              }
+              placeholder={t("globalTransfer.recipientInfo.phonePlaceholder")}
+              error={recipientPhoneNumberError}
+              defaultDialCode={getDialCodeByCountryId(countryId)}
+              countryCodeAriaLabel={t("globalTransfer.recipientInfo.countryCodeAria")}
+              clearAriaLabel={t("globalTransfer.recipientInfo.clearAria")}
             />
           </section>
 
@@ -374,7 +395,7 @@ export function Step05TransferRecipientInfo() {
                   className="flex items-center gap-1 text-base font-medium text-primary"
                 >
                   {t("globalTransfer.recipientInfo.swiftLookup")}
-                  <span aria-hidden="true">›</span>
+                  <ChevronRight className="h-4 w-4" />
                 </AppButton>
               }
               trailing={swiftCode ? renderClearButton(() => setSwiftCode("")) : undefined}
