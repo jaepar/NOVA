@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/signup",
                                 "/auth/logout",
+                                "/auth/signup/email-verifications",
                                 "/auth/email-verifications/**"
                         ).permitAll()
                         .requestMatchers(

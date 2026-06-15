@@ -82,7 +82,7 @@ export function EmailVerification() {
     setConfirmErrorMessage('')
 
     try {
-      await emailVerificationApi.send(email)
+      await emailVerificationApi.sendForSignup(email)
       setVerificationCode('')
       setCodeSent(true)
       setRemainingSeconds(verificationExpiresSeconds)

@@ -78,6 +78,16 @@ export const authApi = {
 
     return response.data;
   },
+  sendSignupEmailVerification: async (
+    payload: EmailVerificationSendRequest
+  ): Promise<AuthMessageResponse> => {
+    const response = await apiClient.post<AuthMessageResponse>(
+      "/auth/signup/email-verifications",
+      payload
+    );
+
+    return response.data;
+  },
   confirmEmailVerification: async (
     payload: EmailVerificationConfirmRequest
   ): Promise<AuthMessageResponse> => {
