@@ -14,6 +14,20 @@ def test_health_check():
     assert response.json() == {"status": "UP"}
 
 
+def test_deployed_frontend_origin_can_preflight_chat():
+    response = client.options(
+        "/chat",
+        headers={
+            "Origin": "https://nova-bank.site",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "https://nova-bank.site"
+    assert response.headers["access-control-allow-credentials"] == "true"
+
+
 def test_start_session():
     response = client.post("/chat", json={})
 
