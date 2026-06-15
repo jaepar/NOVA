@@ -233,6 +233,19 @@ public class UserService {
 	}
 
 	@Transactional
+	public void requestCertificateIssuance(
+		Long userId,
+		MultipartFile residenceVerificationPdf,
+		MultipartFile alienRegistrationApplicationPdf
+	) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+
+		uploadDocuments(user, residenceVerificationPdf, alienRegistrationApplicationPdf);
+		user.startCertificateIssuance();
+	}
+
+	@Transactional
 	public void uploadDocuments(
 		Long userId,
 		MultipartFile residenceVerificationPdf,
@@ -241,6 +254,14 @@ public class UserService {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
+		uploadDocuments(user, residenceVerificationPdf, alienRegistrationApplicationPdf);
+	}
+
+	private void uploadDocuments(
+		User user,
+		MultipartFile residenceVerificationPdf,
+		MultipartFile alienRegistrationApplicationPdf
+	) {
 		boolean hasUploadHistory = documentRepository.existsByUser(user);  // 서류를 제출한 사용자인지 확인
 		if (!hasUploadHistory) {
 			// 문서(외국인 등록증 신청서, 거소 확인서)를 처음 등록하는 경우

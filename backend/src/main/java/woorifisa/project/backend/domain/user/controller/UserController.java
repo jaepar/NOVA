@@ -156,6 +156,21 @@ public class UserController {
 		return BaseResponse.ok(null);
 	}
 
+	// 서류 제출을 포함한 인증서 발급 요청
+	@PostMapping(value = "/verifications", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public BaseResponse<Void> requestCertificateIssuanceWithDocuments(
+		@AuthenticationPrincipal SessionUserPrincipal principal,
+		@RequestPart(value = "residenceVerificationPdf", required = false) MultipartFile residenceVerificationPdf,
+		@RequestPart(value = "alienRegistrationApplicationPdf", required = false) MultipartFile alienRegistrationApplicationPdf
+	) {
+		userService.requestCertificateIssuance(
+			principal.userId(),
+			residenceVerificationPdf,
+			alienRegistrationApplicationPdf
+		);
+		return BaseResponse.ok(null);
+	}
+
 	// Liveness 세션 생성
 	@PostMapping("/verifications/liveness")
 	public BaseResponse<LivenessSessionResponse> createLivenessSession(

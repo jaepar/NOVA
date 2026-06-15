@@ -56,9 +56,9 @@
 | `USER-007`     | 회원 정보 조회 | GET | `/users` | O | USER | |
 | `USER-008`     | 회원 정보 수정 | PATCH | `/users` | O | USER | |
 | `USER-009`     | 회원 탈퇴 | POST | `/users` | O | USER | soft delete |
-| `USER-010`     | 서류 제출 | POST   | `/users/documents` | O | USER | 최초 업로드는 2개 필수, 재업로드는 반려(REJECTED) 문서만 허용(2개 반려 시 2개 모두 필수) |
+| `USER-010`     | 서류 제출 | POST   | `/users/documents` | O | USER | 보완 제출 및 기존 클라이언트 호환용. 최초 업로드는 2개 필수, 재업로드는 반려(REJECTED) 문서만 허용(2개 반려 시 2개 모두 필수) |
 | `USER-011`     | Liveness 얼굴 인증 | POST | `/users/verifications/liveness` | O | USER | |
-| `USER-012`     | 인증서 발급 | POST | `/users/verifications` | O | USER | |
+| `USER-012`     | 인증서 발급 | POST | `/users/verifications` | O | USER | multipart 요청이면 서류 제출과 인증서 발급 요청을 함께 처리 |
 | `USER-013`     | 알림 조회 | GET | `/users/notifications` | O | USER | |
 | `USER-014`     | 보완 서류 목록 조회 | GET | `/users/documents/corrections` | O | USER | `missing` 컬럼의 반려 사유 코드를 `,` 기준으로 파싱해 `rejectionReasonCodes` 반환 |
 | `USER-015`     | 관리자 서류 심사 상태 변경 | PATCH | `/admin/users/{userId}/documents/{documentType}` | X | PUBLIC | `documentType`: `ALIEN_REGISTRATION_APPLICATION`/`RESIDENCE_PROOF`, `targetStatus`: `APPROVED`/`REJECTED`, `rejectionReasonCodes`: 반려 사유 코드 목록 |
@@ -502,6 +502,32 @@ Response (200)
     "expireDate": "2030.01.01",
     "authority": "MOFA"
   }
+}
+```
+
+## USER-012 인증서 발급
+
+- Method: `POST`
+- Path: `/users/verifications`
+- Auth: `O` (USER 세션 필수)
+- Content-Type: `multipart/form-data` 또는 본문 없음
+
+Request (`multipart/form-data`)
+- `residenceVerificationPdf`: 거소확인 증빙 PDF
+- `alienRegistrationApplicationPdf`: 외국인등록증 신청 서류 PDF
+
+처리 규칙:
+- multipart 요청은 서류 제출 처리 후 사용자 인증서 발급 상태를 `PENDING`으로 변경한다.
+- 서류 처리 규칙은 `POST /users/documents`와 동일하다.
+- 본문 없는 요청은 기존과 동일하게 사용자 인증서 발급 상태만 `PENDING`으로 변경한다.
+
+Response (200)
+```json
+{
+  "success": true,
+  "code": "20000",
+  "message": "요청에 성공했습니다.",
+  "data": null
 }
 ```
 

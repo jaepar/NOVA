@@ -1,12 +1,19 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
+import { certificateApi, getCertificateApiError } from '../../../api'
+import { novaToast } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
-import { useTranslation } from '../../i18n'
+import { translateError, useTranslation } from '../../i18n'
+import { useStep3PageStore } from '../../stores/pageStores'
 
 export function VerificationCompleted() {
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const documents = useStep3PageStore((state) => state.documents)
+  const resetDocuments = useStep3PageStore((state) => state.reset)
 
   const completedItems = [
     t('certificate.completedItem1'),
@@ -15,13 +22,47 @@ export function VerificationCompleted() {
     t('certificate.completedItem4'),
   ]
 
+  const handleFinalSubmit = async () => {
+    if (isSubmitting) {
+      return
+    }
+
+    const registrationApplicationFile =
+      documents.find((document) => document.id === 'registration-application')?.file ?? undefined
+    const residenceProofFile =
+      documents.find((document) => document.id === 'residence-proof')?.file ?? undefined
+
+    if (!registrationApplicationFile || !residenceProofFile) {
+      novaToast.error(t('certificate.step03Description'))
+      navigate('/certificate/step-03')
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      await certificateApi.requestIssuance({
+        residenceVerificationPdf: residenceProofFile,
+        alienRegistrationApplicationPdf: registrationApplicationFile,
+      })
+      resetDocuments()
+      navigate('/certificate/step-11')
+    } catch (error) {
+      const apiError = getCertificateApiError(error)
+      novaToast.error(
+        translateError(apiError?.code, apiError?.message || t('certificate.correctionSubmitFailed'))
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <MobileLayout
       title={t('certificate.title')}
       backPath="/certificate/step-08"
       bottomContent={
-        <Btn_1Col onClick={() => navigate('/certificate/step-11')}>
-          {t('certificate.finalSubmit')}
+        <Btn_1Col onClick={handleFinalSubmit} disabled={isSubmitting}>
+          {isSubmitting ? t('certificate.submitting') : t('certificate.finalSubmit')}
         </Btn_1Col>
       }
     >
