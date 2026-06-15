@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, Shield, Wallet } from "lucide-react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { PinInputBottomSheet } from "../../components/design-system/PinInputBottomSheet";
 import { novaToast } from "../../components/design-system/toast";
@@ -151,7 +151,7 @@ export function Step14AccountPasswordSetup() {
 
   return (
     <>
-      <MobileLayout
+      <AccountMobileLayout
         title={t("account.openingHeader")}
         titleKey="account.openingHeader"
         backPath="/account/step-13"
@@ -216,7 +216,7 @@ export function Step14AccountPasswordSetup() {
             </div>
           </section>
         </div>
-      </MobileLayout>
+      </AccountMobileLayout>
 
       <PinInputBottomSheet
         key={pinSheetKey}

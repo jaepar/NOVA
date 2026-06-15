@@ -15,7 +15,7 @@ import {
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { Btn_2Col } from "../../components/design-system/Btn_2Col";
 import { InlineBanner } from "../../components/design-system/InlineBanner";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { useStep5PassportCaptureStore } from "../../stores/pageStores";
 import { CameraCapturePage } from "../../components/camera/CameraCapturePage";
 import { certificateApi, type PassportResponse } from "../../../api";
@@ -220,7 +220,7 @@ export function PassportCameraCapture() {
 
   if (mode === "review") {
     return (
-      <MobileLayout
+      <AccountMobileLayout
         title={t("account.identityTitle")}
         titleKey="account.identityTitle"
         backPath="/account/step-03"
@@ -276,14 +276,14 @@ export function PassportCameraCapture() {
             })}
           </section>
         </div>
-      </MobileLayout>
+      </AccountMobileLayout>
     );
   }
 
   return (
     <CameraCapturePage
       title={t("account.identityTitle")}
-      onClose={() => navigate("/account/step-03")}
+      onClose={() => navigate("/account/step-03", { replace: true })}
       headerBackgroundColor="#ffffff"
       headerTextColor="#000000"
       bottomBackgroundColor="#ffffff"

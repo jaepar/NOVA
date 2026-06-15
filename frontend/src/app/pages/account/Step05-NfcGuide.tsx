@@ -1,6 +1,6 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MobileLayout } from '../../components/layout/MobileLayout'
+import { AccountMobileLayout } from './components/AccountMobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { InlineBanner } from '../../components/design-system/InlineBanner'
 import { useTranslation } from '../../i18n'
@@ -215,7 +215,7 @@ export function NfcGuide() {
   // [TEST ONLY END]
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t('account.identityTitle')}
       titleKey="account.identityTitle"
       backPath="/account/step-03"
@@ -264,7 +264,7 @@ export function NfcGuide() {
 
         {statusMessage ? <InlineBanner message={statusMessage} variant={statusVariant} /> : null}
       </div>
-    </MobileLayout>
+    </AccountMobileLayout>
   )
 }
 

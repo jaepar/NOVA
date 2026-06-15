@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { useTranslation } from "../../i18n";
 
 const noticeCards = [
@@ -39,7 +39,7 @@ export function Step01PreOpenNotice() {
   const { t } = useTranslation();
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t("account.openingHeader")}
       titleKey="account.openingHeader"
       backPath="/main"
@@ -84,6 +84,6 @@ export function Step01PreOpenNotice() {
           ))}
         </section>
       </div>
-    </MobileLayout>
+    </AccountMobileLayout>
   );
 }

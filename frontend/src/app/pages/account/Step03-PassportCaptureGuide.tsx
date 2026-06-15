@@ -1,6 +1,6 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Camera, CheckCircle2, CircleAlert } from 'lucide-react'
-import { MobileLayout } from '../../components/layout/MobileLayout'
+import { AccountMobileLayout } from './components/AccountMobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { useTranslation } from '../../i18n'
 
@@ -16,7 +16,7 @@ export function PassportCaptureGuide() {
   const { t } = useTranslation()
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t('account.identityTitle')}
       titleKey="account.identityTitle"
       backPath="/account/step-02"
@@ -67,7 +67,7 @@ export function PassportCaptureGuide() {
           </p>
         </section>
       </div>
-    </MobileLayout>
+    </AccountMobileLayout>
   )
 }
 

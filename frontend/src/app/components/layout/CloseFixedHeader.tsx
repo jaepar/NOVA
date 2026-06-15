@@ -23,7 +23,7 @@ export function CloseFixedHeader({
     if (onClose) {
       onClose()
     } else {
-      navigate(closePath, { replace: true })
+      navigate(closePath)
     }
   }
 

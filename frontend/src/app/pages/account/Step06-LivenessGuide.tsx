@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Camera, Lightbulb, ScanFace } from 'lucide-react'
-import { MobileLayout } from '../../components/layout/MobileLayout'
+import { AccountMobileLayout } from './components/AccountMobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { useTranslation } from '../../i18n'
 
@@ -15,7 +15,7 @@ export function LivenessGuide() {
   const { t } = useTranslation()
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t('account.identityTitle')}
       titleKey="account.identityTitle"
       backPath="/account/step-05"
@@ -65,6 +65,6 @@ export function LivenessGuide() {
           })}
         </section>
       </div>
-    </MobileLayout>
+    </AccountMobileLayout>
   )
 }

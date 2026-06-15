@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { userApi } from "../../../api";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
 import {
@@ -167,7 +167,7 @@ export function Step10CustomerInfoRegistration() {
   };
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t("account.customerInfoTitle")}
       titleKey="account.customerInfoTitle"
       backPath="/account/step-09"
@@ -257,6 +257,6 @@ export function Step10CustomerInfoRegistration() {
           </div>
         </section>
       </div>
-    </MobileLayout>
+    </AccountMobileLayout>
   );
 }

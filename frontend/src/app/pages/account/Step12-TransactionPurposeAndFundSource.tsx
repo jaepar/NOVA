@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ChevronDown } from "lucide-react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
 import { useAccountCreateFlowStore } from "../../stores/pageStores";
@@ -39,7 +39,7 @@ export function Step12TransactionPurposeAndFundSource() {
   );
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t("account.transactionInfoTitle")}
       titleKey="account.transactionInfoTitle"
       backPath="/account/step-11"
@@ -182,6 +182,6 @@ export function Step12TransactionPurposeAndFundSource() {
           </div>
         </section>
       </div>
-    </MobileLayout>
+    </AccountMobileLayout>
   );
 }
