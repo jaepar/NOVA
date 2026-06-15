@@ -29,7 +29,7 @@ export function FixedHeader({
     if (onBack) {
       onBack()
     } else if (backPath) {
-      navigate(backPath)
+      navigate(backPath, { replace: true })
     } else {
       navigate(-1)
     }

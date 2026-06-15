@@ -218,7 +218,7 @@ export function NfcGuide() {
     <MobileLayout
       title={t('account.identityTitle')}
       titleKey="account.identityTitle"
-      backPath="/account/step-04"
+      backPath="/account/step-03"
       bottomContent={
         <div className="space-y-2">
           <Btn_1Col onClick={handleStartNfcTagging} disabled={isScanning}>
