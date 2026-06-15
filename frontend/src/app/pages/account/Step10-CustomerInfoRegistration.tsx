@@ -19,6 +19,12 @@ const KAKAO_POSTCODE_SCRIPT_SRC =
 
 type KakaoPostcodeData = {
   userSelectedType: "R" | "J";
+  zonecode: string;
+  addressEnglish: string;
+  roadAddressEnglish: string;
+  jibunAddressEnglish: string;
+  autoRoadAddressEnglish: string;
+  autoJibunAddressEnglish: string;
   roadAddress: string;
   jibunAddress: string;
   bname: string;
