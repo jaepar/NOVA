@@ -548,6 +548,8 @@ export const en = {
       address: 'Address',
       addressDetail: 'Address detail',
       addressPlaceholder: 'Search for your address',
+      addressSearchAria: 'Search road name address',
+      addressSearchError: 'Could not load address search. Please try again shortly.',
       addressDetailPlaceholder: 'Enter detailed address',
     },
     jobInfo: {

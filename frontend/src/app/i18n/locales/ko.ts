@@ -577,6 +577,8 @@
       address: "주소",
       addressDetail: "상세주소",
       addressPlaceholder: "주소를 검색해 주세요",
+      addressSearchAria: "도로명 주소 검색",
+      addressSearchError: "주소 검색을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
       addressDetailPlaceholder: "상세주소를 입력해 주세요",
     },
     jobInfo: {
