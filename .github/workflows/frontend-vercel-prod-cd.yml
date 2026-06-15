@@ -16,6 +16,10 @@ jobs:
   deploy-production:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: frontend
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,17 +46,27 @@ jobs:
       - name: Verify Required Vercel Environment Variables
         run: |
           test -f .vercel/.env.production.local
-          grep -q '^VITE_API_BASE_URL=' .vercel/.env.production.local
-          grep -q '^VITE_AI_API_BASE_URL=' .vercel/.env.production.local
-          grep -q '^VITE_AWS_REGION=' .vercel/.env.production.local
-          grep -q '^VITE_AWS_COGNITO_IDENTITY_POOL_ID=' .vercel/.env.production.local
-          grep -q '^VITE_LIVENESS_REGISTERED_IMAGE_BUCKET=' .vercel/.env.production.local
+          grep -Eq '^VITE_API_BASE_URL=.+$' .vercel/.env.production.local
+          grep -Eq '^VITE_AI_API_BASE_URL=.+$' .vercel/.env.production.local
+          grep -Eq '^VITE_AWS_REGION=.+$' .vercel/.env.production.local
+          grep -Eq '^VITE_AWS_COGNITO_IDENTITY_POOL_ID=.+$' .vercel/.env.production.local
+          grep -Eq '^VITE_LIVENESS_REGISTERED_IMAGE_BUCKET=.+$' .vercel/.env.production.local
+
+      - name: Export Vite Environment Variables
+        run: |
+          grep -E '^(VITE_API_BASE_URL|VITE_AI_API_BASE_URL|VITE_AWS_REGION|VITE_AWS_COGNITO_IDENTITY_POOL_ID|VITE_LIVENESS_REGISTERED_IMAGE_BUCKET)=' .vercel/.env.production.local >> "$GITHUB_ENV"
 
       - name: Build Project Artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Verify Vite Environment Was Embedded
+        run: |
+          test -d .vercel/output/static
+          grep -R -q -- "$VITE_AWS_REGION" .vercel/output/static
+          grep -R -q -- "$VITE_AWS_COGNITO_IDENTITY_POOL_ID" .vercel/output/static
 
       - name: Deploy Project Artifacts to Vercel Production
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
