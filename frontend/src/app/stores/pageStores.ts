@@ -256,6 +256,7 @@ interface TransferRecipientInfoPageState {
   paymentDetailMode: TransferPaymentDetailMode
   paymentReason: string
   manualPaymentDetail: string
+  recipientInfoScrollTop: number
   setRecipientName: (recipientName: string) => void
   setRecipientAddress: (recipientAddress: string) => void
   setRecipientDetailAddress: (recipientDetailAddress: string) => void
@@ -270,6 +271,7 @@ interface TransferRecipientInfoPageState {
   setPaymentDetailMode: (paymentDetailMode: TransferPaymentDetailMode) => void
   setPaymentReason: (paymentReason: string) => void
   setManualPaymentDetail: (manualPaymentDetail: string) => void
+  setRecipientInfoScrollTop: (recipientInfoScrollTop: number) => void
   reset: () => void
 }
 
@@ -288,6 +290,7 @@ const transferRecipientInfoInitialState = {
   paymentDetailMode: 'reason-select' as TransferPaymentDetailMode,
   paymentReason: '',
   manualPaymentDetail: '',
+  recipientInfoScrollTop: 0,
 }
 
 export const useTransferRecipientInfoPageStore = create<TransferRecipientInfoPageState>((set) => ({
@@ -299,13 +302,19 @@ export const useTransferRecipientInfoPageStore = create<TransferRecipientInfoPag
   setRecipientCity: (recipientCity) => set({ recipientCity }),
   setRecipientPostalCode: (recipientPostalCode) => set({ recipientPostalCode }),
   setRecipientPhoneNumber: (recipientPhoneNumber) => set({ recipientPhoneNumber }),
-  setSwiftCode: (swiftCode) => set({ swiftCode }),
+  setSwiftCode: (swiftCode) =>
+    set(
+      swiftCode.trim().length === 0
+        ? { swiftCode, routingNumber: '', bankBranchName: '' }
+        : { swiftCode }
+    ),
   setAccountNumber: (accountNumber) => set({ accountNumber }),
   setRoutingNumber: (routingNumber) => set({ routingNumber }),
   setBankBranchName: (bankBranchName) => set({ bankBranchName }),
   setPaymentDetailMode: (paymentDetailMode) => set({ paymentDetailMode }),
   setPaymentReason: (paymentReason) => set({ paymentReason }),
   setManualPaymentDetail: (manualPaymentDetail) => set({ manualPaymentDetail }),
+  setRecipientInfoScrollTop: (recipientInfoScrollTop) => set({ recipientInfoScrollTop }),
   reset: () => set(transferRecipientInfoInitialState),
 }))
 

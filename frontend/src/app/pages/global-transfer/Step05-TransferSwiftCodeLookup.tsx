@@ -87,7 +87,7 @@ export function Step05TransferSwiftCodeLookup() {
       return bankMatched && cityMatched;
     });
   }, [bankNameQuery, cityQuery, scopedItems]);
-  const resultItems = hasSearched ? filteredItems : scopedItems;
+  const resultItems = hasSearched ? filteredItems : [];
 
   const handleSearch = () => {
     setHasSearched(true);
@@ -138,40 +138,49 @@ export function Step05TransferSwiftCodeLookup() {
           />
         </section>
 
-        <section className="space-y-4">
-          <div className="border-t border-border pt-5">
-            <p className="text-base text-muted-foreground">
-              {t("globalTransfer.swiftLookup.resultCountLabel")} : {resultItems.length}
-              {t("globalTransfer.swiftLookup.resultCountUnit")}
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {resultItems.map((item) => (
-              <AppButton
-                key={item.id}
-                type="button"
-                variant="unstyled"
-                onClick={() => handleSelectBank(item)}
-                className="w-full rounded-2xl border border-border bg-background px-5 py-5 text-left transition-colors hover:bg-secondary"
-              >
-                <div className="space-y-5">
-                  <p className="text-[18px] font-semibold text-foreground">{item.swiftCode}</p>
-                  <div className="grid grid-cols-[88px_1fr] gap-y-4 text-base">
-                    <span className="text-muted-foreground">
-                      {t("globalTransfer.swiftLookup.bankNameCol")}
-                    </span>
-                    <span className="text-right text-primary">{item.bankName}</span>
-                    <span className="text-muted-foreground">
-                      {t("globalTransfer.swiftLookup.cityCol")}
-                    </span>
-                    <span className="text-right text-foreground">{item.city}</span>
-                  </div>
-                </div>
-              </AppButton>
-            ))}
-          </div>
-        </section>
+        {hasSearched ? (
+          <section className="space-y-4">
+            <div className="border-t border-border pt-5">
+              <p className="text-base text-muted-foreground">
+                {t("globalTransfer.swiftLookup.resultCountLabel")} : {resultItems.length}
+                {t("globalTransfer.swiftLookup.resultCountUnit")}
+              </p>
+            </div>
+            {resultItems.length > 0 ? (
+              <div className="space-y-3">
+                {resultItems.map((item) => (
+                  <AppButton
+                    key={item.id}
+                    type="button"
+                    variant="unstyled"
+                    onClick={() => handleSelectBank(item)}
+                    className="w-full rounded-2xl border border-border bg-background px-5 py-5 text-left transition-colors hover:bg-secondary"
+                  >
+                    <div className="space-y-5">
+                      <p className="text-[18px] font-semibold text-foreground">
+                        {item.swiftCode}
+                      </p>
+                      <div className="grid grid-cols-[88px_1fr] gap-y-4 text-base">
+                        <span className="text-muted-foreground">
+                          {t("globalTransfer.swiftLookup.bankNameCol")}
+                        </span>
+                        <span className="text-right text-primary">{item.bankName}</span>
+                        <span className="text-muted-foreground">
+                          {t("globalTransfer.swiftLookup.cityCol")}
+                        </span>
+                        <span className="text-right text-foreground">{item.city}</span>
+                      </div>
+                    </div>
+                  </AppButton>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-border bg-background px-5 py-8 text-center text-base text-muted-foreground">
+                {t("globalTransfer.swiftLookup.emptyResult")}
+              </div>
+            )}
+          </section>
+        ) : null}
       </div>
     </MobileLayout>
   );

@@ -856,6 +856,7 @@
       resultCountUnit: "건",
       bankNameCol: "은행명",
       cityCol: "도시명",
+      emptyResult: "조회된 은행이 없습니다.",
       clearAria: "입력값 지우기",
     },
     submitFailed: {

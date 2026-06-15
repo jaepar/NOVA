@@ -816,6 +816,7 @@ export const en = {
       resultCountUnit: 'result(s)',
       bankNameCol: 'Bank name',
       cityCol: 'City',
+      emptyResult: 'No banks found.',
       clearAria: 'Clear input',
     },
     submitFailed: {
