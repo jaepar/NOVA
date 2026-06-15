@@ -16,10 +16,6 @@ jobs:
   deploy-production:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: frontend
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,9 +32,6 @@ jobs:
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
@@ -57,22 +50,38 @@ jobs:
 
       - name: Export Vite Environment Variables
         run: |
-          grep -E '^(VITE_API_BASE_URL|VITE_AI_API_BASE_URL|VITE_AWS_REGION|VITE_AWS_COGNITO_IDENTITY_POOL_ID|VITE_LIVENESS_REGISTERED_IMAGE_BUCKET)=' .vercel/.env.production.local >> "$GITHUB_ENV"
+          set -a
+          . .vercel/.env.production.local
+          set +a
+
+          test -n "$VITE_API_BASE_URL"
+          test -n "$VITE_AI_API_BASE_URL"
+          test -n "$VITE_AWS_REGION"
+          test -n "$VITE_AWS_COGNITO_IDENTITY_POOL_ID"
+          test -n "$VITE_LIVENESS_REGISTERED_IMAGE_BUCKET"
+
+          {
+            printf 'VITE_API_BASE_URL=%s\n' "$VITE_API_BASE_URL"
+            printf 'VITE_AI_API_BASE_URL=%s\n' "$VITE_AI_API_BASE_URL"
+            printf 'VITE_AWS_REGION=%s\n' "$VITE_AWS_REGION"
+            printf 'VITE_AWS_COGNITO_IDENTITY_POOL_ID=%s\n' "$VITE_AWS_COGNITO_IDENTITY_POOL_ID"
+            printf 'VITE_LIVENESS_REGISTERED_IMAGE_BUCKET=%s\n' "$VITE_LIVENESS_REGISTERED_IMAGE_BUCKET"
+          } >> "$GITHUB_ENV"
 
       - name: Build Project Artifacts
-        run: pnpm run build
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Verify Vite Environment Was Embedded
         run: |
-          test -d dist
-          grep -R -F -q -- "$VITE_AWS_REGION" dist
-          grep -R -F -q -- "$VITE_AWS_COGNITO_IDENTITY_POOL_ID" dist
-
-      - name: Prepare Vercel Static Output
-        run: cp vercel.json dist/vercel.json
+          test -d .vercel/output/static
+          grep -R -F -q -- "$VITE_AWS_REGION" .vercel/output/static
+          grep -R -F -q -- "$VITE_AWS_COGNITO_IDENTITY_POOL_ID" .vercel/output/static
 
       - name: Deploy Project Artifacts to Vercel Production
-        run: vercel deploy dist --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
