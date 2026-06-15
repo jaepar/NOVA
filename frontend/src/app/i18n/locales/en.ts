@@ -124,7 +124,7 @@ export const en = {
     certificateIssuingDescription: 'Open an account after issuance is complete.',
     reviewingDocuments: 'Your submitted documents are under review.',
     readyToOpenTitle: 'No account opened yet',
-    readyToOpenDescription: 'Open an account and start your new life with NOVA.',
+    readyToOpenDescription: 'Open an account with NOVA.',
     openAccount: 'Open account',
     accountNumberCopied: 'Account number copied.',
     accountNumberCopyFailed: 'Failed to copy account number.',

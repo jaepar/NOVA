@@ -425,12 +425,12 @@
     preOpen: {
       heading: "계좌 개설 전에\n미리 확인해 주세요",
       description: "아래 내용을 확인하신 후 진행해 주세요.",
-      idTitle: "신분증이 필요해요",
+      idTitle: "신분증이 필요해요.",
       idDescription: "외국인 등록증 또는 여권을 준비해 주세요.",
-      recentTitle: "최근 1개월 이내 계좌를 개설하셨다면 신청이 제한돼요",
+      recentTitle: "최근 1개월 내 계좌를 개설했다면\n신청이 제한될 수 있어요.",
       recentDescription:
         "최근 30일 이내 개설 계좌가 있는 경우 신규 계좌 개설이 제한됩니다.",
-      limitTitle: "처음에는 1일 이체한도가 30만원이에요",
+      limitTitle: "개설 초기에는 1일 이체한도가\n30만원으로 제한돼요.",
       limitDescription: "보안 정책에 따라 초기 이체 한도가 제한됩니다.",
     },
     emailVerification: {

@@ -44,8 +44,8 @@ export function PassportCaptureGuide() {
         </section>
 
         <section className="rounded-2xl bg-secondary p-5 space-y-4">
-          <div className="w-14 h-14 rounded-full bg-background border border-border flex items-center justify-center text-primary">
-            <Camera className="w-7 h-7" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Camera className="h-5 w-5" strokeWidth={2.4} />
           </div>
           <div className="space-y-3">
             {guideItems.map((itemKey) => (
