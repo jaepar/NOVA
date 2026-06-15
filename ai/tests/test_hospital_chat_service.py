@@ -61,3 +61,44 @@ def test_send_message_uses_langgraph_agent_and_persists_state():
     assert session_store.get_graph_state(conversation_id)["response_items"] == [
         {"hospital_id": 1, "name": "서울하나내과"}
     ]
+
+
+def test_send_message_passes_response_language_to_langgraph_agent():
+    session_store = SessionStore()
+    conversation_id = session_store.create()
+    hospital_chat_agent = Mock()
+    hospital_chat_agent.run_turn.return_value = {
+        "message": "Dentist options are ready. Which one would you like?",
+        "action": "ask_user",
+        "items": [{"hospital_id": 3, "name": "Miso Dental"}],
+        "state": {
+            "response_items": [{"hospital_id": 3, "name": "Miso Dental"}],
+            "recent_context": {},
+        },
+    }
+    service = HospitalChatService(
+        session_store=session_store,
+        backend_client=Mock(),
+        hospital_chat_agent=hospital_chat_agent,
+    )
+
+    service.send_message(
+        conversation_id=conversation_id,
+        message="Please find a dentist for tomorrow morning.",
+        jsessionid="abc123",
+        response_language="en",
+    )
+
+    hospital_chat_agent.run_turn.assert_called_once_with(
+        conversation_id=conversation_id,
+        user_message="Please find a dentist for tomorrow morning.",
+        conversation_messages=[
+            {
+                "role": "user",
+                "message": "Please find a dentist for tomorrow morning.",
+            }
+        ],
+        jsessionid="abc123",
+        persisted_state={},
+        response_language="en",
+    )

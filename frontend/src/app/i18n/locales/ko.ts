@@ -21,6 +21,7 @@
     profile: "프로필",
     settings: "설정",
     help: "고객센터",
+    signup: "회원가입",
     logout: "로그아웃",
     login: "로그인",
   },

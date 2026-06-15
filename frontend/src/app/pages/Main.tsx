@@ -387,6 +387,7 @@ export function Main() {
             onClose={() => setMenuOpen(false)}
             isLoggedIn={isLoggedIn}
             onLogout={handleLogout}
+            onSignup={() => navigate('/signup')}
             onLogin={() =>
               navigate('/login/form', {
                 state: { backPath: '/main', redirectTo: '/main' },

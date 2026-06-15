@@ -97,6 +97,8 @@ export type CorrectionDocumentUploadRequest = {
   alienRegistrationApplicationPdf?: File
 }
 
+export type CertificateIssuanceRequest = CorrectionDocumentUploadRequest
+
 async function postCertificateDocuments({
   residenceVerificationPdf,
   alienRegistrationApplicationPdf,
@@ -115,8 +117,23 @@ async function postCertificateDocuments({
 }
 
 export const certificateApi = {
-  requestIssuance: async (): Promise<void> => {
-    await apiClient.post<ApiEnvelope<null>>('/users/verifications')
+  requestIssuance: async (payload?: CertificateIssuanceRequest): Promise<void> => {
+    if (!payload) {
+      await apiClient.post<ApiEnvelope<null>>('/users/verifications')
+      return
+    }
+
+    const formData = new FormData()
+
+    if (payload.residenceVerificationPdf) {
+      formData.append('residenceVerificationPdf', payload.residenceVerificationPdf)
+    }
+
+    if (payload.alienRegistrationApplicationPdf) {
+      formData.append('alienRegistrationApplicationPdf', payload.alienRegistrationApplicationPdf)
+    }
+
+    await apiClient.post<ApiEnvelope<null>>('/users/verifications', formData)
   },
   getCorrectionDocuments: async (): Promise<CorrectionDocumentResponse[]> => {
     const response = await apiClient.get<ApiEnvelope<RawCorrectionDocumentResponse[]>>(

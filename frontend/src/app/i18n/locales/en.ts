@@ -21,6 +21,7 @@ export const en = {
     profile: 'Profile',
     settings: 'Settings',
     help: 'Customer Center',
+    signup: 'Sign up',
     logout: 'Log out',
     login: 'Log in',
   },
