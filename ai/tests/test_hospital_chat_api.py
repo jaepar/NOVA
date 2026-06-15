@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.api.routes import hospital_chat as hospital_chat_route
+from app.models.hospital_chat import ChatData, ChatPayload
 
 
 client = TestClient(app)
@@ -89,3 +90,56 @@ def test_send_message_returns_common_error_response_for_missing_conversation():
     assert body["data"] is None
     assert body["error"]["code"] == "HTTP_404"
     assert body["error"]["detail"] == "대화 세션을 찾을 수 없습니다."
+
+
+def test_send_message_passes_language_cookie_to_service():
+    original_service = hospital_chat_route.service
+
+    class StubService:
+        def __init__(self) -> None:
+            self.calls = []
+
+        def send_message(
+            self,
+            conversation_id: str,
+            message: str,
+            jsessionid: str | None = None,
+            response_language: str | None = None,
+        ) -> ChatPayload:
+            self.calls.append(
+                {
+                    "conversation_id": conversation_id,
+                    "message": message,
+                    "jsessionid": jsessionid,
+                    "response_language": response_language,
+                }
+            )
+            return ChatPayload(
+                conversation_id=conversation_id,
+                message="Hello, how can I help with your hospital reservation?",
+                data=ChatData(intent="REACT", action_required="ASK_USER"),
+            )
+
+    stub_service = StubService()
+    hospital_chat_route.service = stub_service
+
+    try:
+        response = client.post(
+            "/chat/conv_language",
+            json={"message": "Book me a dentist appointment."},
+            headers={
+                "cookie": "JSESSIONID=session_123; NOVA_LANGUAGE=en",
+            },
+        )
+    finally:
+        hospital_chat_route.service = original_service
+
+    assert response.status_code == 200
+    assert stub_service.calls == [
+        {
+            "conversation_id": "conv_language",
+            "message": "Book me a dentist appointment.",
+            "jsessionid": "session_123",
+            "response_language": "en",
+        }
+    ]

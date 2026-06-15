@@ -12,6 +12,7 @@ from app.services.hospital_chat_service import HospitalChatService
 router = APIRouter(prefix="/chat", tags=["chat"])
 # 라우트 계층은 HTTP 요청을 서비스 호출로 연결하는 얇은 진입점만 담당한다.
 service = HospitalChatService()
+LANGUAGE_COOKIE_NAME = "NOVA_LANGUAGE"
 
 
 @router.post("", response_model=ApiResponse[ChatPayload])
@@ -32,6 +33,7 @@ def send_message(
             conversation_id,
             request.message,
             http_request.cookies.get("JSESSIONID"),
+            http_request.cookies.get(LANGUAGE_COOKIE_NAME),
         )
         return ok_response(payload.message, payload)
     except KeyError as error:

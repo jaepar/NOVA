@@ -10,7 +10,11 @@ from langgraph.graph import END, START, StateGraph
 
 from app.clients.backend_hospital_client import BackendHospitalClient
 from app.config import OPENAI_API_KEY, OPENAI_MODEL, USE_LLM_INTENT_RESOLVER
-from app.prompts import HOSPITAL_AGENT_SYSTEM_PROMPT, build_hospital_context_prompt
+from app.prompts import (
+    build_hospital_context_prompt,
+    build_hospital_system_prompt,
+    normalize_response_language,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -32,6 +36,8 @@ class HospitalAgentState(TypedDict, total=False):
     jsessionid: str | None
     response_items: list[dict[str, Any]] | None
     recent_context: dict[str, Any]
+    current_user_message: str
+    response_language: str
     step_count: int
     final_message: str | None
     final_action: str | None
@@ -53,19 +59,23 @@ class LangGraphHospitalAgent:
         conversation_messages: list[dict[str, str]],
         jsessionid: str | None,
         persisted_state: dict[str, Any],
+        response_language: str | None = None,
     ) -> dict[str, Any]:
         logger.info(
-            "ReAct hospital agent turn started: conversation_id=%s, message_length=%s, history_count=%s, persisted_keys=%s",
+            "ReAct hospital agent turn started: conversation_id=%s, message_length=%s, history_count=%s, persisted_keys=%s, response_language=%s",
             conversation_id,
             len(user_message),
             len(conversation_messages),
             sorted(persisted_state.keys()),
+            response_language,
         )
         initial_state: HospitalAgentState = {
             "messages": self._to_langchain_messages(conversation_messages),
             "jsessionid": jsessionid,
             "response_items": persisted_state.get("response_items"),
             "recent_context": persisted_state.get("recent_context", {}),
+            "current_user_message": user_message,
+            "response_language": normalize_response_language(response_language),
             "step_count": 0,
         }
         result = self.graph.invoke(initial_state)
@@ -151,7 +161,9 @@ class LangGraphHospitalAgent:
         # 후속 발화가 짧더라도 이전 증상, 날짜, 병원 맥락을 이어받을 수 있도록
         # 매 턴 전체 대화 히스토리를 그대로 모델에 넣는다.
         prompt_messages: list[AnyMessage] = [
-            SystemMessage(content=HOSPITAL_AGENT_SYSTEM_PROMPT)
+            SystemMessage(
+                content=build_hospital_system_prompt(state.get("response_language"))
+            )
         ]
         recent_context = state.get("recent_context") or {}
         if recent_context:
@@ -194,6 +206,7 @@ class LangGraphHospitalAgent:
                     tool_input=tool_input if isinstance(tool_input, dict) else {},
                     jsessionid=state["jsessionid"],
                     recent_context=recent_context,
+                    current_user_message=state.get("current_user_message", ""),
                 )
                 if isinstance(payload, dict):
                     response_items = self._extract_response_items(tool_name, payload, response_items)
@@ -275,6 +288,7 @@ class LangGraphHospitalAgent:
         tool_input: dict[str, Any],
         jsessionid: str | None,
         recent_context: dict[str, Any] | None = None,
+        current_user_message: str = "",
     ) -> dict:
         if jsessionid is None:
             raise ValueError("JSESSIONID is required")
@@ -293,15 +307,20 @@ class LangGraphHospitalAgent:
                 date=tool_input["date"],
             )
         if tool_name == "create_reservation":
+            normalized_tool_input = self._normalize_create_reservation_input(
+                tool_input=tool_input,
+                recent_context=recent_context or {},
+            )
             return self.backend_client.create_reservation(
                 jsessionid=jsessionid,
-                hospital_id=tool_input["hospital_id"],
-                reserved_at=tool_input["reserved_at"],
+                hospital_id=normalized_tool_input["hospital_id"],
+                reserved_at=normalized_tool_input["reserved_at"],
             )
         if tool_name == "update_reservation":
             normalized_tool_input = self._normalize_update_reservation_input(
                 tool_input=tool_input,
                 recent_context=recent_context or {},
+                current_user_message=current_user_message,
             )
             return self.backend_client.update_reservation(
                 jsessionid=jsessionid,
@@ -317,6 +336,7 @@ class LangGraphHospitalAgent:
         self,
         tool_input: dict[str, Any],
         recent_context: dict[str, Any],
+        current_user_message: str,
     ) -> dict[str, Any]:
         # 예약 변경/취소는 백엔드 제약이 강하므로 실제 예약/슬롯 맥락과 맞는지 확인한다.
         if "reservation_id" not in tool_input:
@@ -333,6 +353,18 @@ class LangGraphHospitalAgent:
         if reservation is None:
             raise ValueError(
                 "예약 변경 전 실제 예약 목록 확인이 필요합니다. 먼저 get_reservations를 사용하세요."
+            )
+
+        active_reservations = self._find_active_recent_reservations(recent_context)
+        if (
+            len(active_reservations) > 1
+            and not self._user_explicitly_identified_reservation(
+                current_user_message=current_user_message,
+                reservation=reservation,
+            )
+        ):
+            raise ValueError(
+                "활성 예약이 여러 건이면 예약 ID 또는 예약 시간을 지정한 뒤 다시 요청해야 합니다."
             )
 
         if action == "CANCEL":
@@ -369,6 +401,41 @@ class LangGraphHospitalAgent:
             "reserved_at": reserved_at,
         }
 
+    def _normalize_create_reservation_input(
+        self,
+        tool_input: dict[str, Any],
+        recent_context: dict[str, Any],
+    ) -> dict[str, Any]:
+        hospital_id = tool_input.get("hospital_id")
+        reserved_at = tool_input.get("reserved_at")
+
+        if hospital_id is None:
+            raise ValueError("hospital_id is required for create_reservation")
+        if not isinstance(reserved_at, str) or not reserved_at.strip():
+            raise ValueError("reserved_at is required for create_reservation")
+
+        latest_slot_query = recent_context.get("latest_slot_query") or {}
+        latest_slots = recent_context.get("latest_slots") or []
+        requested_date = reserved_at.split("T", 1)[0]
+
+        if latest_slot_query.get("hospital_id") != hospital_id or latest_slot_query.get("date") != requested_date:
+            raise ValueError(
+                "예약 생성 전 같은 병원의 해당 날짜 예약 가능 시간을 먼저 조회해야 합니다."
+            )
+
+        available_times = {
+            item.get("available_at")
+            for item in latest_slots
+            if isinstance(item, dict) and item.get("available_at")
+        }
+        if reserved_at not in available_times:
+            raise ValueError("요청한 시간은 최근 조회한 예약 가능 슬롯에 없습니다.")
+
+        return {
+            "hospital_id": hospital_id,
+            "reserved_at": reserved_at,
+        }
+
     def _find_recent_reservation(
         self,
         recent_context: dict[str, Any],
@@ -381,6 +448,51 @@ class LangGraphHospitalAgent:
             if reservation.get("reservation_id") == reservation_id:
                 return reservation
         return None
+
+    def _find_active_recent_reservations(
+        self,
+        recent_context: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        reservations = recent_context.get("latest_reservations") or []
+        return [
+            reservation
+            for reservation in reservations
+            if isinstance(reservation, dict) and reservation.get("status") == "RESERVED"
+        ]
+
+    def _user_explicitly_identified_reservation(
+        self,
+        current_user_message: str,
+        reservation: dict[str, Any],
+    ) -> bool:
+        normalized_message = str(current_user_message or "").strip().lower()
+        if not normalized_message:
+            return False
+
+        reservation_id = reservation.get("reservation_id")
+        if reservation_id is not None:
+            reservation_id_text = str(reservation_id)
+            if reservation_id_text in normalized_message:
+                return True
+
+        reserved_at = reservation.get("reserved_at")
+        if isinstance(reserved_at, str):
+            if reserved_at.lower() in normalized_message:
+                return True
+
+            date_part, _, time_part = reserved_at.partition("T")
+            if date_part and date_part.lower() in normalized_message:
+                return True
+            if time_part:
+                minute_time = time_part[:5].lower()
+                if minute_time and minute_time in normalized_message:
+                    return True
+
+        hospital_name = reservation.get("hospital_name")
+        if isinstance(hospital_name, str) and hospital_name.strip():
+            return hospital_name.lower() in normalized_message
+
+        return False
 
     def _validate_department_type(self, department_type: Any) -> str | None:
         if department_type is None:
