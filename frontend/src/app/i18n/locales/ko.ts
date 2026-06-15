@@ -139,6 +139,10 @@
     certificateSheetTitle: "금융 서비스 이용을 위해\n인증서 발급이 필요해요",
     certificateSheetDescription:
       "안전한 금융 거래를 위해\n신원 인증 후 인증서를 발급받아야\n계좌 개설 및 금융 서비스를\n이용하실 수 있어요.",
+    residenceCardSheetTitle: "외국인등록증 등록 후\n송금할 수 있어요",
+    residenceCardSheetDescription:
+      "송금 서비스 이용을 위해\n외국인등록증 등록이 필요해요.",
+    registerResidenceCard: "등록하기",
     later: "나중에 하기",
     issue: "발급하기",
     certificateIssuedModal: {

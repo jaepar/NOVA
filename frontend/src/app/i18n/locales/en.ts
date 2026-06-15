@@ -137,6 +137,10 @@ export const en = {
     certificateSheetTitle: 'Certificate required\nfor financial services',
     certificateSheetDescription:
       'Verify your identity\nand issue a certificate\nto use financial services.',
+    residenceCardSheetTitle: 'Register your residence card\nto send money',
+    residenceCardSheetDescription:
+      'Residence card registration is required\nbefore using transfers.',
+    registerResidenceCard: 'Register',
     later: 'Later',
     issue: 'Issue',
     certificateIssuedModal: {
