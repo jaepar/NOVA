@@ -47,12 +47,14 @@ class HospitalChatService:
         conversation_id: str,
         message: str,
         jsessionid: str | None = None,
+        response_language: str | None = None,
     ) -> ChatPayload:
         logger.info(
-            "Hospital chat message received: conversation_id=%s, message_length=%s, has_jsessionid=%s",
+            "Hospital chat message received: conversation_id=%s, message_length=%s, has_jsessionid=%s, response_language=%s",
             conversation_id,
             len(message),
             jsessionid is not None,
+            response_language,
         )
         # 사용자 발화는 에이전트 실행 전에 먼저 세션 히스토리에 저장한다.
         self.session_store.append_message(conversation_id, "user", message)
@@ -87,6 +89,7 @@ class HospitalChatService:
             conversation_messages=conversation_messages,
             jsessionid=jsessionid,
             persisted_state=persisted_state,
+            response_language=response_language,
         )
         # 이번 턴 실행 결과는 다음 턴에서 이어서 쓸 수 있도록 다시 저장한다.
         self.session_store.set_graph_state(conversation_id, agent_result["state"])
