@@ -28,21 +28,33 @@ export function TransferAmount() {
   const amountText = formatCurrency(amount, language)
   const balance = preview?.myAccount.balance ?? 0
   const transferLimit = preview?.myAccount.transferLimit ?? 0
-  const availableLimit = Math.min(balance, transferLimit)
+  const availableLimit = transferLimit > 0 ? Math.min(balance, transferLimit) : balance
   const numericAmount = Number(amount || '0')
-  const isOverAvailableAmount = numericAmount > availableLimit
-  const overAvailableMessage = isOverAvailableAmount
-      ? balance > transferLimit
-      ? t('transfer.amountInput.overLimit')
-      : t('transfer.amountInput.insufficientBalance')
-    : ''
+  const isOverBalance = numericAmount > balance
+  const isOverTransferLimit = transferLimit > 0 && numericAmount > transferLimit
+  const isOverAvailableAmount = isOverBalance || isOverTransferLimit
+  const overAvailableMessage = isOverTransferLimit
+    ? t('transfer.amountInput.overLimit')
+    : isOverBalance
+      ? t('transfer.amountInput.insufficientBalance')
+      : ''
   const hasTransferAmount = numericAmount > 0 && !isOverAvailableAmount
-  const balanceText = formatCurrency(String(balance), language)
+  const availableLimitText = formatCurrency(String(availableLimit), language)
 
   useEffect(() => {
     setAmount('')
     setIsAmountKeypadOpen(true)
   }, [setAmount])
+
+  const handleConfirm = () => {
+    setIsAmountKeypadOpen(false)
+    navigate('/transfer/amount-confirm')
+  }
+
+  const addAmount = (value: string) => {
+    const nextAmount = numericAmount + Number(value)
+    setAmount(String(nextAmount).slice(0, 9))
+  }
 
   return (
     <>
@@ -67,7 +79,7 @@ export function TransferAmount() {
                   {amountText}
                 </h2>
                 <p className="mt-2 text-[16px] font-semibold text-[#30343B]">
-                  {t('transfer.amountInput.withdrawable')} {balanceText}
+                  {t('transfer.amountInput.withdrawable')} {availableLimitText}
                 </p>
                 {isOverAvailableAmount ? (
                   <p className="mt-2 text-[13px] font-semibold text-[#EF4444]">
@@ -81,7 +93,7 @@ export function TransferAmount() {
                   {t('transfer.amountInput.heading')}
                 </h2>
                 <p className="mt-3 text-[16px] font-semibold text-[#8C929B]">
-                  {t('transfer.amountInput.withdrawable')} {balanceText}
+                  {t('transfer.amountInput.withdrawable')} {availableLimitText}
                 </p>
               </>
             )}
@@ -93,7 +105,7 @@ export function TransferAmount() {
         isOpen={isAmountKeypadOpen}
         onClose={() => setIsAmountKeypadOpen(false)}
         title=""
-        height="390px"
+        height="430px"
         disableScroll
         dimBackground={false}
       >
@@ -104,7 +116,7 @@ export function TransferAmount() {
                 key={chip.value}
                 type="button"
                 variant="unstyled"
-                onClick={() => setAmount(chip.value)}
+                onClick={() => addAmount(chip.value)}
                 className="h-9 rounded-md bg-[#F1F3F5] text-[13px] font-bold text-[#454B52]"
               >
                 {t(chip.labelKey)}
@@ -113,7 +125,7 @@ export function TransferAmount() {
             <AppButton
               type="button"
               variant="unstyled"
-              onClick={() => setAmount(String(balance))}
+              onClick={() => setAmount(String(availableLimit))}
               className="h-9 rounded-md bg-[#F1F3F5] text-[13px] font-bold text-[#454B52]"
             >
               {t('transfer.amountInput.all')}
@@ -122,14 +134,8 @@ export function TransferAmount() {
           <div className="mt-7">
             <NumericKeypad onPress={appendAmount} onBackspace={backspaceAmount} />
           </div>
-          <div className="mt-auto">
-            <Btn_1Col
-              disabled={!hasTransferAmount}
-              onClick={() => {
-                setIsAmountKeypadOpen(false)
-                navigate('/transfer/amount-confirm')
-              }}
-            >
+          <div className="mt-auto -mb-1">
+            <Btn_1Col disabled={!hasTransferAmount} onClick={handleConfirm}>
               {t('transfer.amountInput.confirm')}
             </Btn_1Col>
           </div>

@@ -680,7 +680,7 @@
         "이체 정보를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
     },
     amountInput: {
-      withdrawable: "출금 가능 금액",
+      withdrawable: "이체 가능 금액",
       heading: "얼마를 이체하시겠어요?",
       overLimit: "이체 가능 한도 금액을 초과했습니다.",
       insufficientBalance: "잔액이 부족합니다.",
@@ -692,7 +692,7 @@
       confirm: "확인",
     },
     amountConfirm: {
-      withdrawable: "출금 가능 금액",
+      withdrawable: "이체 가능 금액",
       recipientMemo: "받는 분 통장표기",
       senderMemo: "내 통장표기",
       next: "다음",

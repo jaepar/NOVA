@@ -642,7 +642,7 @@ export const en = {
       errorDefault: 'Could not verify transfer details. Please try again later.',
     },
     amountInput: {
-      withdrawable: 'Available balance',
+      withdrawable: 'Transferable amount',
       heading: 'How much would you like to transfer?',
       overLimit: 'Transfer limit exceeded.',
       insufficientBalance: 'Insufficient balance.',
@@ -654,7 +654,7 @@ export const en = {
       confirm: 'Confirm',
     },
     amountConfirm: {
-      withdrawable: 'Available balance',
+      withdrawable: 'Transferable amount',
       recipientMemo: 'Recipient memo',
       senderMemo: 'My memo',
       next: 'Next',
