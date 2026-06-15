@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import { AppButton } from "../../components/design-system/AppButton";
 import { BottomSheet } from "../../components/layout/BottomSheet";
+import { TRANSFER_BOTTOM_SHEET_HEIGHT } from "../../components/transfer/transferSheetConfig";
 
 const phoneCountryOptions = [
   { countryId: "kr", label: "Korea", dialCode: "+82" },
@@ -36,7 +37,7 @@ function stripPhoneCharacters(value: string) {
 function composePhoneNumber(dialCode: string, localNumber: string) {
   const cleanedLocalNumber = stripPhoneCharacters(localNumber).trim();
 
-  return cleanedLocalNumber ? `${dialCode} ${cleanedLocalNumber}` : "";
+  return cleanedLocalNumber ? `${dialCode} ${cleanedLocalNumber}` : dialCode;
 }
 
 function parsePhoneNumber(value: string, defaultDialCode: string) {
@@ -69,6 +70,7 @@ export function PhoneNumberField({
   clearAriaLabel,
   countryCodeAriaLabel = "Country code",
   error,
+  onCountryCodeSheetOpenChange,
 }: {
   label: ReactNode;
   value: string;
@@ -78,9 +80,19 @@ export function PhoneNumberField({
   clearAriaLabel: string;
   countryCodeAriaLabel?: string;
   error?: string;
+  onCountryCodeSheetOpenChange?: (isOpen: boolean) => void;
 }) {
   const [isCountryCodeSheetOpen, setCountryCodeSheetOpen] = useState(false);
   const { dialCode, localNumber } = parsePhoneNumber(value, defaultDialCode);
+
+  const setCountryCodeSheetOpenState = (isOpen: boolean) => {
+    setCountryCodeSheetOpen(isOpen);
+    onCountryCodeSheetOpenChange?.(isOpen);
+  };
+
+  const closeCountryCodeSheet = () => {
+    setCountryCodeSheetOpenState(false);
+  };
 
   const handleDialCodeChange = (nextDialCode: string) => {
     onChange(composePhoneNumber(nextDialCode, localNumber));
@@ -98,7 +110,7 @@ export function PhoneNumberField({
           <AppButton
             type="button"
             variant="unstyled"
-            onClick={() => setCountryCodeSheetOpen(true)}
+            onClick={() => setCountryCodeSheetOpenState(true)}
             aria-label={countryCodeAriaLabel}
             className="flex h-16 items-center justify-between rounded-2xl border border-border bg-background px-4 text-lg text-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary"
           >
@@ -142,9 +154,9 @@ export function PhoneNumberField({
 
       <BottomSheet
         isOpen={isCountryCodeSheetOpen}
-        onClose={() => setCountryCodeSheetOpen(false)}
+        onClose={closeCountryCodeSheet}
         title=""
-        height="640px"
+        height={TRANSFER_BOTTOM_SHEET_HEIGHT}
         disableScroll
       >
         <div className="flex h-full min-h-0 flex-col">
@@ -153,7 +165,7 @@ export function PhoneNumberField({
             <AppButton
               type="button"
               variant="unstyled"
-              onClick={() => setCountryCodeSheetOpen(false)}
+              onClick={closeCountryCodeSheet}
               className="p-1 text-muted-foreground"
               aria-label={clearAriaLabel}
             >
@@ -173,7 +185,7 @@ export function PhoneNumberField({
                     variant="unstyled"
                     onClick={() => {
                       handleDialCodeChange(option.dialCode);
-                      setCountryCodeSheetOpen(false);
+                      closeCountryCodeSheet();
                     }}
                     className="flex w-full items-center justify-between px-4 py-4 text-left text-foreground transition-colors hover:bg-secondary"
                   >

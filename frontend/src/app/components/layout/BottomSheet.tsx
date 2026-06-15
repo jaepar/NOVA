@@ -12,7 +12,6 @@ interface BottomSheetProps {
   height?: string
   disableScroll?: boolean
   dimBackground?: boolean
-  keepMounted?: boolean
 }
 
 export function BottomSheet({
@@ -24,7 +23,6 @@ export function BottomSheet({
   height,
   disableScroll = false,
   dimBackground = true,
-  keepMounted = false,
 }: BottomSheetProps) {
   const visibilityStore = useMemo(
     () =>
@@ -44,7 +42,7 @@ export function BottomSheet({
     } else {
       const timer = setTimeout(() => {
         setIsVisible(false)
-      }, 200)
+      }, 300)
       document.body.style.overflow = ''
       return () => clearTimeout(timer)
     }
@@ -56,31 +54,29 @@ export function BottomSheet({
     }
   }, [])
 
-  if (!isVisible && !keepMounted) return null
+  if (!isVisible) return null
 
   const content = (
     <div
-      className={`fixed left-1/2 top-1/2 z-[60] h-[var(--app-height)] w-[var(--app-width)] ${
-        isOpen ? 'pointer-events-auto' : 'pointer-events-none'
-      }`}
+      className="fixed left-1/2 top-1/2 z-[60] h-[var(--app-height)] w-[var(--app-width)]"
       style={{
         transform: 'translate(-50%, -50%) scale(var(--app-scale))',
         transformOrigin: 'center center',
       }}
     >
       <div
-        className={`absolute inset-0 z-0 transition-opacity duration-200 ${
+        className={`absolute inset-0 z-0 transition-opacity duration-300 ${
           dimBackground ? 'bg-black/50' : 'bg-transparent'
         } ${
           isOpen ? 'opacity-100' : 'opacity-0'
-        } ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        }`}
         onClick={onClose}
       />
 
       <div
-        className={`absolute bottom-0 left-0 right-0 z-10 bg-[rgb(253,253,253)] rounded-t-3xl w-full transition-transform duration-200 ease-out flex flex-col ${
+        className={`absolute bottom-0 left-0 right-0 z-10 bg-[rgb(253,253,253)] rounded-t-3xl w-full transition-transform duration-300 ease-out flex flex-col overflow-hidden ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
-        } ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        }`}
         style={{
           height: height || 'auto',
           maxHeight: '80%',

@@ -167,6 +167,7 @@ export function Step04TransferSenderInfo() {
   const setCountryId = useTransferSenderInfoPageStore((state) => state.setCountryId);
   const resetTransferRecipientInfo = useTransferRecipientInfoPageStore((state) => state.reset);
   const [isCountrySheetOpen, setCountrySheetOpen] = useState(false);
+  const [isPhoneCountryCodeSheetOpen, setPhoneCountryCodeSheetOpen] = useState(false);
   const [addressSearchError, setAddressSearchError] = useState("");
   const isSenderNameValid = isValidEnglishName(senderName);
   const isPhoneNumberValid = isValidPhoneNumber(phoneNumber);
@@ -244,26 +245,28 @@ export function Step04TransferSenderInfo() {
         title={t("globalTransfer.title")}
         backPath="/global-transfer/send/step-03"
         bottomContent={
-          <div className="flex w-full gap-4">
-            <AppButton
-              variant="outline"
-              onClick={() => navigate("/global-transfer/send/step-03")}
-              className="flex-1 rounded-xl px-6 py-4"
-            >
-              {t("globalTransfer.senderInfo.prev")}
-            </AppButton>
-            <AppButton
-              variant="primary"
-              disabled={!canProceed}
-              onClick={() => {
-                resetTransferRecipientInfo();
-                navigate("/global-transfer/send/step-05");
-              }}
-              className="flex-1 rounded-xl px-6 py-4"
-            >
-              {t("globalTransfer.senderInfo.next")}
-            </AppButton>
-          </div>
+          isPhoneCountryCodeSheetOpen ? undefined : (
+            <div className="flex w-full gap-4">
+              <AppButton
+                variant="outline"
+                onClick={() => navigate("/global-transfer/send/step-03")}
+                className="flex-1 rounded-xl px-6 py-4"
+              >
+                {t("globalTransfer.senderInfo.prev")}
+              </AppButton>
+              <AppButton
+                variant="primary"
+                disabled={!canProceed}
+                onClick={() => {
+                  resetTransferRecipientInfo();
+                  navigate("/global-transfer/send/step-05");
+                }}
+                className="flex-1 rounded-xl px-6 py-4"
+              >
+                {t("globalTransfer.senderInfo.next")}
+              </AppButton>
+            </div>
+          )
         }
       >
         <div className="space-y-8 pb-4 pt-3">
@@ -300,6 +303,7 @@ export function Step04TransferSenderInfo() {
               countryCodeAriaLabel={t("globalTransfer.senderInfo.countryCodeAria")}
               error={phoneNumberError}
               clearAriaLabel={t("globalTransfer.senderInfo.clearAria")}
+              onCountryCodeSheetOpenChange={setPhoneCountryCodeSheetOpen}
             />
 
             <div className="space-y-2">
