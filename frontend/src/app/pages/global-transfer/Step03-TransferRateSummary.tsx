@@ -1,12 +1,15 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppButton } from "../../components/design-system/AppButton";
 import { MobileLayout } from "../../components/layout/MobileLayout";
+import { exchangeApi, type ExchangeRateQuoteResponse } from "../../../api";
+import { transferCountries } from "../../data/transferCountries";
 import { transferCurrencies } from "../../data/transferCurrencies";
 import {
   formatForeignAmount,
+  formatExchangeRate,
   formatKrwAmount,
-  MOCK_TRANSFER_EXCHANGE_RATE,
+  normalizeTransferAmount,
 } from "./transferQuote";
 import {
   useTransferBasicInfoPageStore,
@@ -22,24 +25,89 @@ const selectableTransferCurrencies = transferCurrencies.filter(
 export function Step03TransferRateSummary() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const countryId = useTransferBasicInfoPageStore((state) => state.countryId);
   const currencyCode = useTransferBasicInfoPageStore((state) => state.currencyCode);
   const amount = useTransferBasicInfoPageStore((state) => state.amount);
   const resetTransferSenderInfo = useTransferSenderInfoPageStore((state) => state.reset);
   const resetTransferRecipientInfo = useTransferRecipientInfoPageStore((state) => state.reset);
+  const [quote, setQuote] = useState<ExchangeRateQuoteResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadFailed, setIsLoadFailed] = useState(false);
+  const selectedCountry = useMemo(
+    () => transferCountries.find((item) => item.id === countryId) ?? transferCountries[0],
+    [countryId]
+  );
+  const resolvedCurrencyCode = selectedCountry.currencyCode;
   const selectedCurrency = useMemo(
     () =>
-      selectableTransferCurrencies.find((item) => item.code === currencyCode) ??
+      selectableTransferCurrencies.find((item) => item.code === resolvedCurrencyCode) ??
       selectableTransferCurrencies[0],
-    [currencyCode]
+    [resolvedCurrencyCode]
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadQuote() {
+      if (!normalizeTransferAmount(amount)) {
+        if (isMounted) {
+          setQuote(null);
+          setIsLoading(false);
+          setIsLoadFailed(false);
+        }
+        return;
+      }
+
+      if (isMounted) {
+        setIsLoading(true);
+        setIsLoadFailed(false);
+      }
+
+      try {
+        const nextQuote = await exchangeApi.getRemittanceQuote(
+          countryId,
+          resolvedCurrencyCode,
+          normalizeTransferAmount(amount)
+        );
+
+        if (isMounted) {
+          setQuote(nextQuote);
+        }
+      } catch {
+        if (isMounted) {
+          setQuote(null);
+          setIsLoadFailed(true);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadQuote();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [amount, countryId, resolvedCurrencyCode]);
+
+  const exchangeRateLabel = quote
+    ? formatExchangeRate(quote.exchangeRate)
+    : isLoading
+      ? t("common.loading")
+      : "-";
+  const krwAmountLabel = quote
+    ? formatKrwAmount(quote.krwAmount)
+    : isLoading
+      ? t("common.loading")
+      : "-";
+  const canProceed = !isLoading && !isLoadFailed && quote !== null;
 
   const summaryRows = [
     {
       label: t("globalTransfer.rateSummary.exchangeRate"),
-      value: `KRW ${MOCK_TRANSFER_EXCHANGE_RATE.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`,
+      value: exchangeRateLabel,
       highlight: false,
     },
     {
@@ -49,7 +117,7 @@ export function Step03TransferRateSummary() {
     },
     {
       label: t("globalTransfer.rateSummary.krwAmount"),
-      value: formatKrwAmount(amount),
+      value: krwAmountLabel,
       highlight: true,
     },
     {
@@ -77,11 +145,12 @@ export function Step03TransferRateSummary() {
           >
             {t("globalTransfer.rateSummary.prev")}
           </AppButton>
-          <AppButton
-            variant="primary"
-            onClick={() => {
-              resetTransferSenderInfo();
-              resetTransferRecipientInfo();
+            <AppButton
+              variant="primary"
+              disabled={!canProceed}
+              onClick={() => {
+                resetTransferSenderInfo();
+                resetTransferRecipientInfo();
               navigate("/global-transfer/send/step-04");
             }}
             className="flex-1 rounded-xl px-6 py-4"
@@ -97,8 +166,13 @@ export function Step03TransferRateSummary() {
             {t("globalTransfer.rateSummary.heading")}
           </h1>
           <p className="text-sm leading-6 text-muted-foreground">
-            {t("globalTransfer.rateSummary.notice")}
+            {quote?.notice ?? t("globalTransfer.rateSummary.notice")}
           </p>
+          {isLoadFailed ? (
+            <p className="text-sm leading-6 text-red-500">
+              {t("globalTransfer.rateSummary.loadFailed")}
+            </p>
+          ) : null}
         </section>
 
         <section className="overflow-hidden rounded-[24px] border border-border bg-background">

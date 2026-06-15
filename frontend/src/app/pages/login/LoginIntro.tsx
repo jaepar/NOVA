@@ -3,7 +3,7 @@ import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { useTranslation } from '../../i18n'
 import { isOnboardingCompleted } from '../../utils/onboardingStorage'
-import loginIllustration from './assets/login-illustration.png'
+import loginIllustration from './assets/login-illustration.webp'
 
 export function LoginIntro() {
   const navigate = useNavigate()

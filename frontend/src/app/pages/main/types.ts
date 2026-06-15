@@ -12,5 +12,5 @@ export interface ExchangeRateItem {
   currency: string
   rate: string
   change: string
-  isPositive: boolean
+  trend: 'UP' | 'DOWN' | 'FLAT'
 }

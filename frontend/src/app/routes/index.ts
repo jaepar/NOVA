@@ -1,3 +1,4 @@
+import type { RouteObject } from "react-router-dom";
 import { mainRoutes } from "./mainRoutes";
 import { walletRoutes } from "./walletRoutes";
 import { certificateRoutes } from "./certificateRoutes";
@@ -9,12 +10,11 @@ import { jobRoutes } from "./jobRoutes";
 import { globalTransferRoutes } from "./globalTransferRoutes";
 import { transferRoutes } from "./transferRoutes";
 import { foreignerCardRoutes } from "./foreignerCardRoutes";
-
 import { accountRoutes } from "./accountRoutes";
 import { transactionHistoryRoutes } from "./transactionHistoryRoutes";
-import { NotFound } from "../pages/common/NotFound";
+import { lazyComponent } from "./lazyRoute";
 
-export const appRoutes = [
+export const appRoutes: RouteObject[] = [
   ...mainRoutes,
   ...globalTransferRoutes,
   ...loginRoutes,
@@ -28,5 +28,5 @@ export const appRoutes = [
   ...transactionHistoryRoutes,
   ...certificateRoutes,
   ...commonTemplateRoutes,
-  { path: "*", Component: NotFound },
+  { path: "*", lazy: lazyComponent(() => import("../pages/common/NotFound"), "NotFound") },
 ];

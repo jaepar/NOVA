@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { AppButton } from "../../components/design-system/AppButton";
-import honeyEventBannerImage from "./assets/ad-banners/ad-banner-honey-event.png";
-import portfolioEventBannerImage from "./assets/ad-banners/ad-banner-portfolio-event.png";
-import kakaoEventBannerImage from "./assets/ad-banners/ad-banner-kakao-event.jpg";
+import honeyEventBannerImage from "./assets/ad-banners/ad-banner-honey-event.webp";
+import portfolioEventBannerImage from "./assets/ad-banners/ad-banner-portfolio-event.webp";
+import kakaoEventBannerImage from "./assets/ad-banners/ad-banner-kakao-event.webp";
 
 interface MainAdBannerProps {
   onClick?: () => void;
@@ -47,17 +47,18 @@ export function MainAdBanner({ onClick }: MainAdBannerProps) {
           : {})}
         className="block w-full overflow-hidden rounded-2xl text-left"
       >
-        <div className="relative min-h-[120px] overflow-hidden rounded-2xl border border-[#E9D3CF] bg-[#F6E4E1] shadow-[0_10px_28px_rgba(0,60,166,0.10)]">
+        <div className="relative aspect-[464/152] overflow-hidden rounded-2xl border border-[#E9D3CF] bg-[#F6E4E1] shadow-[0_10px_28px_rgba(0,60,166,0.10)]">
           <div
             className="flex transition-transform duration-500 ease-out"
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
-            {bannerImages.map((bannerImage) => (
+            {bannerImages.map((bannerImage, index) => (
               <img
                 key={bannerImage.src}
                 src={bannerImage.src}
                 alt={bannerImage.alt}
-                className="h-[120px] w-full shrink-0 object-cover object-center"
+                fetchPriority={index === 0 ? "high" : "auto"}
+                className="block h-full w-full shrink-0 object-cover object-center"
               />
             ))}
           </div>

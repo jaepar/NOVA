@@ -6,7 +6,10 @@ import { SegmentedOptionField } from "../../components/design-system/SegmentedOp
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { CountrySelectBottomSheet } from "../../components/transfer/CountrySelectBottomSheet";
-import { formatTransferCountryName, transferCountries } from "../../data/transferCountries";
+import {
+  formatTransferCountryName,
+  transferRemittanceCountries,
+} from "../../data/transferCountries";
 import { getTransferCurrencyName, transferCurrencies } from "../../data/transferCurrencies";
 import {
   useTransferBasicInfoPageStore,
@@ -68,14 +71,22 @@ export function Step02TransferBasicInfo() {
     [t]
   );
   const selectedCountry = useMemo(
-    () => transferCountries.find((item) => item.id === countryId) ?? transferCountries[0],
+    () =>
+      transferRemittanceCountries.find((item) => item.id === countryId) ??
+      transferRemittanceCountries[0],
     [countryId]
+  );
+  const availableCurrencies = useMemo(
+    () =>
+      selectableTransferCurrencies.filter((currency) => currency.code === selectedCountry.currencyCode),
+    [selectedCountry]
   );
   const selectedCurrency = useMemo(
     () =>
-      selectableTransferCurrencies.find((item) => item.code === currencyCode) ??
+      availableCurrencies.find((item) => item.code === currencyCode) ??
+      availableCurrencies[0] ??
       selectableTransferCurrencies[0],
-    [currencyCode]
+    [availableCurrencies, currencyCode]
   );
   const selectedPurpose = transferPurposeOptions.includes(purpose as TransferPurpose)
     ? purpose
@@ -92,10 +103,10 @@ export function Step02TransferBasicInfo() {
   };
 
   useEffect(() => {
-    if (!selectableTransferCurrencies.some((currency) => currency.code === currencyCode)) {
-      setCurrencyCode(selectableTransferCurrencies[0].code);
+    if (currencyCode !== selectedCountry.currencyCode) {
+      setCurrencyCode(selectedCountry.currencyCode);
     }
-  }, [currencyCode, setCurrencyCode]);
+  }, [currencyCode, selectedCountry, setCurrencyCode]);
 
   return (
     <>
@@ -272,7 +283,7 @@ export function Step02TransferBasicInfo() {
       </BottomSheet>
 
       <CountrySelectBottomSheet
-        countries={transferCountries}
+        countries={transferRemittanceCountries}
         selectedCountryId={selectedCountry.id}
         isOpen={openSheet === "country"}
         onClose={() => setOpenSheet(null)}
@@ -312,7 +323,7 @@ export function Step02TransferBasicInfo() {
             </AppButton>
           </div>
           <div className="divide-y divide-border rounded-2xl border border-border bg-background">
-            {selectableTransferCurrencies.map((currency) => {
+            {availableCurrencies.map((currency) => {
               const isSelected = selectedCurrency.code === currency.code;
 
               return (

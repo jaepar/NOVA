@@ -1,8 +1,7 @@
-import type { RouteObject } from "react-router-dom";
-import { TransactionHistoryPage } from "../pages/transaction-history/TransactionHistoryPage";
-import { TransactionHistoryDetailPage } from "../pages/transaction-history/TransactionHistoryDetailPage";
+import type { RouteObject } from 'react-router-dom'
+import { lazyComponent } from './lazyRoute'
 
 export const transactionHistoryRoutes: RouteObject[] = [
-  { path: "/transaction-history", Component: TransactionHistoryPage },
-  { path: "/transaction-history/:transactionId", Component: TransactionHistoryDetailPage },
-];
+  { path: '/transaction-history', lazy: lazyComponent(() => import('../pages/transaction-history/TransactionHistoryPage'), 'TransactionHistoryPage') },
+  { path: '/transaction-history/:transactionId', lazy: lazyComponent(() => import('../pages/transaction-history/TransactionHistoryDetailPage'), 'TransactionHistoryDetailPage') },
+]

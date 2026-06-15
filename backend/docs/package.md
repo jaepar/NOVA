@@ -13,6 +13,7 @@ flowchart TD
   domain --> auth["auth<br/>세션 인증, 로그인/로그아웃, 인증 유틸"]
   domain --> user["user<br/>회원 정보, 인증/증빙, 외국인등록증, 알림/보완서류 조회"]
   domain --> banking["banking<br/>계좌개설/이체/거래조회/메모수정, coreBanking 연계"]
+  domain --> exchange["exchange<br/>환율 조회, 수출입은행 연동, 메인/송금 기준 환율 제공"]
   domain --> wallet["wallet<br/>서비스 월렛, 거래내역"]
   domain --> job["job<br/>채용공고, 지원내역, 지원하기"]
   domain --> hospital["hospital<br/>병원 정보, 예약, 에이전트 호출 연계"]
@@ -41,6 +42,7 @@ flowchart TD
 | `auth` | 세션 인증, 로그인/로그아웃, 인증 보조(이메일/비밀번호 재설정 등) |
 | `user` | 사용자 계정/프로필, 인증서 발급, 증빙서류(`document`), 외국인등록증(`residence_card`), 알림(`notification`) |
 | `banking` | 계좌 개설/비밀번호 검증/이체/거래내역/메모/홈조회, Cloud↔On-Prem 브릿지 |
+| `exchange` | 수출입은행 환율 연동, 기준 환율/송금 환율 조회, 메인/환율 페이지/송금 요약용 데이터 제공 |
 | `wallet` | 월렛 충전/차감/거래내역, 거래 흐름(`DEPOSIT`, `WITHDRAWAL`) |
 | `job` | 구인공고, 지원 상태(`application`), 이력서(`resume`) |
 | `hospital` | 병원 메타 정보, 예약 생성/조회 |
@@ -63,6 +65,7 @@ flowchart TD
 ## Service Boundaries
 
 - 계좌 연동 핵심 로직은 `banking` 서비스에 둔다.
+- 환율 기준값 정규화와 비영업일 보정 로직은 `exchange` 서비스에 둔다.
 - Cloud Banking API는 온프레미스 Core Banking 연동 전/후 검증과 오케스트레이션을 담당한다.
 - 월렛 잔액 변경과 거래 확정은 `wallet` 서비스에서만 처리한다.
 - 병원 예약 확정 저장은 `hospital` 서비스에서 처리한다.

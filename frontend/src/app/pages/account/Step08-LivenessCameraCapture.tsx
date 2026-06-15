@@ -20,6 +20,7 @@ const registeredImageBucket =
     | string
     | undefined) ?? "nova-object-bucket";
 const STEP08_PATH = "/account/step-07";
+const SDK_START_BUTTON_TOKEN = "__NOVA_LIVENESS_START__";
 
 const HiddenPhotosensitiveWarning = () => null;
 
@@ -52,7 +53,7 @@ export function LivenessCameraCapture() {
   const [hasStartedLiveness, setHasStartedLiveness] = useState(false);
   const translatedLivenessDisplayText = useMemo(
     () => ({
-      startScreenBeginCheckText: t("account.livenessCamera.start"),
+      startScreenBeginCheckText: SDK_START_BUTTON_TOKEN,
       cancelLivenessCheckText: t("account.livenessCamera.close"),
       hintCenterFaceText: t("account.livenessCamera.centerFace"),
       hintMoveFaceFrontOfCameraText: t("account.livenessCamera.faceFront"),
@@ -74,6 +75,7 @@ export function LivenessCameraCapture() {
     }),
     [t]
   );
+  const startButtonLabel = t("account.livenessCamera.start");
 
   const triggerSdkStart = () => {
     const root = detectorContainerRef.current;
@@ -81,7 +83,7 @@ export function LivenessCameraCapture() {
 
     const startButton = Array.from(
       root.querySelectorAll<HTMLButtonElement>("button")
-    ).find((button) => button.textContent?.trim() === "얼굴 인증 시작");
+    ).find((button) => button.textContent?.trim() === SDK_START_BUTTON_TOKEN);
 
     startButton?.click();
   };
@@ -433,7 +435,7 @@ export function LivenessCameraCapture() {
           </Btn_1Col>
         ) : isDetectorVisible && isCameraActive && !hasStartedLiveness ? (
           <Btn_1Col onClick={triggerSdkStart}>
-            {translatedLivenessDisplayText.startScreenBeginCheckText}
+            {startButtonLabel}
           </Btn_1Col>
         ) : undefined
       }

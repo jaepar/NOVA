@@ -106,6 +106,7 @@ class GlobalTransactionServiceTest {
         assertThat(transactionCaptor.getValue().getTransactionFlow()).isEqualTo(TransactionFlow.WITHDRAWAL);
         assertThat(transactionCaptor.getValue().getTransactionType()).isEqualTo(TransactionType.GLOBAL_REMITTANCE);
         assertThat(transactionCaptor.getValue().getAmount()).isEqualTo(1_380_500);
+        assertThat(transactionCaptor.getValue().getBalanceAfter()).isEqualTo(619_500);
 
         verify(globalTransactionRepository).save(any(GlobalTransaction.class));
         verify(globalTransactionFdsService).screenAsync(any());

@@ -53,6 +53,8 @@ app:
     base-url: ${CORE_BANKING_BASE_URL:http://localhost:8001}
   government:
     base-url: ${GOVERNMENT_DB_URL:http://localhost:8002}
+  exchange-rate:
+    auth-key: ${KOREAEXIM_AUTH_KEY:}
   ai:
     base-url: ${AI_BASE_URL:http://localhost:8004}
 

@@ -93,24 +93,64 @@ export function PassportCameraCapture() {
 
   const ocrResultRows = [
     { id: "type", label: t("certificate.passportLabelType"), icon: IdCard },
-    { id: "countryCode", label: t("certificate.passportLabelCountryCode"), icon: Globe },
-    { id: "passportNum", label: t("certificate.passportLabelNumber"), icon: IdCard },
+    {
+      id: "countryCode",
+      label: t("certificate.passportLabelCountryCode"),
+      icon: Globe,
+    },
+    {
+      id: "passportNum",
+      label: t("certificate.passportLabelNumber"),
+      icon: IdCard,
+    },
     { id: "surName", label: t("certificate.passportLabelSurname"), icon: User },
-    { id: "givenName", label: t("certificate.passportLabelGivenName"), icon: WholeWord },
-    { id: "birthDate", label: t("certificate.passportLabelBirthDate"), icon: Calendar },
+    {
+      id: "givenName",
+      label: t("certificate.passportLabelGivenName"),
+      icon: WholeWord,
+    },
+    {
+      id: "birthDate",
+      label: t("certificate.passportLabelBirthDate"),
+      icon: Calendar,
+    },
     { id: "sex", label: t("certificate.passportLabelGender"), icon: User },
-    { id: "nationality", label: t("certificate.passportLabelNationality"), icon: Flag },
-    { id: "authority", label: t("certificate.passportLabelAuthority"), icon: Landmark },
-    { id: "issueDate", label: t("certificate.passportLabelIssueDate"), icon: CalendarDays },
-    { id: "expireDate", label: t("certificate.passportLabelExpiryDate"), icon: CalendarClock },
+    {
+      id: "nationality",
+      label: t("certificate.passportLabelNationality"),
+      icon: Flag,
+    },
+    {
+      id: "authority",
+      label: t("certificate.passportLabelAuthority"),
+      icon: Landmark,
+    },
+    {
+      id: "issueDate",
+      label: t("certificate.passportLabelIssueDate"),
+      icon: CalendarDays,
+    },
+    {
+      id: "expireDate",
+      label: t("certificate.passportLabelExpiryDate"),
+      icon: CalendarClock,
+    },
   ];
 
   const mode = useStep5PassportCaptureStore((state) => state.mode);
-  const cameraError = useStep5PassportCaptureStore((state) => state.cameraError);
+  const cameraError = useStep5PassportCaptureStore(
+    (state) => state.cameraError
+  );
   const setMode = useStep5PassportCaptureStore((state) => state.setMode);
-  const setCapturedImage = useStep5PassportCaptureStore((state) => state.setCapturedImage);
-  const setCameraError = useStep5PassportCaptureStore((state) => state.setCameraError);
-  const setParsedPassportData = useStep5PassportCaptureStore((state) => state.setParsedPassportData);
+  const setCapturedImage = useStep5PassportCaptureStore(
+    (state) => state.setCapturedImage
+  );
+  const setCameraError = useStep5PassportCaptureStore(
+    (state) => state.setCameraError
+  );
+  const setParsedPassportData = useStep5PassportCaptureStore(
+    (state) => state.setParsedPassportData
+  );
   const reset = useStep5PassportCaptureStore((state) => state.reset);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -118,12 +158,12 @@ export function PassportCameraCapture() {
   const streamRef = useRef<MediaStream | null>(null);
   const [isOcrProcessing, setIsOcrProcessing] = useState(false);
   const [ocrError, setOcrError] = useState<string | null>(null);
-  const [editableOcrValues, setEditableOcrValues] = useState<Record<string, string>>(
-    () => Object.fromEntries(ocrResultRows.map((row) => [row.id, ""]))
-  );
+  const [editableOcrValues, setEditableOcrValues] = useState<
+    Record<string, string>
+  >(() => Object.fromEntries(ocrResultRows.map((row) => [row.id, ""])));
 
   const isReviewFormValid = ocrResultRows.every((row) => {
-    const value = (editableOcrValues[row.label] ?? "").trim();
+    const value = (editableOcrValues[row.id] ?? "").trim();
     const validator = passportFieldValidators[row.label];
 
     return value.length > 0 && Boolean(validator?.(value));
@@ -180,7 +220,9 @@ export function PassportCameraCapture() {
         return;
       }
 
-      setEditableOcrValues(mapPassportResponseToEditableValues(ocrResult.result));
+      setEditableOcrValues(
+        mapPassportResponseToEditableValues(ocrResult.result)
+      );
       setCapturedImage(imageDataUrl);
       setMode("review");
     } catch (error) {
@@ -189,7 +231,8 @@ export function PassportCameraCapture() {
         error !== null &&
         "response" in error &&
         typeof (error as { response?: unknown }).response === "object"
-          ? (error as { response?: { data?: { code?: string } } }).response?.data?.code ?? ""
+          ? (error as { response?: { data?: { code?: string } } }).response
+              ?.data?.code ?? ""
           : "";
 
       const message =
@@ -220,7 +263,9 @@ export function PassportCameraCapture() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageDataUrl = canvas.toDataURL("image/jpeg", 0.92);
     const blob = await (await fetch(imageDataUrl)).blob();
-    const imageFile = new File([blob], "passport-capture.jpg", { type: "image/jpeg" });
+    const imageFile = new File([blob], "passport-capture.jpg", {
+      type: "image/jpeg",
+    });
     await processImageForOcr(imageFile, imageDataUrl);
   };
 
@@ -303,7 +348,9 @@ export function PassportCameraCapture() {
                     <input
                       type="text"
                       value={editableOcrValues[row.id] ?? ""}
-                      onChange={(event) => handleOcrValueChange(row.id, event.target.value)}
+                      onChange={(event) =>
+                        handleOcrValueChange(row.id, event.target.value)
+                      }
                       autoComplete="off"
                       spellCheck={false}
                       className="w-full rounded-md bg-background px-2 py-1 text-base text-foreground outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary"
@@ -349,7 +396,12 @@ export function PassportCameraCapture() {
     >
       <div className="space-y-5">
         <div className="h-[58vh] border-2 border-dashed border-border rounded-xl overflow-hidden bg-secondary flex items-center justify-center">
-          <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+          <video
+            ref={videoRef}
+            className="w-full h-full object-cover"
+            muted
+            playsInline
+          />
         </div>
       </div>
 

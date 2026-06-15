@@ -1,6 +1,6 @@
 import { AppButton } from "../../components/design-system/AppButton";
 import { useTranslation } from "../../i18n";
-import jobBannerImg from "./assets/job-banner.png";
+import jobBannerImg from "./assets/job-banner.webp";
 
 interface MainJobBannerProps {
   onClick?: () => void;

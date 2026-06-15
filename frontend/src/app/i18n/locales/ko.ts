@@ -130,6 +130,7 @@
     openAccount: "계좌 개설하기",
     accountNumberCopied: "계좌번호가 복사되었습니다.",
     accountNumberCopyFailed: "계좌번호 복사에 실패했습니다.",
+    exchangeLoadFailed: "환율 정보를 불러오지 못했습니다.",
     limitedAccount: "한도제한",
     balance: "잔액",
     transfer: "이체",
@@ -147,8 +148,12 @@
   },
   exchange: {
     title: "환율",
-    heading: "환율 페이지",
+    heading: "환율 정보",
     preparing: "준비중입니다",
+    description: "기준 환율입니다.",
+    loadFailed: "환율 정보를 불러오지 못했습니다.",
+    weekendGuide:
+      "주말과 공휴일에는 당일 환율이 고시되지 않을 수 있어 직전 영업일 기준 값이 표시됩니다.",
   },
   bottomNav: {
     home: "홈",
@@ -763,7 +768,8 @@
     },
     rateSummary: {
       heading: "송금 요약 확인",
-      notice: "환율과 금액 정보는 추후 별도 API 연동 후 실시간으로 반영됩니다.",
+      notice: "환율과 금액은 조회 시점의 기준 정보로 표시됩니다.",
+      loadFailed: "환율 정보를 불러오지 못했습니다. 다시 시도해 주세요.",
       exchangeRate: "적용환율",
       remitAmount: "송금액",
       krwAmount: "원화금액",
@@ -790,6 +796,7 @@
     },
     recipientInfo: {
       heading: "받는분 정보입력",
+      submitting: "송금 요청 중",
       nameLabel: "영문성명",
       addressLabel: "영문주소",
       detailLabel: "세부주소",

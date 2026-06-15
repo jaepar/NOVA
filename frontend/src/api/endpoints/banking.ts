@@ -63,6 +63,40 @@ export type TransferRequest = {
   accountPassword: string;
 };
 
+export type CreateGlobalTransactionRequest = {
+  accountId: number;
+  remitPurpose: string;
+  targetCountry: string;
+  currency: string;
+  remitAmount: string;
+  mediaryFeePayer: "SENDER" | "RECEIVER";
+  exchangeRate: string;
+  krwAmount: string;
+  senderEngName: string;
+  senderPhone: string;
+  senderAddressDetail: string;
+  senderDistrict: string;
+  senderCity: string;
+  senderZipCode: string;
+  senderCountry: string;
+  receiverEngName: string;
+  receiverAddressDetail: string;
+  receiverDistrict: string | null;
+  receiverCity: string;
+  receiverZipCode: string | null;
+  receiverPhone: string;
+  swiftCode: string;
+  receiverAccountNum: string;
+  routingNumber: string;
+  bankName: string;
+  remitReason: string;
+};
+
+export type CreateGlobalTransactionResponse = {
+  globalTransactionId: number;
+  status: string;
+};
+
 export type TransferPreviewResponse = {
   myAccount: {
     accountName: string;
@@ -226,6 +260,20 @@ export const bankingApi = {
     const response = await apiClient.get<
       BankingApiResponse<GlobalTransferHistoryItem[]>
     >("/banking/global-transactions");
+
+    return response.data.data;
+  },
+  createGlobalTransaction: async (
+    request: CreateGlobalTransactionRequest,
+    idempotencyKey: string
+  ): Promise<CreateGlobalTransactionResponse> => {
+    const response = await apiClient.post<
+      BankingApiResponse<CreateGlobalTransactionResponse>
+    >("/banking/global-transactions", request, {
+      headers: {
+        "Idempotency-Key": idempotencyKey,
+      },
+    });
 
     return response.data.data;
   },

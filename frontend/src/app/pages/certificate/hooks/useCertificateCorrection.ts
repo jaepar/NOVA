@@ -84,6 +84,11 @@ export function useCertificateCorrection(onSubmitSuccess: () => void) {
   }
 
   const clearFile = (documentType: CorrectionDocumentType) => {
+    const input = fileInputRefs.current[documentType]
+    if (input) {
+      input.value = ''
+    }
+
     setFiles((prevFiles) => {
       const nextFiles = { ...prevFiles }
       delete nextFiles[documentType]

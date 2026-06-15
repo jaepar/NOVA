@@ -1,10 +1,24 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
-import { authApi } from '../api'
-import { NovaToast } from './components/design-system'
+import { authApi } from '../api/endpoints/auth'
+import { Spinner } from './components/design-system/Spinner'
 import { router } from './routes'
 import { useMainPageStore } from './stores/pageStores'
 import { completeOnboarding } from './utils/onboardingStorage'
+
+const LazyNovaToast = lazy(async () => {
+  const module = await import('./components/design-system/NovaToast')
+
+  return { default: module.NovaToast }
+})
+
+function AppBootSplash() {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-background">
+      <Spinner size="lg" />
+    </div>
+  )
+}
 
 export default function App() {
   const isAuthChecked = useMainPageStore((state) => state.isAuthChecked)
@@ -37,13 +51,15 @@ export default function App() {
   }, [clearAuth, setAuthenticated])
 
   if (!isAuthChecked) {
-    return null
+    return <AppBootSplash />
   }
 
   return (
     <>
       <RouterProvider router={router} />
-      <NovaToast />
+      <Suspense fallback={null}>
+        <LazyNovaToast />
+      </Suspense>
     </>
   )
 }

@@ -22,6 +22,10 @@ export const transferCountries: TransferCountry[] = [
   { id: 'mn', name: '몽골', nameKo: '몽골', nameEn: 'Mongolia', englishName: 'Mongolia', flag: '🇲🇳', currencyCode: 'MNT' },
 ]
 
+export const transferRemittanceCountries = transferCountries.filter(
+  (country) => country.id !== 'kr'
+)
+
 export function getTransferCountryName(country: TransferCountry, language: string) {
   return language === 'en' ? country.nameEn : country.nameKo
 }
