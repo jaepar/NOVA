@@ -79,7 +79,7 @@ class GlobalTransactionServiceTest {
                 .accountName("우리 SUPER주거래 통장")
                 .balance(2_000_000)
                 .password("1234")
-                .dailyTransferLimit(3_000_000)
+                .transferLimit(3_000_000)
                 .bankCode(BankCode.WOORI)
                 .build();
         request = request("global-remittance-1", "1380500");

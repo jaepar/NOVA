@@ -1,7 +1,7 @@
 package woorifisa.project.coreBanking.domain.customer.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 
 import woorifisa.project.coreBanking.domain.customer.dto.request.CreateCustomerRequest;
 import woorifisa.project.coreBanking.domain.customer.entity.Customer;
+import woorifisa.project.coreBanking.domain.customer.entity.enums.CustomerPurpose;
+import woorifisa.project.coreBanking.domain.customer.entity.enums.FundSource;
 import woorifisa.project.coreBanking.domain.customer.repository.CustomerRepository;
 import woorifisa.project.coreBanking.global.exception.CustomException;
 
@@ -29,7 +31,11 @@ class CustomerServiceTest {
 
 		customerService.createCustomer(request);
 
-		verify(customerRepository).save(any(Customer.class));
+		verify(customerRepository).save(argThat(customer ->
+			Boolean.FALSE.equals(customer.getHasForeignTax())
+				&& customer.getPurpose() == CustomerPurpose.SALARY_AND_LIVING_EXPENSES
+				&& customer.getSource() == FundSource.OTHER
+		));
 	}
 
 	@Test

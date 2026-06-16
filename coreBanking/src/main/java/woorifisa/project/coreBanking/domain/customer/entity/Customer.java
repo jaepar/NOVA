@@ -48,14 +48,14 @@ public class Customer extends BaseEntity {
 	private String job;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "purpose")
+	@Column(name = "purpose", nullable = false)
 	private CustomerPurpose purpose;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "source")
+	@Column(name = "source", nullable = false)
 	private FundSource source;
 
-	@Column(name = "has_foreign_tax")
+	@Column(name = "has_foreign_tax", nullable = false)
 	private Boolean hasForeignTax;
 
 	public void updateProfile(

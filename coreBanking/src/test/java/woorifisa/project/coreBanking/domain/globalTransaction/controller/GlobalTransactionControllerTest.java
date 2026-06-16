@@ -79,6 +79,7 @@ class GlobalTransactionControllerTest {
         when(globalTransactionService.findAllByCustomer(1001L))
                 .thenReturn(List.of(new GlobalTransactionListItemResponse(
                         1L,
+                        "US",
                         "JOHN SMITH",
                         "1000.00",
                         "USD",
@@ -90,6 +91,7 @@ class GlobalTransactionControllerTest {
                         .param("customerId", "1001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].globalTransactionId").value(1))
+                .andExpect(jsonPath("$.data[0].targetCountry").value("US"))
                 .andExpect(jsonPath("$.data[0].receiverEngName").value("JOHN SMITH"))
                 .andExpect(jsonPath("$.data[0].remitAmount").value("1000.00"))
                 .andExpect(jsonPath("$.data[0].currency").value("USD"))
@@ -120,6 +122,7 @@ class GlobalTransactionControllerTest {
                   "receiverEngName": "JOHN SMITH",
                   "receiverAddressDetail": "Apt 10",
                   "receiverDistrict": "Manhattan",
+                  "receiverCity": "New York",
                   "receiverPhone": "+12125550100",
                   "swiftCode": "BOFAUS3N",
                   "receiverAccountNum": "1234567890",
