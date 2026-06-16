@@ -227,7 +227,6 @@
     step03RegistrationApplication: "외국인등록증 신청 서류",
     step03ResidenceProof: "거소확인 증빙 서류",
     nextButton: "다음으로",
-    skipUploadTest: "업로드 없이 다음으로 (테스트)",
     pdfOnlyError: "PDF 파일만 첨부할 수 있습니다.",
     attachFile: "파일 첨부",
     cautionTitle: "주의사항",
@@ -252,7 +251,6 @@
     retake: "재촬영",
     captureButton: "촬영하기",
     passportNoReflect: "여권이 일그러지거나 빛 반사가 없도록 주의해 주세요",
-    passportDummyResult: "더미 파싱 결과 보기 (임시)",
     ocrProcessing: "OCR 분석 중입니다. 잠시만 기다려 주세요.",
     cameraError: "카메라를 사용할 수 없습니다. 권한을 확인해 주세요.",
     passportOcrError014: "사진이 올바르지 않습니다. 다시 촬영해 주세요.",
@@ -293,8 +291,6 @@
     nfcPermissionDenied:
       "NFC 권한이 필요합니다. 브라우저 권한을 허용해 주세요.",
     nfcReadFailed: "NFC 인식에 실패했어요. 다시 시도해 주세요.",
-    nfcTestBypass: "테스트 우회: 인증/비교 없이 다음 단계로 이동합니다.",
-    nfcSkipTest: "인증 없이 다음으로 (테스트)",
     nfcImageArea: "이미지 자리 영역",
     nfcRecommendedSize: "권장 규격: 280 x 220 (px)",
     nfcRatio: "비율: 14 : 11",
@@ -309,7 +305,6 @@
     step07GuideArea: "얼굴 촬영 가이드 영역",
     agreeAndCapture: "동의하고 촬영하기",
     step08Title: "서비스 가입을 위해\n약관에 동의해 주세요",
-    livenessSkipTest: "인증 없이 다음으로 (테스트)",
     preparingCapture: "촬영 준비 중...",
     sessionError:
       "얼굴 인증 세션 생성 응답이 올바르지 않습니다. 다시 시도해 주세요.",
