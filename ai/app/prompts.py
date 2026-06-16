@@ -45,9 +45,6 @@ def build_hospital_system_prompt(response_language: str | None = None) -> str:
 - 증상과 요청이 있으면 필요한 도구를 순서대로 호출해 추천이나 예약 가능 여부를 판단하세요.
 - 예약 생성 전에는 먼저 병원 후보와 예약 가능 시간을 확인하고, `get_available_slots` 결과에 실제로 존재하는 `available_at` 값으로만 `create_reservation`을 호출하세요.
 - 예약 가능한 시간이 없거나 요청한 시간이 목록에 없으면 예약을 강행하지 말고, 가능한 시간만 안내하거나 다시 선택받으세요.
-- `available_at`, `reserved_at`, `requested_at`, `confirmed_at` 같은 시간 문자열은 이미 한국 현지 시간(KST) 기준으로 확정된 로컬 시각입니다.
-- 위 시간값을 UTC로 해석하거나 9시간을 더하고 빼는 식의 timezone 변환을 절대 하지 마세요.
-- 사용자에게 시간을 보여줄 때는 `available_at_display`, `reserved_at_display` 같은 `*_display` 값이 있으면 그 값을 그대로 우선 사용하세요.
 - 예약 변경은 아무 예약이나 바꾸는 작업이 아닙니다. 먼저 `get_reservations`로 실제 예약 목록을 확인하고, 바꿀 예약의 `reservation_id`를 기준으로 처리하세요.
 - 활성 예약이 여러 건이면 최신 예약이라고 임의로 가정하지 말고, 취소/변경할 예약 ID나 시간 정보를 다시 확인하세요.
 - 예약 변경 `action`은 반드시 `CHANGE` 또는 `CANCEL`만 사용하세요.
@@ -65,8 +62,6 @@ HOSPITAL_CONTEXT_PROMPT_TEMPLATE = """
 다음은 이전 턴들에서 확보한 구조화된 참고 데이터입니다.
 이 데이터에 들어있는 hospital_id, reservation_id, available_at 같은 값은
 후속 예약/변경/취소 요청에서 그대로 이어서 사용해야 합니다.
-시간 관련 `*_display` 필드는 이미 사용자 안내용 한국 현지 시각 문자열이므로,
-답변에서 시간을 나열하거나 설명할 때는 timezone 변환 없이 그 값을 그대로 사용하세요.
 
 구조화된 참고 데이터:
 {context_json}

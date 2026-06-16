@@ -1,7 +1,6 @@
 import json
 import logging
 import operator
-from datetime import datetime
 from typing import Annotated, Any, TypedDict
 
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage, ToolMessage
@@ -534,44 +533,14 @@ class LangGraphHospitalAgent:
             normalized_items: list[dict[str, Any]] = []
             for item in items:
                 if isinstance(item, dict):
-                    normalized_items.append(self._decorate_datetime_fields(item))
+                    normalized_items.append(item)
                 else:
-                    normalized_items.append(
-                        self._decorate_datetime_fields({"available_at": item})
-                    )
+                    normalized_items.append({"available_at": item})
             return normalized_items
 
         if all(isinstance(item, dict) for item in items):
-            return [self._decorate_datetime_fields(item) for item in items]
+            return items
         return fallback_items
-
-    def _decorate_datetime_fields(self, item: dict[str, Any]) -> dict[str, Any]:
-        decorated = dict(item)
-
-        for source_key, display_key in (
-            ("available_at", "available_at_display"),
-            ("reserved_at", "reserved_at_display"),
-            ("requested_at", "requested_at_display"),
-            ("confirmed_at", "confirmed_at_display"),
-        ):
-            raw_value = decorated.get(source_key)
-            if not isinstance(raw_value, str) or not raw_value.strip():
-                continue
-
-            display_value = self._format_local_datetime_text(raw_value)
-            if display_value is not None:
-                decorated[display_key] = display_value
-
-        return decorated
-
-    def _format_local_datetime_text(self, value: str) -> str | None:
-        try:
-            # 백엔드 hospital 시간값은 UTC 변환 대상이 아니라 KST 기준의 로컬 wall-clock 문자열이다.
-            parsed = datetime.fromisoformat(value)
-        except ValueError:
-            return None
-
-        return parsed.strftime("%Y-%m-%d %H:%M")
 
     def _merge_recent_context(
         self,

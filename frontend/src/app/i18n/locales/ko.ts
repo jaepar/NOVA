@@ -103,7 +103,6 @@
   },
   main: {
     hospitalReservation: "병원예약",
-    hospitalChatWelcome: "병원 예약 상담을 시작합니다.",
     connecting: "연결 중...",
     residenceCard: "외국인등록증",
     wallet: "월렛",
