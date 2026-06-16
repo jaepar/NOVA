@@ -22,21 +22,6 @@ import { useStep5PassportCaptureStore } from "../../stores/pageStores";
 import { CameraCapturePage } from "../../components/camera/CameraCapturePage";
 import { certificateApi, type PassportResponse } from "../../../api";
 
-// TEMP_DUMMY: 여권 실물 테스트 전까지 사용하는 임시 표시 값. 이후 제거 대상.
-const TEMP_DUMMY_OCR_VALUES: Record<string, string> = {
-  type: "PM",
-  countryCode: "KOR",
-  passportNum: "M592W1577",
-  surName: "PARK",
-  givenName: "JAEHA",
-  birthDate: "2001.02.05",
-  sex: "M",
-  nationality: "REPUBLIC OF KOREA",
-  authority: "MINISTRY OF FOREIGN AFFAIRS",
-  issueDate: "2023.08.14",
-  expireDate: "2033.08.14",
-};
-
 const mapPassportResponseToEditableValues = (passport: PassportResponse) => ({
   type: passport.type ?? "",
   countryCode: passport.issueCountry ?? "",
@@ -308,12 +293,6 @@ export function PassportCameraCapture() {
     navigate("/certificate/step-06");
   };
 
-  const handleOpenReviewWithTempData = () => {
-    // TEMP_DUMMY: 제거 대상. OCR 없이 더미 파싱 결과 확인용.
-    setEditableOcrValues(TEMP_DUMMY_OCR_VALUES);
-    setMode("review");
-  };
-
   if (mode === "review") {
     return (
       <MobileLayout
@@ -396,14 +375,6 @@ export function PassportCameraCapture() {
           </div>
           <Btn_1Col onClick={handleCapture} disabled={isOcrProcessing}>
             {t("certificate.captureButton")}
-          </Btn_1Col>
-          {/* TEMP: 제거 대상. OCR 테스트 중 임시 우회 버튼 */}
-          <Btn_1Col
-            onClick={handleOpenReviewWithTempData}
-            variant="outline"
-            disabled={isOcrProcessing}
-          >
-            {t("certificate.passportDummyResult")}
           </Btn_1Col>
         </div>
       }

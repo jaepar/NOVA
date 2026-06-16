@@ -47,25 +47,14 @@ export function Step03DocumentUpload() {
     navigate("/certificate/step-04");
   };
 
-  // [TEST ONLY START] 서류 업로드 여부와 무관하게 다음 단계로 이동하는 임시 버튼
-  const handleSkipDocumentUploadForTest = () => {
-    navigate("/certificate/step-04");
-  };
-  // [TEST ONLY END]
-
   return (
     <MobileLayout
       title={t("certificate.title")}
       backPath="/certificate/step-02"
       bottomContent={
-        <div className="space-y-2">
-          <Btn_1Col disabled={!isAllAttached} onClick={handleNext}>
-            {t("certificate.nextButton")}
-          </Btn_1Col>
-          <Btn_1Col variant="outline" onClick={handleSkipDocumentUploadForTest}>
-            {t("certificate.skipUploadTest")}
-          </Btn_1Col>
-        </div>
+        <Btn_1Col disabled={!isAllAttached} onClick={handleNext}>
+          {t("certificate.nextButton")}
+        </Btn_1Col>
       }
     >
       <div className="space-y-5 pb-2">

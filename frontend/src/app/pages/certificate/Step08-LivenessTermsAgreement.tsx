@@ -50,30 +50,17 @@ export function LivenessConsentAgreement() {
     }
   };
 
-  // [TEST ONLY START] 생체 인증 과정을 건너뛰고 다음 단계로 이동하는 임시 버튼
-  const handleSkipLivenessForTest = () => {
-    setErrorMessage("");
-    resetSession();
-    navigate("/certificate/step-10");
-  };
-  // [TEST ONLY END]
-
   return (
     <MobileLayout
       title={t("certificate.title")}
       backPath="/certificate/step-07"
       bottomContent={
-        <div className="space-y-2">
-          <Btn_1Col
-            disabled={!isRequiredComplete || isPreparingSession}
-            onClick={handleProceed}
-          >
-            {isPreparingSession ? t("certificate.preparingCapture") : t("certificate.agreeAndCapture")}
-          </Btn_1Col>
-          <Btn_1Col variant="outline" onClick={handleSkipLivenessForTest}>
-            {t("certificate.livenessSkipTest")}
-          </Btn_1Col>
-        </div>
+        <Btn_1Col
+          disabled={!isRequiredComplete || isPreparingSession}
+          onClick={handleProceed}
+        >
+          {isPreparingSession ? t("certificate.preparingCapture") : t("certificate.agreeAndCapture")}
+        </Btn_1Col>
       }
     >
       <div className="space-y-3">

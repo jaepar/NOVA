@@ -219,33 +219,16 @@ export function NfcGuide() {
     }
   };
 
-  // [TEST ONLY START] 인증/비교와 무관하게 다음 단계 이동하는 임시 버튼
-  const handleSkipForTest = () => {
-    setStatusMessage(t("certificate.nfcTestBypass"));
-    setStatusVariant("info");
-    navigate("/certificate/step-07");
-  };
-  // [TEST ONLY END]
-
   return (
     <MobileLayout
       title={t("certificate.title")}
       backPath="/certificate/step-04"
       bottomContent={
-        <div className="space-y-2">
-          <Btn_1Col onClick={handleStartNfcTagging} disabled={isScanning}>
-            {isScanning
-              ? t("certificate.nfcTagging")
-              : t("certificate.nfcTagStart")}
-          </Btn_1Col>
-          <Btn_1Col
-            variant="outline"
-            onClick={handleSkipForTest}
-            disabled={isScanning}
-          >
-            {t("certificate.nfcSkipTest")}
-          </Btn_1Col>
-        </div>
+        <Btn_1Col onClick={handleStartNfcTagging} disabled={isScanning}>
+          {isScanning
+            ? t("certificate.nfcTagging")
+            : t("certificate.nfcTagStart")}
+        </Btn_1Col>
       }
     >
       <div className="space-y-4 pb-2">
