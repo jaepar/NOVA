@@ -5,10 +5,7 @@ import { AppButton, Btn_1Col } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { useTranslation } from '../../i18n'
 import {
-  BANK_OPTIONS,
   getShortTransferBankName,
-  RECIPIENT_NAME,
-  SOURCE_ACCOUNT,
   SOURCE_BANK,
   type MemoType,
 } from './types'
@@ -25,19 +22,16 @@ export function TransferMemoEdit({ type }: { type: MemoType }) {
   const senderMemoName = useTransferStore((state) => state.senderMemoName)
   const setRecipientMemoName = useTransferStore((state) => state.setRecipientMemoName)
   const setSenderMemoName = useTransferStore((state) => state.setSenderMemoName)
-  const recipientBank = selectedBank ?? BANK_OPTIONS.find((bank) => bank.id === 'nonghyup') ?? BANK_OPTIONS[0]
-  const recipientAccount = accountNumber || '1122261925003'
-  const recipientName = preview?.recipient.recipientName ?? RECIPIENT_NAME
-  const sourceAccountName =
-    preview?.myAccount.accountName ?? t('transfer.accountSummary.defaultAccountName')
-  const sourceAccountNumber = preview?.myAccount.accountNumber ?? SOURCE_ACCOUNT
+  const recipientName = preview?.recipient.recipientName ?? ''
+  const sourceAccountName = preview?.myAccount.accountName ?? ''
+  const sourceAccountNumber = preview?.myAccount.accountNumber ?? ''
   const isRecipientMemo = type === 'recipient'
   const [memoDraft, setMemoDraft] = useState(isRecipientMemo ? recipientMemoName : senderMemoName)
   const heading = isRecipientMemo
     ? t('transfer.memoEdit.recipientHeading').replace('{name}', recipientName)
     : t('transfer.memoEdit.senderHeading')
   const bankDescription = isRecipientMemo
-    ? `${getShortTransferBankName(recipientBank, language)} ${recipientAccount}`
+    ? `${selectedBank ? getShortTransferBankName(selectedBank, language) : ''} ${accountNumber}`.trim()
     : `${sourceAccountName} ${sourceAccountNumber}`
 
   useEffect(() => {
@@ -75,7 +69,11 @@ export function TransferMemoEdit({ type }: { type: MemoType }) {
       <section className="pt-5 text-[#202633]">
         <div>
           <div className="flex items-center gap-2 text-[16px] font-bold">
-            <BankMark bank={isRecipientMemo ? recipientBank : SOURCE_BANK} size="md" />
+            {isRecipientMemo && selectedBank ? (
+              <BankMark bank={selectedBank} size="md" />
+            ) : !isRecipientMemo ? (
+              <BankMark bank={SOURCE_BANK} size="md" />
+            ) : null}
             <span>{heading}</span>
           </div>
           <p className="mt-2 text-[13px] font-semibold text-[#8A9099]">

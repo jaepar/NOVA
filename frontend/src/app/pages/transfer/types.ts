@@ -13,8 +13,6 @@ export const BANK_OPTIONS = TRANSFER_BANK_OPTIONS as BankOption[]
 export { getShortTransferBankName, getTransferBankName }
 export const REQUIRED_ACCOUNT_LENGTH = 10
 export const SOURCE_BANK = BANK_OPTIONS.find((bank) => bank.id === 'woori') ?? BANK_OPTIONS[0]
-export const SOURCE_ACCOUNT = '1002-867-390781'
-export const RECIPIENT_NAME = '백민정'
 
 export const BANK_LOGO_SRC: Record<string, string> = {
   woori: new URL('./assets/woori.png', import.meta.url).href,

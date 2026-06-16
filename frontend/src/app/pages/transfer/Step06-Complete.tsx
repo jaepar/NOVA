@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Btn_1Col } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { useTranslation } from '../../i18n'
-import { BANK_OPTIONS, formatCurrency, getShortTransferBankName, RECIPIENT_NAME } from './types'
+import { formatCurrency, getShortTransferBankName } from './types'
 import { useTransferStore } from './transferStore'
 
 export function TransferComplete() {
@@ -14,14 +14,12 @@ export function TransferComplete() {
   const preview = useTransferStore((state) => state.preview)
   const amount = useTransferStore((state) => state.amount)
   const resetTransfer = useTransferStore((state) => state.resetTransfer)
-  const recipientBank = selectedBank ?? BANK_OPTIONS.find((bank) => bank.id === 'nonghyup') ?? BANK_OPTIONS[0]
-  const recipientAccount = accountNumber || '1122261925003'
-  const recipientName = preview?.recipient.recipientName ?? RECIPIENT_NAME
+  const recipientName = preview?.recipient.recipientName ?? ''
   const amountText = formatCurrency(amount, language)
 
   const goMain = () => {
-    resetTransfer()
     navigate('/main')
+    resetTransfer()
   }
 
   return (
@@ -42,7 +40,8 @@ export function TransferComplete() {
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 py-2">
             <span className="whitespace-nowrap text-[#7B828C]">{t('transfer.recipientAccount')}</span>
             <span className="min-w-0 text-right font-bold">
-              {getShortTransferBankName(recipientBank, language)} {recipientAccount}
+              {selectedBank ? `${getShortTransferBankName(selectedBank, language)} ` : ''}
+              {accountNumber}
             </span>
           </div>
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 py-2">
