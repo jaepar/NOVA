@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import woorifisa.project.coreBanking.domain.customer.dto.request.CreateCustomerRequest;
 import woorifisa.project.coreBanking.domain.customer.entity.Customer;
+import woorifisa.project.coreBanking.domain.customer.entity.enums.CustomerPurpose;
+import woorifisa.project.coreBanking.domain.customer.entity.enums.FundSource;
 import woorifisa.project.coreBanking.domain.customer.repository.CustomerRepository;
 import woorifisa.project.coreBanking.global.exception.CustomException;
 
@@ -30,6 +32,9 @@ public class CustomerService {
 			.backendUserId(request.userId())
 			.name(request.name())
 			.email(request.email())
+			.purpose(CustomerPurpose.SALARY_AND_LIVING_EXPENSES)
+			.source(FundSource.OTHER)
+			.hasForeignTax(false)
 			.build();
 
 		customerRepository.save(customer);

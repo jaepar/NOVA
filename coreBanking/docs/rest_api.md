@@ -71,6 +71,8 @@ Response (200)
 Notes
 - `customer.backend_user_id`는 nullable이다.
 - NOVA 사용자 연동 고객은 `userId`를 저장하고, 타행/외부 유입 고객은 `backend_user_id` 없이 저장될 수 있다.
+- `CB-011`은 계좌개설 전 고객 shell을 생성하므로 `purpose=SALARY_AND_LIVING_EXPENSES`, `source=OTHER`, `has_foreign_tax=false` 기본값을 저장한다.
+- 실제 거래목적/자금출처/해외납세여부는 계좌개설 API에서 요청값으로 갱신한다.
 
 ## CB-011 고객 생성(On-Prem)
 

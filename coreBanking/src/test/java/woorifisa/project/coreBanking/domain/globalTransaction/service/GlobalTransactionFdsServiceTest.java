@@ -135,7 +135,7 @@ class GlobalTransactionFdsServiceTest {
                 .accountName("우리 SUPER주거래 통장")
                 .balance(619_500)
                 .password("1234")
-                .dailyTransferLimit(3_000_000)
+                .transferLimit(3_000_000)
                 .bankCode(BankCode.WOORI)
                 .build();
         return GlobalTransaction.builder()
