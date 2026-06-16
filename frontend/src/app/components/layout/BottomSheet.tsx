@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 
@@ -55,10 +56,16 @@ export function BottomSheet({
 
   if (!isVisible) return null
 
-  return (
-    <>
+  const content = (
+    <div
+      className="fixed left-1/2 top-1/2 z-[60] h-[var(--app-height)] w-[var(--app-width)]"
+      style={{
+        transform: 'translate(-50%, -50%) scale(var(--app-scale))',
+        transformOrigin: 'center center',
+      }}
+    >
       <div
-        className={`fixed inset-0 z-[60] transition-opacity duration-300 ${
+        className={`absolute inset-0 z-0 transition-opacity duration-300 ${
           dimBackground ? 'bg-black/50' : 'bg-transparent'
         } ${
           isOpen ? 'opacity-100' : 'opacity-0'
@@ -67,12 +74,12 @@ export function BottomSheet({
       />
 
       <div
-        className={`fixed bottom-0 left-0 right-0 z-[70] bg-[rgb(253,253,253)] rounded-t-3xl w-full transition-transform duration-300 ease-out flex flex-col ${
+        className={`absolute bottom-0 left-0 right-0 z-10 bg-[rgb(253,253,253)] rounded-t-3xl w-full transition-transform duration-300 ease-out flex flex-col overflow-hidden ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{
           height: height || 'auto',
-          maxHeight: '80vh',
+          maxHeight: '80%',
         }}
       >
         <div className="flex justify-center pt-2 pb-1">
@@ -105,6 +112,8 @@ export function BottomSheet({
           </div>
         )}
       </div>
-    </>
+    </div>
   )
+
+  return createPortal(content, document.body)
 }

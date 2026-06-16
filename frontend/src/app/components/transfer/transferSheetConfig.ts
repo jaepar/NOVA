@@ -1,0 +1,1 @@
+export const TRANSFER_BOTTOM_SHEET_HEIGHT = "520px";

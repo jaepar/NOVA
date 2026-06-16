@@ -1,6 +1,7 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Failed } from '../common/Failed'
 import { useTranslation } from '../../i18n'
+import { useTransferStore } from './transferStore'
 
 type TransferFailedLocationState = {
   message?: string
@@ -8,8 +9,15 @@ type TransferFailedLocationState = {
 
 export function TransferFailed() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { t } = useTranslation()
+  const resetTransfer = useTransferStore((state) => state.resetTransfer)
   const state = location.state as TransferFailedLocationState | null
+
+  const goMain = () => {
+    resetTransfer()
+    navigate('/main')
+  }
 
   return (
     <Failed
@@ -21,7 +29,7 @@ export function TransferFailed() {
       descriptionKey={state?.message ? undefined : 'transfer.failedDescription'}
       buttonText={t('common.confirm')}
       buttonTextKey="common.confirm"
-      redirectPath="/main"
+      onButtonClick={goMain}
       backPath="/transfer/review"
     />
   )

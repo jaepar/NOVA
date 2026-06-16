@@ -115,7 +115,18 @@ public class AuthService {
     }
 
     public void sendEmailVerificationCode(String email) {
+        sendEmailVerificationCode(email, false);
+    }
+
+    public void sendSignupEmailVerificationCode(String email) {
+        sendEmailVerificationCode(email, true);
+    }
+
+    private void sendEmailVerificationCode(String email, boolean rejectExistingEmail) {
         validateEmailFormat(email);
+        if (rejectExistingEmail) {
+            validateDuplicateEmail(email);
+        }
         // TTL 안에 재발송 제한 기능
         validateCooldown(email);
 

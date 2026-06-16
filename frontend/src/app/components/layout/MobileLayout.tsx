@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { FixedHeader } from './FixedHeader'
 import { CloseFixedHeader } from './CloseFixedHeader'
 import { TitleOnlyFixedHeader } from './TitleOnlyFixedHeader'
@@ -22,6 +22,7 @@ interface MobileLayoutProps {
   closePath?: string
   headerLeftContent?: ReactNode
   headerRightContent?: ReactNode
+  contentRef?: Ref<HTMLElement>
 }
 
 export function MobileLayout({
@@ -40,6 +41,7 @@ export function MobileLayout({
   closePath,
   headerLeftContent,
   headerRightContent,
+  contentRef,
   titleKey,
 }: MobileLayoutProps) {
   const { t } = useTranslation()
@@ -85,6 +87,7 @@ export function MobileLayout({
       )}
 
       <main
+        ref={contentRef}
         className="flex-1 pb-32 px-5 w-full overflow-y-auto"
         style={{ paddingTop: 'var(--app-content-offset)' }}
       >

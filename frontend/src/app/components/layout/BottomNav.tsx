@@ -1,7 +1,10 @@
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Home, Send, TrendingUp, User } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { AppButton } from '../design-system/AppButton'
+import { novaToast } from '../design-system/toast'
 import { useTranslation } from '../../i18n'
+import { userApi } from '../../../api/endpoints/user'
 
 interface NavItem {
   id: string
@@ -17,10 +20,64 @@ const navItems: NavItem[] = [
   { id: 'mypage', labelKey: 'bottomNav.mypage', icon: <User className="w-6 h-6" />, path: '/mypage' },
 ]
 
+const LazyBottomSheet = lazy(async () => {
+  const module = await import('./BottomSheet')
+
+  return { default: module.BottomSheet }
+})
+
+const LazyResidenceCardRequiredSheetContent = lazy(async () => {
+  const module = await import('./ResidenceCardRequiredSheetContent')
+
+  return { default: module.ResidenceCardRequiredSheetContent }
+})
+
 export function BottomNav() {
   const navigate = useNavigate()
   const location = useLocation()
   const { t } = useTranslation()
+  const [isResidenceCardSheetOpen, setResidenceCardSheetOpen] = useState(false)
+  const [hasLoadedResidenceCardSheet, setHasLoadedResidenceCardSheet] = useState(false)
+  const [isTransferEligibilityChecking, setTransferEligibilityChecking] = useState(false)
+
+  useEffect(() => {
+    if (isResidenceCardSheetOpen) {
+      setHasLoadedResidenceCardSheet(true)
+    }
+  }, [isResidenceCardSheetOpen])
+
+  const handleRegisterResidenceCard = () => {
+    setResidenceCardSheetOpen(false)
+    navigate('/foreigner-card/step-01')
+  }
+
+  const handleNavClick = async (item: NavItem) => {
+    if (item.id !== 'transfer') {
+      navigate(item.path)
+      return
+    }
+
+    if (isTransferEligibilityChecking) {
+      return
+    }
+
+    setTransferEligibilityChecking(true)
+
+    try {
+      const profile = await userApi.getProfile()
+
+      if (!profile.hasResidenceCard) {
+        setResidenceCardSheetOpen(true)
+        return
+      }
+
+      navigate(item.path)
+    } catch {
+      novaToast.error(t('main.retryLater'))
+    } finally {
+      setTransferEligibilityChecking(false)
+    }
+  }
 
   return (
     <>
@@ -43,7 +100,7 @@ export function BottomNav() {
               <AppButton
                 variant="unstyled"
                 key={item.id}
-                onClick={() => navigate(item.path)}
+                onClick={() => handleNavClick(item)}
                 className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all ${
                   isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
@@ -56,6 +113,22 @@ export function BottomNav() {
         </div>
       </div>
       </div>
+      {hasLoadedResidenceCardSheet ? (
+        <Suspense fallback={null}>
+          <LazyBottomSheet
+            isOpen={isResidenceCardSheetOpen}
+            onClose={() => setResidenceCardSheetOpen(false)}
+            title=""
+          >
+            <Suspense fallback={null}>
+              <LazyResidenceCardRequiredSheetContent
+                onLaterClick={() => setResidenceCardSheetOpen(false)}
+                onRegisterClick={handleRegisterResidenceCard}
+              />
+            </Suspense>
+          </LazyBottomSheet>
+        </Suspense>
+      ) : null}
     </>
   )
 }

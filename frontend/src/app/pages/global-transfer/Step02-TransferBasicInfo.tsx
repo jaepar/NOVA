@@ -6,6 +6,7 @@ import { SegmentedOptionField } from "../../components/design-system/SegmentedOp
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { CountrySelectBottomSheet } from "../../components/transfer/CountrySelectBottomSheet";
+import { TRANSFER_BOTTOM_SHEET_HEIGHT } from "../../components/transfer/transferSheetConfig";
 import {
   formatTransferCountryName,
   transferRemittanceCountries,
@@ -240,7 +241,7 @@ export function Step02TransferBasicInfo() {
         isOpen={openSheet === "purpose"}
         onClose={() => setOpenSheet(null)}
         title=""
-        height="520px"
+        height={TRANSFER_BOTTOM_SHEET_HEIGHT}
       >
         <div className="space-y-2">
           <div className="flex items-center justify-between pb-2">
@@ -306,7 +307,7 @@ export function Step02TransferBasicInfo() {
         isOpen={openSheet === "currency"}
         onClose={() => setOpenSheet(null)}
         title=""
-        height="560px"
+        height={TRANSFER_BOTTOM_SHEET_HEIGHT}
       >
         <div className="space-y-2">
           <div className="flex items-center justify-between pb-2">

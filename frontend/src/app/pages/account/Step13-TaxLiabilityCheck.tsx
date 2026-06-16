@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CircleHelp, FileText, Flag, Globe, Scale, X } from "lucide-react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
@@ -65,7 +65,7 @@ export function Step13TaxLiabilityCheck() {
 
   return (
     <>
-      <MobileLayout
+      <AccountMobileLayout
         title={t("account.customerInfoTitle")}
         titleKey="account.customerInfoTitle"
         backPath="/account/step-12"
@@ -178,7 +178,7 @@ export function Step13TaxLiabilityCheck() {
             )}
           </section>
         </div>
-      </MobileLayout>
+      </AccountMobileLayout>
 
       <BottomSheet
         isOpen={isGuideOpen}

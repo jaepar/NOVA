@@ -1,7 +1,7 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { InlineBanner } from "../../components/design-system/InlineBanner";
 import { ConsentOverviewAccordion } from "../../components/consent/ConsentOverviewAccordion";
@@ -63,7 +63,7 @@ export function LivenessConsentAgreement() {
   // [TEST ONLY END]
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t("account.identityTitle")}
       titleKey="account.identityTitle"
       backPath="/account/step-06"
@@ -99,7 +99,7 @@ export function LivenessConsentAgreement() {
           <InlineBanner message={errorMessage} variant="error" />
         )}
       </div>
-    </MobileLayout>
+    </AccountMobileLayout>
   );
 }
 

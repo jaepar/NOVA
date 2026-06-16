@@ -66,6 +66,7 @@ export function Main() {
   const [isNotificationsLoading, setNotificationsLoading] = useState(false)
   const [notificationsError, setNotificationsError] = useState(false)
   const [isCertificateIssuedModalOpen, setCertificateIssuedModalOpen] = useState(false)
+  const [isOpenAccountFromNotificationLoading, setOpenAccountFromNotificationLoading] = useState(false)
   const [isHospitalChatStarting, setHospitalChatStarting] = useState(false)
   const [hasLoadedSideMenu, setHasLoadedSideMenu] = useState(false)
   const [hasLoadedCertificateSheet, setHasLoadedCertificateSheet] = useState(false)
@@ -305,9 +306,40 @@ export function Main() {
     navigate('/account/step-01')
   }
 
-  const handleOpenAccountFromIssuedModal = () => {
-    setCertificateIssuedModalOpen(false)
-    navigate('/account/step-01')
+  const handleOpenAccountFromIssuedModal = async () => {
+    if (isOpenAccountFromNotificationLoading) {
+      return
+    }
+
+    const currentAccountHome =
+      accountHome?.uiState === 'HAS_ACCOUNT' ? accountHome : null
+
+    if (currentAccountHome) {
+      setCertificateIssuedModalOpen(false)
+      novaToast.info(t('main.accountAlreadyOpened'))
+      return
+    }
+
+    setOpenAccountFromNotificationLoading(true)
+
+    try {
+      const nextAccountHome = await bankingApi.getHome()
+      setAccountHome(nextAccountHome)
+      setHasUnreadNotifications(nextAccountHome.hasNotification)
+
+      if (nextAccountHome.uiState === 'HAS_ACCOUNT') {
+        setCertificateIssuedModalOpen(false)
+        novaToast.info(t('main.accountAlreadyOpened'))
+        return
+      }
+
+      setCertificateIssuedModalOpen(false)
+      navigate('/account/step-01')
+    } catch {
+      novaToast.error(t('main.retryLater'))
+    } finally {
+      setOpenAccountFromNotificationLoading(false)
+    }
   }
 
   const handleLogout = async () => {
@@ -421,6 +453,7 @@ export function Main() {
             isOpen={isCertificateIssuedModalOpen}
             onClose={() => setCertificateIssuedModalOpen(false)}
             onOpenAccount={handleOpenAccountFromIssuedModal}
+            isOpenAccountLoading={isOpenAccountFromNotificationLoading}
           />
         </Suspense>
       ) : null}

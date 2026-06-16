@@ -4,6 +4,7 @@ import { AppButton } from '../design-system/AppButton'
 import { BottomSheet } from '../layout/BottomSheet'
 import { formatTransferCountryName, type TransferCountry } from '../../data/transferCountries'
 import { useTranslation } from '../../i18n'
+import { TRANSFER_BOTTOM_SHEET_HEIGHT } from './transferSheetConfig'
 
 interface CountrySelectBottomSheetProps {
   countries: TransferCountry[]
@@ -22,7 +23,7 @@ export function CountrySelectBottomSheet({
   onClose,
   onSelect,
   title,
-  height = '640px',
+  height = TRANSFER_BOTTOM_SHEET_HEIGHT,
 }: CountrySelectBottomSheetProps) {
   const { language, t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState('')

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, X } from "lucide-react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { AppButton } from "../../components/design-system/AppButton";
@@ -34,7 +34,7 @@ export function Step11JobInformation() {
 
   return (
     <>
-      <MobileLayout
+      <AccountMobileLayout
         title={t("account.jobInfoTitle")}
         titleKey="account.jobInfoTitle"
         backPath="/account/step-10"
@@ -77,7 +77,7 @@ export function Step11JobInformation() {
             </AppButton>
           </section>
         </div>
-      </MobileLayout>
+      </AccountMobileLayout>
 
       <BottomSheet
         isOpen={isSheetOpen}
