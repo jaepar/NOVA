@@ -26,8 +26,6 @@ const BANK_OPTIONS = TRANSFER_BANK_OPTIONS;
 const REQUIRED_ACCOUNT_LENGTH = 10;
 const SOURCE_BANK =
   BANK_OPTIONS.find((bank) => bank.id === "woori") ?? BANK_OPTIONS[0];
-const SOURCE_ACCOUNT = "1002-867-390781";
-const RECIPIENT_NAME = "백민정";
 
 const BANK_LOGO_SRC: Record<string, string> = {
   woori: new URL("./transfer/assets/woori.png", import.meta.url).href,
@@ -159,8 +157,8 @@ export function Transfer() {
   const [isAmountKeypadOpen, setIsAmountKeypadOpen] = useState(false);
   const [isPasswordSheetOpen, setIsPasswordSheetOpen] = useState(false);
   const [password, setPassword] = useState("");
-  const [recipientMemoName, setRecipientMemoName] = useState(RECIPIENT_NAME);
-  const [senderMemoName, setSenderMemoName] = useState(RECIPIENT_NAME);
+  const [recipientMemoName, setRecipientMemoName] = useState("");
+  const [senderMemoName, setSenderMemoName] = useState("");
   const [memoDraft, setMemoDraft] = useState("");
 
   const detectedBanks = useMemo(
@@ -271,11 +269,8 @@ export function Transfer() {
     setStep("amountConfirm");
   };
 
-  const recipientBank =
-    selectedBank ??
-    BANK_OPTIONS.find((bank) => bank.id === "nonghyup") ??
-    BANK_OPTIONS[0];
-  const recipientAccount = accountNumber || "1122261925003";
+  const recipientBank = selectedBank;
+  const recipientAccount = accountNumber;
   const amountText = formatCurrency(amount);
 
   const renderAccountStep = () => (
@@ -423,18 +418,16 @@ export function Transfer() {
           <span>우리은행 계좌에서</span>
           <ChevronDown className="h-4 w-4" />
         </div>
-        <p className="mt-1 text-[13px] font-semibold text-[#8A9099]">
-          우리SUPER주거래통장 {SOURCE_ACCOUNT}
-        </p>
       </div>
       <div>
         <div className="flex items-center gap-2 text-[16px] font-bold text-[#202633]">
-          <BankMark bank={recipientBank} size="md" />
-          <span>{RECIPIENT_NAME} 님 계좌로</span>
+          {recipientBank ? <BankMark bank={recipientBank} size="md" /> : null}
+          <span>받는 계좌로</span>
           <ChevronDown className="h-4 w-4" />
         </div>
         <p className="mt-1 text-[13px] font-semibold text-[#8A9099]">
-          {recipientBank.name.replace("은행", "")} {recipientAccount}
+          {recipientBank ? `${recipientBank.name.replace("은행", "")} ` : ""}
+          {recipientAccount}
         </p>
       </div>
     </div>
@@ -606,21 +599,22 @@ export function Transfer() {
         <section className="pt-5 text-[#202633]">
           <div>
             <div className="flex items-center gap-2 text-[16px] font-bold">
-              <BankMark
-                bank={isRecipientMemo ? recipientBank : SOURCE_BANK}
-                size="md"
-              />
+              {isRecipientMemo && recipientBank ? (
+                <BankMark bank={recipientBank} size="md" />
+              ) : !isRecipientMemo ? (
+                <BankMark bank={SOURCE_BANK} size="md" />
+              ) : null}
               <span>
                 {isRecipientMemo
-                  ? `${RECIPIENT_NAME} 님 계좌로`
+                  ? "받는 계좌로"
                   : "우리은행 계좌에서"}
               </span>
               <ChevronDown className="h-4 w-4" />
             </div>
             <p className="mt-2 text-[13px] font-semibold text-[#8A9099]">
               {isRecipientMemo
-                ? `${recipientBank.name.replace("은행", "")} ${recipientAccount}`
-                : `우리SUPER주거래통장 ${SOURCE_ACCOUNT}`}
+                ? `${recipientBank ? `${recipientBank.name.replace("은행", "")} ` : ""}${recipientAccount}`
+                : "우리은행 계좌"}
             </p>
           </div>
 
@@ -704,17 +698,16 @@ export function Transfer() {
         <section className="pt-12 text-[#202633]">
           <div className="flex items-center gap-7">
             <BankMark bank={SOURCE_BANK} size="lg" />
-            <BankMark bank={recipientBank} size="lg" />
+            {recipientBank ? <BankMark bank={recipientBank} size="lg" /> : null}
           </div>
 
           <h2 className="mt-9 text-[24px] font-bold leading-snug">
-            <span className="text-[#006BFF]">{RECIPIENT_NAME}</span> 님에게
-            <br />
             <span className="text-[#006BFF]">{amountText}</span>을
             이체하시겠어요?
           </h2>
           <p className="mt-4 text-[14px] font-semibold text-[#8A9099]">
-            {recipientBank.name.replace("은행", "")} {recipientAccount} 계좌로
+            {recipientBank ? `${recipientBank.name.replace("은행", "")} ` : ""}
+            {recipientAccount} 계좌로
             보냅니다.
           </p>
 
@@ -796,15 +789,14 @@ export function Transfer() {
           <Check className="h-9 w-9 text-white" strokeWidth={4} />
         </div>
         <h2 className="mt-8 text-[24px] font-bold leading-snug">
-          {RECIPIENT_NAME} 님에게
-          <br />
           이체했어요
         </h2>
         <div className="mt-12 rounded-2xl bg-[#F7F7F8] px-6 py-5 text-[15px]">
           <div className="flex justify-between py-2">
             <span className="text-[#7B828C]">받는 계좌</span>
             <span className="font-bold">
-              {recipientBank.name.replace("은행", "")} {recipientAccount}
+              {recipientBank ? `${recipientBank.name.replace("은행", "")} ` : ""}
+              {recipientAccount}
             </span>
           </div>
           <div className="flex justify-between py-2">

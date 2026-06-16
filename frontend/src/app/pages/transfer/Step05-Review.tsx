@@ -6,7 +6,7 @@ import { BottomSheet } from '../../components/layout/BottomSheet'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { translateError, useTranslation } from '../../i18n'
 import { Loading } from '../common/Loading'
-import { BANK_OPTIONS, formatCurrency, getShortTransferBankName, RECIPIENT_NAME, SOURCE_BANK } from './types'
+import { formatCurrency, getShortTransferBankName, SOURCE_BANK } from './types'
 import { useTransferStore } from './transferStore'
 import { BankMark } from './components/BankMark'
 import { NumericKeypad } from './components/NumericKeypad'
@@ -20,9 +20,7 @@ export function TransferReview() {
   const amount = useTransferStore((state) => state.amount)
   const recipientMemoName = useTransferStore((state) => state.recipientMemoName)
   const senderMemoName = useTransferStore((state) => state.senderMemoName)
-  const recipientBank = selectedBank ?? BANK_OPTIONS.find((bank) => bank.id === 'nonghyup') ?? BANK_OPTIONS[0]
-  const recipientAccount = accountNumber || '1122261925003'
-  const recipientName = preview?.recipient.recipientName ?? RECIPIENT_NAME
+  const recipientName = preview?.recipient.recipientName ?? ''
   const amountText = formatCurrency(amount, language)
   const [isPasswordSheetOpen, setIsPasswordSheetOpen] = useState(false)
   const [password, setPassword] = useState('')
@@ -117,7 +115,7 @@ export function TransferReview() {
         <section className="pt-12 text-[#202633]">
           <div className="flex items-center gap-7">
             <BankMark bank={SOURCE_BANK} size="lg" />
-            <BankMark bank={recipientBank} size="lg" />
+            {selectedBank ? <BankMark bank={selectedBank} size="lg" /> : null}
           </div>
 
           {language === 'en' ? (
@@ -138,18 +136,18 @@ export function TransferReview() {
           )}
           <p className="mt-4 text-[14px] font-semibold text-[#8A9099]">
             {t('transfer.review.toAccount')
-              .replace('{bankName}', getShortTransferBankName(recipientBank, language))
-              .replace('{accountNumber}', recipientAccount)}
+              .replace('{bankName}', selectedBank ? getShortTransferBankName(selectedBank, language) : '')
+              .replace('{accountNumber}', accountNumber)}
           </p>
 
           <div className="mt-8 rounded-2xl bg-[#F7F7F8] px-5 py-5 text-[15px]">
             <div className="flex justify-between py-2">
               <span className="text-[#7B828C]">{t('transfer.review.recipientMemo')}</span>
-              <span className="font-bold">{recipientMemoName}</span>
+              <span className="font-bold">{recipientMemoName || preview?.myAccount.userName || ''}</span>
             </div>
             <div className="flex justify-between py-2">
               <span className="text-[#7B828C]">{t('transfer.review.senderMemo')}</span>
-              <span className="font-bold">{senderMemoName}</span>
+              <span className="font-bold">{senderMemoName || recipientName}</span>
             </div>
           </div>
         </section>

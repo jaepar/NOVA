@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { type BankOption, type TransferPreview, RECIPIENT_NAME } from './types'
+import { type BankOption, type TransferPreview } from './types'
 
 interface TransferState {
   accountNumber: string
@@ -24,8 +24,8 @@ const initialState = {
   selectedBank: null,
   preview: null,
   amount: '',
-  recipientMemoName: RECIPIENT_NAME,
-  senderMemoName: RECIPIENT_NAME,
+  recipientMemoName: '',
+  senderMemoName: '',
 }
 
 export const useTransferStore = create<TransferState>((set) => ({
