@@ -71,6 +71,7 @@ export function HospitalChatPage() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const scrollEndRef = useRef<HTMLDivElement | null>(null)
   const messageListRef = useRef<HTMLElement | null>(null)
+  const pendingMessagesRef = useRef<string[]>([])
   const [draft, setDraft] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [isEndingSession, setIsEndingSession] = useState(false)
@@ -79,7 +80,7 @@ export function HospitalChatPage() {
   )
 
   const hasConversation = Boolean(conversationId)
-  const isComposerDisabled = !hasConversation || isSending || isEndingSession
+  const isComposerDisabled = !hasConversation || isEndingSession
   const placeholder = isSending
     ? '챗봇이 답변을 준비하고 있어요.'
     : '메시지를 입력해주세요.'
@@ -121,14 +122,31 @@ export function HospitalChatPage() {
     ])
   }
 
+  const flushPendingMessages = async () => {
+    if (isSending || isEndingSession) {
+      return
+    }
+
+    const nextMessage = pendingMessagesRef.current.shift()
+    if (!nextMessage) {
+      return
+    }
+
+    await sendMessage(nextMessage)
+  }
+
   const sendMessage = async (rawMessage: string) => {
     const trimmedMessage = rawMessage.trim()
-    if (!trimmedMessage || !conversationId || isSending || isEndingSession) {
+    if (!trimmedMessage || !conversationId || isEndingSession) {
+      return
+    }
+
+    if (isSending) {
+      pendingMessagesRef.current.push(trimmedMessage)
       return
     }
 
     setMessages((current) => [...current, createUserMessage(trimmedMessage)])
-    setDraft('')
     setIsSending(true)
 
     try {
@@ -142,11 +160,18 @@ export function HospitalChatPage() {
       appendAssistantError()
     } finally {
       setIsSending(false)
+      void flushPendingMessages()
     }
   }
 
   const handleSubmit = async () => {
-    await sendMessage(draft)
+    const nextDraft = draft.trim()
+    if (!nextDraft) {
+      return
+    }
+
+    setDraft('')
+    await sendMessage(nextDraft)
   }
 
   const handleBack = async () => {
@@ -194,7 +219,7 @@ export function HospitalChatPage() {
               <AppButton
                 type="button"
                 variant="unstyled"
-                disabled={isComposerDisabled || !draft.trim()}
+                disabled={isEndingSession || !draft.trim()}
                 onClick={() => void handleSubmit()}
                 className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white disabled:bg-slate-200 disabled:text-slate-400"
                 aria-label="메시지 전송"
