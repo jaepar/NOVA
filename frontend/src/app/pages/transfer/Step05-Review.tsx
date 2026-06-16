@@ -21,6 +21,7 @@ export function TransferReview() {
   const recipientMemoName = useTransferStore((state) => state.recipientMemoName)
   const senderMemoName = useTransferStore((state) => state.senderMemoName)
   const recipientName = preview?.recipient.recipientName ?? ''
+  const recipientAccount = accountNumber
   const amountText = formatCurrency(amount, language)
   const [isPasswordSheetOpen, setIsPasswordSheetOpen] = useState(false)
   const [password, setPassword] = useState('')
