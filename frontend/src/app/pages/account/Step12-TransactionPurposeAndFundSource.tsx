@@ -8,7 +8,7 @@ import { useAccountCreateFlowStore } from "../../stores/pageStores";
 import { useTranslation } from "../../i18n";
 
 const transactionPurposeOptions = [
-  { value: "SAVING_AND_INVESTMENT", labelKey: "account.transactionInfo.savingInvestment" },
+  { value: "SAVINGS_AND_INVESTMENT", labelKey: "account.transactionInfo.savingInvestment" },
   { value: "SALARY_AND_LIVING_EXPENSES", labelKey: "account.transactionInfo.salaryLiving" },
   { value: "BUSINESS_TRANSACTION", labelKey: "account.transactionInfo.business" },
   { value: "INHERITANCE_OR_GIFT", labelKey: "account.transactionInfo.inheritanceGift" },
