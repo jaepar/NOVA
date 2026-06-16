@@ -563,3 +563,68 @@ def test_langgraph_hospital_agent_uses_requested_response_language_in_system_pro
     assert "Answer in English" in messages[0].content
     assert "always Korean" not in messages[0].content
     assert result["message"] == "Dentist options are ready."
+
+
+def test_extract_response_items_adds_local_display_fields_for_slot_times():
+    agent = LangGraphHospitalAgent(
+        llm=Mock(),
+        backend_client=Mock(),
+    )
+
+    items = agent._extract_response_items(
+        tool_name="get_available_slots",
+        payload={
+            "data": {
+                "items": [
+                    {"available_at": "2026-06-17T09:30:00", "is_available": True},
+                    "2026-06-17T10:00:00",
+                ]
+            }
+        },
+        fallback_items=None,
+    )
+
+    assert items == [
+        {
+            "available_at": "2026-06-17T09:30:00",
+            "available_at_display": "2026-06-17 09:30",
+            "is_available": True,
+        },
+        {
+            "available_at": "2026-06-17T10:00:00",
+            "available_at_display": "2026-06-17 10:00",
+        },
+    ]
+
+
+def test_extract_response_items_adds_local_display_fields_for_reservation_times():
+    agent = LangGraphHospitalAgent(
+        llm=Mock(),
+        backend_client=Mock(),
+    )
+
+    items = agent._extract_response_items(
+        tool_name="get_reservations",
+        payload={
+            "data": {
+                "items": [
+                    {
+                        "reservation_id": 7,
+                        "reserved_at": "2026-06-17T14:00:00",
+                        "confirmed_at": "2026-06-16T18:20:00",
+                    }
+                ]
+            }
+        },
+        fallback_items=None,
+    )
+
+    assert items == [
+        {
+            "reservation_id": 7,
+            "reserved_at": "2026-06-17T14:00:00",
+            "reserved_at_display": "2026-06-17 14:00",
+            "confirmed_at": "2026-06-16T18:20:00",
+            "confirmed_at_display": "2026-06-16 18:20",
+        }
+    ]

@@ -99,6 +99,20 @@ ai/.coverage
 ai/htmlcov/
 
 # ------------------------------
+# FDS (Python / FastAPI / generated artifacts)
+# ------------------------------
+fds/.venv/
+fds/venv/
+fds/**/__pycache__/
+fds/.pytest_cache/
+fds/.mypy_cache/
+fds/.ruff_cache/
+fds/.coverage
+fds/htmlcov/
+fds/data/
+fds/artifacts/
+
+# ------------------------------
 # Core Banking Gateway (generic build outputs)
 # ------------------------------
 core-banking-gateway/build/
