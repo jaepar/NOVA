@@ -143,7 +143,7 @@ export function Main() {
         navigate('/hospital-chat', {
           state: {
             conversationId: session.conversation_id,
-            initialMessage: session.message,
+            initialMessage: t('main.hospitalChatWelcome'),
           },
         })
       } catch {

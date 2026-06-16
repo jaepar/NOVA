@@ -103,6 +103,7 @@ export const en = {
   },
   main: {
     hospitalReservation: 'Hospital Reservation',
+    hospitalChatWelcome: 'Starting your hospital reservation chat.',
     connecting: 'Connecting...',
     residenceCard: 'Residence Card',
     wallet: 'Wallet',
