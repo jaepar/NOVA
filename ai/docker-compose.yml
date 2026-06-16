@@ -4,6 +4,7 @@ services:
     container_name: ${AI_CONTAINER_NAME:-nova-ai}
     restart: unless-stopped
     environment:
+      TZ: Asia/Seoul
       SERVER_PORT: ${SERVER_PORT}
       BACKEND_BASE_URL: ${BACKEND_BASE_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
