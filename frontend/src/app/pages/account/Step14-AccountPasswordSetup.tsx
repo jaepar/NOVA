@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, Shield, Wallet } from "lucide-react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { PinInputBottomSheet } from "../../components/design-system/PinInputBottomSheet";
 import { novaToast } from "../../components/design-system/toast";
@@ -23,7 +23,7 @@ const JOB_CODES = new Set([
 ]);
 
 const PURPOSE_CODES = new Set([
-  "SAVING_AND_INVESTMENT",
+  "SAVINGS_AND_INVESTMENT",
   "SALARY_AND_LIVING_EXPENSES",
   "BUSINESS_TRANSACTION",
   "INHERITANCE_OR_GIFT",
@@ -151,7 +151,7 @@ export function Step14AccountPasswordSetup() {
 
   return (
     <>
-      <MobileLayout
+      <AccountMobileLayout
         title={t("account.openingHeader")}
         titleKey="account.openingHeader"
         backPath="/account/step-13"
@@ -216,7 +216,7 @@ export function Step14AccountPasswordSetup() {
             </div>
           </section>
         </div>
-      </MobileLayout>
+      </AccountMobileLayout>
 
       <PinInputBottomSheet
         key={pinSheetKey}

@@ -1,10 +1,10 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity/dist-es/fromCognitoIdentityPool";
 import { FaceLivenessDetector } from "@aws-amplify/ui-react-liveness";
 import "@aws-amplify/ui-react-liveness/styles.css";
 import "../../styles/liveness/LivenessCameraCapture.css";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { InlineBanner } from "../../components/design-system/InlineBanner";
 import { certificateApi } from "../../../api";
@@ -410,19 +410,19 @@ export function LivenessCameraCapture() {
 
   if (!hasAwsConfig) {
     return (
-      <MobileLayout title={t("account.identityTitle")} titleKey="account.identityTitle" backPath={STEP08_PATH}>
+      <AccountMobileLayout title={t("account.identityTitle")} titleKey="account.identityTitle" backPath={STEP08_PATH}>
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">{t("account.livenessCamera.configRequiredTitle")}</h2>
           <p className="text-sm text-muted-foreground">
             {t("account.livenessCamera.configRequiredDescription")}
           </p>
         </div>
-      </MobileLayout>
+      </AccountMobileLayout>
     );
   }
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t("account.identityTitle")}
       titleKey="account.identityTitle"
       headerType="close"
@@ -481,6 +481,6 @@ export function LivenessCameraCapture() {
           <InlineBanner message={failureMessage} variant="error" />
         )}
       </div>
-    </MobileLayout>
+    </AccountMobileLayout>
   );
 }

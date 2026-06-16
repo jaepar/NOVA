@@ -32,9 +32,9 @@ export function Complete() {
     >
       <SignupContent className="flex min-h-full flex-col">
         <div className="flex flex-1 flex-col items-center justify-center gap-7 text-center">
-          <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-primary/10">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Check className="h-12 w-12" />
+          <div className="flex h-[104px] w-[104px] items-center justify-center rounded-full bg-[#EAF3FF]">
+            <div className="flex h-[78px] w-[78px] items-center justify-center rounded-full bg-[#DCEBFF]">
+              <Check className="h-14 w-14 stroke-[4.5] text-[#1D6FE8]" />
             </div>
           </div>
 

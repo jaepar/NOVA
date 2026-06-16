@@ -43,6 +43,14 @@ export const emailVerificationApi = {
       throw toEmailVerificationApiError(error)
     }
   },
+  sendForSignup: async (email: string): Promise<EmailVerificationSendResponse> => {
+    try {
+      await authApi.sendSignupEmailVerification({ email })
+      return {}
+    } catch (error) {
+      throw toEmailVerificationApiError(error)
+    }
+  },
   confirm: async (
     email: string,
     code: string

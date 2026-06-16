@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BadgeInfo, CreditCard, ShieldCheck } from "lucide-react";
+import { BadgeInfo, IdCard, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MobileLayout } from "../../components/layout/MobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
@@ -12,10 +12,10 @@ function TransferVerificationHero() {
   const { t } = useTranslation();
 
   return (
-    <section className="overflow-hidden rounded-[28px] border border-[#E6EEF9] bg-[linear-gradient(135deg,#F8FBFF_0%,#EEF5FF_100%)] p-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="space-y-3">
-          <h2 className="text-[20px] font-semibold leading-8 text-[#132347]">
+    <section className="overflow-hidden rounded-[28px] border border-[#E6EEF9] bg-[linear-gradient(135deg,#F8FBFF_0%,#EEF5FF_100%)] px-5 py-6">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1 space-y-3">
+          <h2 className="whitespace-nowrap text-[20px] font-semibold leading-8 text-[#132347]">
             {t("globalTransfer.verification.heading")}
           </h2>
           <p className="whitespace-pre-line text-sm leading-7 text-[#4E5E78]">
@@ -23,12 +23,13 @@ function TransferVerificationHero() {
           </p>
         </div>
 
-        <div className="relative shrink-0">
-          <div className="flex h-28 w-28 items-center justify-center rounded-[24px] bg-[linear-gradient(180deg,#DCEAFE_0%,#F3F8FF_100%)] text-[#3B82F6]">
-            <CreditCard className="h-14 w-14" strokeWidth={1.5} />
-          </div>
-          <div className="absolute -bottom-2 -right-3 flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(180deg,#4D99FF_0%,#1B6FFF_100%)] text-white shadow-[0_12px_24px_rgba(27,111,255,0.24)]">
-            <ShieldCheck className="h-7 w-7" strokeWidth={2} />
+        <div className="mt-2 flex h-[104px] w-[96px] shrink-0 items-center justify-center self-end">
+          <div className="relative flex h-[88px] w-[88px] items-center justify-center rounded-[30px] bg-white shadow-[0_16px_34px_rgba(27,111,255,0.10)]">
+            <div className="absolute inset-1 rounded-[26px] border border-[#D7E6FF] bg-[linear-gradient(180deg,#FFFFFF_0%,#F1F7FF_100%)]" />
+            <IdCard className="relative h-10 w-10 text-[#2476F2]" strokeWidth={1.9} />
+            <div className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-white bg-[#1B6FFF] text-white shadow-[0_10px_20px_rgba(27,111,255,0.24)]">
+              <ShieldCheck className="h-5 w-5" strokeWidth={2.3} />
+            </div>
           </div>
         </div>
       </div>

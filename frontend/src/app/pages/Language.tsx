@@ -7,20 +7,19 @@ import { Btn_1Col } from "../components/design-system/Btn_1Col";
 import { CommonInputGroup } from "../components/design-system/CommonInputGroup";
 import { languages } from "../data/languages";
 import { useTranslation } from "../i18n";
-import {
-  getOnboardingLanguage,
-  saveOnboardingLanguage,
-} from "../utils/onboardingStorage";
+import { saveOnboardingLanguage } from "../utils/onboardingStorage";
 
 export function Language() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(
-    () => getOnboardingLanguage() ?? languages[0].id
-  );
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const handleConfirm = () => {
+    if (!selectedLanguage) {
+      return;
+    }
+
     saveOnboardingLanguage(selectedLanguage);
     navigate("/login", { state: { fromLanguage: true } });
   };
@@ -44,12 +43,13 @@ export function Language() {
       titleKey="language.title"
       backPath="/landing"
       bottomContent={
-        <Btn_1Col onClick={handleConfirm}>{t("common.confirm")}</Btn_1Col>
+        <Btn_1Col onClick={handleConfirm} disabled={!selectedLanguage}>
+          {t("common.confirm")}
+        </Btn_1Col>
       }
     >
       <div className="space-y-4">
         <CommonInputGroup
-          label={t("language.searchLabel")}
           placeholder={t("language.searchPlaceholder")}
           value={searchQuery}
           onChange={setSearchQuery}

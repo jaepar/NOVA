@@ -85,6 +85,20 @@ const passportFieldValidators: Record<string, (value: string) => boolean> = {
   기간만료일: hasValidDateValue,
 };
 
+const passportFieldValidatorsById: Record<string, (value: string) => boolean> = {
+  type: (value) => /^[A-Z0-9]{1,3}$/.test(value),
+  countryCode: (value) => /^[A-Z]{3}$/.test(value),
+  passportNum: (value) => /^[A-Z0-9]{5,20}$/.test(value),
+  surName: (value) => /^[A-Z][A-Z\s'-]*$/.test(value),
+  givenName: (value) => /^[A-Z][A-Z\s'-]*$/.test(value),
+  birthDate: hasValidDateValue,
+  sex: (value) => /^(M|F|X)$/.test(value),
+  nationality: (value) => /^[A-Z][A-Z\s'-]*$/.test(value),
+  authority: (value) => /^[A-Z][A-Z\s&'().-]*$/.test(value),
+  issueDate: hasValidDateValue,
+  expireDate: hasValidDateValue,
+};
+
 export function PassportCameraCapture() {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -164,7 +178,7 @@ export function PassportCameraCapture() {
 
   const isReviewFormValid = ocrResultRows.every((row) => {
     const value = (editableOcrValues[row.id] ?? "").trim();
-    const validator = passportFieldValidators[row.label];
+    const validator = passportFieldValidatorsById[row.id];
 
     return value.length > 0 && Boolean(validator?.(value));
   });
@@ -336,15 +350,15 @@ export function PassportCameraCapture() {
               return (
                 <div
                   key={row.id}
-                  className="grid grid-cols-[140px_1fr] border-b border-border last:border-b-0"
+                  className="grid grid-cols-[minmax(0,46%)_minmax(0,1fr)] border-b border-border last:border-b-0"
                 >
-                  <div className="px-4 py-4 flex items-center gap-3 bg-secondary/20">
+                  <div className="min-w-0 px-4 py-4 flex items-center gap-3 bg-secondary/20">
                     <div className="w-10 h-10 rounded-full bg-primary-soft text-primary flex items-center justify-center shrink-0">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <p className="text-base whitespace-nowrap">{row.label}</p>
+                    <p className="min-w-0 text-sm leading-snug break-words">{row.label}</p>
                   </div>
-                  <div className="px-4 py-4 flex items-center">
+                  <div className="min-w-0 px-4 py-4 flex items-center">
                     <input
                       type="text"
                       value={editableOcrValues[row.id] ?? ""}
@@ -353,7 +367,7 @@ export function PassportCameraCapture() {
                       }
                       autoComplete="off"
                       spellCheck={false}
-                      className="w-full rounded-md bg-background px-2 py-1 text-base text-foreground outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary"
+                      className="min-w-0 w-full rounded-md bg-background px-2 py-1 text-base text-foreground outline-none ring-1 ring-transparent focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </div>

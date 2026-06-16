@@ -55,7 +55,7 @@ export function ConsentTermDetailView({
         navigate(basePath, { state: { [preserveStateKey]: true } })
       }}
     >
-      <div className="space-y-4">
+      <div className="space-y-4 pt-5">
         <h2 className="text-xl font-semibold">
           {t(`${namespace}.terms.${term.id}.title`, term.title)}
         </h2>

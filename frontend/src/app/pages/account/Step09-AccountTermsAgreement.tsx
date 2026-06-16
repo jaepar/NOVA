@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { ConsentOverviewAccordion } from "../../components/consent/ConsentOverviewAccordion";
 import { accountOpenConsentDefinition } from "../../domains/account-consent/definition.open-account";
@@ -16,7 +16,7 @@ export function AccountTermsAgreement() {
   );
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t("account.openingHeader")}
       titleKey="account.openingHeader"
       backPath="/account/step-07"
@@ -40,6 +40,6 @@ export function AccountTermsAgreement() {
         description=""
         onRequiredCompleteChange={setIsRequiredComplete}
       />
-    </MobileLayout>
+    </AccountMobileLayout>
   );
 }

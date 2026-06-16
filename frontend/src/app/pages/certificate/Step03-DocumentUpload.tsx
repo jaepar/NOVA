@@ -1,21 +1,34 @@
-import { useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { CircleAlert, FileText, Upload, X } from 'lucide-react'
+import { certificateApi, getCertificateApiError } from '../../../api'
+import { novaToast } from '../../components/design-system'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { AppButton } from '../../components/design-system/AppButton'
-import { useTranslation } from '../../i18n'
+import { translateError, useTranslation } from '../../i18n'
 import { useStep3PageStore } from '../../stores/pageStores'
 
 export function Step03DocumentUpload() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useTranslation()
   const documents = useStep3PageStore((state) => state.documents)
   const setDocumentFile = useStep3PageStore((state) => state.setDocumentFile)
   const setDocumentError = useStep3PageStore((state) => state.setDocumentError)
+  const resetDocuments = useStep3PageStore((state) => state.reset)
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const shouldResetDocumentUpload = Boolean(
+    (location.state as { resetDocumentUpload?: boolean } | null)?.resetDocumentUpload
+  )
 
   const isAllAttached = documents.every((doc) => Boolean(doc.file))
+
+  useEffect(() => {
+    if (!shouldResetDocumentUpload) return
+    resetDocuments()
+  }, [resetDocuments, shouldResetDocumentUpload])
 
   const openPicker = (id: string) => {
     fileInputRefs.current[id]?.click()
@@ -39,16 +52,37 @@ export function Step03DocumentUpload() {
     return file.type === 'application/pdf' || lowerName.endsWith('.pdf')
   }
 
-  const handleNext = () => {
-    if (!isAllAttached) {
+  const handleNext = async () => {
+    if (!isAllAttached || isSubmitting) {
       return
     }
 
-    navigate('/certificate/step-04')
+    const registrationApplicationFile =
+      documents.find((document) => document.id === 'registration-application')?.file ?? undefined
+    const residenceProofFile =
+      documents.find((document) => document.id === 'residence-proof')?.file ?? undefined
+
+    try {
+      setIsSubmitting(true)
+      await certificateApi.uploadDocuments({
+        residenceVerificationPdf: residenceProofFile ?? undefined,
+        alienRegistrationApplicationPdf: registrationApplicationFile ?? undefined,
+      })
+      resetDocuments()
+      navigate('/certificate/step-04')
+    } catch (error) {
+      const apiError = getCertificateApiError(error)
+      novaToast.error(
+        translateError(apiError?.code, apiError?.message || t('certificate.correctionSubmitFailed'))
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // [TEST ONLY START] 서류 업로드 여부와 무관하게 다음 단계로 이동하는 임시 버튼
   const handleSkipDocumentUploadForTest = () => {
+    resetDocuments()
     navigate('/certificate/step-04')
   }
   // [TEST ONLY END]
@@ -59,10 +93,10 @@ export function Step03DocumentUpload() {
       backPath="/certificate/step-02"
       bottomContent={
         <div className="space-y-2">
-          <Btn_1Col disabled={!isAllAttached} onClick={handleNext}>
-            {t('certificate.nextButton')}
+          <Btn_1Col disabled={!isAllAttached || isSubmitting} onClick={handleNext}>
+            {isSubmitting ? t('certificate.submitting') : t('certificate.nextButton')}
           </Btn_1Col>
-          <Btn_1Col variant="outline" onClick={handleSkipDocumentUploadForTest}>
+          <Btn_1Col variant="outline" onClick={handleSkipDocumentUploadForTest} disabled={isSubmitting}>
             {t('certificate.skipUploadTest')}
           </Btn_1Col>
         </div>

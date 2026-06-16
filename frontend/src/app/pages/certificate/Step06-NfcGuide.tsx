@@ -230,7 +230,7 @@ export function NfcGuide() {
   return (
     <MobileLayout
       title={t("certificate.title")}
-      backPath="/certificate/step-05"
+      backPath="/certificate/step-04"
       bottomContent={
         <div className="space-y-2">
           <Btn_1Col onClick={handleStartNfcTagging} disabled={isScanning}>

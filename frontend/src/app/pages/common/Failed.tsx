@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
+import { Btn_2Col } from '../../components/design-system/Btn_2Col'
 import { CenteredTaskContent } from '../../components/design-system/CenteredTaskContent'
 import { useTranslation } from '../../i18n'
 
@@ -18,9 +19,15 @@ interface FailedProps {
   visualImageAltKey?: string
   buttonText?: string
   buttonTextKey?: string
+  buttonDisabled?: boolean
+  secondaryButtonText?: string
+  secondaryButtonTextKey?: string
+  onSecondaryButtonClick?: () => void
+  secondaryRedirectPath?: string
   onButtonClick?: () => void
   redirectPath?: string
   backPath?: string
+  headerType?: 'back' | 'none'
 }
 
 export function Failed({
@@ -30,14 +37,20 @@ export function Failed({
   visualImageSrc,
   visualImageAlt,
   buttonText,
+  buttonDisabled = false,
+  secondaryButtonText,
+  onSecondaryButtonClick,
+  secondaryRedirectPath = '/',
   onButtonClick,
   redirectPath = '/',
   backPath,
+  headerType = 'back',
   headerTitleKey,
   taskKey,
   descriptionKey,
   visualImageAltKey,
   buttonTextKey,
+  secondaryButtonTextKey,
 }: FailedProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -47,6 +60,9 @@ export function Failed({
   const resolvedVisualImageAlt = visualImageAltKey
     ? t(visualImageAltKey, visualImageAlt)
     : visualImageAlt ?? t('status.failedImageAlt')
+  const resolvedSecondaryButtonText = secondaryButtonTextKey
+    ? t(secondaryButtonTextKey, secondaryButtonText)
+    : secondaryButtonText
 
   const handleRetry = () => {
     if (onButtonClick) {
@@ -56,16 +72,35 @@ export function Failed({
     navigate(redirectPath)
   }
 
+  const handleSecondary = () => {
+    if (onSecondaryButtonClick) {
+      onSecondaryButtonClick()
+      return
+    }
+    navigate(secondaryRedirectPath)
+  }
+
   return (
     <MobileLayout
       title={headerTitle}
       titleKey={headerTitleKey}
       backPath={backPath}
+      headerType={headerType}
       bottomBackgroundColor="transparent"
       bottomContent={
-        <Btn_1Col variant="primary" onClick={handleRetry}>
-          {resolvedButtonText}
-        </Btn_1Col>
+        resolvedSecondaryButtonText ? (
+          <Btn_2Col
+            leftLabel={resolvedSecondaryButtonText}
+            rightLabel={resolvedButtonText}
+            onLeftClick={handleSecondary}
+            onRightClick={handleRetry}
+            rightDisabled={buttonDisabled}
+          />
+        ) : (
+          <Btn_1Col variant="primary" onClick={handleRetry} disabled={buttonDisabled}>
+            {resolvedButtonText}
+          </Btn_1Col>
+        )
       }
     >
       <CenteredTaskContent

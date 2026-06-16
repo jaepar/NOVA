@@ -86,6 +86,7 @@ export function LivenessConsentAgreement() {
           translationNamespace="consent.certificate"
           title={t("certificate.step08Title")}
           description=""
+          categoryTitleAction="consent"
           onRequiredCompleteChange={setIsRequiredComplete}
         />
         {errorMessage && (

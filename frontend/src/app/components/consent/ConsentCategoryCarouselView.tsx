@@ -108,7 +108,7 @@ export function ConsentCategoryCarouselView({
         navigate(basePath, { state: { [preserveStateKey]: true } })
       }}
     >
-      <div className="space-y-4 select-none" onPointerDown={onDown} onPointerUp={onUp}>
+      <div className="space-y-4 pt-5 select-none" onPointerDown={onDown} onPointerUp={onUp}>
         {total > 1 && (
           <p className="text-sm text-muted-foreground">
             {currentIndex + 1} / {total}

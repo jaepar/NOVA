@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
-import { MobileLayout } from '../../components/layout/MobileLayout'
+import { AccountMobileLayout } from './components/AccountMobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { useTranslation } from '../../i18n'
 
@@ -16,7 +16,7 @@ export function VerificationCompleted() {
   const { t } = useTranslation()
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t('account.identityTitle')}
       titleKey="account.identityTitle"
       backPath="/account/step-07"
@@ -61,6 +61,6 @@ export function VerificationCompleted() {
           </div>
         </section>
       </div>
-    </MobileLayout>
+    </AccountMobileLayout>
   )
 }

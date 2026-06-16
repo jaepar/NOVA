@@ -18,7 +18,7 @@ export function PassportCaptureGuide() {
   return (
     <MobileLayout
       title={t('certificate.title')}
-      backPath="/certificate/step-03"
+      onBack={() => navigate('/certificate/step-03', { state: { resetDocumentUpload: true } })}
       bottomContent={
         <Btn_1Col onClick={() => navigate('/certificate/step-05')}>{t('certificate.passportStartCapture')}</Btn_1Col>
       }

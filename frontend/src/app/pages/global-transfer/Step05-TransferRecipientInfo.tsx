@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   bankingApi,
@@ -12,6 +12,7 @@ import { AppButton } from "../../components/design-system/AppButton";
 import { SegmentedOptionField } from "../../components/design-system/SegmentedOptionField";
 import { BottomSheet } from "../../components/layout/BottomSheet";
 import { MobileLayout } from "../../components/layout/MobileLayout";
+import { TRANSFER_BOTTOM_SHEET_HEIGHT } from "../../components/transfer/transferSheetConfig";
 import { transferCountries } from "../../data/transferCountries";
 import {
   useTransferBasicInfoPageStore,
@@ -19,7 +20,9 @@ import {
   useTransferSenderInfoPageStore,
 } from "../../stores/pageStores";
 import { translateError, useTranslation } from "../../i18n";
+import { getDialCodeByCountryId, PhoneNumberField } from "./PhoneNumberField";
 import { normalizeTransferAmount, toTransferAmountNumber } from "./transferQuote";
+import { isValidEnglishName, isValidPhoneNumber } from "./transferValidation";
 
 const paymentReasonOptions = ["tuition", "living", "family", "medical", "transaction", "other"] as const;
 
@@ -35,6 +38,7 @@ function ClearableInput({
   multiline = false,
   labelAction,
   inputMode,
+  error,
 }: {
   label: string;
   value: string;
@@ -44,6 +48,7 @@ function ClearableInput({
   multiline?: boolean;
   labelAction?: React.ReactNode;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  error?: string;
 }) {
   return (
     <div className="space-y-2">
@@ -51,12 +56,17 @@ function ClearableInput({
         <label className="block text-base text-foreground">{label}</label>
         {labelAction}
       </div>
-      <div className="relative mt-[6px] overflow-hidden rounded-2xl border border-border bg-background">
+      <div
+        className={`relative mt-[6px] overflow-hidden rounded-2xl border bg-background ${
+          error ? "border-destructive" : "border-border"
+        }`}
+      >
         {multiline ? (
           <textarea
             value={value}
             onChange={(event) => onChange(event.target.value)}
             placeholder={placeholder}
+            aria-invalid={Boolean(error)}
             className="min-h-24 w-full resize-none bg-transparent px-5 py-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
         ) : (
@@ -66,6 +76,7 @@ function ClearableInput({
             value={value}
             onChange={(event) => onChange(event.target.value)}
             placeholder={placeholder}
+            aria-invalid={Boolean(error)}
             className={`h-16 w-full bg-transparent px-5 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none ${
               trailing ? "pr-16" : "pr-5"
             }`}
@@ -75,6 +86,7 @@ function ClearableInput({
           <div className="absolute inset-y-0 right-4 flex items-center">{trailing}</div>
         ) : null}
       </div>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>
   );
 }
@@ -82,6 +94,7 @@ function ClearableInput({
 export function Step05TransferRecipientInfo() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const contentRef = useRef<HTMLElement | null>(null);
   const purpose = useTransferBasicInfoPageStore((state) => state.purpose);
   const countryId = useTransferBasicInfoPageStore((state) => state.countryId);
   const currencyCode = useTransferBasicInfoPageStore((state) => state.currencyCode);
@@ -118,6 +131,9 @@ export function Step05TransferRecipientInfo() {
   const manualPaymentDetail = useTransferRecipientInfoPageStore(
     (state) => state.manualPaymentDetail
   );
+  const recipientInfoScrollTop = useTransferRecipientInfoPageStore(
+    (state) => state.recipientInfoScrollTop
+  );
   const setRecipientName = useTransferRecipientInfoPageStore((state) => state.setRecipientName);
   const setRecipientDetailAddress = useTransferRecipientInfoPageStore(
     (state) => state.setRecipientDetailAddress
@@ -143,7 +159,11 @@ export function Step05TransferRecipientInfo() {
   const setManualPaymentDetail = useTransferRecipientInfoPageStore(
     (state) => state.setManualPaymentDetail
   );
+  const setRecipientInfoScrollTop = useTransferRecipientInfoPageStore(
+    (state) => state.setRecipientInfoScrollTop
+  );
   const [openSheet, setOpenSheet] = useState<RecipientSelectionSheet>(null);
+  const [isPhoneCountryCodeSheetOpen, setPhoneCountryCodeSheetOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const selectedCountry =
     transferCountries.find((country) => country.id === countryId) ?? transferCountries[0];
@@ -156,6 +176,16 @@ export function Step05TransferRecipientInfo() {
   const selectedPaymentReason = paymentReasonOptions.includes(paymentReason as PaymentReason)
     ? paymentReason
     : "";
+  const isRecipientNameValid = isValidEnglishName(recipientName);
+  const isRecipientPhoneNumberValid = isValidPhoneNumber(recipientPhoneNumber);
+  const recipientNameError =
+    recipientName.trim().length > 0 && !isRecipientNameValid
+      ? t("globalTransfer.recipientInfo.nameError")
+      : "";
+  const recipientPhoneNumberError =
+    recipientPhoneNumber.trim().length > 0 && !isRecipientPhoneNumberValid
+      ? t("globalTransfer.recipientInfo.phoneError")
+      : "";
 
   const renderClearButton = (onClear: () => void) => (
     <AppButton
@@ -170,10 +200,10 @@ export function Step05TransferRecipientInfo() {
   );
 
   const canProceed =
-    recipientName.trim().length > 0 &&
+    isRecipientNameValid &&
     recipientDetailAddress.trim().length > 0 &&
     recipientCity.trim().length > 0 &&
-    recipientPhoneNumber.trim().length > 0 &&
+    isRecipientPhoneNumberValid &&
     swiftCode.trim().length > 0 &&
     accountNumber.trim().length > 0 &&
     routingNumber.trim().length > 0 &&
@@ -184,6 +214,21 @@ export function Step05TransferRecipientInfo() {
 
   const buildRemitReason = () =>
     paymentDetailMode === "reason-select" ? selectedPaymentReason : manualPaymentDetail.trim();
+
+  useEffect(() => {
+    const animationFrameId = window.requestAnimationFrame(() => {
+      if (contentRef.current) {
+        contentRef.current.scrollTop = recipientInfoScrollTop;
+      }
+    });
+
+    return () => window.cancelAnimationFrame(animationFrameId);
+  }, [recipientInfoScrollTop]);
+
+  const handleSwiftLookupNavigate = () => {
+    setRecipientInfoScrollTop(contentRef.current?.scrollTop ?? 0);
+    navigate("/global-transfer/send/step-05/swift-code-lookup");
+  };
 
   const handleSubmit = async () => {
     if (!canProceed || isSubmitting) {
@@ -261,26 +306,29 @@ export function Step05TransferRecipientInfo() {
       <MobileLayout
         title={t("globalTransfer.title")}
         backPath="/global-transfer/send/step-04"
+        contentRef={contentRef}
         bottomContent={
-          <div className="flex w-full gap-4">
-            <AppButton
-              variant="outline"
-              onClick={() => navigate("/global-transfer/send/step-04")}
-              className="flex-1 rounded-xl px-6 py-4"
-            >
-              {t("globalTransfer.recipientInfo.prev")}
-            </AppButton>
-            <AppButton
-              variant="primary"
-              disabled={!canProceed || isSubmitting}
-              onClick={handleSubmit}
-              className="flex-1 rounded-xl px-6 py-4"
-            >
-              {isSubmitting
-                ? t("globalTransfer.recipientInfo.submitting")
-                : t("globalTransfer.recipientInfo.next")}
-            </AppButton>
-          </div>
+          isPhoneCountryCodeSheetOpen ? undefined : (
+            <div className="flex w-full gap-4">
+              <AppButton
+                variant="outline"
+                onClick={() => navigate("/global-transfer/send/step-04")}
+                className="flex-1 rounded-xl px-6 py-4"
+              >
+                {t("globalTransfer.recipientInfo.prev")}
+              </AppButton>
+              <AppButton
+                variant="primary"
+                disabled={!canProceed || isSubmitting}
+                onClick={handleSubmit}
+                className="flex-1 rounded-xl px-6 py-4"
+              >
+                {isSubmitting
+                  ? t("globalTransfer.recipientInfo.submitting")
+                  : t("globalTransfer.recipientInfo.next")}
+              </AppButton>
+            </div>
+          )
         }
       >
         <div className="space-y-8 pb-4 pt-3">
@@ -295,14 +343,9 @@ export function Step05TransferRecipientInfo() {
               label={t("globalTransfer.recipientInfo.nameLabel")}
               value={recipientName}
               onChange={setRecipientName}
+              error={recipientNameError}
               trailing={recipientName ? renderClearButton(() => setRecipientName("")) : undefined}
             />
-
-            <div className="space-y-2">
-              <label className="block text-base text-foreground">
-                {t("globalTransfer.recipientInfo.addressLabel")}
-              </label>
-            </div>
 
             <ClearableInput
               label={t("globalTransfer.recipientInfo.detailLabel")}
@@ -344,16 +387,16 @@ export function Step05TransferRecipientInfo() {
               }
             />
 
-            <ClearableInput
+            <PhoneNumberField
               label={t("globalTransfer.recipientInfo.phoneLabel")}
               value={recipientPhoneNumber}
               onChange={setRecipientPhoneNumber}
-              inputMode="tel"
-              trailing={
-                recipientPhoneNumber
-                  ? renderClearButton(() => setRecipientPhoneNumber(""))
-                  : undefined
-              }
+              placeholder={t("globalTransfer.recipientInfo.phonePlaceholder")}
+              error={recipientPhoneNumberError}
+              defaultDialCode={getDialCodeByCountryId(countryId)}
+              countryCodeAriaLabel={t("globalTransfer.recipientInfo.countryCodeAria")}
+              clearAriaLabel={t("globalTransfer.recipientInfo.clearAria")}
+              onCountryCodeSheetOpenChange={setPhoneCountryCodeSheetOpen}
             />
           </section>
 
@@ -370,11 +413,11 @@ export function Step05TransferRecipientInfo() {
                 <AppButton
                   type="button"
                   variant="unstyled"
-                  onClick={() => navigate("/global-transfer/send/step-05/swift-code-lookup")}
+                  onClick={handleSwiftLookupNavigate}
                   className="flex items-center gap-1 text-base font-medium text-primary"
                 >
                   {t("globalTransfer.recipientInfo.swiftLookup")}
-                  <span aria-hidden="true">›</span>
+                  <ChevronRight className="h-4 w-4" />
                 </AppButton>
               }
               trailing={swiftCode ? renderClearButton(() => setSwiftCode("")) : undefined}
@@ -454,7 +497,7 @@ export function Step05TransferRecipientInfo() {
         isOpen={openSheet === "payment-reason"}
         onClose={() => setOpenSheet(null)}
         title=""
-        height="480px"
+        height={TRANSFER_BOTTOM_SHEET_HEIGHT}
       >
         <div className="space-y-2">
           <div className="flex items-center justify-between pb-2">

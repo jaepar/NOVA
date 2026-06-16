@@ -309,6 +309,34 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("이미 가입된 이메일이어도 공통 인증번호 발송에 성공한다")
+    void sendEmailVerificationCodeAllowsAlreadyRegisteredEmail() {
+        String email = "email@konkuk.ac.kr";
+        when(valueOperations.get(anyString())).thenReturn(null);
+
+        authService.sendEmailVerificationCode(email);
+
+        verify(userRepository, never()).existsByEmail(email);
+        verify(javaMailSender).send(any(SimpleMailMessage.class));
+        verify(valueOperations, times(2)).set(anyString(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("이미 가입된 이메일이면 회원가입 인증번호 발송에 실패한다")
+    void sendSignupEmailVerificationCodeFailsWhenEmailAlreadyExists() {
+        String email = "email@konkuk.ac.kr";
+        when(userRepository.existsByEmail(email)).thenReturn(true);
+
+        assertThatThrownBy(() -> authService.sendSignupEmailVerificationCode(email))
+                .isInstanceOf(CustomException.class)
+                .extracting("exceptionStatus")
+                .isEqualTo(DUPLICATE_EMAIL);
+
+        verify(javaMailSender, never()).send(any(SimpleMailMessage.class));
+        verify(valueOperations, never()).set(anyString(), anyString(), any());
+    }
+
+    @Test
     @DisplayName("재발송 쿨다운 중이면 인증번호 발송에 실패한다")
     void sendEmailVerificationCodeFailsWhenCooldownExists() {
         when(valueOperations.get(anyString())).thenReturn("1");

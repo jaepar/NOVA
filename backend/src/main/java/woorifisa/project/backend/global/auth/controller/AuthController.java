@@ -68,6 +68,14 @@ public class AuthController {
         return BaseResponse.ok(null);
     }
 
+    @PostMapping("/signup/email-verifications")
+    public BaseResponse<Void> sendSignupEmailVerificationCode(
+            @Valid @RequestBody EmailVerificationSendRequest request
+    ) {
+        authService.sendSignupEmailVerificationCode(request.email());
+        return BaseResponse.ok(null);
+    }
+
     @PostMapping("/email-verifications/confirm")
     public BaseResponse<Void> confirmEmailVerificationCode(
             @Valid @RequestBody EmailVerificationConfirmRequest request

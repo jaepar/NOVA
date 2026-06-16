@@ -46,7 +46,7 @@
   },
   login: {
     title: "시작하기",
-    introHeading: "반가워요!\n회원가입 또는 로그인을 진행해주세요",
+    introHeading: "반가워요!\n회원가입/로그인을 진행해주세요",
     signup: "회원가입",
     login: "로그인",
     formTitle: "로그인",
@@ -129,6 +129,7 @@
     readyToOpenTitle: "아직 계좌가 개설되지 않았어요.",
     readyToOpenDescription: "계좌를 개설하고 새로운 일상을 시작해보세요.",
     openAccount: "계좌 개설하기",
+    accountAlreadyOpened: "이미 계좌 개설이 완료되었습니다.",
     accountNumberCopied: "계좌번호가 복사되었습니다.",
     accountNumberCopyFailed: "계좌번호 복사에 실패했습니다.",
     exchangeLoadFailed: "환율 정보를 불러오지 못했습니다.",
@@ -139,6 +140,10 @@
     certificateSheetTitle: "금융 서비스 이용을 위해\n인증서 발급이 필요해요",
     certificateSheetDescription:
       "안전한 금융 거래를 위해\n신원 인증 후 인증서를 발급받아야\n계좌 개설 및 금융 서비스를\n이용하실 수 있어요.",
+    residenceCardSheetTitle: "외국인등록증 등록 후\n송금할 수 있어요",
+    residenceCardSheetDescription:
+      "송금 서비스 이용을 위해\n외국인등록증 등록이 필요해요.",
+    registerResidenceCard: "등록하기",
     later: "나중에 하기",
     issue: "발급하기",
     certificateIssuedModal: {
@@ -426,12 +431,12 @@
     preOpen: {
       heading: "계좌 개설 전에\n미리 확인해 주세요",
       description: "아래 내용을 확인하신 후 진행해 주세요.",
-      idTitle: "신분증이 필요해요",
+      idTitle: "신분증이 필요해요.",
       idDescription: "외국인 등록증 또는 여권을 준비해 주세요.",
-      recentTitle: "최근 1개월 이내 계좌를 개설하셨다면 신청이 제한돼요",
+      recentTitle: "최근 1개월 내 계좌를 개설했다면\n신청이 제한될 수 있어요.",
       recentDescription:
         "최근 30일 이내 개설 계좌가 있는 경우 신규 계좌 개설이 제한됩니다.",
-      limitTitle: "처음에는 1일 이체한도가 30만원이에요",
+      limitTitle: "개설 초기에는 1일 이체한도가\n30만원으로 제한돼요.",
       limitDescription: "보안 정책에 따라 초기 이체 한도가 제한됩니다.",
     },
     emailVerification: {
@@ -578,6 +583,8 @@
       address: "주소",
       addressDetail: "상세주소",
       addressPlaceholder: "주소를 검색해 주세요",
+      addressSearchAria: "도로명 주소 검색",
+      addressSearchError: "주소 검색을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
       addressDetailPlaceholder: "상세주소를 입력해 주세요",
     },
     jobInfo: {
@@ -679,7 +686,7 @@
         "이체 정보를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
     },
     amountInput: {
-      withdrawable: "출금 가능 금액",
+      withdrawable: "이체 가능 금액",
       heading: "얼마를 이체하시겠어요?",
       overLimit: "이체 가능 한도 금액을 초과했습니다.",
       insufficientBalance: "잔액이 부족합니다.",
@@ -691,7 +698,7 @@
       confirm: "확인",
     },
     amountConfirm: {
-      withdrawable: "출금 가능 금액",
+      withdrawable: "이체 가능 금액",
       recipientMemo: "받는 분 통장표기",
       senderMemo: "내 통장표기",
       next: "다음",
@@ -783,9 +790,14 @@
     senderInfo: {
       heading: "보내는분 정보입력",
       nameLabel: "영문성명",
+      nameError: "영문 이름만 입력해 주세요.",
       phoneLabel: "전화번호",
+      phonePlaceholder: "",
+      phoneError: "전화번호 형식을 확인해 주세요.",
+      countryCodeAria: "국가번호 선택",
       addressLabel: "영문주소",
       addressSearch: "주소검색",
+      addressSearchError: "주소 검색을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
       detailLabel: "세부주소",
       districtLabel: "지역명(시/군/구, 읍/면)",
       cityLabel: "도시명(시/도)",
@@ -799,6 +811,7 @@
       heading: "받는분 정보입력",
       submitting: "송금 요청 중",
       nameLabel: "영문성명",
+      nameError: "영문 이름만 입력해 주세요.",
       addressLabel: "영문주소",
       detailLabel: "세부주소",
       districtLabel: "지역명(선택)",
@@ -807,6 +820,9 @@
       postalCodeLabel: "우편번호(선택)",
       postalCodePlaceholder: "선택",
       phoneLabel: "전화번호",
+      phonePlaceholder: "",
+      phoneError: "전화번호 형식을 확인해 주세요.",
+      countryCodeAria: "국가번호 선택",
       bankInfoHeading: "수취은행정보",
       swiftCodeLabel: "SWIFT CODE",
       swiftLookup: "SWIFT CODE 조회",
@@ -845,6 +861,7 @@
       resultCountUnit: "건",
       bankNameCol: "은행명",
       cityCol: "도시명",
+      emptyResult: "조회된 은행이 없습니다.",
       clearAria: "입력값 지우기",
     },
     submitFailed: {
@@ -1252,59 +1269,71 @@
     certificateIssuance: {
       categories: {
         "required-service": {
-          title: "[필수] 서비스 가입 동의",
+          title: "[필수] 인증서 발급 필수 동의",
         },
         "optional-marketing-1": {
-          title: "[선택] 마케팅 활용 동의 1",
+          title: "[선택] 혜택 및 이벤트 안내 동의",
         },
         "optional-marketing-2": {
-          title: "[선택] 마케팅 활용 동의 2",
+          title: "[선택] 맞춤형 서비스 안내 동의",
         },
       },
       terms: {
         "electronic-finance-basic": {
           title: "전자금융거래 기본약관",
-          summary: "전자금융 서비스 이용을 위한 기본 약관입니다.",
+          summary: "비대면 인증서 발급 및 전자금융 서비스 이용 조건을 안내합니다.",
           content: {
-            0: "본 약관은 예시 텍스트입니다.",
-            1: "실제 운영 약관으로 교체해서 사용하세요.",
+            0: "NOVA 전자금융 서비스는 본인 명의 계정과 인증 수단을 기반으로 제공됩니다.",
+            1: "이용자는 비밀번호, 인증 정보, 단말기 등 접근 매체를 안전하게 관리해야 합니다.",
+            2: "전자금융거래 처리 결과와 주요 고지는 앱 화면, 알림 또는 등록된 연락처를 통해 안내될 수 있습니다.",
+            3: "시스템 점검, 보안 위험, 법령상 제한 사유가 있는 경우 서비스 이용이 일시적으로 제한될 수 있습니다.",
           },
         },
         "privacy-required": {
           title: "개인정보 수집·이용 동의서",
-          summary: "서비스 제공을 위한 필수 개인정보 처리 동의입니다.",
+          summary: "인증서 발급 심사와 본인 확인을 위한 필수 개인정보 처리 동의입니다.",
           content: {
-            0: "본 동의서는 샘플입니다.",
-            1: "실제 서비스 정책에 맞게 문구를 교체하세요.",
+            0: "회사는 인증서 발급 신청, 본인 확인, 심사 결과 안내를 위해 이름, 생년월일, 성별, 이메일, 인증 상태 정보를 수집·이용합니다.",
+            1: "수집된 개인정보는 인증서 발급 및 금융 서비스 제공 목적 범위 내에서만 이용됩니다.",
+            2: "보유 기간은 관련 법령 및 내부 정책에 따라 적용되며, 목적 달성 후 지체 없이 파기됩니다.",
+            3: "필수 개인정보 수집·이용에 동의하지 않을 경우 인증서 발급 및 일부 금융 서비스 이용이 제한될 수 있습니다.",
           },
         },
         "identity-required": {
           title: "신원확인 및 본인인증 동의서",
-          summary: "금융 서비스 이용을 위한 본인 확인 절차 동의입니다.",
+          summary: "여권, 생체정보, 서류 제출을 통한 비대면 신원확인 절차에 동의합니다.",
           content: {
-            0: "본 항목은 샘플 텍스트입니다.",
-            1: "운영 정책 확정 후 실제 약관으로 대체하세요.",
+            0: "회사는 비대면 실명확인을 위해 여권 정보, 제출 서류, 얼굴 인증 결과 등 신원확인 자료를 확인할 수 있습니다.",
+            1: "제출 정보는 위·변조 여부, 본인 일치 여부, 서비스 이용 자격 확인 목적으로 사용됩니다.",
+            2: "신원확인 결과가 불충분하거나 정보가 일치하지 않는 경우 추가 확인 또는 인증서 발급 거절이 발생할 수 있습니다.",
+            3: "이용자는 정확한 정보를 제출해야 하며, 허위 또는 타인 정보 사용 시 서비스 이용이 제한될 수 있습니다.",
           },
         },
         "marketing-consent-1": {
           title: "마케팅 정보 수신 동의",
-          summary: "혜택 및 이벤트 안내를 위한 선택 동의입니다.",
+          summary: "NOVA 혜택, 이벤트, 금융·생활 서비스 안내 수신에 동의합니다.",
           content: {
-            0: "본 문구는 예시입니다.",
+            0: "회사는 이벤트, 혜택, 신규 서비스 안내를 위해 이메일, 앱 알림 등으로 정보를 발송할 수 있습니다.",
+            1: "마케팅 정보 수신 동의는 선택 사항이며, 동의하지 않아도 기본 서비스 이용에는 제한이 없습니다.",
+            2: "이용자는 앱 설정 또는 고객센터를 통해 언제든지 수신 동의를 철회할 수 있습니다.",
           },
         },
         "marketing-consent-2a": {
           title: "맞춤형 상품 추천 동의",
-          summary: "고객 맞춤형 혜택 안내를 위한 선택 동의입니다.",
+          summary: "이용 정보 기반 맞춤형 금융·생활 상품 추천에 동의합니다.",
           content: {
-            0: "본 문구는 예시입니다.",
+            0: "회사는 서비스 이용 내역, 관심 서비스, 인증 상태 등을 바탕으로 맞춤형 상품과 혜택을 추천할 수 있습니다.",
+            1: "맞춤형 추천은 이용자 편의를 위한 선택 기능이며, 동의하지 않아도 인증서 발급과 기본 서비스 이용은 가능합니다.",
+            2: "이용자는 언제든지 맞춤형 추천 동의를 철회할 수 있습니다.",
           },
         },
         "marketing-consent-2b": {
           title: "제휴 서비스 안내 동의",
-          summary: "제휴 서비스/이벤트 정보를 받기 위한 선택 동의입니다.",
+          summary: "NOVA와 제휴된 생활·금융 서비스 안내 수신에 동의합니다.",
           content: {
-            0: "본 문구는 예시입니다.",
+            0: "회사는 병원, 일자리, 송금, 월렛 등 제휴 서비스 관련 안내를 제공할 수 있습니다.",
+            1: "제휴 서비스 안내는 선택 동의 항목이며, 동의하지 않아도 필수 금융 서비스 이용에는 영향이 없습니다.",
+            2: "제휴 서비스의 상세 조건과 제공 주체는 각 서비스 화면에서 별도로 확인할 수 있습니다.",
           },
         },
       },

@@ -91,6 +91,20 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("회원가입 이메일 인증번호 발송 성공 시 서비스에 위임하고 공통 성공 응답을 반환한다")
+    void sendSignupEmailVerificationCodeReturnsSuccess() {
+        EmailVerificationSendRequest request = new EmailVerificationSendRequest("email@konkuk.ac.kr");
+
+        BaseResponse<Void> response = authController.sendSignupEmailVerificationCode(request);
+
+        verify(authService).sendSignupEmailVerificationCode(request.email());
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getCode()).isEqualTo("20000");
+        assertThat(response.getMessage()).isEqualTo("요청에 성공했습니다.");
+        assertThat(response.getData()).isNull();
+    }
+
+    @Test
     @DisplayName("이메일 인증번호 확인 성공 시 공통 성공 응답을 반환한다")
     void confirmEmailVerificationCodeReturnsSuccess() {
         EmailVerificationConfirmRequest request = new EmailVerificationConfirmRequest(

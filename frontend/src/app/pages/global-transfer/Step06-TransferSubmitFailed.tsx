@@ -1,9 +1,6 @@
 import { useState } from "react";
-import { X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Btn_2Col } from "../../components/design-system/Btn_2Col";
-import { CenteredTaskContent } from "../../components/design-system/CenteredTaskContent";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { Failed } from "../common/Failed";
 import {
   bankingApi,
   getBankingApiError,
@@ -71,30 +68,20 @@ export function Step06TransferSubmitFailed() {
   };
 
   return (
-    <MobileLayout
-      title={t("globalTransfer.title")}
+    <Failed
+      headerTitle={t("globalTransfer.title")}
       headerType="none"
-      bottomContent={
-        <Btn_2Col
-          leftLabel={t("globalTransfer.submitFailed.toHome")}
-          rightLabel={
-            isRetrying
-              ? t("globalTransfer.submitFailed.retrying")
-              : t("globalTransfer.submitFailed.retry")
-          }
-          onLeftClick={handleHome}
-          onRightClick={handleRetry}
-        />
+      task={t("globalTransfer.submitFailed.task")}
+      description={`${t("globalTransfer.submitFailed.description")}\n${errorMessage}`}
+      secondaryButtonText={t("globalTransfer.submitFailed.toHome")}
+      buttonText={
+        isRetrying
+          ? t("globalTransfer.submitFailed.retrying")
+          : t("globalTransfer.submitFailed.retry")
       }
-    >
-      <CenteredTaskContent
-        task={t("globalTransfer.submitFailed.task")}
-        description={`${t("globalTransfer.submitFailed.description")}\n${errorMessage}`}
-      >
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
-          <X className="h-10 w-10 stroke-[3] text-red-500" />
-        </div>
-      </CenteredTaskContent>
-    </MobileLayout>
+      buttonDisabled={isRetrying}
+      onSecondaryButtonClick={handleHome}
+      onButtonClick={handleRetry}
+    />
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MobileLayout } from "../../components/layout/MobileLayout";
+import { AccountMobileLayout } from "./components/AccountMobileLayout";
 import { Btn_1Col } from "../../components/design-system/Btn_1Col";
 import { EmailVerificationFields } from "../../components/email/EmailVerificationFields";
 import { useEmailVerification } from "../../components/email/useEmailVerification";
@@ -33,7 +33,7 @@ export function Step02EmailVerification() {
   });
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t("account.identityVerificationTitle")}
       titleKey="account.identityVerificationTitle"
       backPath="/account/step-01"
@@ -73,6 +73,6 @@ export function Step02EmailVerification() {
           codeHelperText={t("account.emailVerification.codeHelper")}
         />
       </SignupContent>
-    </MobileLayout>
+    </AccountMobileLayout>
   );
 }

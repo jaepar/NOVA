@@ -1,6 +1,6 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Camera, CheckCircle2, CircleAlert } from 'lucide-react'
-import { MobileLayout } from '../../components/layout/MobileLayout'
+import { AccountMobileLayout } from './components/AccountMobileLayout'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
 import { useTranslation } from '../../i18n'
 
@@ -16,7 +16,7 @@ export function PassportCaptureGuide() {
   const { t } = useTranslation()
 
   return (
-    <MobileLayout
+    <AccountMobileLayout
       title={t('account.identityTitle')}
       titleKey="account.identityTitle"
       backPath="/account/step-02"
@@ -44,8 +44,8 @@ export function PassportCaptureGuide() {
         </section>
 
         <section className="rounded-2xl bg-secondary p-5 space-y-4">
-          <div className="w-14 h-14 rounded-full bg-background border border-border flex items-center justify-center text-primary">
-            <Camera className="w-7 h-7" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Camera className="h-5 w-5" strokeWidth={2.4} />
           </div>
           <div className="space-y-3">
             {guideItems.map((itemKey) => (
@@ -67,7 +67,7 @@ export function PassportCaptureGuide() {
           </p>
         </section>
       </div>
-    </MobileLayout>
+    </AccountMobileLayout>
   )
 }
 
