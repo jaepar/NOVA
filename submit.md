@@ -98,14 +98,14 @@ FDS Server는 CoreBanking에서 전달한 해외송금 원장 스냅샷을 기�
 - 핵심 코드(스크립트):
 ```java
 // backend/domain/user/service/IdentityVerificationService.java
-// 핵심: OCR 식별번호 원문을 직접 전달하지 않고, 숫자 정규화 후 HMAC 해시로 Government DB 조회를 요청합니다.
+// OCR 식별번호 원문을 직접 전달하지 않고, 숫자 정규화 후 HMAC 해시로 Government DB 조회를 요청합니다.
 String registrationNumberHash =
     registrationNumberHmacHasher.hash(normalizeDigits(idCard.residentRegistrationNumber()));
 GovermentIdentityResponse governmentIdentity =
     governmentIdentityClient.lookupByRegistrationNumberHash(registrationNumberHash);
 boolean identityMatchWithGovDb = isSameIdentity(idCard, governmentIdentity);
 
-// 핵심: Government DB 신원 정보와 OCR 결과가 일치하지 않으면 외국인등록증 검증을 실패 처리합니다.
+// Government DB 신원 정보와 OCR 결과가 일치하지 않으면 외국인등록증 검증을 실패 처리합니다.
 if (!identityMatchWithGovDb) {
     return IdentityVerificationResponse.builder()
         .ocrDocumentType(OcrDocumentType.ID_CARD)
@@ -122,7 +122,7 @@ notificationService.deleteResidenceCardPeriodNotification(user);
 
 ```java
 // gateway/domain/foreigner/service/ForeignerService.java
-// 핵심: Gateway는 원문 등록번호가 아니라 Backend가 전달한 HMAC 해시를 조회 키로 사용합니다.
+// Gateway는 원문 등록번호가 아니라 Backend가 전달한 HMAC 해시를 조회 키로 사용합니다.
 @Transactional(readOnly = true)
 public GovernmentIdentityResponse lookupIdentity(GovernmentIdentityLookupRequest request) {
     Foreigner foreigner = foreignerRepository.findByRegistrationNumberHash(request.registrationNumberHash())
@@ -140,17 +140,17 @@ public GovernmentIdentityResponse lookupIdentity(GovernmentIdentityLookupRequest
 - 핵심 코드(스크립트):
 ```java
 // backend/domain/banking/service/BankingService.java
-// 핵심: 인증서 발급이 완료되지 않은 사용자는 계좌 개설 흐름에 진입할 수 없습니다.
+// 인증서 발급이 완료되지 않은 사용자는 계좌 개설 흐름에 진입할 수 없습니다.
 if (user.getCertificateStatus() != CertificateStatus.ISSUED) {
     throw new CustomException(BANKING_CERTIFICATE_REQUIRED);
 }
 
-// 핵심: 실제 계좌 생성은 CoreBanking에 위임하고, Backend는 생성 결과만 동기화합니다.
+// 실제 계좌 생성은 CoreBanking에 위임하고, Backend는 생성 결과만 동기화합니다.
 CoreBankingCreateAccountResponse created = coreBankingClient.createAccount(
     CoreBankingCreateAccountRequest.of(user, request)
 );
 
-// 핵심: CoreBanking에서 생성된 계좌 식별자를 Backend의 account_ref에 저장합니다.
+// CoreBanking에서 생성된 계좌 식별자를 Backend의 account_ref에 저장합니다.
 AccountRef accountRef = AccountRef.builder()
     .user(user)
     .customerId(created.customerId())
@@ -167,7 +167,7 @@ accountRefRepository.save(accountRef);
 
 ```java
 // coreBanking/domain/account/service/AccountService.java
-// 핵심: CoreBanking이 계좌번호 생성, 비밀번호 암호화, 제한 한도 설정을 최종 수행합니다.
+// CoreBanking이 계좌번호 생성, 비밀번호 암호화, 제한 한도 설정을 최종 수행합니다.
 String rawAccountNumber = generateUniqueAccountNumber();
 Account account = Account.builder()
     .customer(customer)
@@ -191,7 +191,7 @@ https://github.com/jaepar/NOVA/blob/main/coreBanking/src/main/java/woorifisa/pro
 - 핵심 코드(스크립트):
 ```java
 // backend/domain/banking/service/BankingService.java
-// 핵심: 요청 멱등키를 Redis 처리중 락으로 등록해 동일 요청의 중복 실행을 차단합니다.
+// 요청 멱등키를 Redis 처리중 락으로 등록해 동일 요청의 중복 실행을 차단합니다.
 String processingKey = formatProcessingKey(idempotencyKey);
 Boolean acquired = stringRedisTemplate.opsForValue()
     .setIfAbsent(processingKey, PROCESSING_VALUE, PROCESSING_TTL);
@@ -203,12 +203,12 @@ AccountRef accountRef = accountRefRepository
     .findByUser_UserIdAndAccountNumber(userId, request.withdrawAccountId())
     .orElseThrow(() -> new CustomException(BANKING_ACCOUNT_NOT_FOUND));
 
-// 핵심: 출금이 발생하기 전 CoreBanking 계좌 비밀번호 검증을 반드시 통과해야 합니다.
+// 출금이 발생하기 전 CoreBanking 계좌 비밀번호 검증을 반드시 통과해야 합니다.
 coreBankingClient.verifyAccountPassword(
     CoreBankingPasswordVerifyRequest.of(accountRef.getAccountId(), request.accountPassword())
 );
 
-// 핵심: 같은 출금 계좌에 대한 동시 차감을 막기 위해 계좌 단위 락을 추가로 획득합니다.
+// 같은 출금 계좌에 대한 동시 차감을 막기 위해 계좌 단위 락을 추가로 획득합니다.
 String accountProcessingKey = formatAccountProcessingKey(accountRef.getAccountId());
 Boolean accountLockAcquired = stringRedisTemplate.opsForValue()
     .setIfAbsent(accountProcessingKey, PROCESSING_VALUE, PROCESSING_TTL);
@@ -219,12 +219,12 @@ if (!Boolean.TRUE.equals(accountLockAcquired)) {
 
 ```java
 // coreBanking/domain/accountTransaction/service/AccountTransactionService.java
-// 핵심: externalRequestId로 이미 처리된 원장 변경 요청은 재처리하지 않습니다.
+// externalRequestId로 이미 처리된 원장 변경 요청은 재처리하지 않습니다.
 if (accountTransactionRepository.existsByExternalRequestId(request.externalRequestId())) {
     return;
 }
 
-// 핵심: CoreBanking에서 출금/입금 계좌와 잔액을 기준으로 원장 변경 가능 여부를 최종 판단합니다.
+// CoreBanking에서 출금/입금 계좌와 잔액을 기준으로 원장 변경 가능 여부를 최종 판단합니다.
 Account withdrawAccount = accountRepository.findByAccountNumber(request.withdrawAccountId())
     .orElseThrow(() -> new CustomException(ACCOUNT_TRANSFER_WITHDRAW_ACCOUNT_NOT_FOUND));
 
@@ -244,7 +244,7 @@ if (withdrawAccount.getBalance() < request.transferAmount()) {
 - 핵심 코드(스크립트):
 ```java
 // coreBanking/domain/globalTransaction/service/GlobalTransactionService.java
-// 핵심: 해외송금 요청이 들어오면 먼저 계좌 잔액을 차감하고 출금 거래내역을 기록합니다.
+// 해외송금 요청이 들어오면 먼저 계좌 잔액을 차감하고 출금 거래내역을 기록합니다.
 account.debit(krwAmount);
 accountTransactionRepository.save(AccountTransaction.builder()
     .account(account)
@@ -256,7 +256,7 @@ accountTransactionRepository.save(AccountTransaction.builder()
     .externalRequestId(request.externalRequestId())
     .build());
 
-// 핵심: 해외송금 원장은 즉시 성공 처리하지 않고 PENDING 상태로 저장한 뒤 FDS 비동기 심사로 넘깁니다.
+// 해외송금 원장은 즉시 성공 처리하지 않고 PENDING 상태로 저장한 뒤 FDS 비동기 심사로 넘깁니다.
 GlobalTransaction globalTransaction = globalTransactionRepository.save(
     GlobalTransaction.builder()
         .customer(customer)
@@ -270,7 +270,7 @@ globalTransactionFdsService.screenAsync(globalTransaction.getGlobalTransactionId
 
 ```java
 // coreBanking/domain/globalTransaction/service/GlobalTransactionFdsService.java
-// 핵심: FDS 판정이 SUCCESS이면 송금을 성공 처리하고, 위험 거래이면 실패 및 환급 흐름으로 전환합니다.
+// FDS 판정이 SUCCESS이면 송금을 성공 처리하고, 위험 거래이면 실패 및 환급 흐름으로 전환합니다.
 FdsGlobalTransactionScreeningResponse response = fdsClient.screen(
     FdsGlobalTransactionScreeningRequest.from(globalTransaction)
 );
@@ -283,7 +283,7 @@ failAndRefund(globalTransaction, response.failureReason());
 
 ```python
 # fds/app/main.py
-# 핵심: Isolation Forest 기반 anomaly score로 위험 거래 여부를 판단해 SUCCESS 또는 FAILED만 반환합니다.
+# Isolation Forest 기반 anomaly score로 위험 거래 여부를 판단해 SUCCESS 또는 FAILED만 반환합니다.
 anomaly_score = fds_model.score(request)
 risky = fds_model.is_risky(anomaly_score)
 response = GlobalTransactionScreeningResponse(
@@ -303,7 +303,7 @@ response = GlobalTransactionScreeningResponse(
 - 핵심 코드(스크립트):
 ```python
 # ai/app/services/hospital_chat_service.py
-# 핵심: 대화 세션 상태를 유지하면서 LangGraph 병원 예약 에이전트에 사용자 발화를 전달합니다.
+# 대화 세션 상태를 유지하면서 LangGraph 병원 예약 에이전트에 사용자 발화를 전달합니다.
 agent_result = self.hospital_chat_agent.run_turn(
     conversation_id=conversation_id,
     user_message=message,
@@ -318,7 +318,7 @@ self.session_store.append_message(conversation_id, "assistant", agent_result["me
 
 ```python
 # ai/app/agent.py
-# 핵심: agent와 execute_tools 노드를 순환시켜 필요한 병원 예약 API 도구를 반복 호출할 수 있게 구성합니다.
+# agent와 execute_tools 노드를 순환시켜 필요한 병원 예약 API 도구를 반복 호출할 수 있게 구성합니다.
 graph_builder = StateGraph(HospitalAgentState)
 graph_builder.add_node("agent", self._agent_node)
 graph_builder.add_node("execute_tools", self._execute_tools)
@@ -338,7 +338,7 @@ graph_builder.add_edge("execute_tools", "agent")
 
 ```java
 // backend/domain/hospital/service/HospitalService.java
-// 핵심: 예약 가능 슬롯을 조회하고, 이미 사용된 슬롯이면 예약 생성을 차단합니다.
+// 예약 가능 슬롯을 조회하고, 이미 사용된 슬롯이면 예약 생성을 차단합니다.
 HospitalAvailableSlot hospitalAvailableSlot = hospitalAvailableSlotRepository
     .findByHospitalHospitalIdAndAvailableAt(hospital.getHospitalId(), request.reservedAt())
     .orElseThrow(() -> new CustomException(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND));
@@ -347,7 +347,7 @@ if (!hospitalAvailableSlot.isAvailable()) {
     throw new CustomException(HOSPITAL_AVAILABLE_SLOT_NOT_FOUND);
 }
 
-// 핵심: 예약 가능 슬롯을 불가 상태로 전환한 뒤 실제 예약 데이터를 저장합니다.
+// 예약 가능 슬롯을 불가 상태로 전환한 뒤 실제 예약 데이터를 저장합니다.
 hospitalAvailableSlot.markUnavailable();
 reservationRepository.save(
     Reservation.builder()
