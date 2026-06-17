@@ -17,7 +17,7 @@ NOVA는 비대면 신원 인증과 제한 계좌 개설을 먼저 제공해 초�
 
 ## ✨주요 기능
 
-<img width="1337" height="684" alt="스크린샷 2026-06-17 오전 11 31 33" src="https://github.com/user-attachments/assets/6703c702-21a9-48a2-8eb6-3db947994df8" />
+<img width="1241" height="684" alt="스크린샷 2026-06-17 오전 11 46 45" src="https://github.com/user-attachments/assets/39399b72-22b2-4d92-a336-b853423aa709" />
 
 
 ### 비대면 KYC 및 신원 검증
