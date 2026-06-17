@@ -1,4 +1,5 @@
 # ✨NOVA
+## 금융 소외 계층을 위한 디지털 포용 금융 서비스 플랫폼
 
 <img width="1097" height="418" alt="스크린샷 2026-06-17 오전 11 37 31" src="https://github.com/user-attachments/assets/7350e181-6e34-47e1-b4f4-c06de281c87a" />
 
