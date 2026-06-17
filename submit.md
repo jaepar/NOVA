@@ -30,7 +30,7 @@
 **NOVA는 사용자 접근 계층은 클라우드에 두고, 금융 원장과 정부 신원 DB는 온프레미스 경계 안에 분리한 하이브리드 아키텍처 구조**입니다.
 사용자는 **Vercel**에 배포된 프론트엔드에 접속하고, **Route 53, WAF, ALB**를 거쳐 **AWS private subnet의 Backend/AI 서버**로 요청이 전달됩니다.
 
-<img width="1685" height="933" alt="주요 기능" src="https://github.com/user-attachments/assets/e816ea3d-5740-494d-bf19-54dec1630d41" />
+<img width="1076" height="694" alt="스크린샷 2026-06-17 오후 2 35 06" src="https://github.com/user-attachments/assets/93ece1c6-fa70-4103-8535-f9e2eec109ba" />
 
 
 #### 클라우드 영역
@@ -79,7 +79,8 @@ RDS는 **Multi-AZ 기반 Primary/Standby 구조**로 구성해 장애 발생 시
 - **FDS 비동기 심사**: 해외송금 생성 후 **PENDING 상태**로 저장하고, FDS 판정 결과에 따라 **SUCCESS 또는 FAILED 및 환급 처리**를 수행합니다.
 - **LangGraph 병원 예약 에이전트**: 자연어 상담을 **도구 호출 기반 예약 API 실행**으로 연결해 병원 검색, 슬롯 조회, 예약 생성/변경/취소를 지원합니다.
 
-<img width="1228" height="663" alt="스크린샷 2026-06-17 오전 11 47 46" src="https://github.com/user-attachments/assets/b5f837d8-f511-4a8b-a481-b2fd88faa863" />
+<img width="1711" height="919" alt="주요 기능" src="https://github.com/user-attachments/assets/df809a74-959a-4812-a1b6-d721b04252f6" />
+
 
 ### 3-2. 통합 워크플로우 다이어그램
 
@@ -185,7 +186,7 @@ Account account = Account.builder()
 - 코드 링크: https://github.com/jaepar/NOVA/blob/main/backend/src/main/java/woorifisa/project/backend/domain/banking/service/BankingService.java,
 https://github.com/jaepar/NOVA/blob/main/coreBanking/src/main/java/woorifisa/project/coreBanking/domain/account/service/AccountService.java
 
-#### 기능 3. Redis 멱등키와 장애 대응 기반 계좌 이체
+#### 기능 3. Redis 멱등키와 장애 대응 기반 금융 거래
 
 - 기능 설명: 이체 요청은 프론트엔드에서 전달한 **멱등키**를 기준으로 중복 처리를 방지합니다. Backend는 Redis에 **처리중 락과 결과 캐시**를 저장하고, 같은 출금 계좌에 대한 동시 차감을 막기 위해 **계좌 단위 락**을 추가로 획득합니다. **계좌 비밀번호 검증 후 CoreBanking에 이체를 요청**하며, Cloud Backend와 On-Premise CoreBanking 사이의 네트워크 통신 장애가 발생하면 **fallback 로직에서 `externalRequestId` 기반 처리 결과를 조회**해 실제 원장 반영 여부를 복구합니다.
 
