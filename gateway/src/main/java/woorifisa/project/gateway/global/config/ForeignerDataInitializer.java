@@ -22,7 +22,7 @@ public class ForeignerDataInitializer implements CommandLineRunner {
 	@Transactional
 	public void run(String... args) {
 		// foreigner 초기 더미데이터 생성 (이름, 주민등록번호, 발급일자, active 여부)
-		seedForeigner("홍길동", "010101-3333333", "2024.11.13", true);
+		seedForeigner("박재하", "010205-3398413", "2024.11.13", true);
 	}
 
 	private void seedForeigner(String name, String registrationNumber, String issueDate, boolean active) {
