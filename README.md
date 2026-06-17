@@ -169,7 +169,8 @@ NOVA는 외국인 사용자의 생활 정착을 돕는 서비스이면서도, �
 
 ## ✨서비스 워크플로우
 
-<img width="1104" height="403" alt="스크린샷 2026-06-17 오전 11 35 41" src="https://github.com/user-attachments/assets/a729458f-2418-41eb-8a1d-00c4d2f3a5dd" />
+<img width="1362" height="498" alt="서비스 워크플로우" src="https://github.com/user-attachments/assets/983be377-f5cc-4dc3-be49-33e6e752d489" />
+
 
 - 서비스 진입 후 사용자는 회원가입과 로그인을 거쳐 인증서 발급을 수행합니다. 인증서가 발급되면 제한 계좌를 생성할 수 있고, 제한 계좌 상태에서는 이체, 거래 조회, 간편 결제 충전 같은 기본 금융 기능을 사용할 수 있습니다. 외국인등록증을 등록해 Government DB 검증을 통과하면 해외송금과 한도 해제 같은 확장 금융 기능으로 이어집니다.
 
