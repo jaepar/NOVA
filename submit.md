@@ -30,16 +30,17 @@
 **NOVA는 사용자 접근 계층은 클라우드에 두고, 금융 원장과 정부 신원 DB는 온프레미스 경계 안에 분리한 하이브리드 아키텍처 구조**입니다.
 사용자는 **Vercel**에 배포된 프론트엔드에 접속하고, **Route 53, WAF, ALB**를 거쳐 **AWS private subnet의 Backend/AI 서버**로 요청이 전달됩니다.
 
-<img width="1077" height="690" alt="스크린샷 2026-06-17 오전 9 02 37" src="https://github.com/user-attachments/assets/b96f4f49-e41a-4521-b075-fe16f40f6fae" />
+<img width="1685" height="933" alt="주요 기능" src="https://github.com/user-attachments/assets/e816ea3d-5740-494d-bf19-54dec1630d41" />
+
 
 #### 클라우드 영역
 
-AWS 내부에서는 Backend 서버가 **Blue-Green Auto Scaling 구조**로 배치되어 **CPU 사용량이 70%를 초과하면 추가 인스턴스를 확장**해 트래픽을 분산 처리합니다.
+- AWS 내부에서는 Backend 서버가 **Blue-Green Auto Scaling 구조**로 배치되어 **CPU 사용량이 70%를 초과하면 추가 인스턴스를 확장**해 트래픽을 분산 처리합니다.
 RDS는 **Multi-AZ 기반 Primary/Standby 구조**로 구성해 장애 발생 시 **자동 Failover**가 가능하도록 했고, Redis 역시 **Primary/Replica 구조**를 통해 세션·락·멱등 처리 데이터의 가용성을 높였습니다. S3는 **여권/외국인등록증 이미지와 구직 포트폴리오 파일 저장소**로 사용되며, 개발자 접근은 **Bastion Host**를 통해 private subnet 내부로 제한됩니다.
 
 #### 온프레미스 영역
 
-온프레미스 영역은 **OpenStack VM 기반**으로 구성되며, 외국인 신원 확인을 위한 **Government DB(법무부 등 대외 신원 정보 DB)**, 계좌·거래 원장을 처리하는 **Core Banking Server(계정계 서버)**, Core Banking DB, 해외송금 이상거래를 탐지하는 **FDS Server**, 클라우드와 온프레미스 내부망을 연결하는 **On-Premise Gateway**가 배치됩니다.
+- 온프레미스 영역은 **OpenStack VM 기반**으로 구성되며, 외국인 신원 확인을 위한 **Government DB(법무부 등 대외 신원 정보 DB)**, 계좌·거래 원장을 처리하는 **Core Banking Server(계정계 서버)**, Core Banking DB, 해외송금 이상거래를 탐지하는 **FDS Server**, 클라우드와 온프레미스 내부망을 연결하는 **On-Premise Gateway**가 배치됩니다.
 클라우드 Backend는 **Transit Gateway와 Site-to-Site VPN**을 통해 On-Premise Gateway에 접근하며, **Government DB나 Core Banking DB의 접속 정보를 직접 보유하지 않습니다.** 이 구조를 통해 **개인정보와 금융 원장 데이터를 온프레미스 경계에 격리**하고, 클라우드는 서비스 API와 사용자 경험을 담당하도록 역할을 분리했습니다.
 
 
@@ -51,21 +52,21 @@ RDS는 **Multi-AZ 기반 Primary/Standby 구조**로 구성해 장애 발생 시
 
 #### Cloud Backend
 
-Cloud Backend는 **인증, 사용자, 금융, 생활 API의 진입점**입니다. KYC, 계좌 개설 요청, 이체 사전 조회, 월렛 충전, 해외송금 요청, 병원/구직 기능을 제공하지만, **금융 원장 확정은 CoreBanking에 위임**합니다. CoreBanking 연동은 **`backend/global/corebanking/client` 단일 클라이언트**를 통해 수행해 도메인 서비스가 온프레미스 API에 직접 분산 의존하지 않도록 했습니다.
+- Cloud Backend는 **인증, 사용자, 금융, 생활 API의 진입점**입니다. KYC, 계좌 개설 요청, 이체 사전 조회, 월렛 충전, 해외송금 요청, 병원/구직 기능을 제공하지만, **금융 원장 확정은 CoreBanking에 위임**합니다. CoreBanking 연동은 **`backend/global/corebanking/client` 단일 클라이언트**를 통해 수행해 도메인 서비스가 온프레미스 API에 직접 분산 의존하지 않도록 했습니다.
 
 #### AI Server
 
-AI Server는 **병원 예약 챗봇**을 담당합니다. 사용자의 자연어 요청을 **LangGraph 기반 ReAct 에이전트**가 해석하고, 병원 목록 조회, 예약 가능 시간 조회, 예약 생성/변경/취소를 Backend Hospital API 호출로 실행합니다. **AI 서버는 금융 원장이나 사용자 인증 상태를 직접 변경하지 않습니다.**
+- AI Server는 **병원 예약 챗봇**을 담당합니다. 사용자의 자연어 요청을 **LangGraph 기반 ReAct 에이전트**가 해석하고, 병원 목록 조회, 예약 가능 시간 조회, 예약 생성/변경/취소를 Backend Hospital API 호출로 실행합니다. **AI 서버는 금융 원장이나 사용자 인증 상태를 직접 변경하지 않습니다.**
 
 #### On-Premise Gateway
 
-On-Premise Gateway는 클라우드 Backend가 온프레미스 내부 자원에 접근하기 위한 **내부 API 진입점**입니다. 외부 요청은 먼저 Nginx를 통해 리버스 프록시되며, 실제 **Government DB 조회 요청 처리와 검증 로직은 Gateway Spring Boot 서버**에서 수행됩니다. Backend가 OCR 식별번호를 정규화한 뒤 **HMAC-SHA256 해시**를 생성해 Gateway에 전달하면, Gateway는 Government DB에서 **해시 키로만 신원 정보를 조회**합니다. **원문 주민등록번호/외국인등록번호는 HTTP 요청·응답과 DB 저장값에 포함하지 않습니다.**
+- On-Premise Gateway는 클라우드 Backend가 온프레미스 내부 자원에 접근하기 위한 **내부 API 진입점**입니다. 외부 요청은 먼저 Nginx를 통해 리버스 프록시되며, 실제 **Government DB 조회 요청 처리와 검증 로직은 Gateway Spring Boot 서버**에서 수행됩니다. Backend가 OCR 식별번호를 정규화한 뒤 **HMAC-SHA256 해시**를 생성해 Gateway에 전달하면, Gateway는 Government DB에서 **해시 키로만 신원 정보를 조회**합니다. **원문 주민등록번호/외국인등록번호는 HTTP 요청·응답과 DB 저장값에 포함하지 않습니다.**
 
 #### CoreBanking / FDS
 
-CoreBanking은 **계좌 개설, 비밀번호 검증, 이체, 거래내역, 해외송금 원장 처리**를 담당합니다. FDS는 해외송금 원장 스냅샷을 심사하고 **SUCCESS/FAILED 판정만 반환**하며, 실패 상태 반영과 환급은 CoreBanking에서 처리합니다.
+- CoreBanking은 **계좌 개설, 비밀번호 검증, 이체, 거래내역, 해외송금 원장 처리**를 담당합니다. FDS는 해외송금 원장 스냅샷을 심사하고 **SUCCESS/FAILED 판정만 반환**하며, 실패 상태 반영과 환급은 CoreBanking에서 처리합니다.
 
-FDS Server는 CoreBanking에서 전달한 해외송금 원장 스냅샷을 기반으로 **이상거래 여부를 심사하는 온프레미스 Python 서버**입니다. 해외송금 요청이 생성되면 CoreBanking은 거래 상태를 **PENDING**으로 저장한 뒤 FDS에 심사를 요청하고, FDS는 거래 금액, 국가, 통화, 송금 목적 등 요청 데이터를 모델 입력값으로 사용해 이상거래 점수를 계산합니다. FDS는 **금융 원장을 직접 수정하지 않고 SUCCESS 또는 FAILED 판정과 실패 사유만 반환**하며, 송금 상태 변경과 환급 처리는 **CoreBanking에서 최종 수행**합니다.
+- FDS Server는 CoreBanking에서 전달한 해외송금 원장 스냅샷을 기반으로 **이상거래 여부를 심사하는 온프레미스 Python 서버**입니다. 해외송금 요청이 생성되면 CoreBanking은 거래 상태를 **PENDING**으로 저장한 뒤 FDS에 심사를 요청하고, FDS는 거래 금액, 국가, 통화, 송금 목적 등 요청 데이터를 모델 입력값으로 사용해 이상거래 점수를 계산합니다. FDS는 **금융 원장을 직접 수정하지 않고 SUCCESS 또는 FAILED 판정과 실패 사유만 반환**하며, 송금 상태 변경과 환급 처리는 **CoreBanking에서 최종 수행**합니다.
 
 
 ## 3. 주요 기능 소개
