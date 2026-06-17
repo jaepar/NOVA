@@ -74,8 +74,8 @@ RDS는 **Multi-AZ 기반 Primary/Standby 구조**로 구성해 장애 발생 시
 ### 3-1. 핵심 기술 소개
 
 - **비대면 KYC**: 여권 OCR, 외국인등록증 OCR, liveness, Government DB 검증을 조합해 **신원 인증 단계**를 구성했습니다.
-- **Core Banking 분리**: 금융 원장성 데이터는 **CoreBanking에서만 최종 확정**하고, Backend는 사용자·서비스 흐름과 온프레미스 연동 조율을 담당합니다.
 - **Redis 멱등·락 처리**: 이체와 월렛 충전에서 **멱등키 결과 캐시, 처리중 락, 계좌 단위 락**을 사용해 중복 요청과 동시 차감을 방지합니다.
+- **통신 장애 복구 설계**: Cloud Backend와 On-Premise CoreBanking 사이의 **네트워크 분리로 인해 통신 실패가 발생할 수 있으므로**, fallback 로직과 **`externalRequestId` 기반 처리 결과 조회**를 통해 중복 거래와 원장 불일치를 방지합니다.
 - **FDS 비동기 심사**: 해외송금 생성 후 **PENDING 상태**로 저장하고, FDS 판정 결과에 따라 **SUCCESS 또는 FAILED 및 환급 처리**를 수행합니다.
 - **LangGraph 병원 예약 에이전트**: 자연어 상담을 **도구 호출 기반 예약 API 실행**으로 연결해 병원 검색, 슬롯 조회, 예약 생성/변경/취소를 지원합니다.
 
@@ -185,9 +185,9 @@ Account account = Account.builder()
 - 코드 링크: https://github.com/jaepar/NOVA/blob/main/backend/src/main/java/woorifisa/project/backend/domain/banking/service/BankingService.java,
 https://github.com/jaepar/NOVA/blob/main/coreBanking/src/main/java/woorifisa/project/coreBanking/domain/account/service/AccountService.java
 
-#### 기능 3. Redis 멱등키와 계좌 단위 락 기반 계좌 이체
+#### 기능 3. Redis 멱등키와 장애 대응 기반 계좌 이체
 
-- 기능 설명: 이체 요청은 프론트엔드에서 전달한 **멱등키**를 기준으로 중복 처리를 방지합니다. Backend는 Redis에 **처리중 락과 결과 캐시**를 저장하고, 같은 출금 계좌에 대한 동시 차감을 막기 위해 **계좌 단위 락**을 추가로 획득합니다. **계좌 비밀번호 검증 후 CoreBanking에 이체를 요청**하며, 통신 장애가 발생하면 **`externalRequestId` 조회**로 처리 여부를 복구합니다.
+- 기능 설명: 이체 요청은 프론트엔드에서 전달한 **멱등키**를 기준으로 중복 처리를 방지합니다. Backend는 Redis에 **처리중 락과 결과 캐시**를 저장하고, 같은 출금 계좌에 대한 동시 차감을 막기 위해 **계좌 단위 락**을 추가로 획득합니다. **계좌 비밀번호 검증 후 CoreBanking에 이체를 요청**하며, Cloud Backend와 On-Premise CoreBanking 사이의 네트워크 통신 장애가 발생하면 **fallback 로직에서 `externalRequestId` 기반 처리 결과를 조회**해 실제 원장 반영 여부를 복구합니다.
 
 - 핵심 코드(스크립트):
 ```java
@@ -219,8 +219,50 @@ if (!Boolean.TRUE.equals(accountLockAcquired)) {
 ```
 
 ```java
+// backend/domain/banking/service/BankingService.java
+// CoreBanking으로 이체 요청을 보내되, 통신 장애가 발생하면 처리 결과 조회 fallback으로 복구합니다.
+private void transferWithRecovery(CoreBankingTransferRequest request) {
+    // 1차 시도에서 성공하거나 externalRequestId 조회로 복구되면 종료합니다.
+    if (attemptTransferOrRecover(request)) {
+        return;
+    }
+
+    // 2차 시도에서도 성공하거나 복구되면 종료합니다.
+    if (attemptTransferOrRecover(request)) {
+        return;
+    }
+
+    // 정상 실패가 아닌 통신 장애가 2차까지 복구되지 않으면 이체 실패로 처리합니다.
+    throw new CustomException(BANKING_TRANSFER_FAILED);
+}
+
+// CoreBanking 이체 요청 실패가 통신 장애인 경우에만 externalRequestId로 처리 여부를 재조회합니다.
+private boolean attemptTransferOrRecover(CoreBankingTransferRequest request) {
+    try {
+        coreBankingClient.transfer(request);
+        return true;
+    } catch (CustomException exception) {
+        if (!isCoreBankingCommunicationFailure(exception)) {
+            throw exception;
+        }
+        return isTransferRequestExistsWithRetry(request.externalRequestId());
+    }
+}
+
+// CoreBanking 처리 결과 조회 API를 재시도해 실제 원장 반영 여부를 확인합니다.
+private boolean isTransferRequestExistsWithRetry(String externalRequestId) {
+    if (coreBankingClient.existsTransferRequest(externalRequestId)) {
+        return true;
+    }
+    waitBeforeRequestLookupRetry();
+    return coreBankingClient.existsTransferRequest(externalRequestId);
+}
+```
+
+```java
 // coreBanking/domain/accountTransaction/service/AccountTransactionService.java
-// externalRequestId로 이미 처리된 원장 변경 요청은 재처리하지 않습니다.
+// Backend의 fallback 조회가 정확히 동작하도록 CoreBanking은 externalRequestId를 원장 요청의 추적 키로 사용합니다.
+// 이미 처리된 externalRequestId는 재처리하지 않아 통신 복구 과정의 중복 이체를 방지합니다.
 if (accountTransactionRepository.existsByExternalRequestId(request.externalRequestId())) {
     return;
 }
