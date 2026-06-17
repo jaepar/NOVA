@@ -15,10 +15,10 @@ NOVA는 외국인등록증 발급 전 금융 공백을 겪는 외국인을 위�
 ### 기술 스택
 
 - Frontend: React, TypeScript, Vite, Zustand, Tailwind CSS
-- Backend: Java 17, Spring Boot, Spring Security, Spring Data JPA, Spring Session, Redis
+- Backend: Java 21, Spring Boot, Spring Security, Spring Data JPA, Spring Session, Redis
 - AI Server: FastAPI, LangGraph, LangChain, OpenAI API
-- Core Banking: Java 17, Spring Boot, JPA, MySQL
-- Gateway: Java 17, Spring Boot, JPA, MySQL, HMAC-SHA256
+- Core Banking: Java 21, Spring Boot, JPA, MySQL
+- Gateway: Java 21, Spring Boot, JPA, MySQL, HMAC-SHA256
 - FDS: Python, FastAPI, Isolation Forest
 - Infra: AWS VPC, ALB, WAF, Route 53, RDS Multi-AZ, RDS Proxy, ElastiCache Redis, S3, Cognito, Secrets Manager, Systems Manager, Transit Gateway, Site-to-Site VPN, Vercel, OpenStack
 - External Services: AWS Rekognition, CLOVA OCR, Korea Exim API, SMTP
