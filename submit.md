@@ -15,10 +15,10 @@ NOVA는 외국인등록증 발급 전 금융 공백을 겪는 외국인을 위�
 ### 기술 스택
 
 - Frontend: React, TypeScript, Vite, Zustand, Tailwind CSS
-- Backend: Java 17, Spring Boot, Spring Security, Spring Data JPA, Spring Session, Redis
+- Backend: Java 21, Spring Boot, Spring Security, Spring Data JPA, Spring Session, Redis
 - AI Server: FastAPI, LangGraph, LangChain, OpenAI API
-- Core Banking: Java 17, Spring Boot, JPA, MySQL
-- Gateway: Java 17, Spring Boot, JPA, MySQL, HMAC-SHA256
+- Core Banking: Java 21, Spring Boot, JPA, MySQL
+- Gateway: Java 21, Spring Boot, JPA, MySQL, HMAC-SHA256
 - FDS: Python, FastAPI, Isolation Forest
 - Infra: AWS VPC, ALB, WAF, Route 53, RDS Multi-AZ, RDS Proxy, ElastiCache Redis, S3, Cognito, Secrets Manager, Systems Manager, Transit Gateway, Site-to-Site VPN, Vercel, OpenStack
 - External Services: AWS Rekognition, CLOVA OCR, Korea Exim API, SMTP
@@ -62,7 +62,7 @@ RDS는 Multi-AZ 기반 Primary/Standby 구조로 구성해 장애 발생 시 자
 
 ### 3-1. 핵심 기술 소개
 
-<img width="1338" height="700" alt="스크린샷 2026-06-17 오전 12 58 31" src="https://github.com/user-attachments/assets/cd5742cd-d404-49c7-9d3f-1d4783fe44b0" />
+<img width="1228" height="663" alt="스크린샷 2026-06-17 오전 11 47 46" src="https://github.com/user-attachments/assets/b5f837d8-f511-4a8b-a481-b2fd88faa863" />
 
 
 - 비대면 KYC: 여권 OCR, 외국인등록증 OCR, liveness, Government DB 검증을 조합해 신원 인증 단계를 구성했습니다.
@@ -73,7 +73,8 @@ RDS는 Multi-AZ 기반 Primary/Standby 구조로 구성해 장애 발생 시 자
 
 ### 3-2. 통합 워크플로우 다이어그램
 
-<img width="1105" height="411" alt="스크린샷 2026-06-17 오전 12 58 49" src="https://github.com/user-attachments/assets/4698fbcb-1b93-4154-9d4b-4e1b17176ec4" />
+<img width="1362" height="498" alt="서비스 워크플로우" src="https://github.com/user-attachments/assets/bb7c116a-27cf-47f1-998f-f7b85abbaad2" />
+
 
 
 서비스 진입 후 사용자는 회원가입과 로그인을 거쳐 인증서 발급을 수행합니다. 인증서가 발급되면 제한 계좌를 생성할 수 있고, 제한 계좌 상태에서는 이체, 거래 조회, 간편 결제 충전 같은 기본 금융 기능을 사용할 수 있습니다. 외국인등록증을 등록해 Government DB 검증을 통과하면 해외송금과 한도 해제 같은 확장 금융 기능으로 이어집니다.
