@@ -27,7 +27,7 @@ NOVA는 외국인등록증 발급 전 금융 공백을 겪는 외국인을 위�
 
 ### 2-1. 시스템 아키텍처
 
-<img width="1078" height="692" alt="스크린샷 2026-06-17 오전 12 57 25" src="https://github.com/user-attachments/assets/4b16c877-49ed-4bd5-ba0d-3830eba6075b" />
+<img width="1077" height="690" alt="스크린샷 2026-06-17 오전 9 02 37" src="https://github.com/user-attachments/assets/b96f4f49-e41a-4521-b075-fe16f40f6fae" />
 
 
 NOVA는 사용자 접근 계층은 클라우드에 두고, 금융 원장과 정부 신원 DB는 온프레미스 경계 안에 분리한 하이브리드 아키텍처 구조입니다.
