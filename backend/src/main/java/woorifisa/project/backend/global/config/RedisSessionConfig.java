@@ -14,8 +14,8 @@ import tools.jackson.databind.ObjectMapper;
 @Configuration
 @EnableRedisHttpSession(
         redisNamespace = "nova:session",
-        flushMode = FlushMode.IMMEDIATE,
-        saveMode = SaveMode.ALWAYS
+        flushMode = FlushMode.ON_SAVE,
+        saveMode = SaveMode.ON_SET_ATTRIBUTE
 )
 public class RedisSessionConfig {
 

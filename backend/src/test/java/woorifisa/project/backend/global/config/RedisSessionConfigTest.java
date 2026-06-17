@@ -10,7 +10,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.session.FlushMode;
+import org.springframework.session.SaveMode;
 import org.springframework.session.config.SessionRepositoryCustomizer;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.CookieSerializer.CookieValue;
 
@@ -41,5 +44,14 @@ class RedisSessionConfigTest {
                 .filter(method -> method.getReturnType().equals(ApplicationRunner.class)
                         || method.getReturnType().equals(SessionRepositoryCustomizer.class)))
                 .isEmpty();
+    }
+
+    @Test
+    @DisplayName("Redis Session은 변경된 세션만 요청 종료 시 저장하도록 설정한다")
+    void redisSessionConfigDefersWritesUntilRequestCommitAndChangedAttributes() {
+        EnableRedisHttpSession annotation = RedisSessionConfig.class.getAnnotation(EnableRedisHttpSession.class);
+
+        assertThat(annotation.flushMode()).isEqualTo(FlushMode.ON_SAVE);
+        assertThat(annotation.saveMode()).isEqualTo(SaveMode.ON_SET_ATTRIBUTE);
     }
 }

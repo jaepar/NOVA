@@ -14,7 +14,7 @@ spring:
     redis:
       namespace: nova:session
       flush-mode: on_save
-      save-mode: always
+      save-mode: on_set_attribute
 
 server:
   tomcat:
