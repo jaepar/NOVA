@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { MobileLayout } from '../../components/layout/MobileLayout'
@@ -22,6 +22,7 @@ interface SuccessProps {
   onButtonClick?: () => void
   redirectPath?: string
   headerType?: 'back' | 'none'
+  topContent?: ReactNode
 }
 
 export function Success({
@@ -40,6 +41,7 @@ export function Success({
   descriptionKey,
   visualImageAltKey,
   buttonTextKey,
+  topContent,
 }: SuccessProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -70,23 +72,28 @@ export function Success({
         </Btn_1Col>
       }
     >
-      <CenteredTaskContent
-        task={task}
-        taskKey={taskKey}
-        description={description}
-        descriptionKey={descriptionKey}
-        contentGapClassName="gap-3"
-      >
-        {visualImageSrc ? (
-          <img
-            src={visualImageSrc}
-            alt={resolvedVisualImageAlt}
-            className="h-56 w-56 object-contain"
-          />
-        ) : (
-          <SuccessBurstVisual label={resolvedVisualImageAlt} />
-        )}
-      </CenteredTaskContent>
+      <div className="flex h-full flex-col">
+        {topContent}
+        <div className="min-h-0 flex-1">
+          <CenteredTaskContent
+            task={task}
+            taskKey={taskKey}
+            description={description}
+            descriptionKey={descriptionKey}
+            contentGapClassName="gap-3"
+          >
+            {visualImageSrc ? (
+              <img
+                src={visualImageSrc}
+                alt={resolvedVisualImageAlt}
+                className="h-56 w-56 object-contain"
+              />
+            ) : (
+              <SuccessBurstVisual label={resolvedVisualImageAlt} />
+            )}
+          </CenteredTaskContent>
+        </div>
+      </div>
     </MobileLayout>
   )
 }

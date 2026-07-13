@@ -16,6 +16,12 @@
     agreeAndContinue: "동의하고 계속하기",
     goHome: "홈으로 이동",
   },
+  demoVerification: {
+    cameraCaption: "카메라 화면에 얼굴을 맞춰 주세요.",
+    removeFile: "첨부 파일 삭제",
+    ocrFailed: "여권의 기계 판독 영역을 인식하지 못했습니다. 다시 촬영해 주세요.",
+    nfcSuccess: "NFC 태깅을 완료했어요. 다음 단계로 이동합니다.",
+  },
   sideMenu: {
     title: "메뉴",
     profile: "프로필",

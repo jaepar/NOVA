@@ -12,6 +12,7 @@ import { transferRoutes } from "./transferRoutes";
 import { foreignerCardRoutes } from "./foreignerCardRoutes";
 import { accountRoutes } from "./accountRoutes";
 import { transactionHistoryRoutes } from "./transactionHistoryRoutes";
+import { demoVerificationRoutes } from "./demoVerificationRoutes";
 import { lazyComponent } from "./lazyRoute";
 
 export const appRoutes: RouteObject[] = [
@@ -27,6 +28,7 @@ export const appRoutes: RouteObject[] = [
   ...accountRoutes,
   ...transactionHistoryRoutes,
   ...certificateRoutes,
+  ...demoVerificationRoutes,
   ...commonTemplateRoutes,
   { path: "*", lazy: lazyComponent(() => import("../pages/common/NotFound"), "NotFound") },
 ];
