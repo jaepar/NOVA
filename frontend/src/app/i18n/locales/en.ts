@@ -16,6 +16,12 @@ export const en = {
     agreeAndContinue: 'Agree and continue',
     goHome: 'Go Home',
   },
+  demoVerification: {
+    cameraCaption: 'Position your face within the camera frame.',
+    removeFile: 'Remove attached file',
+    ocrFailed: 'Could not recognize the passport machine-readable zone. Please retake the photo.',
+    nfcSuccess: 'NFC tagging is complete. Moving to the next step.',
+  },
   sideMenu: {
     title: 'Menu',
     profile: 'Profile',

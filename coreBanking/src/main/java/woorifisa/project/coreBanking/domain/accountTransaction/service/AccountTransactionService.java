@@ -119,7 +119,7 @@ public class AccountTransactionService {
             return;
         }
 
-        // 출금 계좌를 찾는 로직 -> 해당 계좌에 Lock을 걸음
+        // 출금 계좌를 찾는 로직 -> 출금 계좌에 Lock을 걸음
         Account withdrawAccount = accountRepository.findByAccountNumber(request.withdrawAccountId())
                 .orElseThrow(() -> new CustomException(ACCOUNT_TRANSFER_WITHDRAW_ACCOUNT_NOT_FOUND));
 
@@ -128,7 +128,7 @@ public class AccountTransactionService {
             return;
         }
 
-        // 입금 계좌 db 조회
+        // 입금 계좌 db 조회 -> 입금 계좌에 Lock 걸음
         Account depositAccount = accountRepository.findByAccountNumber(request.depositAccountId())
                 .orElseThrow(() -> new CustomException(ACCOUNT_TRANSFER_DEPOSIT_ACCOUNT_NOT_FOUND));
 
