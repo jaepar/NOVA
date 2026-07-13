@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Radio, Smartphone } from 'lucide-react'
 import { Btn_1Col } from '../../components/design-system/Btn_1Col'
@@ -15,43 +15,30 @@ export function DemoNfcTagging() {
   const [isScanning, setIsScanning] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [statusVariant, setStatusVariant] = useState<BannerVariant>('info')
+  const timerIdsRef = useRef<number[]>([])
+
+  useEffect(
+    () => () => {
+      timerIdsRef.current.forEach((timerId) => window.clearTimeout(timerId))
+    },
+    [],
+  )
 
   const finishTagging = () => {
     setStatusMessage(t('demoVerification.nfcSuccess'))
     setStatusVariant('success')
-    window.setTimeout(() => navigate('/demo/verification/liveness-guide'), 700)
+    timerIdsRef.current.push(
+      window.setTimeout(() => navigate('/demo/verification/liveness-guide'), 700),
+    )
   }
 
-  const handleStartNfcTagging = async () => {
+  const handleStartNfcTagging = () => {
     if (isScanning) return
 
     setIsScanning(true)
     setStatusMessage(t('certificate.nfcWaiting'))
     setStatusVariant('info')
-
-    if (!('NDEFReader' in window)) {
-      window.setTimeout(finishTagging, 1800)
-      return
-    }
-
-    try {
-      const reader = new NDEFReader()
-      reader.onreading = () => finishTagging()
-      reader.onreadingerror = () => {
-        setStatusMessage(t('certificate.nfcReadFailed'))
-        setStatusVariant('error')
-        setIsScanning(false)
-      }
-      await reader.scan()
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'NotAllowedError') {
-        setStatusMessage(t('certificate.nfcPermissionDenied'))
-      } else {
-        setStatusMessage(t('certificate.nfcReadFailed'))
-      }
-      setStatusVariant('error')
-      setIsScanning(false)
-    }
+    timerIdsRef.current.push(window.setTimeout(finishTagging, 1100))
   }
 
   return (
@@ -59,7 +46,7 @@ export function DemoNfcTagging() {
       title={t('certificate.title')}
       backPath="/demo/verification/passport-ocr"
       bottomContent={
-        <Btn_1Col onClick={() => void handleStartNfcTagging()} disabled={isScanning}>
+        <Btn_1Col onClick={handleStartNfcTagging} disabled={isScanning}>
           {isScanning ? t('certificate.nfcTagging') : t('certificate.nfcTagStart')}
         </Btn_1Col>
       }

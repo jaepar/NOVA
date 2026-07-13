@@ -123,16 +123,19 @@ function SuccessBurstVisual({ label }: { label: string }) {
           className={`flex h-[104px] w-[104px] items-center justify-center rounded-full bg-[#EAF3FF] ${
             isComplete ? 'animate-[nova-success-ring-pop_520ms_cubic-bezier(0.2,0.9,0.2,1)_both]' : 'animate-[nova-success-ring-wait_900ms_ease-in-out_infinite]'
           }`}
+          style={{ backgroundColor: 'var(--success-visual-outer, #EAF3FF)' }}
         >
           <div
-            className="flex h-[78px] w-[78px] items-center justify-center rounded-full bg-[#DCEBFF]"
+            className="flex h-[78px] w-[78px] items-center justify-center rounded-full"
+            style={{ backgroundColor: 'var(--success-visual-inner, #DCEBFF)' }}
           >
             <Check
-              className={`h-14 w-14 stroke-[4.5] text-[#1D6FE8] ${
+              className={`h-14 w-14 stroke-[4.5] ${
                 isComplete
                   ? 'nova-success-check animate-[nova-success-check-pop_520ms_cubic-bezier(0.2,0.9,0.2,1)_both]'
                   : 'scale-50 opacity-0'
               }`}
+              style={{ color: 'var(--success-visual-check, #1D6FE8)' }}
             />
           </div>
         </div>

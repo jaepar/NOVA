@@ -144,7 +144,7 @@ export function DemoLivenessCamera() {
             <>
               <div className="pointer-events-none absolute inset-[16%] rounded-[48%] border-2 border-white/90 shadow-[0_0_0_999px_rgba(0,0,0,0.18)]" />
               {status === 'scanning' && (
-                <div className="pointer-events-none absolute left-[22%] right-[22%] top-1/2 h-0.5 animate-pulse bg-primary-light shadow-[0_0_12px_rgba(47,128,237,0.9)]" />
+                <div className="pointer-events-none absolute left-[22%] right-[22%] top-1/2 h-0.5 animate-pulse bg-primary-light shadow-[0_0_12px_rgba(0,199,169,0.9)]" />
               )}
               {status === 'complete' && (
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-primary/15">
