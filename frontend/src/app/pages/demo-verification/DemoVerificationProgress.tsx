@@ -56,7 +56,9 @@ export function DemoVerificationProgress({ currentStep }: DemoVerificationProgre
         })}
       </div>
 
-      <div className="mt-1 text-right text-xs font-medium text-[#a2a4b5]">5/5</div>
+      <div className="mt-1 h-4 text-right text-xs font-medium text-[#a2a4b5]">
+        {currentStep < totalStepCount ? `${totalStepCount}/${totalStepCount}` : null}
+      </div>
     </div>
   )
 }
