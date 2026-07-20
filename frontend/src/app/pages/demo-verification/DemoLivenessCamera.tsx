@@ -90,7 +90,7 @@ export function DemoLivenessCamera() {
   const handleClose = () => {
     clearTimers()
     stopCamera()
-    navigate('/demo/verification/liveness-guide')
+    navigate('/demo/verification')
   }
 
   return (
@@ -98,7 +98,7 @@ export function DemoLivenessCamera() {
       title={t('certificate.title')}
       headerType="close"
       onClose={handleClose}
-      closePath="/demo/verification/liveness-guide"
+      closePath="/demo/verification"
       bottomContent={
         status === 'ready' ? (
           <Btn_1Col onClick={startDemoVerification}>

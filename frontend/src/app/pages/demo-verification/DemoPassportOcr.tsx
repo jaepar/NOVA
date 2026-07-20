@@ -285,7 +285,7 @@ export function DemoPassportOcr() {
   return (
     <CameraCapturePage
       title={t('certificate.title')}
-      onClose={() => navigate('/demo/verification/passport-guide')}
+      onClose={() => navigate('/demo/verification')}
       headerBackgroundColor="#ffffff"
       headerTextColor="#000000"
       bottomBackgroundColor="#ffffff"

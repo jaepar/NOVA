@@ -32,7 +32,12 @@ const LazyResidenceCardRequiredSheetContent = lazy(async () => {
   return { default: module.ResidenceCardRequiredSheetContent }
 })
 
-export function BottomNav() {
+interface BottomNavProps {
+  homePath?: string
+  onItemClick?: (itemId: string) => boolean | void
+}
+
+export function BottomNav({ homePath = '/main', onItemClick }: BottomNavProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { t } = useTranslation()
@@ -52,6 +57,10 @@ export function BottomNav() {
   }
 
   const handleNavClick = async (item: NavItem) => {
+    if (onItemClick?.(item.id) === false) {
+      return
+    }
+
     if (item.id !== 'transfer') {
       navigate(item.path)
       return
@@ -91,7 +100,8 @@ export function BottomNav() {
         }}
       >
         <div className="flex items-center justify-around">
-          {navItems.map((item) => {
+          {navItems.map((navItem) => {
+            const item = navItem.id === 'home' ? { ...navItem, path: homePath } : navItem
             const isActive =
               item.path === '/global-transfer'
                 ? location.pathname === item.path || location.pathname.startsWith('/global-transfer/')

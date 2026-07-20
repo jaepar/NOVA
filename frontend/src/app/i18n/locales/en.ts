@@ -17,6 +17,7 @@ export const en = {
     goHome: 'Go Home',
   },
   demoVerification: {
+    unfinishedFeature: 'This feature is not yet available.',
     cameraCaption: 'Position your face within the camera frame.',
     removeFile: 'Remove attached file',
     ocrFailed: 'Could not recognize the passport machine-readable zone. Please retake the photo.',

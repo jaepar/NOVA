@@ -17,6 +17,7 @@
     goHome: "홈으로 이동",
   },
   demoVerification: {
+    unfinishedFeature: "미완성 기능입니다.",
     cameraCaption: "카메라 화면에 얼굴을 맞춰 주세요.",
     removeFile: "첨부 파일 삭제",
     ocrFailed: "여권의 기계 판독 영역을 인식하지 못했습니다. 다시 촬영해 주세요.",

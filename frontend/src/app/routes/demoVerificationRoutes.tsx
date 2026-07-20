@@ -1,8 +1,12 @@
-import type { RouteObject } from 'react-router-dom'
+import { Navigate, type RouteObject } from 'react-router-dom'
 import { DemoVerificationTheme } from '../pages/demo-verification/DemoVerificationTheme'
 import { lazyComponent } from './lazyRoute'
 
 export const demoVerificationRoutes: RouteObject[] = [
+  {
+    path: '/demo',
+    element: <Navigate to="/demo/verification" replace />,
+  },
   {
     path: '/demo/verification',
     element: <DemoVerificationTheme />,
@@ -10,8 +14,8 @@ export const demoVerificationRoutes: RouteObject[] = [
       {
         index: true,
         lazy: lazyComponent(
-          () => import('../pages/demo-verification/DemoDocumentUpload'),
-          'DemoDocumentUpload',
+          () => import('../pages/demo-verification/DemoHome'),
+          'DemoHome',
         ),
       },
       {
