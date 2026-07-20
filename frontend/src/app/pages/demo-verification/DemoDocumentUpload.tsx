@@ -72,7 +72,7 @@ export function DemoDocumentUpload() {
     <MobileLayout
       title={t('certificate.title')}
       headerType="close"
-      closePath="/"
+      closePath="/demo/verification"
       bottomContent={
         <Btn_1Col
           disabled={!isAllAttached}
